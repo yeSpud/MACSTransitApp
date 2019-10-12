@@ -4,6 +4,11 @@ import androidx.fragment.app.FragmentActivity;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.SubMenu;
+import android.widget.Button;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -46,6 +51,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 	 */
 	private RouteMatch routeMatch = new RouteMatch("fnsb", "https://fnsb.routematch.com/feed/vehicle/byRoutes/", this.routes);
 
+
 	public static double[] getLatLong(JSONObject jsonObject) {
 		try {
 			//System.out.println(jsonObject.toString());
@@ -62,6 +68,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 		}
 	}
 
+	/**
+	 * Gets called every time the user presses the menu button.
+	 * Use if your menu is dynamic.
+	 */
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		menu.clear();
+
+		for (String string : routes) {
+			menu.add(0, Menu.NONE, Menu.NONE, string);
+
+		}
+		menu.setGroupCheckable(0, true, false);
+		return super.onPrepareOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+
+		item.setChecked(!item.isChecked());
+
+		return super.onOptionsItemSelected(item);
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -76,20 +106,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 	@Override
 	protected void onResume() {
 		super.onResume();
-		// TODO
 		// Here is where I want to start (or restart as the case may be) the loop to check for position updates
 		// This is mostly for data saving measures
 		this.run = true;
-
 		this.thread().start();
-
-
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		// TODO
 		// Here is where I want to stop the update cycle that queries the routematch server
 		this.run = false;
 	}
@@ -122,8 +147,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 	}
 
 
-	/*
-	Thread stuff beyond here. You have been warned
+	/**
+	 * This is the update thread. It updates the positions of the routes ever 3 seconds
+	 *
+	 * @return The thread object.
 	 */
 	private Thread thread() {
 		Thread t = new Thread(() -> {
@@ -137,27 +164,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 				}
 
 				try {
-					JSONArray array = this.routeMatch.getRoute("Blue").getJSONArray("data");
+					for (String routes : this.routes) {
+						JSONArray array = this.routeMatch.getRoute(routes).getJSONArray("data");
 
-					//Log.i("object", object.toString());
-					for (int i = 0; i < array.length(); i++) {
-						JSONObject object = array.getJSONObject(i);
-						final double[] latlong = getLatLong(object);
-						if (latlong != null) {
-							runOnUiThread(() -> {
-								Marker marker = this.map.addMarker(new MarkerOptions().position(new LatLng(latlong[0], latlong[1])).title("Blue"));
-								marker.setVisible(true);
-								this.markers.add(marker);
-							});
+						//Log.i("object", object.toString());
+						for (int i = 0; i < array.length(); i++) {
+							JSONObject object = array.getJSONObject(i);
+							final double[] latlong = getLatLong(object);
+							if (latlong != null) {
+								runOnUiThread(() -> {
+									Marker marker = this.map.addMarker(new MarkerOptions().position(new LatLng(latlong[0], latlong[1])).title(routes));
+									//marker.setFlat(true);
+									//marker.setIcon();
+									marker.setVisible(true);
+									this.markers.add(marker);
+								});
+							}
+
 						}
-
 					}
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}
 
 				try {
-					Thread.sleep(3000);
+					Thread.sleep(4000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
