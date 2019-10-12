@@ -1,0 +1,5 @@
+Example URL: https://fnsb.routematch.com/feed/departures/byStop/141%20-%20Aurora%20Dr%20%40%20Bridgewater%20Dr
+
+Converted end url: 141 - Aurora Dr @ Bridgewater Dr
+
+Just search from URL: https://fnsb.routematch.com/feed/vehicle/byRoutes/Blue
