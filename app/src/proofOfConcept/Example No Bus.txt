@@ -1,9 +1,0 @@
-{
-    "data": [],
-    "feedVersion": "4.7",
-    "fromCache": false,
-    "predicate": "['masterRouteId','timeHorizon']",
-    "subject": "{ masterRouteId='Blue', timeHorizon=30}",
-    "time": "2019-10-11T22:09:12.392-08:00",
-    "type": "vehicle"
-}
