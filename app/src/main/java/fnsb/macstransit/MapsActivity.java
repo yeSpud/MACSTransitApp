@@ -15,6 +15,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 	private GoogleMap mMap;
 
+	// Create the string list of routes
+	private String[] routes = new String[]{"Red", "Blue", "Yellow", "Gold", "Brown"};
+
+	// Create an instance of routematch
+	private RouteMatch routeMatch = new RouteMatch("fnsb", "https://fnsb.routematch.com/feed/vehicle/byRoutes/", this.routes);
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -22,7 +28,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 		// Obtain the SupportMapFragment and get notified when the map is ready to be used.
 		SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
 				.findFragmentById(R.id.map);
+		assert mapFragment != null;
 		mapFragment.getMapAsync(this);
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		// TODO
+		// Here is where I want to start (or restart as the case may be) the loop to check for position updates
+		// This is mostly for data saving measures
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		// TODO
+		// Here is where I want to stop the update cycle that queries the routematch server
 	}
 
 
@@ -40,8 +62,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 		mMap = googleMap;
 
 		// Add a marker in Sydney and move the camera
-		LatLng sydney = new LatLng(-34, 151);
-		mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-		mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+		LatLng home = new LatLng(64.8391975, -147.7684709);
+		//mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+		mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(home, 11.0f));
 	}
 }
