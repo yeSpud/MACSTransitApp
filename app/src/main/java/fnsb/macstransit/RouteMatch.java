@@ -5,11 +5,6 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
@@ -21,19 +16,19 @@ public class RouteMatch {
 	/**
 	 * Name of the route
 	 */
-	String name;
+	private String name;
 
 	/**
 	 * The url to pull route data from
 	 * <p>
 	 * https://fnsb.routematch.com/feed/vehicle/byRoutes/
 	 */
-	String url;
+	private String url;
 
 	/**
 	 * The bus lines in the route
 	 */
-	Route[] lines;
+	private Route[] lines;
 
 	public RouteMatch(String name, String url, Route[] lines) {
 		this.name = name;
@@ -49,7 +44,7 @@ public class RouteMatch {
 	 */
 	public JSONObject getRoute(String routeName) {
 		try {
-			// JSONObject blue = readJsonFromUrl("https://fnsb.routematch.com/feed/vehicle/byRoutes/Red");
+			// Example usage: readJsonFromUrl("https://fnsb.routematch.com/feed/vehicle/byRoutes/Red");
 			return this.readJsonFromUrl(this.url + routeName);
 		} catch (IOException | JSONException e) {
 			// If there is an error, be sure to include the stacktrace
@@ -91,10 +86,10 @@ public class RouteMatch {
 	private JSONObject readJsonFromUrl(String url) throws IOException, JSONException {
 
 		// Open an input stream using the URL
-		try (InputStream inputStream = new URL(url).openStream()) {
+		try (java.io.InputStream inputStream = new java.net.URL(url).openStream()) {
 
 			// Create a buffered reader for the input stream
-			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+			BufferedReader bufferedReader = new BufferedReader(new java.io.InputStreamReader(inputStream, java.nio.charset.StandardCharsets.UTF_8));
 
 			// Store the inputted text into a string variable
 			String jsonString = this.readAll(bufferedReader);
@@ -111,7 +106,7 @@ public class RouteMatch {
 	 * @return The final string from the String builder containing what was read by the Reader.
 	 * @throws IOException Throws an IOException if anything goes wrong.
 	 */
-	private String readAll(Reader reader) throws IOException {
+	private String readAll(java.io.Reader reader) throws IOException {
 
 		// Create a string to store what is read by the reader
 		StringBuilder string = new StringBuilder();
