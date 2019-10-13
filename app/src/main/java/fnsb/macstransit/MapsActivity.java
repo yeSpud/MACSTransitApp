@@ -12,6 +12,8 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -237,14 +239,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 				// Update the markers position to the new LatLong
 				marker.setPosition(latLng);
 				marker.setTitle(bus.route.routeName);
+				if (bus.route.getColor() != 0) {
+					marker.setIcon(this.getMarkerIcon(bus.route.getColor()));
+				}
 				marker.setVisible(true);
 				bus.setMarker(marker);
 			} else {
 				Marker newMarker = this.map.addMarker(new MarkerOptions().position(latLng));
 				newMarker.setTitle(bus.route.routeName);
+				if (bus.route.getColor() != 0) {
+					newMarker.setIcon(this.getMarkerIcon(bus.route.getColor()));
+				}
 				newMarker.setVisible(true);
 				bus.setMarker(newMarker);
 			}
 		}
+	}
+
+
+	private BitmapDescriptor getMarkerIcon(int color) {
+		float[] hsv = new float[3];
+		Color.colorToHSV(color, hsv);
+		return BitmapDescriptorFactory.defaultMarker(hsv[0]);
 	}
 }
