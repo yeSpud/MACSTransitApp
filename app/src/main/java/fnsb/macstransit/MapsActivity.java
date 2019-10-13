@@ -169,16 +169,16 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 					// Update the markers position to the new LatLong
 					marker.setPosition(latLng);
 					marker.setTitle(bus.route.routeName);
-					if (bus.route.getColor() != 0) {
-						marker.setIcon(this.getMarkerIcon(bus.route.getColor()));
+					if (bus.route.color != 0) {
+						marker.setIcon(this.getMarkerIcon(bus.route.color));
 					}
 					marker.setVisible(true);
 					bus.setMarker(marker);
 				} else {
 					Marker newMarker = this.map.addMarker(new MarkerOptions().position(latLng));
 					newMarker.setTitle(bus.route.routeName);
-					if (bus.route.getColor() != 0) {
-						newMarker.setIcon(this.getMarkerIcon(bus.route.getColor()));
+					if (bus.route.color != 0) {
+						newMarker.setIcon(this.getMarkerIcon(bus.route.color));
 					}
 					newMarker.setVisible(true);
 					bus.setMarker(newMarker);

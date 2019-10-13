@@ -8,51 +8,35 @@ package fnsb.macstransit;
 public class Route {
 
 	/**
-	 * TODO Documentation
+	 * The name of the route.
 	 */
 	public String routeName;
 
 	/**
-	 * TODO Documentation
+	 * The color of the route. This is optional, as there is a high chance that the route does not have one.
+	 * <p>
+	 * This is an int instead of a Color object because for whatever reason android stores its colors as ints.
 	 */
-	private int color;
+	public int color;
 
 	/**
-	 * TODO Documentation
+	 * Constructor for the route. The name of the route is the only thing that is required.
 	 *
-	 * @param routeName
+	 * @param routeName The name of the route.
 	 */
 	public Route(String routeName) {
 		this.routeName = routeName;
 	}
 
 	/**
-	 * TODO Documentation
+	 * Constructor for the route. The name of the route is the only thing that is required.
 	 *
-	 * @param routeName
-	 * @param color
+	 * @param routeName The name of the route.
+	 * @param color     The routes color. This is optional,
+	 *                  and of the color is non-existent simply use the {@code Route(String routeName)} constrctor.
 	 */
 	public Route(String routeName, int color) {
 		this(routeName);
 		this.color = color;
 	}
-
-	/**
-	 * TODO Documentation
-	 *
-	 * @return
-	 */
-	public int getColor() {
-		return this.color;
-	}
-
-	/**
-	 * TODO Documentaiton
-	 *
-	 * @param color
-	 */
-	public void setColor(int color) {
-		this.color = color;
-	}
-
 }
