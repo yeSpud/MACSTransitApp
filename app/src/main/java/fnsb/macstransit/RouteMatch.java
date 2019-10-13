@@ -33,9 +33,9 @@ public class RouteMatch {
 	/**
 	 * The bus lines in the route
 	 */
-	String[] lines;
+	Route[] lines;
 
-	public RouteMatch(String name, String url, String[] lines) {
+	public RouteMatch(String name, String url, Route[] lines) {
 		this.name = name;
 		this.url = url;
 		this.lines = lines;
@@ -44,13 +44,13 @@ public class RouteMatch {
 	/**
 	 * Gets the route data from the url provided in the constructor.
 	 *
-	 * @param route The route to get the pertaining data from.
+	 * @param routeName The name of the route to get the pertaining data from.
 	 * @return The JSONObject pertaining to that specific route's data.
 	 */
-	public JSONObject getRoute(String route) {
+	public JSONObject getRoute(String routeName) {
 		try {
 			// JSONObject blue = readJsonFromUrl("https://fnsb.routematch.com/feed/vehicle/byRoutes/Red");
-			return this.readJsonFromUrl(this.url + route);
+			return this.readJsonFromUrl(this.url + routeName);
 		} catch (IOException | JSONException e) {
 			// If there is an error, be sure to include the stacktrace
 			e.printStackTrace();
@@ -74,7 +74,7 @@ public class RouteMatch {
 		for (int index = 0; index < jsonObjects.length; index++) {
 
 			// Retrieve the current lines route, and store it into the JSONObject array
-			jsonObjects[index] = this.getRoute(this.lines[index]);
+			jsonObjects[index] = this.getRoute(this.lines[index].routeName);
 		}
 
 		// Return the final JSONObject array

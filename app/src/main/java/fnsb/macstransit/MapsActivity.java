@@ -1,14 +1,12 @@
 package fnsb.macstransit;
 
-import androidx.fragment.app.FragmentActivity;
-
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.SubMenu;
-import android.widget.Button;
+
+import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -23,18 +21,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
 	/**
 	 * A boolean to check where or not to run the update thread
 	 */
-	public boolean run = false;
-
-	/**
-	 * Create an array to store all the markers for the buses
-	 */
-	ArrayList<Marker> markers = new ArrayList<>();
+	private boolean run = false;
 
 	/**
 	 * Create our map object
@@ -44,17 +38,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 	/**
 	 * Create a string array of all the routes
 	 */
-	private String[] routes = new String[]{"Blue", "Brown", "Gold", "Green", "Purple", "Red", "Yellow"};
+	private Route[] routes = new Route[]{new Route("Yellow", Color.rgb(254, 255, 2)),
+			new Route("Blue", Color.rgb(68, 114, 196)),
+			new Route("Red", Color.rgb(245, 21, 19)),
+			new Route("Brown", Color.rgb(127, 96, 0)),
+			new Route("Gold", Color.rgb(255, 221, 0)),
+			new Route("Green", Color.rgb(112, 173, 71)),
+			new Route("Purple", Color.rgb(139, 3, 255))};
 
 	/**
 	 * Create an instance of the route match object
 	 */
 	private RouteMatch routeMatch = new RouteMatch("fnsb", "https://fnsb.routematch.com/feed/vehicle/byRoutes/", this.routes);
 
+	//private ArrayList<Route> selectedRoutes = new ArrayList<>();
 
+	private ArrayList<Bus> buses = new ArrayList<>();
+
+	@Deprecated
 	public static double[] getLatLong(JSONObject jsonObject) {
 		try {
-			//System.out.println(jsonObject.toString());
 			Log.d("getLatLong", "Full object: " + jsonObject.toString());
 			String lat = jsonObject.getString("latitude");
 			Log.d("Latitude", lat);
@@ -73,11 +76,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 	 * Use if your menu is dynamic.
 	 */
 	@Override
-	public boolean onPrepareOptionsMenu(Menu menu) {
+	public boolean onPrepareOptionsMenu(Menu menu) { // FIXME
 		menu.clear();
 
-		for (String string : routes) {
-			menu.add(0, Menu.NONE, Menu.NONE, string);
+		for (Route route : this.routes) {
+			MenuItem item = menu.add(0, Menu.NONE, Menu.NONE, route.routeName);
 
 		}
 		menu.setGroupCheckable(0, true, false);
@@ -85,22 +88,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-
+	public boolean onOptionsItemSelected(MenuItem item) { // FIXME
+		super.onOptionsItemSelected(item);
 		item.setChecked(!item.isChecked());
-
-		return super.onOptionsItemSelected(item);
+		return false;
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_maps);
+
 		// Obtain the SupportMapFragment and get notified when the map is ready to be used.
-		SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-				.findFragmentById(R.id.map);
-		assert mapFragment != null;
-		mapFragment.getMapAsync(this);
+		((SupportMapFragment) Objects.requireNonNull(this.getSupportFragmentManager()
+				.findFragmentById(R.id.map))).getMapAsync(this);
 	}
 
 	@Override
@@ -122,7 +123,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		// TODO
 		// Here is where I want to stop the update cycle that queries the routematch server
 		this.run = false;
 	}
@@ -138,11 +138,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 	 */
 	@Override
 	public void onMapReady(GoogleMap googleMap) {
-		map = googleMap;
+		this.map = googleMap;
 
-		// Add a marker in Sydney and move the camera
+		// Move the camera to the 'home' position
 		LatLng home = new LatLng(64.8391975, -147.7684709);
-		//map.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
 		map.moveCamera(CameraUpdateFactory.newLatLngZoom(home, 11.0f));
 	}
 
@@ -159,28 +158,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 			while (this.run && !Thread.interrupted()) {
 
-				for (Marker marker : this.markers) {
-					runOnUiThread(marker::remove);
-				}
-
 				try {
-					for (String routes : this.routes) {
-						JSONArray array = this.routeMatch.getRoute(routes).getJSONArray("data");
+					for (Route route : this.routes) {
+						JSONArray array = this.routeMatch.getRoute(route.routeName).getJSONArray("data");
 
-						//Log.i("object", object.toString());
+						Log.i("Full data", array.toString());
 						for (int i = 0; i < array.length(); i++) {
 							JSONObject object = array.getJSONObject(i);
-							final double[] latlong = getLatLong(object);
-							if (latlong != null) {
-								runOnUiThread(() -> {
-									Marker marker = this.map.addMarker(new MarkerOptions().position(new LatLng(latlong[0], latlong[1])).title(routes));
-									//marker.setFlat(true);
-									//marker.setIcon();
-									marker.setVisible(true);
-									this.markers.add(marker);
-								});
+
+							// Create a bus object form the data
+							Bus bus = new Bus(object.getString("vehicleId"), route);
+							try {
+								bus.heading = Heading.valueOf(object.getString("headingName"));
+							} catch (IllegalArgumentException e) {
+								bus.heading = Heading.NORTH;
+							}
+							bus.latitude = object.getDouble("latitude");
+							bus.longitude = object.getDouble("longitude");
+							bus.color = route.getColor();
+
+
+							// Search the current array of buses for that bus ID
+							// If it exists, update its lat and long, and heading.
+							// If it doesn't exist, add it.
+							boolean found = false;
+							for (Bus busCheck : this.buses) {
+								if (bus.busID.equals(busCheck.busID)) {
+									found = true;
+									busCheck.heading = bus.heading;
+									busCheck.route = bus.route;
+									busCheck.latitude = bus.latitude;
+									busCheck.longitude = bus.longitude;
+									busCheck.color = bus.color;
+									break;
+								}
 							}
 
+							if (!found) {
+								this.buses.add(bus);
+							}
+
+							// Update the bus markers
+							runOnUiThread(this::updateBusMarkers);
 						}
 					}
 				} catch (JSONException e) {
@@ -203,5 +222,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 		return t;
 
+	}
+
+	private void updateBusMarkers() {
+		for (Bus bus : this.buses) {
+
+			// Get the old marker
+			Marker marker = bus.getMarker();
+
+			// Get the current LatLng of the bus
+			LatLng latLng = new LatLng(bus.latitude, bus.longitude);
+
+			if (marker != null) {
+				// Update the markers position to the new LatLong
+				marker.setPosition(latLng);
+				marker.setTitle(bus.route.routeName);
+				marker.setVisible(true);
+				bus.setMarker(marker);
+			} else {
+				Marker newMarker = this.map.addMarker(new MarkerOptions().position(latLng));
+				newMarker.setTitle(bus.route.routeName);
+				newMarker.setVisible(true);
+				bus.setMarker(newMarker);
+			}
+		}
 	}
 }
