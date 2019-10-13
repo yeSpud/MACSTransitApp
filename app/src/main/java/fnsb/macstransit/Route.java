@@ -7,23 +7,50 @@ package fnsb.macstransit;
  */
 public class Route {
 
+	/**
+	 * TODO Documentation
+	 */
 	public String routeName;
 
+	/**
+	 * TODO Documentation
+	 */
 	private int color;
 
+	/**
+	 * TODO Documentation
+	 *
+	 * @param routeName
+	 */
 	public Route(String routeName) {
 		this.routeName = routeName;
 	}
 
+	/**
+	 * TODO Documentation
+	 *
+	 * @param routeName
+	 * @param color
+	 */
 	public Route(String routeName, int color) {
+		this(routeName);
 		this.color = color;
-		this.routeName = routeName;
 	}
 
+	/**
+	 * TODO Documentation
+	 *
+	 * @return
+	 */
 	public int getColor() {
 		return this.color;
 	}
 
+	/**
+	 * TODO Documentaiton
+	 *
+	 * @param color
+	 */
 	public void setColor(int color) {
 		this.color = color;
 	}
