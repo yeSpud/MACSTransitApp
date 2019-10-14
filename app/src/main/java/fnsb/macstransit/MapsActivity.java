@@ -3,18 +3,11 @@ package fnsb.macstransit;
 import android.graphics.Color;
 import android.view.Menu;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
 
 public class MapsActivity extends androidx.fragment.app.FragmentActivity implements com.google.android.gms.maps.OnMapReadyCallback {
 
@@ -55,7 +48,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * TODO Documentation
 	 */
-	private UpdateThread thread = new UpdateThread(this);
+	private UpdateThread thread = new UpdateThread(this, 4000);
 
 	/**
 	 * Gets called every time the user presses the menu button.
@@ -76,6 +69,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		return super.onPrepareOptionsMenu(menu);
 	}
 
+	/**
+	 * TODO Documentation
+	 *
+	 * @param item
+	 * @return
+	 */
 	@Override
 	public boolean onOptionsItemSelected(android.view.MenuItem item) {
 		// FIXME
@@ -100,12 +99,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		setContentView(R.layout.activity_maps);
 
 		// Obtain the SupportMapFragment and get notified when the map is ready to be used.
-		((SupportMapFragment) Objects.requireNonNull(this.getSupportFragmentManager()
+		((com.google.android.gms.maps.SupportMapFragment) java.util.Objects.requireNonNull(this.getSupportFragmentManager()
 				.findFragmentById(R.id.map))).getMapAsync(this);
 
 		// Since the menu doesn't work, just track all the routes by adding all of them to the selected routes array list.
 		// TODO This should be removed once the menu is fixed
-		this.selectedRoutes.addAll(Arrays.asList(this.routes));
+		this.selectedRoutes.addAll(java.util.Arrays.asList(this.routes));
 	}
 
 	/**
@@ -122,6 +121,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.thread.thread().start();
 	}
 
+	/**
+	 * TODO Documentation
+	 */
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -129,6 +131,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.thread.run = false;
 	}
 
+	/**
+	 * TODO Documentation
+	 */
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
@@ -145,15 +150,18 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	@Override
 	public void onMapReady(GoogleMap googleMap) {
+		// Setup the map object at this point as it is finally initialized and ready.
 		this.map = googleMap;
 
 		// Move the camera to the 'home' position
 		LatLng home = new LatLng(64.8391975, -147.7684709);
-		map.moveCamera(CameraUpdateFactory.newLatLngZoom(home, 11.0f));
+		map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(home, 11.0f));
 	}
 
 	/**
-	 * TODO Documentation
+	 * TODO Documentation and add better comments
+	 * <p>
+	 * TODO Also, clean this shit up
 	 */
 	public void updateBusMarkers() {
 		for (Bus bus : this.buses) {
@@ -175,7 +183,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 					marker.setVisible(true);
 					bus.setMarker(marker);
 				} else {
-					Marker newMarker = this.map.addMarker(new MarkerOptions().position(latLng));
+					Marker newMarker = this.map.addMarker(new com.google.android.gms.maps.model.MarkerOptions());
+					newMarker.setPosition(latLng);
 					newMarker.setTitle(bus.route.routeName);
 					if (bus.route.color != 0) {
 						newMarker.setIcon(this.getMarkerIcon(bus.route.color));
@@ -193,9 +202,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * @param color
 	 * @return
 	 */
-	private BitmapDescriptor getMarkerIcon(int color) {
+	private com.google.android.gms.maps.model.BitmapDescriptor getMarkerIcon(int color) {
 		float[] hsv = new float[3];
 		Color.colorToHSV(color, hsv);
-		return BitmapDescriptorFactory.defaultMarker(hsv[0]);
+		return com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]);
 	}
 }
