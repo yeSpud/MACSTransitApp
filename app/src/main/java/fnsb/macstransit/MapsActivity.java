@@ -190,8 +190,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	public void updateBusMarkers() {
 
+		// Make a copy of the buses that are currently being tracked, to mitigate issue #7 (https://github.com/yeSpud/MACSTransitApp/issues/7)
+		Bus[] trackedBuses = this.buses.toArray(new Bus[0]);
+
+
 		// Start by iterating through all the buses that are currently being tracked.
-		for (Bus bus : this.buses) {
+		for (Bus bus : trackedBuses) {
 
 			// The following should be done on the UI thread
 			this.runOnUiThread(() -> {
@@ -206,11 +210,14 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				// If the bus doesn't have a marker create a new one,
 				// and overwrite the marker variable with the newly created marker
 				if (marker == null) {
-					marker = this.map.addMarker(new com.google.android.gms.maps.model.MarkerOptions());
+					marker = this.map.addMarker(new com.google.android.gms.maps.model.MarkerOptions().position(latLng));
+				} else {
+					// Just update the title
+					marker.setPosition(latLng);
 				}
 
-				// Now update the markers position and title
-				marker.setPosition(latLng);
+				// Now update the title
+
 				marker.setTitle(bus.route.routeName);
 
 				// If the route has a color, set its icon to that color
