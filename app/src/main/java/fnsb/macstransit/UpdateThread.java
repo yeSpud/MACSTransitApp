@@ -4,6 +4,11 @@ import android.util.Log;
 
 import org.json.JSONObject;
 
+import fnsb.macstransit.Exceptions.RouteMatchException;
+import fnsb.macstransit.RouteMatch.Bus;
+import fnsb.macstransit.RouteMatch.Heading;
+import fnsb.macstransit.RouteMatch.Route;
+
 /**
  * Created by Spud on 2019-10-13 for the project: MACS Transit.
  * <p>
@@ -64,6 +69,13 @@ public class UpdateThread {
 
 			// For debugging purposes, let the poor developer know when the thread has started.
 			Log.w("Update thread", "Starting up...");
+
+			try {
+				Route[] r = Route.generateRoutes("https://fnsb.routematch.com/feed/");
+				Log.i("r test", ""+r.length);
+			} catch (RouteMatchException e) {
+				e.printStackTrace();
+			}
 
 			// Loop continuously while the run variable is true, and  the thread hasn't been interrupted for whatever reason.
 			while (this.run && !Thread.interrupted()) {

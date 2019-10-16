@@ -8,6 +8,11 @@ import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 
+import fnsb.macstransit.Exceptions.RouteMatchException;
+import fnsb.macstransit.RouteMatch.Bus;
+import fnsb.macstransit.RouteMatch.Route;
+import fnsb.macstransit.RouteMatch.RouteMatch;
+
 public class MapsActivity extends androidx.fragment.app.FragmentActivity implements com.google.android.gms.maps.OnMapReadyCallback {
 
 	/**
@@ -27,7 +32,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * Create an instance of the route match object that will be used for this app.
 	 * Be sure to pass it the previously created routes as well.
 	 */
-	public RouteMatch routeMatch = new RouteMatch("fnsb", "https://fnsb.routematch.com/feed/vehicle/byRoutes/", this.routes);
+	public RouteMatch routeMatch = new RouteMatch("fnsb", "https://fnsb.routematch.com/feed/", this.routes);
 
 	/**
 	 * Create an array list to determine which routes have been selected from the menu to track.
