@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import fnsb.macstransit.Exceptions.RouteMatchException;
@@ -56,42 +57,57 @@ public class Route {
 	 *
 	 * @return
 	 */
-	public static Route[] generateRoutes(String url) throws RouteMatchException {
-		// TODO
+	public static Route[] generateRoutes(String url) throws InterruptedException {
 		ArrayList<Route> routes = new ArrayList<>();
-		try {
 
+		// TODO Fix exception handling
+		Thread t = new Thread(() -> {
 			// First, get the master schedual from the provided url
 			JSONObject masterSchedual = RouteMatch.readJsonFromUrl(url + "masterRoute");
 			Log.d("Master Schedual", masterSchedual.toString());
 
 			// Now get the data array from the JSON oblect
-			JSONArray data = masterSchedual.getJSONArray("data");
+			JSONArray data = null;
+			try {
+				data = masterSchedual.getJSONArray("data");
+			} catch (JSONException e) {
+				e.printStackTrace();
+				return;
+			}
+
 			Log.d("Schedual data", data.toString());
 
 			// Itterate through the data array to begin parsing the routes
 			for (int index = 0; index < data.length(); index++) {
-				JSONObject routeData = data.getJSONObject(index);
-				Log.d("routeData", "Parsing routeData: " + routeData);
-
-				// First, parse the name
-				String name = routeData.getString("shortName");
-				Log.d("routeData", "Name: " + name);
-
-				// Now try to parse the color
+				JSONObject routeData = null;
 				try {
-					int color = Color.parseColor(routeData.getString("routeColor"));
-					routes.add(new Route(name, color));
-				} catch (IllegalArgumentException | JSONException colorError) {
-					Log.w("generateRoutes", "Unable to determine route color");
-					// Just return the route with the name
-					routes.add(new Route(name));
+					routeData = data.getJSONObject(index);
+
+					Log.d("routeData", "Parsing routeData: " + routeData);
+
+					// First, parse the name
+					String name = routeData.getString("shortName");
+					Log.d("routeData", "Name: " + name);
+
+					// Now try to parse the color
+					try {
+						int color = Color.parseColor(routeData.getString("routeColor"));
+						routes.add(new Route(name, color));
+					} catch (IllegalArgumentException | JSONException colorError) {
+						Log.w("generateRoutes", "Unable to determine route color");
+						// Just return the route with the name
+						routes.add(new Route(name));
+					}
+
+				} catch (JSONException e) {
+					e.printStackTrace();
+					break;
 				}
 			}
+		});
+		t.start();
+		t.join(1000);
 
-		} catch (Exception e) {
-			throw new RouteMatchException(); // FIXME
-		}
 		return routes.toArray(new Route[0]);
 	}
 }

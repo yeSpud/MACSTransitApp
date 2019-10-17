@@ -5,6 +5,7 @@ package fnsb.macstransit.Exceptions;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  */
+@Deprecated
 public class RouteMatchException extends Exception {
 
 

@@ -70,13 +70,6 @@ public class UpdateThread {
 			// For debugging purposes, let the poor developer know when the thread has started.
 			Log.w("Update thread", "Starting up...");
 
-			try {
-				Route[] r = Route.generateRoutes("https://fnsb.routematch.com/feed/");
-				Log.i("r test", ""+r.length);
-			} catch (RouteMatchException e) {
-				e.printStackTrace();
-			}
-
 			// Loop continuously while the run variable is true, and  the thread hasn't been interrupted for whatever reason.
 			while (this.run && !Thread.interrupted()) {
 

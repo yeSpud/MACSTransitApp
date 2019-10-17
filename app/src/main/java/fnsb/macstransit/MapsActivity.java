@@ -8,7 +8,6 @@ import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 
-import fnsb.macstransit.Exceptions.RouteMatchException;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
@@ -16,23 +15,15 @@ import fnsb.macstransit.RouteMatch.RouteMatch;
 public class MapsActivity extends androidx.fragment.app.FragmentActivity implements com.google.android.gms.maps.OnMapReadyCallback {
 
 	/**
-	 * Create an array of all the routes that are used by the transit system.
-	 * <p>
-	 * For this case, not only am I passing the required names of the routes, but also their respective color :D
+	 * Create an array of all the routes that are used by the transit system. For now leave it uninitialized,
+	 * as it will be dynamically generated in the onCreate method.
 	 */
-	public Route[] routes = new Route[]{new Route("Yellow", Color.rgb(254, 255, 2)),
-			new Route("Blue", Color.rgb(68, 114, 196)),
-			new Route("Red", Color.rgb(245, 21, 19)),
-			new Route("Brown", Color.rgb(127, 96, 0)),
-			new Route("Gold", Color.rgb(255, 221, 0)),
-			new Route("Green", Color.rgb(112, 173, 71)),
-			new Route("Purple", Color.rgb(139, 3, 255))};
+	public Route[] routes;
 
 	/**
-	 * Create an instance of the route match object that will be used for this app.
-	 * Be sure to pass it the previously created routes as well.
+	 * Create an instance of the route match object that will be used for this app. This too is loaded dynamically.
 	 */
-	public RouteMatch routeMatch = new RouteMatch("fnsb", "https://fnsb.routematch.com/feed/", this.routes);
+	public RouteMatch routeMatch;
 
 	/**
 	 * Create an array list to determine which routes have been selected from the menu to track.
@@ -116,6 +107,15 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Obtain the SupportMapFragment and get notified when the map is ready to be used.
 		((com.google.android.gms.maps.SupportMapFragment) java.util.Objects.requireNonNull(this.getSupportFragmentManager()
 				.findFragmentById(R.id.map))).getMapAsync(this);
+
+		// Load the routes dynamically
+		try {
+			this.routes = Route.generateRoutes("https://fnsb.routematch.com/feed/");
+			this.routeMatch = new RouteMatch("fnsb", "https://fnsb.routematch.com/feed/", this.routes);
+		} catch (InterruptedException e) {
+			this.finish();
+			this.startActivity(getIntent());
+		}
 
 		// Since the menu doesn't work, just track all the routes by adding all of them to the selected routes array list.
 		// TODO This should be removed once the menu is fixed

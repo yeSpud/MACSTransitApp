@@ -5,6 +5,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.MalformedURLException;
 
 import fnsb.macstransit.Exceptions.RouteMatchException;
 
@@ -52,14 +53,19 @@ public class RouteMatch {
 	 * @param name
 	 * @param url
 	 */
+	@Deprecated
 	public RouteMatch(String name, String url) throws RouteMatchException {
-		// Since the routes were passed by defalt, attempt to get them dynamically
-		Route[] r = Route.generateRoutes(url);
+		try {
+			// Since the routes were passed by defalt, attempt to get them dynamically
+			Route[] r = Route.generateRoutes(url);
 
-		// Now continue with the standard construction
-		this.name = name;
-		this.url = url;
-		this.routes = r;
+			// Now continue with the standard construction
+			this.name = name;
+			this.url = url;
+			this.routes = r;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -69,7 +75,7 @@ public class RouteMatch {
 	 * @return The JSONObject containing the data.
 	 * @throws IOException Throws an IOException if anything goes wrong.
 	 */
-	static JSONObject readJsonFromUrl(String url) throws IOException, JSONException {
+	static JSONObject readJsonFromUrl(String url) {
 
 		// Open an input stream using the URL
 		try (java.io.InputStream inputStream = new java.net.URL(url).openStream()) {
@@ -82,6 +88,9 @@ public class RouteMatch {
 
 			// Create and return a new JSONObject from the jsonString variable
 			return new JSONObject(jsonString);
+		} catch (JSONException | IOException e) {
+			e.printStackTrace();
+			return new JSONObject();
 		}
 	}
 
@@ -118,16 +127,8 @@ public class RouteMatch {
 	 * @return The JSONObject pertaining to that specific route's data.
 	 */
 	public JSONObject getRoute(String routeName) {
-		try {
-			// Example usage: readJsonFromUrl("https://fnsb.routematch.com/feed/vehicle/byRoutes/Red");
-			return RouteMatch.readJsonFromUrl(this.url + "/vehicle/byRoutes/" + routeName);
-		} catch (IOException | JSONException e) {
-			// If there is an error, be sure to include the stacktrace
-			e.printStackTrace();
-		}
-
-		// If there is an error, just return an empty JSON object
-		return new JSONObject();
+		// Example usage: readJsonFromUrl("https://fnsb.routematch.com/feed/vehicle/byRoutes/Red");
+		return RouteMatch.readJsonFromUrl(this.url + "/vehicle/byRoutes/" + routeName);
 	}
 
 	/**
