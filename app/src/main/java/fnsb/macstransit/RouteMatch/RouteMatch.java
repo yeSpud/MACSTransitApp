@@ -1,13 +1,9 @@
 package fnsb.macstransit.RouteMatch;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.MalformedURLException;
-
-import fnsb.macstransit.Exceptions.RouteMatchException;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
@@ -17,29 +13,29 @@ import fnsb.macstransit.Exceptions.RouteMatchException;
 public class RouteMatch {
 
 	/**
-	 * Name of the route
+	 * Name of the route.
 	 */
 	@Deprecated
 	private String name;
 
 	/**
-	 * The url to pull route data from
+	 * The url to pull route data from.
 	 * <p>
-	 * https://fnsb.routematch.com/feed/
+	 * Example: https://fnsb.routematch.com/feed/
 	 */
 	private String url;
 
 	/**
-	 * The bus routes in the route
+	 * The array of all the bus routes that are <b><i>able to be</i></b> tracked tracked.
 	 */
 	private Route[] routes;
 
 	/**
-	 * TODO Documentaiton
+	 * Constructor for the RouteMatch object.
 	 *
-	 * @param name
-	 * @param url
-	 * @param routes
+	 * @param name   The name of the route (Deprecated).
+	 * @param url    The URL to pull data from (IE: https://fnsb.routematch.com/feed/)
+	 * @param routes The array of all the bus routes that are <b><i>able to be</i></b> tracked.
 	 */
 	public RouteMatch(String name, String url, Route[] routes) {
 		this.name = name;
@@ -48,32 +44,11 @@ public class RouteMatch {
 	}
 
 	/**
-	 * TODO Documentation
-	 *
-	 * @param name
-	 * @param url
-	 */
-	@Deprecated
-	public RouteMatch(String name, String url) throws RouteMatchException {
-		try {
-			// Since the routes were passed by defalt, attempt to get them dynamically
-			Route[] r = Route.generateRoutes(url);
-
-			// Now continue with the standard construction
-			this.name = name;
-			this.url = url;
-			this.routes = r;
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * Reads the JSON from the provided URL, and formats it into a JSONObject.
+	 * Reads the JSON from the provided URL, and formats it into a JSONObject. If the URL times out,
+	 * or responds with an error the method will retry.
 	 *
 	 * @param url The URL to retrieve the JSON data from.
-	 * @return The JSONObject containing the data.
-	 * @throws IOException Throws an IOException if anything goes wrong.
+	 * @return The JSONObject containing the data (or a blank JSON Object if there was an error).
 	 */
 	static JSONObject readJsonFromUrl(String url) {
 
@@ -88,7 +63,11 @@ public class RouteMatch {
 
 			// Create and return a new JSONObject from the jsonString variable
 			return new JSONObject(jsonString);
-		} catch (JSONException | IOException e) {
+		} catch (java.io.FileNotFoundException fourohfour) {
+			// Keep trying!
+			android.util.Log.w("readJsonFromUrl", "Page didnt respond, going to retry!");
+			return RouteMatch.readJsonFromUrl(url);
+		} catch (org.json.JSONException | IOException e) {
 			e.printStackTrace();
 			return new JSONObject();
 		}
@@ -123,7 +102,7 @@ public class RouteMatch {
 	/**
 	 * Gets the route data from the url provided in the constructor.
 	 *
-	 * @param routeName The name of the route to get the pertaining data from.
+	 * @param routeName The name of the route to get the pertaining data from (IE: Red).
 	 * @return The JSONObject pertaining to that specific route's data.
 	 */
 	public JSONObject getRoute(String routeName) {
@@ -132,7 +111,7 @@ public class RouteMatch {
 	}
 
 	/**
-	 * Gets all the routes that were provided in the constructor.
+	 * Gets all the routes as a Json object that were provided in the constructor.
 	 *
 	 * @return A JSONObject array that contains all the individual routes's data.
 	 */
