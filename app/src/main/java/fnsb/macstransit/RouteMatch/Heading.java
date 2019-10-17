@@ -1,4 +1,4 @@
-package fnsb.macstransit;
+package fnsb.macstransit.RouteMatch;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
