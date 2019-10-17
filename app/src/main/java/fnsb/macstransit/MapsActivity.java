@@ -1,6 +1,5 @@
 package fnsb.macstransit;
 
-import android.graphics.Color;
 import android.view.Menu;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -248,7 +247,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	private com.google.android.gms.maps.model.BitmapDescriptor getMarkerIcon(int color) {
 		float[] hsv = new float[3];
-		Color.colorToHSV(color, hsv);
+		android.graphics.Color.colorToHSV(color, hsv);
 		return com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]);
 	}
 }

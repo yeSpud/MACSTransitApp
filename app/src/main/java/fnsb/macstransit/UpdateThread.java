@@ -2,12 +2,8 @@ package fnsb.macstransit;
 
 import android.util.Log;
 
-import org.json.JSONObject;
-
-import fnsb.macstransit.Exceptions.RouteMatchException;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Heading;
-import fnsb.macstransit.RouteMatch.Route;
 
 /**
  * Created by Spud on 2019-10-13 for the project: MACS Transit.
@@ -77,7 +73,7 @@ public class UpdateThread {
 				try {
 
 					// For each of the selected routes from the activity, retrieve one, and execute the following
-					for (Route route : this.activity.selectedRoutes) {
+					for (fnsb.macstransit.RouteMatch.Route route : this.activity.selectedRoutes) {
 
 						// Get the data section of the bus JSON pulled from the routematch server
 						org.json.JSONArray array = this.activity.routeMatch.getRoute(route.routeName).getJSONArray("data");
@@ -90,7 +86,7 @@ public class UpdateThread {
 						for (int i = 0; i < array.length(); i++) {
 
 							// Get the individual bus from the JSON array at the provided index
-							JSONObject object = array.getJSONObject(i);
+							org.json.JSONObject object = array.getJSONObject(i);
 
 							// Create a new bus object form the data.
 							// In order to create a bus object, we need the busID, and the route.
@@ -158,7 +154,6 @@ public class UpdateThread {
 
 				// Notify the developer that the thread is now starting over.
 				Log.d("Update thread", "Looping...");
-
 			}
 
 			// Notify the developer that the thread has exited the while loop and will now stop.
