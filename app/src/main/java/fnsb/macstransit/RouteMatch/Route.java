@@ -39,7 +39,7 @@ public class Route {
 	 * Constructor for the route. The name of the route is the only thing that is required.
 	 *
 	 * @param routeName The name of the route.
-	 * @param color     The routes color. This is optional,
+	 * @param color     The route's color. This is optional,
 	 *                  and of the color is non-existent simply use the {@code Route(String routeName)} constructor.
 	 */
 	public Route(String routeName, int color) {
