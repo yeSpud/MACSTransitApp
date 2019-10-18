@@ -5,6 +5,7 @@ import android.view.Menu;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 
 import java.util.ArrayList;
 
@@ -123,15 +124,26 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	@Override
 	public boolean onOptionsItemSelected(android.view.MenuItem item) {
+
 		// Check if the item that was selected belongs to the other group
 		if (item.getGroupId() == R.id.other) {
 
 			// Check if the item ID was that of the night-mode toggle
 			if (item.getItemId() == R.id.nightmode) {
 				Log.d("Menu", "Toggle night-mode has been selected!");
-				// TODO: Add night mode
 
-				// Set the item to be checked
+				// Create a boolean to store the resulting value of the menu item
+				boolean enabled = !item.isChecked();
+
+				if (enabled) {
+					// Enable night mode
+					this.map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.nightmode));
+				} else {
+					// Disable night mode
+					this.map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.standard));
+				}
+
+				// Set the menu item's checked value to that of the enabled value
 				item.setChecked(!item.isChecked());
 			} else {
 				// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!
