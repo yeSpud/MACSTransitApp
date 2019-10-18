@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group
+        android:id="@+id/routes"
+        android:checkableBehavior="all" />
+    <group
+        android:id="@+id/other"
+        android:visible="true">
+        <item
+            android:id="@+id/nightmode"
+            android:checkable="true"
+            android:title="Enable nightmode" />
+    </group>
+
+</menu>

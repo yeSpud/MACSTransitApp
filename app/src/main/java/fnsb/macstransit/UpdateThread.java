@@ -4,13 +4,14 @@ import android.util.Log;
 
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Heading;
+import fnsb.macstransit.RouteMatch.Route;
 
 /**
  * Created by Spud on 2019-10-13 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  */
-public class UpdateThread {
+class UpdateThread {
 
 	/**
 	 * Create a boolean that will be used to determine if the update thread should be running or not.
@@ -60,7 +61,7 @@ public class UpdateThread {
 	 *
 	 * @return The thread. Note that this dies not run the thread, that has to be called separately.
 	 */
-	public Thread thread() {
+	Thread thread() {
 		return new Thread(() -> {
 
 			// For debugging purposes, let the poor developer know when the thread has started.
@@ -69,88 +70,103 @@ public class UpdateThread {
 			// Loop continuously while the run variable is true, and  the thread hasn't been interrupted for whatever reason.
 			while (this.run && !Thread.interrupted()) {
 
-				// Because there is a lot of JSON parsing in the following section, be sure to catch any JSON parsing errors.
-				try {
+				// Make a copy of the selected routes array to run iterations on (to avoid the ConcurrentModificationException of death).
+				Route[] routes = this.activity.selectedRoutes.toArray(new Route[0]);
 
-					// For each of the selected routes from the activity, retrieve one, and execute the following
-					for (fnsb.macstransit.RouteMatch.Route route : this.activity.selectedRoutes) {
+				// If there are no selected routes, loop quickly (every quarter second) rather than the set frequency.
+				if (routes.length != 0) {
 
-						// Get the data section of the bus JSON pulled from the routematch server
-						org.json.JSONArray array = this.activity.routeMatch.getRoute(route.routeName).getJSONArray("data");
+					// Because there is a lot of JSON parsing in the following section, be sure to catch any JSON parsing errors.
+					try {
 
-						// Display the full data for debugging purposes
-						Log.i("Full data", array.toString());
+						// For each of the selected routes from the activity, retrieve one, and execute the following
+						for (Route route : routes) {
 
-						// In the event that there are multiple buses running on one route, the array will have a size > 1.
-						// To combat this, just loop through the size of the array, and parse the JSON for the individual buses.
-						for (int i = 0; i < array.length(); i++) {
+							// Get the data section of the bus JSON pulled from the routematch server
+							org.json.JSONArray array = this.activity.routeMatch.getRoute(route.routeName, this.activity.getApplicationContext()).getJSONArray("data");
 
-							// Get the individual bus from the JSON array at the provided index
-							org.json.JSONObject object = array.getJSONObject(i);
+							// Display the full data for debugging purposes
+							Log.i("Full data", array.toString());
 
-							// Create a new bus object form the data.
-							// In order to create a bus object, we need the busID, and the route.
-							// Parse the busID from the data (stored as vehicleID), and insert the route from above.
-							Bus bus = new Bus(object.getString("vehicleId"), route);
+							// In the event that there are multiple buses running on one route, the array will have a size > 1.
+							// To combat this, just loop through the size of the array, and parse the JSON for the individual buses.
+							for (int i = 0; i < array.length(); i++) {
 
-							// Try to add the heading of the bus. Sometimes this is blank, so if that is the case, just default to NORTH.
-							try {
-								// The heading is stored in the data as headingName
-								bus.heading = Heading.valueOf(object.getString("headingName"));
-							} catch (IllegalArgumentException e) {
-								bus.heading = Heading.NORTH;
-							}
+								// Get the individual bus from the JSON array at the provided index
+								org.json.JSONObject object = array.getJSONObject(i);
 
-							// Get the latitude of the bus, which is stored in the data as latitude.
-							bus.latitude = object.getDouble("latitude");
+								// Create a new bus object form the data.
+								// In order to create a bus object, we need the busID, and the route.
+								// Parse the busID from the data (stored as vehicleID), and insert the route from above.
+								Bus bus = new Bus(object.getString("vehicleId"), route);
 
-							// Get the longitude of the bus, which is stored in the data as longitude.
-							bus.longitude = object.getDouble("longitude");
-
-							// Set the bus color to that of the route color.
-							// If the route doesn't have a color it will just assign the value of 0,
-							// as its stored as an int.
-							bus.color = route.color;
-
-							// Search the current array of buses for the newly created bus ID.
-							// If it exists, then update the old bus properties.
-							// If it doesn't exist, add it to the array of buses to track.
-							boolean found = false;
-							for (Bus busInArray : this.activity.buses) {
-								if (bus.busID.equals(busInArray.busID)) {
-									found = true;
-									// DO NOT MODIFY THE BUS MARKER
-									busInArray.heading = bus.heading;
-									busInArray.route = bus.route;
-									busInArray.latitude = bus.latitude;
-									busInArray.longitude = bus.longitude;
-									busInArray.color = bus.color;
-									// If the bus was found, just break early
-									break;
+								// Try to add the heading of the bus. Sometimes this is blank, so if that is the case, just default to NORTH.
+								try {
+									// The heading is stored in the data as headingName
+									bus.heading = Heading.valueOf(object.getString("headingName"));
+								} catch (IllegalArgumentException e) {
+									bus.heading = Heading.NORTH;
 								}
-							}
 
-							// Add the bus to the array of tracked buses if it wasn't in the array.
-							if (!found) {
-								this.activity.buses.add(bus);
-							}
+								// Get the latitude of the bus, which is stored in the data as latitude.
+								bus.latitude = object.getDouble("latitude");
 
-							// Update the bus markers on the map
-							this.activity.updateBusMarkers();
+								// Get the longitude of the bus, which is stored in the data as longitude.
+								bus.longitude = object.getDouble("longitude");
+
+								// Set the bus color to that of the route color.
+								// If the route doesn't have a color it will just assign the value of 0,
+								// as its stored as an int.
+								bus.color = route.color;
+
+								// Search the current array of buses for the newly created bus ID.
+								// If it exists, then update the old bus properties.
+								// If it doesn't exist, add it to the array of buses to track.
+								boolean found = false;
+								for (Bus busInArray : this.activity.buses) {
+									if (bus.busID.equals(busInArray.busID)) {
+										found = true;
+										// DO NOT MODIFY THE BUS MARKER
+										busInArray.heading = bus.heading;
+										busInArray.route = bus.route;
+										busInArray.latitude = bus.latitude;
+										busInArray.longitude = bus.longitude;
+										busInArray.color = bus.color;
+										// If the bus was found, just break early
+										break;
+									}
+								}
+
+								// Add the bus to the array of tracked buses if it wasn't in the array.
+								if (!found) {
+									this.activity.buses.add(bus);
+								}
+
+								// Update the bus markers on the map
+								this.activity.updateBusMarkers();
+							}
 						}
+						// Sleep for the given update frequency
+						try {
+							Thread.sleep(this.updateFrequency);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						Thread.yield();
+					} catch (org.json.JSONException e) {
+						// For now, just print a stack trace if there are any errors.
+						e.printStackTrace();
 					}
-				} catch (org.json.JSONException e) {
-					// For now, just print a stack trace if there are any errors.
-					e.printStackTrace();
-				}
+				} else {
 
-				// Sleep for the given update frequency
-				try {
-					Thread.sleep(this.updateFrequency);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+					// Quick sleep since there are no routes to track
+					try {
+						Thread.sleep(250);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					Thread.yield();
 				}
-				Thread.yield();
 
 				// Notify the developer that the thread is now starting over.
 				Log.d("Update thread", "Looping...");

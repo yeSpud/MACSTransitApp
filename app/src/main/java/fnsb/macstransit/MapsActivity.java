@@ -1,9 +1,11 @@
 package fnsb.macstransit;
 
+import android.util.Log;
 import android.view.Menu;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 
 import java.util.ArrayList;
 
@@ -17,7 +19,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * Create an array of all the routes that are used by the transit system. For now leave it uninitialized,
 	 * as it will be dynamically generated in the onCreate method.
 	 */
-	public Route[] routes;
+	public Route[] allRoutes;
 
 	/**
 	 * Create an instance of the route match object that will be used for this app. This too is loaded dynamically.
@@ -45,6 +47,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	private UpdateThread thread = new UpdateThread(this, 4000);
 
 	/**
+	 * Boolean to check whether or not the menu items for the routes have been (dynamically) created.
+	 * This is used to prevent making multiple duplicate menu items in {@code onPrepareOptionsMenu(Menu menu).
+	 */
+	private boolean menuCreated;
+
+	/**
 	 * Prepare the Screen's standard options menu to be displayed.
 	 * This is called right before the menu is shown, every time it is shown.
 	 * You can use this method to efficiently enable/disable items or otherwise dynamically modify the contents.
@@ -57,17 +65,51 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		menu.clear();
-		// FIXME
-		//for (int index = 1; index <= this.routes.length; index++) {
-		//menu.add(0, index, Menu.NONE, this.routes[index-1].routeName);
-		//}
-		for (Route route : this.routes) {
-			menu.add(1, Menu.NONE, Menu.NONE, route.routeName).setCheckable(true);
+		// Check if the menu has not yet been created.
+		if (!menuCreated) {
+
+			// Iterate through all the routes that can be tracked.
+			for (Route route : this.allRoutes) {
+
+				// Add the route to the routes menu group, and make sure its checkable.
+				menu.add(R.id.routes, Menu.NONE, Menu.NONE, route.routeName).setCheckable(true);
+			}
+
+			// Once finished, set the menuCreated variable to true so that this will not be run again.
+			menuCreated = true;
 		}
 
-		//menu.setGroupCheckable(1, true, false);
 		return super.onPrepareOptionsMenu(menu);
+	}
+
+	/**
+	 * Initialize the contents of the Activity's standard options menu. You should place your menu items in to menu.
+	 * <p>
+	 * This is only called once, the first time the options menu is displayed. To update the menu every time it is displayed,
+	 * see {@code onPrepareOptionsMenu(Menu)}.
+	 * <p>
+	 * The default implementation populates the menu with standard system menu items.
+	 * These are placed in the {@code Menu.CATEGORY_SYSTEM} group so that they will be correctly ordered with application-defined menu items.
+	 * Deriving classes should always call through to the base implementation.
+	 * <p>
+	 * You can safely hold on to menu (and any items created from it),
+	 * making modifications to it as desired, until the next time {@code onCreateOptionsMenu()} is called.
+	 * <p>
+	 * When you add items to the menu, you can implement the Activity's {@code onOptionsItemSelected(MenuItem)} method to handle them there.
+	 *
+	 * @param menu The options menu in which you place your items.
+	 * @return You must return true for the menu to be displayed; if you return false it will not be shown.
+	 */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Setup the inflater
+		this.getMenuInflater().inflate(R.menu.menu, menu);
+
+		// Set the menuCreated variable to false in order to rerun the dynamic menu creation in onPrepareOptionsMenu().
+		this.menuCreated = false;
+
+		// Return true, otherwise the menu wont be displayed.
+		return true;
 	}
 
 	/**
@@ -82,10 +124,47 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	@Override
 	public boolean onOptionsItemSelected(android.view.MenuItem item) {
-		// FIXME
+
+		// Check if the item that was selected belongs to the other group
+		if (item.getGroupId() == R.id.other) {
+
+			// Check if the item ID was that of the night-mode toggle
+			if (item.getItemId() == R.id.nightmode) {
+				Log.d("Menu", "Toggle night-mode has been selected!");
+
+				// Create a boolean to store the resulting value of the menu item
+				boolean enabled = !item.isChecked();
+
+				if (enabled) {
+					// Enable night mode
+					this.map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.nightmode));
+				} else {
+					// Disable night mode
+					this.map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.standard));
+				}
+
+				// Set the menu item's checked value to that of the enabled value
+				item.setChecked(!item.isChecked());
+			} else {
+				// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!
+				Log.w("Menu", "Unaccounted menu item in the other group was checked!");
+			}
+		} else if (item.getGroupId() == R.id.routes) { // Check if the item that was selected belongs to the routes group.
+
+			// Create a boolean to store the resulting value of the menu item
+			boolean enabled = !item.isChecked();
+
+			// Toggle the route based on the menu item's title, and its enabled value
+			this.toggleRoute(item.getTitle().toString(), enabled);
+
+			// Set the menu item's checked value to that of the enabled value
+			item.setChecked(enabled);
+		} else {
+			// Since the item's ID and group was not part of anything accounted for (uh oh), log it as a warning!
+			Log.w("Menu", "Unaccounted menu item was checked!");
+		}
 		return super.onOptionsItemSelected(item);
 	}
-
 
 	/**
 	 * This is where the activity is initialized. Most importantly,
@@ -101,7 +180,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	@Override
 	protected void onCreate(android.os.Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_maps);
+		this.setContentView(R.layout.activity_maps);
 
 		// Obtain the SupportMapFragment and get notified when the map is ready to be used.
 		((com.google.android.gms.maps.SupportMapFragment) java.util.Objects.requireNonNull(this.getSupportFragmentManager()
@@ -109,16 +188,15 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Load the routes dynamically
 		try {
-			this.routes = Route.generateRoutes("https://fnsb.routematch.com/feed/");
-			this.routeMatch = new RouteMatch("fnsb", "https://fnsb.routematch.com/feed/", this.routes);
+			this.allRoutes = Route.generateRoutes("https://fnsb.routematch.com/feed/", this);
+			this.routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/", this.allRoutes);
 		} catch (InterruptedException e) {
+			e.printStackTrace();
+
+			// If the action was interrupted, simply relaunch the activity
 			this.finish();
 			this.startActivity(getIntent());
 		}
-
-		// Since the menu doesn't work, just track all the routes by adding all of them to the selected routes array list.
-		// TODO This should be removed once the menu is fixed
-		this.selectedRoutes.addAll(java.util.Arrays.asList(this.routes));
 	}
 
 	/**
@@ -249,5 +327,69 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		float[] hsv = new float[3];
 		android.graphics.Color.colorToHSV(color, hsv);
 		return com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]);
+	}
+
+	/**
+	 * Toggles the route (and subsequently the buses on that route) to be shown or hidden on the map.
+	 *
+	 * @param routeName The name of the route to be shown or hidden.
+	 * @param enabled   Whether or not the route is to be shown (true), or hidden (false).
+	 */
+	private void toggleRoute(String routeName, boolean enabled) {
+
+		// Check whether or not the route is to be enabled or disabled.
+		if (enabled) {
+			Log.d("toggleRoute", "Enabling route: " + routeName);
+
+			// If the route is to be enabled, iterate through all the allRoutes that are able to be tracked.
+			for (Route route : this.allRoutes) {
+
+				// If the route that is able to be tracked is equal to that of the route entered as an argument,
+				// add that route to the selected allRoutes array.
+				if (route.routeName.equals(routeName)) {
+					Log.d("toggleRoute", "Found matching route!");
+					this.selectedRoutes.add(route);
+
+					// Since we only add one route at a time (as there is only one routeName argument),
+					// break as soon as its added.
+					break;
+				}
+			}
+		} else {
+			Log.d("toggleRoute", "Disabling route: " + routeName);
+
+			// If the route is to be disabled (and thus removed), start by making a copy of the selected routes array.
+			Route[] routes = this.selectedRoutes.toArray(new Route[0]);
+
+			// Then iterate through that array
+			for (Route route : routes) {
+
+				// If the route is equal to the route provided in the argument, do the following...
+				if (route.routeName.equals(routeName)) {
+
+					// Get a copy of the bus array for iteration.
+					Bus[] b = this.buses.toArray(new Bus[0]);
+
+					// Iterate through the buses to see if the bus route matches that of the route from above.
+					for (Bus bus : b) {
+
+						// If the bus is indeed equal, remove the bus's marker,
+						// and finally remove the bus from the buses array.
+						if (bus.route.equals(route)) {
+							// Remove the bus from the array first, before removing the marker,
+							// so it doesn't get re-added
+							this.buses.remove(bus);
+							bus.getMarker().remove();
+						}
+					}
+
+					// Finally, remove the route from the selected routes array.
+					this.selectedRoutes.remove(route);
+
+					// Be sure to break at this point, as there is no need to continue iteration after this operation.
+					break;
+				}
+			}
+		}
 	}
 }
