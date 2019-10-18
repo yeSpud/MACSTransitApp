@@ -40,11 +40,12 @@ public class RouteMatch {
 		this.routes = routes;
 	}
 
-	/** TODO Fix documentation
+	/**
 	 * Reads the JSON from the provided URL, and formats it into a JSONObject. If the URL times out,
 	 * or responds with an error the method will retry.
 	 *
-	 * @param url The URL to retrieve the JSON data from.
+	 * @param url     The URL to retrieve the JSON data from.
+	 * @param context The app context for Toast.
 	 * @return The JSONObject containing the data (or a blank JSON Object if there was an error).
 	 */
 	static JSONObject readJsonFromUrl(String url, Context context) {
@@ -70,7 +71,10 @@ public class RouteMatch {
 		} catch (java.io.FileNotFoundException | java.net.SocketTimeoutException timeout) {
 			// Keep trying!
 			android.util.Log.w("readJsonFromUrl", "Page didn't respond, going to retry!");
-			Toast.makeText(context, R.string.slowResponse, Toast.LENGTH_SHORT).show();
+			try {
+				Toast.makeText(context, R.string.slowResponse, Toast.LENGTH_SHORT).show();
+			} catch (java.lang.RuntimeException ignore) {
+			}
 			return RouteMatch.readJsonFromUrl(url, context);
 		} catch (org.json.JSONException | IOException e) {
 			e.printStackTrace();
@@ -104,10 +108,11 @@ public class RouteMatch {
 		return string.toString();
 	}
 
-	/** TODO Fix documentation
+	/**
 	 * Gets the route data from the url provided in the constructor.
 	 *
 	 * @param routeName The name of the route to get the pertaining data from (IE: Red).
+	 * @param context   The app context for Toast.
 	 * @return The JSONObject pertaining to that specific route's data.
 	 */
 	public JSONObject getRoute(String routeName, Context context) {
@@ -115,9 +120,10 @@ public class RouteMatch {
 		return RouteMatch.readJsonFromUrl(this.url + "/vehicle/byRoutes/" + routeName, context);
 	}
 
-	/** TODO Fix documentation
+	/**
 	 * Gets all the routes as a Json object that were provided in the constructor.
 	 *
+	 * @param context The app context for Toast.
 	 * @return A JSONObject array that contains all the individual routes's data.
 	 */
 	public JSONObject[] getAllRoutes(Context context) {
