@@ -362,10 +362,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 					for (Bus bus : b) {
 
 						// If the bus is indeed equal, remove the bus's marker,
-						// and finally remove the bus from the buses array/
+						// and finally remove the bus from the buses array.
 						if (bus.route.equals(route)) {
-							bus.getMarker().remove();
+							// Remove the bus from the array first, before removing the marker,
+							// so it doesn't get re-added
 							this.buses.remove(bus);
+							bus.getMarker().remove();
 						}
 					}
 
