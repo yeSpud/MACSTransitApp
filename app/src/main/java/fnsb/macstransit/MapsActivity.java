@@ -1,6 +1,8 @@
 package fnsb.macstransit;
 
+import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
@@ -18,6 +20,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * as it will be dynamically generated in the onCreate method.
 	 */
 	public Route[] routes;
+
 
 	/**
 	 * Create an instance of the route match object that will be used for this app. This too is loaded dynamically.
@@ -44,6 +47,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	private UpdateThread thread = new UpdateThread(this, 4000);
 
+	private boolean menuCreated;
+
 	/**
 	 * Prepare the Screen's standard options menu to be displayed.
 	 * This is called right before the menu is shown, every time it is shown.
@@ -57,17 +62,31 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		menu.clear();
-		// FIXME
-		//for (int index = 1; index <= this.routes.length; index++) {
-		//menu.add(0, index, Menu.NONE, this.routes[index-1].routeName);
-		//}
-		for (Route route : this.routes) {
-			menu.add(1, Menu.NONE, Menu.NONE, route.routeName).setCheckable(true);
+		// TODO Documentation
+		if (!menuCreated) {
+			for (Route route : this.routes) {
+				menu.add(R.id.routes, Menu.NONE, Menu.NONE, route.routeName).setCheckable(true);
+			}
+			menuCreated = true;
+			Log.d("Menu", "onPrepare");
 		}
-
-		//menu.setGroupCheckable(1, true, false);
 		return super.onPrepareOptionsMenu(menu);
+	}
+
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param menu
+	 * @return
+	 */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		Log.d("Menu", "onCreate");
+		MenuInflater inflater = this.getMenuInflater();
+		inflater.inflate(R.menu.menu, menu);
+		this.menuCreated = false;
+		return true;
 	}
 
 	/**
@@ -82,7 +101,21 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	@Override
 	public boolean onOptionsItemSelected(android.view.MenuItem item) {
-		// FIXME
+		// TODO Documentation
+		Log.d("Menu", "onOptionsItemSelected");
+		if (item.getGroupId() == R.id.other) {
+			if (item.getItemId() == R.id.nightmode) {
+				Log.d("Menu", "Toggle nightmode has been selected!");
+				// TODO
+				item.setChecked(!item.isChecked());
+			} else {
+				Log.w("Menu", "Unaccounted for item in the other group was checked!");
+			}
+		} else if (item.getGroupId() == R.id.routes) {
+			Log.d("Menu", "A route has been toggled!");
+			// TODO
+			item.setChecked(!item.isChecked());
+		}
 		return super.onOptionsItemSelected(item);
 	}
 
