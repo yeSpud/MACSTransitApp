@@ -21,7 +21,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	public Route[] routes;
 
-
 	/**
 	 * Create an instance of the route match object that will be used for this app. This too is loaded dynamically.
 	 */
@@ -47,6 +46,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	private UpdateThread thread = new UpdateThread(this, 4000);
 
+	/**
+	 * TODO Documentation
+	 */
 	private boolean menuCreated;
 
 	/**
@@ -72,7 +74,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		}
 		return super.onPrepareOptionsMenu(menu);
 	}
-
 
 	/**
 	 * TODO Documentation
@@ -112,9 +113,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				Log.w("Menu", "Unaccounted for item in the other group was checked!");
 			}
 		} else if (item.getGroupId() == R.id.routes) {
-			Log.d("Menu", "A route has been toggled!");
-			// TODO
-			item.setChecked(!item.isChecked());
+			boolean enabled = !item.isChecked();
+			this.toggleRoute(item.getTitle().toString(), enabled);
+			item.setChecked(enabled);
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -148,10 +149,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			this.finish();
 			this.startActivity(getIntent());
 		}
-
-		// Since the menu doesn't work, just track all the routes by adding all of them to the selected routes array list.
-		// TODO This should be removed once the menu is fixed
-		this.selectedRoutes.addAll(java.util.Arrays.asList(this.routes));
 	}
 
 	/**
@@ -282,5 +279,41 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		float[] hsv = new float[3];
 		android.graphics.Color.colorToHSV(color, hsv);
 		return com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]);
+	}
+
+	/**
+	 * TODO Documentation and comments
+	 *
+	 * @param routeName
+	 * @param enabled
+	 */
+	private void toggleRoute(String routeName, boolean enabled) {
+		if (enabled) {
+			Log.d("toggleRoute", "Enabling route: " + routeName);
+			for (Route route : this.routes) {
+				if (route.routeName.equals(routeName)) {
+					Log.d("toggleRoute", "Found matching route!");
+					this.selectedRoutes.add(route);
+					break;
+				}
+			}
+		} else {
+			Log.d("toggleRoute", "Disabling route: " + routeName);
+			Route[] routes = this.selectedRoutes.toArray(new Route[0]);
+			for (Route route : routes) {
+				if (route.routeName.equals(routeName)) {
+					Bus[] b = this.buses.toArray(new Bus[0]);
+					for (Bus bus : b) {
+						if (bus.route.equals(route)) {
+							bus.getMarker().remove();
+							this.buses.remove(bus);
+						}
+					}
+					this.selectedRoutes.remove(route);
+					break;
+				}
+			}
+		}
+
 	}
 }

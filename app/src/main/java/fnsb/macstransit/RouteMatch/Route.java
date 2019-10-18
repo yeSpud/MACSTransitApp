@@ -109,7 +109,7 @@ public class Route {
 			}
 		});
 		t.start();
-		t.join(1000);
+		t.join(1500);
 
 		return routes.toArray(new Route[0]);
 	}
