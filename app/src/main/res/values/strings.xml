@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">MACS Transit</string>
+    <string name="slowResponse">RouteMatch servers are responding slower than usual…</string>
 </resources>

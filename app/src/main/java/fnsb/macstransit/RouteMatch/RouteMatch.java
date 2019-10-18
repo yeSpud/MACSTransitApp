@@ -1,9 +1,14 @@
 package fnsb.macstransit.RouteMatch;
 
+import android.content.Context;
+import android.widget.Toast;
+
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+
+import fnsb.macstransit.R;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
@@ -11,12 +16,6 @@ import java.io.IOException;
  * For the license, view the file titled LICENSE at the root of the project
  */
 public class RouteMatch {
-
-	/**
-	 * Name of the route.
-	 */
-	@Deprecated
-	private String name;
 
 	/**
 	 * The url to pull route data from.
@@ -33,24 +32,22 @@ public class RouteMatch {
 	/**
 	 * Constructor for the RouteMatch object.
 	 *
-	 * @param name   The name of the route (Deprecated).
 	 * @param url    The URL to pull data from (IE: https://fnsb.routematch.com/feed/)
 	 * @param routes The array of all the bus routes that are <b><i>able to be</i></b> tracked.
 	 */
-	public RouteMatch(String name, String url, Route[] routes) {
-		this.name = name;
+	public RouteMatch(String url, Route[] routes) {
 		this.url = url;
 		this.routes = routes;
 	}
 
-	/**
+	/** TODO Fix documentation
 	 * Reads the JSON from the provided URL, and formats it into a JSONObject. If the URL times out,
 	 * or responds with an error the method will retry.
 	 *
 	 * @param url The URL to retrieve the JSON data from.
 	 * @return The JSONObject containing the data (or a blank JSON Object if there was an error).
 	 */
-	static JSONObject readJsonFromUrl(String url) {
+	static JSONObject readJsonFromUrl(String url, Context context) {
 		try {
 			// Specify the URL connection
 			java.net.URLConnection connection = new java.net.URL(url).openConnection();
@@ -73,7 +70,8 @@ public class RouteMatch {
 		} catch (java.io.FileNotFoundException | java.net.SocketTimeoutException timeout) {
 			// Keep trying!
 			android.util.Log.w("readJsonFromUrl", "Page didn't respond, going to retry!");
-			return RouteMatch.readJsonFromUrl(url);
+			Toast.makeText(context, R.string.slowResponse, Toast.LENGTH_SHORT).show();
+			return RouteMatch.readJsonFromUrl(url, context);
 		} catch (org.json.JSONException | IOException e) {
 			e.printStackTrace();
 			return new JSONObject();
@@ -106,23 +104,23 @@ public class RouteMatch {
 		return string.toString();
 	}
 
-	/**
+	/** TODO Fix documentation
 	 * Gets the route data from the url provided in the constructor.
 	 *
 	 * @param routeName The name of the route to get the pertaining data from (IE: Red).
 	 * @return The JSONObject pertaining to that specific route's data.
 	 */
-	public JSONObject getRoute(String routeName) {
+	public JSONObject getRoute(String routeName, Context context) {
 		// Example usage: readJsonFromUrl("https://fnsb.routematch.com/feed/vehicle/byRoutes/Red");
-		return RouteMatch.readJsonFromUrl(this.url + "/vehicle/byRoutes/" + routeName);
+		return RouteMatch.readJsonFromUrl(this.url + "/vehicle/byRoutes/" + routeName, context);
 	}
 
-	/**
+	/** TODO Fix documentation
 	 * Gets all the routes as a Json object that were provided in the constructor.
 	 *
 	 * @return A JSONObject array that contains all the individual routes's data.
 	 */
-	public JSONObject[] getAllRoutes() {
+	public JSONObject[] getAllRoutes(Context context) {
 
 		// Create the JSONObject array, and make it the size of the total routes provided in this object
 		JSONObject[] jsonObjects = new JSONObject[this.routes.length];
@@ -131,7 +129,7 @@ public class RouteMatch {
 		for (int index = 0; index < jsonObjects.length; index++) {
 
 			// Retrieve the current routes route, and store it into the JSONObject array
-			jsonObjects[index] = this.getRoute(this.routes[index].routeName);
+			jsonObjects[index] = this.getRoute(this.routes[index].routeName, context);
 		}
 
 		// Return the final JSONObject array

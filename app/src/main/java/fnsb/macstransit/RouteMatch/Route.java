@@ -52,7 +52,7 @@ public class Route {
 	 *
 	 * @return An array of routes that <b><i>can be</i></b> tracked.
 	 */
-	public static Route[] generateRoutes(String url) throws InterruptedException {
+	public static Route[] generateRoutes(String url, android.content.Context context) throws InterruptedException {
 
 		// Create an array to store all the generated routes. This will be returned in the end.
 		ArrayList<Route> routes = new ArrayList<>();
@@ -60,7 +60,7 @@ public class Route {
 		// Run the following on a new thread (as android doesn't like running network requests on the UI thread).
 		Thread t = new Thread(() -> {
 			// First, get the master schedule from the provided url
-			JSONObject masterSchedule = RouteMatch.readJsonFromUrl(url + "masterRoute");
+			JSONObject masterSchedule = RouteMatch.readJsonFromUrl(url + "masterRoute", context);
 			Log.d("Master Schedule", masterSchedule.toString());
 
 			// Now get the data array from the JSON object

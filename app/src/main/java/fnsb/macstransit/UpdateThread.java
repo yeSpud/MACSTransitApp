@@ -11,7 +11,7 @@ import fnsb.macstransit.RouteMatch.Route;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  */
-public class UpdateThread {
+class UpdateThread {
 
 	/**
 	 * Create a boolean that will be used to determine if the update thread should be running or not.
@@ -61,7 +61,7 @@ public class UpdateThread {
 	 *
 	 * @return The thread. Note that this dies not run the thread, that has to be called separately.
 	 */
-	public Thread thread() {
+	Thread thread() {
 		return new Thread(() -> {
 
 			// For debugging purposes, let the poor developer know when the thread has started.
@@ -83,7 +83,7 @@ public class UpdateThread {
 						for (Route route : routes) {
 
 							// Get the data section of the bus JSON pulled from the routematch server
-							org.json.JSONArray array = this.activity.routeMatch.getRoute(route.routeName).getJSONArray("data");
+							org.json.JSONArray array = this.activity.routeMatch.getRoute(route.routeName, this.activity.getApplicationContext()).getJSONArray("data");
 
 							// Display the full data for debugging purposes
 							Log.i("Full data", array.toString());
