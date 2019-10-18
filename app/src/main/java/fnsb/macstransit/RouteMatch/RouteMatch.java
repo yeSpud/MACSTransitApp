@@ -51,9 +51,16 @@ public class RouteMatch {
 	 * @return The JSONObject containing the data (or a blank JSON Object if there was an error).
 	 */
 	static JSONObject readJsonFromUrl(String url) {
+		try {
+			// Specify the URL connection
+			java.net.URLConnection connection = new java.net.URL(url).openConnection();
 
-		// Open an input stream using the URL
-		try (java.io.InputStream inputStream = new java.net.URL(url).openStream()) {
+			// Add timeouts for the connection (1 second to connect, 2 seconds to read, 3 seconds total)
+			connection.setConnectTimeout(1000);
+			connection.setReadTimeout(2000);
+
+			// Get the input stream from the connection
+			java.io.InputStream inputStream = connection.getInputStream();
 
 			// Create a buffered reader for the input stream
 			BufferedReader bufferedReader = new BufferedReader(new java.io.InputStreamReader(inputStream, java.nio.charset.StandardCharsets.UTF_8));
@@ -63,9 +70,9 @@ public class RouteMatch {
 
 			// Create and return a new JSONObject from the jsonString variable
 			return new JSONObject(jsonString);
-		} catch (java.io.FileNotFoundException fourohfour) {
+		} catch (java.io.FileNotFoundException | java.net.SocketTimeoutException timeout) {
 			// Keep trying!
-			android.util.Log.w("readJsonFromUrl", "Page didnt respond, going to retry!");
+			android.util.Log.w("readJsonFromUrl", "Page didn't respond, going to retry!");
 			return RouteMatch.readJsonFromUrl(url);
 		} catch (org.json.JSONException | IOException e) {
 			e.printStackTrace();

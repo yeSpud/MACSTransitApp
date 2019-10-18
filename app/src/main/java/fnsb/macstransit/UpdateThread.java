@@ -4,6 +4,7 @@ import android.util.Log;
 
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Heading;
+import fnsb.macstransit.RouteMatch.Route;
 
 /**
  * Created by Spud on 2019-10-13 for the project: MACS Transit.
@@ -72,8 +73,10 @@ public class UpdateThread {
 				// Because there is a lot of JSON parsing in the following section, be sure to catch any JSON parsing errors.
 				try {
 
+					// Make a copy of the selected routes array to run iterations on (to avoid the ConcurrentModificationException of death).
+					Route[] routes = this.activity.selectedRoutes.toArray(new Route[0]);
 					// For each of the selected routes from the activity, retrieve one, and execute the following
-					for (fnsb.macstransit.RouteMatch.Route route : this.activity.selectedRoutes) {
+					for (Route route : routes) {
 
 						// Get the data section of the bus JSON pulled from the routematch server
 						org.json.JSONArray array = this.activity.routeMatch.getRoute(route.routeName).getJSONArray("data");
