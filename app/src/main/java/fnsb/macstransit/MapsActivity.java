@@ -188,7 +188,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Load the routes dynamically
 		try {
-			this.allRoutes = Route.generateRoutes("https://fnsb.routematch.com/feed/", this);
+			this.allRoutes = Route.generateRoutes("https://fnsb.routematch.com/feed/");
 			this.routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/", this.allRoutes);
 		} catch (InterruptedException e) {
 			e.printStackTrace();

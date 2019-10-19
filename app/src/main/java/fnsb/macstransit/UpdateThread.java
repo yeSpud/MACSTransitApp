@@ -83,7 +83,7 @@ class UpdateThread {
 						for (Route route : routes) {
 
 							// Get the data section of the bus JSON pulled from the routematch server
-							org.json.JSONArray array = this.activity.routeMatch.getRoute(route.routeName, this.activity.getApplicationContext()).getJSONArray("data");
+							org.json.JSONArray array = this.activity.routeMatch.getRoute(route.routeName).getJSONArray("data");
 
 							// Display the full data for debugging purposes
 							Log.i("Full data", array.toString());
