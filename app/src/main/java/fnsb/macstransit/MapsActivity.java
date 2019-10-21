@@ -2,6 +2,7 @@ package fnsb.macstransit;
 
 import android.util.Log;
 import android.view.Menu;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
@@ -267,8 +268,36 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Move the camera to the 'home' position
 		LatLng home = new LatLng(64.8391975, -147.7684709);
-		map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(home, 11.0f));
+		this.map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(home, 11.0f));
+
+		// TODO Add the route stops to the map, but hide them
+
+		this.map.setOnCameraIdleListener(() -> {
+			// TODO Documentation
+			float zoom = this.map.getCameraPosition().zoom;
+			Log.d("CameraChange", "Zoom level: " + zoom);
+
+			float zoomChange = 11.0f / zoom;
+			Log.d("CameraChange", "Zoom change: " + zoomChange);
+			for (Route route : this.allRoutes) {
+				for (Stop stop : route.stops) {
+					Circle icon = stop.getIcon();
+					if (icon != null) {
+						icon.setRadius(Stop.RADIUS * (Math.pow(zoomChange, 5)));
+					}
+				}
+			}
+		});
+
+		this.map.setOnCircleClickListener((circle) ->{
+			if (circle.getTag() instanceof Stop) {
+				Stop stop = (Stop) circle.getTag();
+				// Need to get a working info window. For now... toast
+				Toast.makeText(this, stop.stopID, Toast.LENGTH_SHORT).show();
+			}
+		});
 	}
+
 
 	/**
 	 * Updates the position (and color) of the markers on the map.

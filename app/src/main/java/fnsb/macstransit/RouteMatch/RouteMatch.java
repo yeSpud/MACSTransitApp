@@ -38,6 +38,11 @@ public class RouteMatch {
 	}
 
 	/**
+	 * TODO Documentation
+	 */
+	private static int retryattempts = 0;
+
+	/**
 	 * TODO Update documentation and comments
 	 * Reads the JSON from the provided URL, and formats it into a JSONObject. If the URL times out,
 	 * or responds with an error the method will retry.
@@ -80,20 +85,30 @@ public class RouteMatch {
 
 		});
 		t.setUncaughtExceptionHandler((t1, e) -> {
-			// Keep trying!
-			android.util.Log.w("readJsonFromUrl", "Page didn't respond, going to retry!");
-			// TODO Clear JSON String
 			jsonString.setLength(0);
-			jsonString.append(RouteMatch.readJsonFromUrl(url).toString());
 		});
 		t.setName("Network thread");
 		t.start();
 		try {
 			t.join(4000);
 			if (jsonString.length() == 0) {
-				return RouteMatch.readJsonFromUrl(url);
+				if (RouteMatch.retryattempts < 3) {
+					// Keep trying!
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException ex) {
+						ex.printStackTrace();
+					}
+					RouteMatch.retryattempts++;
+					android.util.Log.w("readJsonFromUrl", String.format("Page didn't respond, going to retry! (%d/3)", RouteMatch.retryattempts));
+					return RouteMatch.readJsonFromUrl(url);
+				} else {
+					RouteMatch.retryattempts = 0;
+					return new JSONObject();
+				}
 			} else {
 				// Create and return a new JSONObject from the jsonString variable
+				RouteMatch.retryattempts = 0;
 				return new JSONObject(jsonString.toString());
 			}
 		} catch (org.json.JSONException | InterruptedException e) {

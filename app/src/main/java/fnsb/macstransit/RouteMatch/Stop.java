@@ -3,7 +3,6 @@ package fnsb.macstransit.RouteMatch;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 
 /**
  * Created by Spud on 2019-10-18 for the project: MACS Transit.
@@ -45,12 +44,18 @@ public class Stop {
 	/**
 	 * TODO Documentation
 	 */
+	public static final double RADIUS = 50.0d;
+
+	/**
+	 * TODO Documentation
+	 */
 	public Stop(String stopID, double latitude, double longitude, Route route) {
 		this.stopID = stopID;
 		this.latitude = latitude;
 		this.longitude = longitude;
 		this.route = route;
-		CircleOptions options = new CircleOptions().center(new LatLng(this.latitude, this.longitude)).radius(25);
+		CircleOptions options = new CircleOptions().center(new LatLng(this.latitude, this.longitude))
+				.radius(Stop.RADIUS);
 		if (this.route.color != 0) {
 			this.color = this.route.color;
 			options.fillColor(this.color);
@@ -73,6 +78,8 @@ public class Stop {
 	 */
 	public void setIcon(Circle icon) {
 		this.icon = icon;
+		this.icon.setTag(this);
+		this.icon.setClickable(true);
 	}
 
 	/**
