@@ -4,6 +4,7 @@ import android.util.Log;
 import android.view.Menu;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 
@@ -12,8 +13,14 @@ import java.util.ArrayList;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
+import fnsb.macstransit.RouteMatch.Stop;
 
 public class MapsActivity extends androidx.fragment.app.FragmentActivity implements com.google.android.gms.maps.OnMapReadyCallback {
+
+	/**
+	 * TODO Documentation
+	 */
+	private final String URL = "https://fnsb.routematch.com/feed/";
 
 	/**
 	 * Create an array of all the routes that are used by the transit system. For now leave it uninitialized,
@@ -187,16 +194,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				.findFragmentById(R.id.map))).getMapAsync(this);
 
 		// Load the routes dynamically
-		try {
-			this.allRoutes = Route.generateRoutes("https://fnsb.routematch.com/feed/");
-			this.routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/", this.allRoutes);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-
-			// If the action was interrupted, simply relaunch the activity
-			this.finish();
-			this.startActivity(getIntent());
+		this.allRoutes = Route.generateRoutes(this.URL);
+		this.routeMatch = new RouteMatch(this.URL, this.allRoutes);
+		for (Route route : this.allRoutes) {
+			route.stops = route.loadStops(this.URL);
 		}
+
 	}
 
 	/**
@@ -275,7 +278,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Make a copy of the buses that are currently being tracked, to mitigate issue #7 (https://github.com/yeSpud/MACSTransitApp/issues/7)
 		Bus[] trackedBuses = this.buses.toArray(new Bus[0]);
 
-
 		// Start by iterating through all the buses that are currently being tracked.
 		for (Bus bus : trackedBuses) {
 
@@ -299,7 +301,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				}
 
 				// Now update the title
-
 				marker.setTitle(bus.route.routeName);
 
 				// If the route has a color, set its icon to that color
@@ -330,6 +331,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
+	 * TODO Comments Documentation and comments
 	 * Toggles the route (and subsequently the buses on that route) to be shown or hidden on the map.
 	 *
 	 * @param routeName The name of the route to be shown or hidden.
@@ -349,6 +351,17 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				if (route.routeName.equals(routeName)) {
 					Log.d("toggleRoute", "Found matching route!");
 					this.selectedRoutes.add(route);
+
+					if (route.stops.length != 0) {
+						for (Stop stop : route.stops) {
+							if (stop.getIcon() != null) {
+								stop.getIcon().setVisible(true);
+							} else {
+								stop.setIcon(this.map.addCircle(stop.getIconOptions()));
+								stop.getIcon().setVisible(true);
+							}
+						}
+					}
 
 					// Since we only add one route at a time (as there is only one routeName argument),
 					// break as soon as its added.
@@ -385,6 +398,14 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 					// Finally, remove the route from the selected routes array.
 					this.selectedRoutes.remove(route);
+
+					if (route.stops.length != 0) {
+						for (Stop stop : route.stops) {
+							if (stop.getIcon() != null) {
+								stop.getIcon().setVisible(false);
+							}
+						}
+					}
 
 					// Be sure to break at this point, as there is no need to continue iteration after this operation.
 					break;

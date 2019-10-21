@@ -1,5 +1,8 @@
 package fnsb.macstransit.RouteMatch;
 
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
 /**
@@ -28,10 +31,16 @@ public class Stop {
 	 * TODO Documentation
 	 */
 	public Route route;
+
 	/**
 	 * TODO Documentation
 	 */
-	private Marker marker;
+	private Circle icon;
+
+	/**
+	 * TODO Documentation
+	 */
+	private CircleOptions iconOptions;
 
 	/**
 	 * TODO Documentation
@@ -41,6 +50,13 @@ public class Stop {
 		this.latitude = latitude;
 		this.longitude = longitude;
 		this.route = route;
+		CircleOptions options = new CircleOptions().center(new LatLng(this.latitude, this.longitude)).radius(25);
+		if (this.route.color != 0) {
+			this.color = this.route.color;
+			options.fillColor(this.color);
+			options.strokeColor(this.color);
+		}
+		this.iconOptions = options;
 	}
 
 	/**
@@ -48,16 +64,24 @@ public class Stop {
 	 *
 	 * @return
 	 */
-	public Marker getMarker() {
-		// TODO
-		return null;
+	public Circle getIcon() {
+		return this.icon;
 	}
 
 	/**
 	 * TODO Document
 	 */
-	public void setMarker(Marker marker) {
-		// TODO
+	public void setIcon(Circle icon) {
+		this.icon = icon;
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @return
+	 */
+	public CircleOptions getIconOptions() {
+		return this.iconOptions;
 	}
 
 }

@@ -1,5 +1,7 @@
 package fnsb.macstransit.RouteMatch;
 
+import android.util.Log;
+
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -36,6 +38,7 @@ public class RouteMatch {
 	}
 
 	/**
+	 * TODO Update documentation and comments
 	 * Reads the JSON from the provided URL, and formats it into a JSONObject. If the URL times out,
 	 * or responds with an error the method will retry.
 	 *
@@ -43,30 +46,57 @@ public class RouteMatch {
 	 * @return The JSONObject containing the data (or a blank JSON Object if there was an error).
 	 */
 	static JSONObject readJsonFromUrl(String url) {
-		try {
-			// Specify the URL connection
-			java.net.URLConnection connection = new java.net.URL(url).openConnection();
 
-			// Add timeouts for the connection (1.5 seconds to connect, 2 seconds to read, 3.5 seconds total)
-			connection.setConnectTimeout(1500);
-			connection.setReadTimeout(2000);
+		Log.d("readJsonFromUrl", url);
+		StringBuilder jsonString = new StringBuilder();
 
-			// Get the input stream from the connection
-			java.io.InputStream inputStream = connection.getInputStream();
+		Thread t = new Thread(() -> {
 
-			// Create a buffered reader for the input stream
-			BufferedReader bufferedReader = new BufferedReader(new java.io.InputStreamReader(inputStream, java.nio.charset.StandardCharsets.UTF_8));
+			try {
+				// Specify the URL connection
+				java.net.URLConnection connection = new java.net.URL(url).openConnection();
 
-			// Store the inputted text into a string variable
-			String jsonString = RouteMatch.readAll(bufferedReader);
+				// Add timeouts for the connection (1.5 seconds to connect, 2 seconds to read, 3.5 seconds total)
+				connection.setConnectTimeout(1500);
+				connection.setReadTimeout(2000);
 
-			// Create and return a new JSONObject from the jsonString variable
-			return new JSONObject(jsonString);
-		} catch (java.io.FileNotFoundException | java.net.SocketTimeoutException timeout) {
+				// Get the input stream from the connection
+				java.io.InputStream inputStream = connection.getInputStream();
+
+				// Create a buffered reader for the input stream
+				BufferedReader bufferedReader = new BufferedReader(new java.io.InputStreamReader(inputStream, java.nio.charset.StandardCharsets.UTF_8));
+
+				// Store the inputted text into a string variable
+				jsonString.append(RouteMatch.readAll(bufferedReader));
+
+				bufferedReader.close();
+				inputStream.close();
+
+			} catch (java.io.FileNotFoundException | java.net.SocketTimeoutException e) {
+				throw new RuntimeException();
+			} catch (IOException uhoh) {
+				uhoh.printStackTrace();
+			}
+
+		});
+		t.setUncaughtExceptionHandler((t1, e) -> {
 			// Keep trying!
 			android.util.Log.w("readJsonFromUrl", "Page didn't respond, going to retry!");
-			return RouteMatch.readJsonFromUrl(url);
-		} catch (org.json.JSONException | IOException e) {
+			// TODO Clear JSON String
+			jsonString.setLength(0);
+			jsonString.append(RouteMatch.readJsonFromUrl(url).toString());
+		});
+		t.setName("Network thread");
+		t.start();
+		try {
+			t.join(4000);
+			if (jsonString.length() == 0) {
+				return RouteMatch.readJsonFromUrl(url);
+			} else {
+				// Create and return a new JSONObject from the jsonString variable
+				return new JSONObject(jsonString.toString());
+			}
+		} catch (org.json.JSONException | InterruptedException e) {
 			e.printStackTrace();
 			return new JSONObject();
 		}
@@ -77,8 +107,8 @@ public class RouteMatch {
 	 *
 	 * @param reader The Reader or BufferedReader object.
 	 * @return The final string from the String builder containing what was read by the Reader.
-	 * @throws IOException Throws an IOException if anything goes wrong.
 	 */
+	@Deprecated
 	private static String readAll(java.io.Reader reader) throws IOException {
 
 		// Create a string to store what is read by the reader
