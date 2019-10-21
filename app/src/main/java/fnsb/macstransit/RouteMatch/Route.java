@@ -8,6 +8,8 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import fnsb.macstransit.Network;
+
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
@@ -65,7 +67,7 @@ public class Route {
 		ArrayList<Route> routes = new ArrayList<>();
 
 		// First, get the master schedule from the provided url
-		JSONObject masterSchedule = RouteMatch.readJsonFromUrl(url + "masterRoute");
+		JSONObject masterSchedule = Network.readJsonFromUrl(url + "masterRoute");
 		Log.d("Master Schedule", masterSchedule.toString());
 
 		// Now get the data array from the JSON object
@@ -124,7 +126,7 @@ public class Route {
 	public Stop[] loadStops(String url) {
 		ArrayList<Stop> returnArray = new ArrayList<>();
 
-		JSONObject allStops = RouteMatch.readJsonFromUrl(url + "stops/" + this.routeName);
+		JSONObject allStops = Network.readJsonFromUrl(url + "stops/" + this.routeName);
 		Log.d("allStops", allStops.toString());
 
 		JSONArray data;
