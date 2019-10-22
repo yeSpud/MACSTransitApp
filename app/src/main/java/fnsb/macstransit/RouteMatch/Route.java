@@ -68,33 +68,31 @@ public class Route {
 
 		// First, get the master schedule from the provided url
 		JSONObject masterSchedule = Network.readJsonFromUrl(url + "masterRoute");
-		Log.d("Master Schedule", masterSchedule.toString());
 
 		// Now get the data array from the JSON object
 		JSONArray data;
 		try {
 			data = masterSchedule.getJSONArray("data");
 		} catch (JSONException e) {
-			e.printStackTrace();
 			// If there was a JSONException in parsing the data, just return from the thread now!
+			Log.w("generateRoutes", "Unable to parse master route! Returning empty route instead.");
 			return new Route[0];
 		}
 
-		// Display the schedule data for debugging purposes.
-		Log.d("Schedule data", data.toString());
-
 		// Iterate through the data array to begin parsing the routes
-		for (int index = 0; index < data.length(); index++) {
+		int count = data.length();
+		for (int index = 0; index < count; index++) {
 			JSONObject routeData;
 			try {
 
+				// TODO Documentation update
+				Log.d("generateRoutes", String.format("Parsing route %d/%d", index+1, count));
+
 				// Get the routeData that we are currently parsing as its own JSONObject variable.
 				routeData = data.getJSONObject(index);
-				Log.d("routeData", "Parsing routeData: " + routeData);
 
 				// First, parse the name
 				String name = routeData.getString("shortName");
-				Log.d("routeData", "Name: " + name);
 
 				// Now try to parse the color
 				try {
@@ -127,7 +125,6 @@ public class Route {
 		ArrayList<Stop> returnArray = new ArrayList<>();
 
 		JSONObject allStops = Network.readJsonFromUrl(url + "stops/" + this.routeName);
-		Log.d("allStops", allStops.toString());
 
 		JSONArray data;
 		try {
@@ -137,11 +134,12 @@ public class Route {
 			return null;
 		}
 
-		Log.d("Stop data", data.toString());
-
-		for (int index = 0; index < data.length(); index++) {
+		int count = data.length();
+		for (int index = 0; index < count; index++) {
 			JSONObject stopData;
 			try {
+
+				Log.d("loadStops", String.format("Parsing stop %d/%d", index+1, count));
 				stopData = data.getJSONObject(index);
 
 				Stop stop = new Stop(stopData.getString("stopId"),
@@ -159,6 +157,7 @@ public class Route {
 				}
 
 				if (!found) {
+					Log.d("loadStops", "Adding stop: " + stop.stopID + " to the array");
 					returnArray.add(stop);
 				}
 			} catch (JSONException e) {
@@ -166,8 +165,6 @@ public class Route {
 				break;
 			}
 		}
-
-		Log.d("ReturnArraySize", "" + returnArray.size());
 
 		return returnArray.toArray(new Stop[0]);
 	}

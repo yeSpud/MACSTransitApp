@@ -2,7 +2,6 @@ package fnsb.macstransit;
 
 import android.util.Log;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -16,10 +15,10 @@ import java.io.IOException;
 public class Network {
 
 	/**
-	 * TODO Documentation
+	 * Create a private variable that will track the number of attempts made to connect.
+	 * This needs to remain private as it should only be accessed and used in this class.
 	 */
-	private static int retryattempts = 0;
-
+	private static int attempts = 0;
 
 	/**
 	 * TODO Update documentation and comments
@@ -35,27 +34,8 @@ public class Network {
 		StringBuilder jsonString = new StringBuilder();
 
 		Thread t = new Thread(() -> {
-
 			try {
-				// Specify the URL connection
-				java.net.URLConnection connection = new java.net.URL(url).openConnection();
-
-				// Add timeouts for the connection (1.5 seconds to connect, 2 seconds to read, 3.5 seconds total)
-				connection.setConnectTimeout(1500);
-				connection.setReadTimeout(2000);
-
-				// Get the input stream from the connection
-				java.io.InputStream inputStream = connection.getInputStream();
-
-				// Create a buffered reader for the input stream
-				BufferedReader bufferedReader = new BufferedReader(new java.io.InputStreamReader(inputStream, java.nio.charset.StandardCharsets.UTF_8));
-
-				// Store the inputted text into a string variable
-				jsonString.append(Network.readAll(bufferedReader));
-
-				bufferedReader.close();
-				inputStream.close();
-
+				jsonString.append(Network.readFromUrl(url));
 			} catch (java.io.FileNotFoundException | java.net.SocketTimeoutException e) {
 				throw new RuntimeException();
 			} catch (IOException uhoh) {
@@ -68,7 +48,7 @@ public class Network {
 		t.setName("Network thread");
 		t.start();
 		try {
-			t.join(4000);
+			t.join(2500);
 			return Network.validateJson(jsonString, url);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -77,34 +57,97 @@ public class Network {
 	}
 
 	/**
-	 * TODO Documentation
+	 * TODO Documentation and comments
+	 *
+	 * @param url
+	 * @return
+	 */
+	private static String readFromUrl(String url) throws IOException {
+
+		// Specify the URL connection
+		java.net.URLConnection connection;
+		try {
+			connection = new java.net.URL(url).openConnection();
+		} catch (java.net.MalformedURLException e) {
+			// TODO Documentation
+			e.printStackTrace();
+			return null;
+		}
+
+		Log.d("readFromUrl", "Connection established");
+
+		// Add timeouts for the connection (1 second to connect, 1 second to read, 2 seconds total)
+		connection.setConnectTimeout(1000);
+		connection.setReadTimeout(1000);
+
+		// Get the input stream from the connection
+		java.io.InputStream inputStream = connection.getInputStream();
+
+		// Create a buffered reader for the input stream
+		BufferedReader bufferedReader = new BufferedReader(new java.io.InputStreamReader(inputStream, java.nio.charset.StandardCharsets.UTF_8));
+
+		// Store the inputted text into a string variable
+		String output = Network.readAll(bufferedReader);
+
+		// TODO Documentation
+		Log.d("readFromUrl", "Closing reader and stream");
+		bufferedReader.close();
+		inputStream.close();
+
+		return output;
+	}
+
+	/**
+	 * This method tried to validate the Json that is provided as a StringBuilder object by first checking if its not of length 0,
+	 * and then by attempting to parse it to a JSONObject.
 	 *
 	 * @param string
 	 * @param url
 	 * @return
 	 */
 	private static JSONObject validateJson(StringBuilder string, String url) {
+
+		// Check if the string builder object is empty (has a length of 0). If it does,
+		// then that means that there was no JSON returned from the URL (likely due to a connection error),
+		// so retry a maximum of 3 times.
 		if (string.length() == 0) {
-			if (Network.retryattempts < 3) {
-				// Keep trying!
+
+			// If there have been less than 3 retries, keep retrying.
+			if (Network.attempts < 3) {
+
+				// Sleep for a second to alleviate some stress from the receiving servers (in the event that this was the issue).
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(500);
 				} catch (InterruptedException ex) {
 					ex.printStackTrace();
 				}
-				Network.retryattempts++;
-				android.util.Log.w("readJsonFromUrl", String.format("Page didn't respond, going to retry! (%d/3)", Network.retryattempts));
+
+				// Up the number of network attempts here, and log the current attempt number
+				Network.attempts++;
+				Log.w("validateJson", String.format("Url didn't respond, going to retry! (%d/3)", Network.attempts));
+
+				// Try to return the JsonObject from the new attempt.
 				return Network.readJsonFromUrl(url);
 			} else {
-				Network.retryattempts = 0;
+				// Since the maximum number of tries has been attempted, reset the count,
+				// and return an empty JsonObject.
+				Log.w("validateJson", "Unable to get data from url");
+				Network.attempts = 0;
 				return new JSONObject();
 			}
 		} else {
-			Network.retryattempts = 0;
+
+			// Since the string builder wasn't empty it may be a valid Json string.
+			// In this case, set the number of attempts to 0,
+			// and try to return the string builder as a JSONObject.
+			Network.attempts = 0;
 			try {
-				// Create and return a new JSONObject from the jsonString variable
 				return new JSONObject(string.toString());
-			} catch (JSONException e) {
+			} catch (org.json.JSONException e) {
+
+				// If it failed to parse the string to a JSONObject, the string was likely malformed.
+				// Shame.
+				// Simply print the stack trace, and then return an empty JSONObject.
 				e.printStackTrace();
 				return new JSONObject();
 			}
@@ -112,13 +155,15 @@ public class Network {
 	}
 
 	/**
-	 * Parse characters from a reader or buffered reader into a stream.
+	 * Parse characters from a reader or buffered reader into a character stream. Once parsed,
+	 * the character stream will be converted into a string and then returned.
 	 *
-	 * @param reader The Reader or BufferedReader object.
+	 * @param reader The Reader or BufferedReader object that will be used to read the character stream.
 	 * @return The final string from the String builder containing what was read by the Reader.
 	 */
-	@Deprecated
 	private static String readAll(java.io.Reader reader) throws IOException {
+
+		Log.d("readAll", "Reading from stream...");
 
 		// Create a string to store what is read by the reader
 		StringBuilder string = new StringBuilder();

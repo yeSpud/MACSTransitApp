@@ -196,9 +196,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Load the routes dynamically
 		this.allRoutes = Route.generateRoutes(this.URL);
-		this.routeMatch = new RouteMatch(this.URL, this.allRoutes);
-		for (Route route : this.allRoutes) {
-			route.stops = route.loadStops(this.URL);
+		if (this.allRoutes.length != 0) {
+			this.routeMatch = new RouteMatch(this.URL, this.allRoutes);
+			for (Route route : this.allRoutes) {
+				route.stops = route.loadStops(this.URL);
+			}
+		} else {
+			Toast.makeText(this, R.string.noData, Toast.LENGTH_LONG).show();
 		}
 
 	}
@@ -280,16 +284,18 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			float zoomChange = 11.0f / zoom;
 			Log.d("CameraChange", "Zoom change: " + zoomChange);
 			for (Route route : this.allRoutes) {
-				for (Stop stop : route.stops) {
-					Circle icon = stop.getIcon();
-					if (icon != null) {
-						icon.setRadius(Stop.RADIUS * (Math.pow(zoomChange, 5)));
+				if (route != null) {
+					for (Stop stop : route.stops) {
+						Circle icon = stop.getIcon();
+						if (icon != null) {
+							icon.setRadius(Stop.RADIUS * (Math.pow(zoomChange, 5)));
+						}
 					}
 				}
 			}
 		});
 
-		this.map.setOnCircleClickListener((circle) ->{
+		this.map.setOnCircleClickListener((circle) -> {
 			if (circle.getTag() instanceof Stop) {
 				Stop stop = (Stop) circle.getTag();
 				// Need to get a working info window. For now... toast
@@ -297,7 +303,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			}
 		});
 	}
-
 
 	/**
 	 * Updates the position (and color) of the markers on the map.

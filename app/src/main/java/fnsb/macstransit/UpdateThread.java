@@ -128,12 +128,13 @@ class UpdateThread {
 		// Get the data section of the bus JSON pulled from the routematch server
 		org.json.JSONArray busArray = this.activity.routeMatch.getRoute(route.routeName).getJSONArray("data");
 
-		// Display the full data for debugging purposes
-		Log.d("parseBuses", "Bus array: " + busArray.toString());
-
 		// In the event that there are multiple buses running on one route, the array will have a size > 1.
 		// To combat this, just loop through the size of the array, and parse the JSON for the individual buses.
-		for (int i = 0; i < busArray.length(); i++) {
+		int count = busArray.length();
+		for (int i = 0; i < count; i++) {
+
+			// TODO Update comments
+			Log.d("parseBuses", String.format("Parsing bus %d/%d", i+1, count));
 
 			// Get the individual bus from the JSON array at the provided index
 			org.json.JSONObject object = busArray.getJSONObject(i);
@@ -182,6 +183,7 @@ class UpdateThread {
 
 			// Add the bus to the array of tracked buses if it wasn't in the array.
 			if (!found) {
+				Log.d("parseBuses", "Adding bus: " + bus.busID + " to the array");
 				this.activity.buses.add(bus);
 			}
 
