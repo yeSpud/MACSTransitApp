@@ -14,6 +14,9 @@ import fnsb.macstransit.Network;
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
+ *
+ * @version 2.0
+ * @since Beta 3
  */
 public class Route {
 
@@ -67,7 +70,7 @@ public class Route {
 		ArrayList<Route> routes = new ArrayList<>();
 
 		// First, get the master schedule from the provided url
-		JSONObject masterSchedule = Network.readJsonFromUrl(url + "masterRoute");
+		JSONObject masterSchedule = Network.getJsonFromUrl(url + "masterRoute");
 
 		// Now get the data array from the JSON object
 		JSONArray data;
@@ -86,7 +89,7 @@ public class Route {
 			try {
 
 				// TODO Documentation update
-				Log.d("generateRoutes", String.format("Parsing route %d/%d", index+1, count));
+				Log.d("generateRoutes", String.format("Parsing route %d/%d", index + 1, count));
 
 				// Get the routeData that we are currently parsing as its own JSONObject variable.
 				routeData = data.getJSONObject(index);
@@ -124,7 +127,7 @@ public class Route {
 	public Stop[] loadStops(String url) {
 		ArrayList<Stop> returnArray = new ArrayList<>();
 
-		JSONObject allStops = Network.readJsonFromUrl(url + "stops/" + this.routeName);
+		JSONObject allStops = Network.getJsonFromUrl(url + "stops/" + this.routeName);
 
 		JSONArray data;
 		try {
@@ -139,7 +142,7 @@ public class Route {
 			JSONObject stopData;
 			try {
 
-				Log.d("loadStops", String.format("Parsing stop %d/%d", index+1, count));
+				Log.d("loadStops", String.format("Parsing stop %d/%d", index + 1, count));
 				stopData = data.getJSONObject(index);
 
 				Stop stop = new Stop(stopData.getString("stopId"),

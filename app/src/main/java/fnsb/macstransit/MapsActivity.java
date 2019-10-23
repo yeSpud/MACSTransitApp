@@ -1,6 +1,7 @@
 package fnsb.macstransit;
 
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.widget.Toast;
 
@@ -56,7 +57,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 	/**
 	 * Boolean to check whether or not the menu items for the routes have been (dynamically) created.
-	 * This is used to prevent making multiple duplicate menu items in {@code onPrepareOptionsMenu(Menu menu).
+	 * This is used to prevent making multiple duplicate menu items in {@code onPrepareOptionsMenu(Menu menu)}.
 	 */
 	private boolean menuCreated;
 
@@ -202,7 +203,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				route.stops = route.loadStops(this.URL);
 			}
 		} else {
-			Toast.makeText(this, R.string.noData, Toast.LENGTH_LONG).show();
+			Toast toast = Toast.makeText(this, R.string.noData, Toast.LENGTH_LONG);
+			toast.setGravity(Gravity.CENTER, 0, 0);
+			toast.show();
 		}
 
 	}

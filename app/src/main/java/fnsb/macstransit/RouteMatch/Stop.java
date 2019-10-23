@@ -8,43 +8,40 @@ import com.google.android.gms.maps.model.LatLng;
  * Created by Spud on 2019-10-18 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
+ *
+ * @version 1.0
+ * @since beta 6.
  */
 public class Stop {
 
 	/**
 	 * TODO Documentation
 	 */
+	public static final double RADIUS = 50.0d;
+	/**
+	 * TODO Documentation
+	 */
 	public String stopID;
-
 	/**
 	 * TODO Documentation
 	 */
 	public double latitude, longitude;
-
 	/**
 	 * TODO Documentation
 	 */
 	public int color;
-
 	/**
 	 * TODO Documentation
 	 */
 	public Route route;
-
 	/**
 	 * TODO Documentation
 	 */
 	private Circle icon;
-
 	/**
 	 * TODO Documentation
 	 */
 	private CircleOptions iconOptions;
-
-	/**
-	 * TODO Documentation
-	 */
-	public static final double RADIUS = 50.0d;
 
 	/**
 	 * TODO Documentation

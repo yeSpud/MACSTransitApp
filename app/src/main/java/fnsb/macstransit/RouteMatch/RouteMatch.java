@@ -5,6 +5,9 @@ package fnsb.macstransit.RouteMatch;
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
+ *
+ * @version 3.0
+ * @since Beta 1
  */
 public class RouteMatch {
 
@@ -39,8 +42,8 @@ public class RouteMatch {
 	 * @return The JSONObject pertaining to that specific route's data.
 	 */
 	public org.json.JSONObject getRoute(String routeName) {
-		// Example usage: readJsonFromUrl("https://fnsb.routematch.com/feed/vehicle/byRoutes/Red");
-		return fnsb.macstransit.Network.readJsonFromUrl(this.url + "/vehicle/byRoutes/" + routeName);
+		// Example usage: getJsonFromUrl("https://fnsb.routematch.com/feed/vehicle/byRoutes/Red");
+		return fnsb.macstransit.Network.getJsonFromUrl(this.url + "/vehicle/byRoutes/" + routeName);
 	}
 
 	/**

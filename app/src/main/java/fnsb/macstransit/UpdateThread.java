@@ -12,6 +12,9 @@ import fnsb.macstransit.RouteMatch.Route;
  * Created by Spud on 2019-10-13 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
+ *
+ * @version 2.0
+ * @since Beta 3
  */
 class UpdateThread {
 
@@ -134,7 +137,7 @@ class UpdateThread {
 		for (int i = 0; i < count; i++) {
 
 			// TODO Update comments
-			Log.d("parseBuses", String.format("Parsing bus %d/%d", i+1, count));
+			Log.d("parseBuses", String.format("Parsing bus %d/%d", i + 1, count));
 
 			// Get the individual bus from the JSON array at the provided index
 			org.json.JSONObject object = busArray.getJSONObject(i);
