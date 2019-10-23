@@ -6,11 +6,14 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 
 /**
  * Created by Spud on 2019-10-21 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
+ * <p>
+ * TODO Documentation
  *
  * @version 1.0
  * @since Beta 6.
@@ -18,12 +21,12 @@ import java.io.IOException;
 public class Network {
 
 	/**
-	 * TODO Documentation
+	 * Timeouts (in milliseconds) used by various methods.
 	 */
 	private static final int CONNECTION_TIMEOUT = 2000, READ_TIMEOUT = 500, PROCESSING_TIMEOUT = 250;
 
 	/**
-	 * TODO Documentation
+	 * The maximum number of retries allowed for the method, stored as a short (as it's not meant to be a large number).
 	 */
 	private static final short MAX_ATTEMPTS = 3;
 
@@ -34,12 +37,11 @@ public class Network {
 	private static int attempts = 0;
 
 	/**
-	 * TODO Update documentation and comments
-	 * Reads the JSON from the provided URL, and formats it into a JSONObject. If the URL times out,
-	 * or responds with an error the method will retry.
+	 * Reads the JSON from the provided URL, and formats it into a JSONObject.
+	 * This may be an empty JSONObject if the page times out and the method can no longer retry, or if any other error occurs.
 	 *
 	 * @param url The URL to retrieve the JSON data from.
-	 * @return The JSONObject containing the data (or a blank JSON Object if there was an error).
+	 * @return The JSONObject containing the data, or an empty JSONObject if there was an error, or the page timed out.
 	 */
 	public static JSONObject getJsonFromUrl(String url) {
 
@@ -54,7 +56,7 @@ public class Network {
 			try {
 				// Append the Json read from the URL to the string builder.
 				jsonString.append(Network.readFromUrl(url));
-			} catch (java.io.FileNotFoundException | java.net.SocketTimeoutException e) {
+			} catch (java.io.FileNotFoundException | SocketTimeoutException e) {
 				// In the event that it took too long to process, throw a runtime exception
 				// This will be cause by setUncaughtExceptionHandler();
 				throw new RuntimeException();
@@ -89,23 +91,31 @@ public class Network {
 	}
 
 	/**
-	 * TODO Documentation and comments
+	 * Reads the data from the url and returns a string containing said data.
+	 * A connection must be established withing the time determined by {@code CONNECTION_TIMEOUT},
+	 * and must read within the time determined by {@code READ_TIMEOUT},
+	 * otherwise it will throw a {@code SocketTimeoutException}.
 	 *
-	 * @param url
-	 * @return
+	 * @param url The url to read from.
+	 * @return The string (hopefully) containing the Json data, which can then be parsed into a JSONObject.
+	 * @throws IOException            Thrown if there is an issue with the connection, buffered reader, or input stream.
+	 * @throws SocketTimeoutException Thrown if the connection time surpasses the allotted time in the connection timeout.
+	 *                                Same with the read timeout.
 	 */
-	private static String readFromUrl(String url) throws IOException {
+	private static String readFromUrl(String url) throws IOException, SocketTimeoutException {
 
-		// Specify the URL connection
+		// Specify the URL connection, and try to open a connection. If unsuccessful, just return null.
 		java.net.URLConnection connection;
 		try {
 			connection = new java.net.URL(url).openConnection();
 		} catch (java.net.MalformedURLException e) {
-			// TODO Documentation
+
+			// If the url provided was malformed, simply print a stacktrace, and return a null string.
 			e.printStackTrace();
 			return null;
 		}
 
+		// Since we made it this far (didn't return null). meaning connection was established, log that in the debugger.
 		Log.d("readFromUrl", "Connection established");
 
 		// Add timeouts for the connection (1 second to connect, 1 second to read, 2 seconds total)
@@ -121,11 +131,13 @@ public class Network {
 		// Store the inputted text into a string variable
 		String output = Network.readAll(bufferedReader);
 
-		// TODO Documentation
+		// Close the reader and input stream (also log this to the debugger).
 		Log.d("readFromUrl", "Closing reader and stream");
 		bufferedReader.close();
 		inputStream.close();
 
+		// Return the output string which should contain the json.
+		// It can be parsed in a different method in the event that its malformed, and can thus be handled better.
 		return output;
 	}
 
@@ -133,16 +145,17 @@ public class Network {
 	 * This method tried to validate the Json that is provided as a StringBuilder object by first checking if its not of length 0,
 	 * and then by attempting to parse it to a JSONObject.
 	 *
-	 * @param string
-	 * @param url
-	 * @return
+	 * @param stringBuilder The StringBuilder that will be validated. Mainly used for checking if the length is 0.
+	 *                      If it's not the StringBuilder is then attempted to be parsed into a JSONObject.
+	 * @param url           The url in the event that this needs to be retried.
+	 * @return The JSONObject containing the parsed data from the string, or an empty JSONObject if there was an error while parsing.
 	 */
-	private static JSONObject validateJson(StringBuilder string, String url) {
+	private static JSONObject validateJson(StringBuilder stringBuilder, String url) {
 
 		// Check if the string builder object is empty (has a length of 0). If it does,
 		// then that means that there was no JSON returned from the URL (likely due to a connection error),
 		// so retry a maximum of 3 times.
-		if (string.length() == 0) {
+		if (stringBuilder.length() == 0) {
 
 			// If there have been less than 3 retries, keep retrying.
 			if (Network.attempts < Network.MAX_ATTEMPTS) {
@@ -174,7 +187,7 @@ public class Network {
 			// and try to return the string builder as a JSONObject.
 			Network.attempts = 0;
 			try {
-				return new JSONObject(string.toString());
+				return new JSONObject(stringBuilder.toString());
 			} catch (org.json.JSONException e) {
 
 				// If it failed to parse the string to a JSONObject, the string was likely malformed.
@@ -192,6 +205,7 @@ public class Network {
 	 *
 	 * @param reader The Reader or BufferedReader object that will be used to read the character stream.
 	 * @return The final string from the String builder containing what was read by the Reader.
+	 * @throws IOException Thrown if there is an error while reading from the reader.
 	 */
 	private static String readAll(java.io.Reader reader) throws IOException {
 
