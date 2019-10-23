@@ -16,7 +16,7 @@ import fnsb.macstransit.RouteMatch.Route;
  * @version 2.0
  * @since Beta 3
  */
-class UpdateThread {
+public class UpdateThread {
 
 	/**
 	 * Create a boolean that will be used to determine if the update thread should be running or not.
