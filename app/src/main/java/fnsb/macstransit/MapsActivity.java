@@ -9,6 +9,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 
@@ -60,6 +62,19 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * This is used to prevent making multiple duplicate menu items in {@code onPrepareOptionsMenu(Menu menu)}.
 	 */
 	private boolean menuCreated;
+
+	/**
+	 * Gets the color of the marker icon based off of the color value given.
+	 * The reason why there needs to be a function for this is because there are only 10 colors that a marker icon can be.
+	 *
+	 * @param color The desired color value as an int.
+	 * @return The BitmapDescriptor used for defining the color of a markers's icon.
+	 */
+	public static com.google.android.gms.maps.model.BitmapDescriptor getMarkerIcon(int color) {
+		float[] hsv = new float[3];
+		android.graphics.Color.colorToHSV(color, hsv);
+		return com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]);
+	}
 
 	/**
 	 * Prepare the Screen's standard options menu to be displayed.
@@ -279,6 +294,16 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// TODO Add the route stops to the map, but hide them
 
+		for (Route route : this.allRoutes) {
+			for (Stop stop : route.stops) {
+				if (stop.getMarker() == null) {
+					Marker marker = this.map.addMarker(new MarkerOptions().position(new LatLng(stop.latitude, stop.longitude)));
+					marker.setVisible(false);
+					stop.setMarker(marker);
+				}
+			}
+		}
+
 		this.map.setOnCameraIdleListener(() -> {
 			// TODO Documentation
 			float zoom = this.map.getCameraPosition().zoom;
@@ -302,9 +327,22 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			if (circle.getTag() instanceof Stop) {
 				Stop stop = (Stop) circle.getTag();
 				// Need to get a working info window. For now... toast
-				Toast.makeText(this, stop.stopID, Toast.LENGTH_SHORT).show();
+				if (stop.getMarker() == null) {
+					// Need to get a working info window. For now... toast
+					Toast.makeText(this, stop.stopID, Toast.LENGTH_SHORT).show();
+				} else {
+					Marker marker = stop.getMarker();
+					marker.setVisible(true);
+					marker.showInfoWindow();
+				}
 			}
 		});
+
+		this.map.setOnInfoWindowCloseListener((marker -> {
+			if (marker.getTag() instanceof Stop) {
+				marker.setVisible(false);
+			}
+		}));
 	}
 
 	/**
@@ -342,7 +380,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 				// If the route has a color, set its icon to that color
 				if (bus.route.color != 0) {
-					marker.setIcon(this.getMarkerIcon(bus.route.color));
+					marker.setIcon(MapsActivity.getMarkerIcon(bus.route.color));
 				}
 
 				// Make sure that the marker is visible
@@ -352,19 +390,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				bus.setMarker(marker);
 			});
 		}
-	}
-
-	/**
-	 * Gets the color of the marker icon based off of the color value given.
-	 * The reason why there needs to be a function for this is because there are only 10 colors that a marker icon can be.
-	 *
-	 * @param color The desired color value as an int.
-	 * @return The BitmapDescriptor used for defining the color of a markers's icon.
-	 */
-	private com.google.android.gms.maps.model.BitmapDescriptor getMarkerIcon(int color) {
-		float[] hsv = new float[3];
-		android.graphics.Color.colorToHSV(color, hsv);
-		return com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]);
 	}
 
 	/**

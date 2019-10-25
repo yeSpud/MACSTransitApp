@@ -3,6 +3,9 @@ package fnsb.macstransit.RouteMatch;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+
+import fnsb.macstransit.MapsActivity;
 
 /**
  * Created by Spud on 2019-10-18 for the project: MACS Transit.
@@ -46,6 +49,11 @@ public class Stop {
 	/**
 	 * TODO Documentation
 	 */
+	private Marker marker;
+
+	/**
+	 * TODO Documentation
+	 */
 	public Stop(String stopID, double latitude, double longitude, Route route) {
 		this.stopID = stopID;
 		this.latitude = latitude;
@@ -77,6 +85,22 @@ public class Stop {
 		this.icon = icon;
 		this.icon.setTag(this);
 		this.icon.setClickable(true);
+	}
+
+	public Marker getMarker() {
+		return this.marker;
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param marker
+	 */
+	public void setMarker(Marker marker) {
+		this.marker = marker;
+		this.marker.setTag(this);
+		this.marker.setTitle(this.stopID);
+		this.marker.setIcon(MapsActivity.getMarkerIcon(this.color));
+
 	}
 
 	/**

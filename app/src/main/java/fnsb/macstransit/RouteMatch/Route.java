@@ -133,8 +133,8 @@ public class Route {
 		try {
 			data = allStops.getJSONArray("data");
 		} catch (JSONException e) {
-			e.printStackTrace();
-			return null;
+			Log.w("loadStops", "No data for the specified stop!");
+			return new Stop[0];
 		}
 
 		int count = data.length();

@@ -129,7 +129,13 @@ public class UpdateThread {
 	 */
 	private void parseBuses(Route route) throws JSONException {
 		// Get the data section of the bus JSON pulled from the routematch server
-		org.json.JSONArray busArray = this.activity.routeMatch.getRoute(route.routeName).getJSONArray("data");
+		org.json.JSONArray busArray;
+		try {
+			busArray = this.activity.routeMatch.getRoute(route.routeName).getJSONArray("data");
+		} catch (JSONException noData) {
+			Log.w("parseBuses", "No data for buses!");
+			return;
+		}
 
 		// In the event that there are multiple buses running on one route, the array will have a size > 1.
 		// To combat this, just loop through the size of the array, and parse the JSON for the individual buses.
