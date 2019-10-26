@@ -6,7 +6,6 @@ import android.view.Menu;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
@@ -24,6 +23,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * TODO Documentation
 	 */
+	@SuppressWarnings("FieldCanBeLocal")
 	private final String URL = "https://fnsb.routematch.com/feed/";
 
 	/**
@@ -210,7 +210,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		((com.google.android.gms.maps.SupportMapFragment) java.util.Objects.requireNonNull(this.getSupportFragmentManager()
 				.findFragmentById(R.id.map))).getMapAsync(this);
 
-		// Load the routes dynamically
+		// Load the routes dynamically TODO Better comments
 		this.allRoutes = Route.generateRoutes(this.URL);
 		if (this.allRoutes.length != 0) {
 			this.routeMatch = new RouteMatch(this.URL, this.allRoutes);
@@ -314,7 +314,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			for (Route route : this.allRoutes) {
 				if (route != null) {
 					for (Stop stop : route.stops) {
-						Circle icon = stop.getIcon();
+						com.google.android.gms.maps.model.Circle icon = stop.getIcon();
 						if (icon != null) {
 							icon.setRadius(Stop.RADIUS * (Math.pow(zoomChange, 5)));
 						}
@@ -323,6 +323,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			}
 		});
 
+		// TODO Documentation
 		this.map.setOnCircleClickListener((circle) -> {
 			if (circle.getTag() instanceof Stop) {
 				Stop stop = (Stop) circle.getTag();
@@ -338,6 +339,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			}
 		});
 
+		// TODO Documentation
 		this.map.setOnInfoWindowCloseListener((marker -> {
 			if (marker.getTag() instanceof Stop) {
 				marker.setVisible(false);
@@ -414,12 +416,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 					Log.d("toggleRoute", "Found matching route!");
 					this.selectedRoutes.add(route);
 
+					// TODO Comments
 					if (route.stops.length != 0) {
 						for (Stop stop : route.stops) {
 							if (stop.getIcon() != null) {
 								stop.getIcon().setVisible(true);
 							} else {
-								stop.setIcon(this.map.addCircle(stop.getIconOptions()));
+								stop.setIcon(this.map.addCircle(stop.iconOptions));
 								stop.getIcon().setVisible(true);
 							}
 						}
