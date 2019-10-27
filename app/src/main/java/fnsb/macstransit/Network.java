@@ -13,7 +13,17 @@ import java.net.SocketTimeoutException;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  * <p>
- * TODO Documentation
+ * <i><b>Yo dawg. I heard you like static methods. So I got you some static methods, so you could static method while you static method :D</b></i>
+ * <p>
+ * <p>
+ * <i>Ok, I've had my fun.</i>
+ * <p>
+ * But in all seriousness, all of these methods are static, but only one is public,
+ * and is to be used outside this class as a result.
+ * The reason why all the other methods exist is simply for more easy of use within the primary method.
+ * The reason for this is because this class is used to actually connect to a server via the provided url.
+ * Since android doesn't like url connections to be run on the UI thread, this needs to be done on its own thread.
+ * Hence the complexity :(
  *
  * @version 1.0
  * @since Beta 6.

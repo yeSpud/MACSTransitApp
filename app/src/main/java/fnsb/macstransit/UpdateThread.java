@@ -123,9 +123,9 @@ public class UpdateThread {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Parses the buses from the current route, and then calls {@code updateBusMarkers} from the activity thread.
 	 *
-	 * @param route
+	 * @param route The route to parse the buses from.
 	 */
 	private void parseBuses(Route route) throws JSONException {
 		// Get the data section of the bus JSON pulled from the routematch server
@@ -142,7 +142,8 @@ public class UpdateThread {
 		int count = busArray.length();
 		for (int i = 0; i < count; i++) {
 
-			// TODO Update comments
+
+			// Log the progress of parsing the buses.
 			Log.d("parseBuses", String.format("Parsing bus %d/%d", i + 1, count));
 
 			// Get the individual bus from the JSON array at the provided index
