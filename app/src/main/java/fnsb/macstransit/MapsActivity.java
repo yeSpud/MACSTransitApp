@@ -2,18 +2,28 @@ package fnsb.macstransit;
 
 import android.util.Log;
 import android.view.Menu;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
+import fnsb.macstransit.RouteMatch.Stop;
 
 public class MapsActivity extends androidx.fragment.app.FragmentActivity implements com.google.android.gms.maps.OnMapReadyCallback {
+
+	/**
+	 * The url to load the feed from.
+	 */
+	@Deprecated
+	private final String URL = "https://fnsb.routematch.com/feed/";
 
 	/**
 	 * Create an array of all the routes that are used by the transit system. For now leave it uninitialized,
@@ -48,9 +58,22 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 	/**
 	 * Boolean to check whether or not the menu items for the routes have been (dynamically) created.
-	 * This is used to prevent making multiple duplicate menu items in {@code onPrepareOptionsMenu(Menu menu).
+	 * This is used to prevent making multiple duplicate menu items in {@code onPrepareOptionsMenu(Menu menu)}.
 	 */
 	private boolean menuCreated;
+
+	/**
+	 * Gets the color of the marker icon based off of the color value given.
+	 * The reason why there needs to be a function for this is because there are only 10 colors that a marker icon can be.
+	 *
+	 * @param color The desired color value as an int.
+	 * @return The BitmapDescriptor used for defining the color of a markers's icon.
+	 */
+	public static com.google.android.gms.maps.model.BitmapDescriptor getMarkerIcon(int color) {
+		float[] hsv = new float[3];
+		android.graphics.Color.colorToHSV(color, hsv);
+		return com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]);
+	}
 
 	/**
 	 * Prepare the Screen's standard options menu to be displayed.
@@ -187,16 +210,24 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				.findFragmentById(R.id.map))).getMapAsync(this);
 
 		// Load the routes dynamically
-		try {
-			this.allRoutes = Route.generateRoutes("https://fnsb.routematch.com/feed/", this);
-			this.routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/", this.allRoutes);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		this.allRoutes = Route.generateRoutes(this.URL);
 
-			// If the action was interrupted, simply relaunch the activity
-			this.finish();
-			this.startActivity(getIntent());
+		// If the length of the loaded routes is not zero (aka there are routes to work with, apply the following:
+		if (this.allRoutes.length != 0) {
+
+			// Setup the routematch object.
+			this.routeMatch = new RouteMatch(this.URL, this.allRoutes);
+
+			// For each of the routes in the loaded routes, load the stops that correspond to the route.
+			for (Route route : this.allRoutes) {
+				route.stops = route.loadStops(this.URL);
+			}
+		} else {
+			// If the route length is zero, either there are no routes, or there was an issue connecting to the feed.
+			Toast toast = Toast.makeText(this, R.string.noData, Toast.LENGTH_LONG);
+			toast.show();
 		}
+
 	}
 
 	/**
@@ -264,7 +295,83 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Move the camera to the 'home' position
 		LatLng home = new LatLng(64.8391975, -147.7684709);
-		map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(home, 11.0f));
+		this.map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(home, 11.0f));
+
+		// Iterate through all the routes.
+		for (Route route : this.allRoutes) {
+
+			// Iterate though all the stops in the route.
+			for (Stop stop : route.stops) {
+
+				// If the stop marker is null, create a new marker, but make sure its invisible.
+				if (stop.getMarker() == null) {
+					Marker marker = this.map.addMarker(new MarkerOptions().position(new LatLng(stop.latitude, stop.longitude)));
+					marker.setVisible(false);
+					stop.setMarker(marker);
+				}
+			}
+		}
+
+		// Add a listener for when the camera has become idle (ie was moving isn't anymore).
+		this.map.setOnCameraIdleListener(() -> {
+
+			// Get the camera's new zoom position
+			float zoom = this.map.getCameraPosition().zoom;
+			Log.d("CameraChange", "Zoom level: " + zoom);
+
+			// Get how much it has changed from the default zoom (11).
+			float zoomChange = 11.0f / zoom;
+			Log.d("CameraChange", "Zoom change: " + zoomChange);
+
+			// Iterate through all the routes.
+			for (Route route : this.allRoutes) {
+
+				// If the route isn't null, execute the following:
+				if (route != null) {
+					// Iterate through all the stops in the route.
+					for (Stop stop : route.stops) {
+
+						// Get the stop's icon
+						com.google.android.gms.maps.model.Circle icon = stop.getIcon();
+
+						// If the icon isn't null, change its radius in proportion to the zoom change.
+						if (icon != null) {
+							icon.setRadius(Stop.RADIUS * (Math.pow(zoomChange, 5)));
+						}
+					}
+				}
+			}
+		});
+
+		// Add a listener for when a stop icon (circle) is clicked.
+		this.map.setOnCircleClickListener((circle) -> {
+
+			// Make sure the circle is visible first
+			if (circle.isVisible()) {
+
+				// Make sure that circle is part of the stop class
+				if (circle.getTag() instanceof Stop) {
+					Stop stop = (Stop) circle.getTag();
+
+					// If the stop doesn't have a marker, just use toast to display the stop ID.
+					if (stop.getMarker() == null) {
+						Toast.makeText(this, stop.stopID, Toast.LENGTH_SHORT).show();
+					} else {
+						// If the stop does have a marker, set the marker to be visible, and show the info window corresponding to that marker.
+						Marker marker = stop.getMarker();
+						marker.setVisible(true);
+						marker.showInfoWindow();
+					}
+				}
+			}
+		});
+
+		// Set it so that if the info window was closed for a Stop marker, make that marker invisible, so its just the dot.
+		this.map.setOnInfoWindowCloseListener((marker -> {
+			if (marker.getTag() instanceof Stop) {
+				marker.setVisible(false);
+			}
+		}));
 	}
 
 	/**
@@ -274,7 +381,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Make a copy of the buses that are currently being tracked, to mitigate issue #7 (https://github.com/yeSpud/MACSTransitApp/issues/7)
 		Bus[] trackedBuses = this.buses.toArray(new Bus[0]);
-
 
 		// Start by iterating through all the buses that are currently being tracked.
 		for (Bus bus : trackedBuses) {
@@ -299,12 +405,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				}
 
 				// Now update the title
-
 				marker.setTitle(bus.route.routeName);
 
 				// If the route has a color, set its icon to that color
 				if (bus.route.color != 0) {
-					marker.setIcon(this.getMarkerIcon(bus.route.color));
+					marker.setIcon(MapsActivity.getMarkerIcon(bus.route.color));
 				}
 
 				// Make sure that the marker is visible
@@ -317,20 +422,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * Gets the color of the marker icon based off of the color value given.
-	 * The reason why there needs to be a function for this is because there are only 10 colors that a marker icon can be.
-	 *
-	 * @param color The desired color value as an int.
-	 * @return The BitmapDescriptor used for defining the color of a markers's icon.
-	 */
-	private com.google.android.gms.maps.model.BitmapDescriptor getMarkerIcon(int color) {
-		float[] hsv = new float[3];
-		android.graphics.Color.colorToHSV(color, hsv);
-		return com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]);
-	}
-
-	/**
-	 * Toggles the route (and subsequently the buses on that route) to be shown or hidden on the map.
+	 * Toggles the route, buses, and stops on that route to be shown or hidden on the map.
 	 *
 	 * @param routeName The name of the route to be shown or hidden.
 	 * @param enabled   Whether or not the route is to be shown (true), or hidden (false).
@@ -349,6 +441,25 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				if (route.routeName.equals(routeName)) {
 					Log.d("toggleRoute", "Found matching route!");
 					this.selectedRoutes.add(route);
+
+					// If the route has stops (will not have a length of 0) execute the following:
+					if (route.stops.length != 0) {
+
+						// Iterate through all the stops in the route
+						for (Stop stop : route.stops) {
+
+							// If the route has an icon, set it to visible.
+							if (stop.getIcon() != null) {
+								stop.getIcon().setVisible(true);
+							} else {
+
+								// If the route doesn't have an icon, create a new one,
+								// and set it to visible :P
+								stop.setIcon(this.map.addCircle(stop.iconOptions));
+								stop.getIcon().setVisible(true);
+							}
+						}
+					}
 
 					// Since we only add one route at a time (as there is only one routeName argument),
 					// break as soon as its added.
@@ -385,6 +496,19 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 					// Finally, remove the route from the selected routes array.
 					this.selectedRoutes.remove(route);
+
+					// If there are stops in the route (will have a not equal to 0), execute the following:
+					if (route.stops.length != 0) {
+
+						// Iterate through the stops in the route
+						for (Stop stop : route.stops) {
+
+							// If the stop icon isn't null, set it to be invisible
+							if (stop.getIcon() != null) {
+								stop.getIcon().setVisible(false);
+							}
+						}
+					}
 
 					// Be sure to break at this point, as there is no need to continue iteration after this operation.
 					break;
