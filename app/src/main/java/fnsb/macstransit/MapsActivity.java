@@ -346,18 +346,22 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Add a listener for when a stop icon (circle) is clicked.
 		this.map.setOnCircleClickListener((circle) -> {
 
-			// Make sure that circle is part of the stop class
-			if (circle.getTag() instanceof Stop) {
-				Stop stop = (Stop) circle.getTag();
+			// Make sure the circle is visible first
+			if (circle.isVisible()) {
 
-				// If the stop doesn't have a marker, just use toast to display the stop ID.
-				if (stop.getMarker() == null) {
-					Toast.makeText(this, stop.stopID, Toast.LENGTH_SHORT).show();
-				} else {
-					// If the stop does have a marker, set the marker to be visible, and show the info window corresponding to that marker.
-					Marker marker = stop.getMarker();
-					marker.setVisible(true);
-					marker.showInfoWindow();
+				// Make sure that circle is part of the stop class
+				if (circle.getTag() instanceof Stop) {
+					Stop stop = (Stop) circle.getTag();
+
+					// If the stop doesn't have a marker, just use toast to display the stop ID.
+					if (stop.getMarker() == null) {
+						Toast.makeText(this, stop.stopID, Toast.LENGTH_SHORT).show();
+					} else {
+						// If the stop does have a marker, set the marker to be visible, and show the info window corresponding to that marker.
+						Marker marker = stop.getMarker();
+						marker.setVisible(true);
+						marker.showInfoWindow();
+					}
 				}
 			}
 		});
