@@ -40,7 +40,7 @@ Make a pull request for your contribution. Though it is highly recommended thoug
 
 This project is unlicensed!
 
-See the [LICENSE.md](LICENSE.md) file for details.
+See the [LICENSE](LICENSE) file for details.
 
 [app]: https://play.google.com/store/apps/details?id=fnsb.macstransit
 [macstransit]: http://www.co.fairbanks.ak.us/transportation/Pages/MACS.aspx
