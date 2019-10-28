@@ -1,7 +1,6 @@
 package fnsb.macstransit;
 
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.widget.Toast;
 
@@ -21,9 +20,9 @@ import fnsb.macstransit.RouteMatch.Stop;
 public class MapsActivity extends androidx.fragment.app.FragmentActivity implements com.google.android.gms.maps.OnMapReadyCallback {
 
 	/**
-	 * TODO Documentation
+	 * The url to load the feed from.
 	 */
-	@SuppressWarnings("FieldCanBeLocal")
+	@Deprecated
 	private final String URL = "https://fnsb.routematch.com/feed/";
 
 	/**
@@ -210,16 +209,22 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		((com.google.android.gms.maps.SupportMapFragment) java.util.Objects.requireNonNull(this.getSupportFragmentManager()
 				.findFragmentById(R.id.map))).getMapAsync(this);
 
-		// Load the routes dynamically TODO Better comments
+		// Load the routes dynamically
 		this.allRoutes = Route.generateRoutes(this.URL);
+
+		// If the length of the loaded routes is not zero (aka there are routes to work with, apply the following:
 		if (this.allRoutes.length != 0) {
+
+			// Setup the routematch object.
 			this.routeMatch = new RouteMatch(this.URL, this.allRoutes);
+
+			// For each of the routes in the loaded routes, load the stops that correspond to the route.
 			for (Route route : this.allRoutes) {
 				route.stops = route.loadStops(this.URL);
 			}
 		} else {
+			// If the route length is zero, either there are no routes, or there was an issue connecting to the feed.
 			Toast toast = Toast.makeText(this, R.string.noData, Toast.LENGTH_LONG);
-			toast.setGravity(Gravity.CENTER, 0, 0);
 			toast.show();
 		}
 
@@ -292,10 +297,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		LatLng home = new LatLng(64.8391975, -147.7684709);
 		this.map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(home, 11.0f));
 
-		// TODO Add the route stops to the map, but hide them
-
+		// Iterate through all the routes.
 		for (Route route : this.allRoutes) {
+
+			// Iterate though all the stops in the route.
 			for (Stop stop : route.stops) {
+
+				// If the stop marker is null, create a new marker, but make sure its invisible.
 				if (stop.getMarker() == null) {
 					Marker marker = this.map.addMarker(new MarkerOptions().position(new LatLng(stop.latitude, stop.longitude)));
 					marker.setVisible(false);
@@ -304,17 +312,29 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			}
 		}
 
+		// Add a listener for when the camera has become idle (ie was moving isn't anymore).
 		this.map.setOnCameraIdleListener(() -> {
-			// TODO Documentation
+
+			// Get the camera's new zoom position
 			float zoom = this.map.getCameraPosition().zoom;
 			Log.d("CameraChange", "Zoom level: " + zoom);
 
+			// Get how much it has changed from the default zoom (11).
 			float zoomChange = 11.0f / zoom;
 			Log.d("CameraChange", "Zoom change: " + zoomChange);
+
+			// Iterate through all the routes.
 			for (Route route : this.allRoutes) {
+
+				// If the route isn't null, execute the following:
 				if (route != null) {
+					// Iterate through all the stops in the route.
 					for (Stop stop : route.stops) {
+
+						// Get the stop's icon
 						com.google.android.gms.maps.model.Circle icon = stop.getIcon();
+
+						// If the icon isn't null, change its radius in proportion to the zoom change.
 						if (icon != null) {
 							icon.setRadius(Stop.RADIUS * (Math.pow(zoomChange, 5)));
 						}
@@ -323,15 +343,18 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			}
 		});
 
-		// TODO Documentation
+		// Add a listener for when a stop icon (circle) is clicked.
 		this.map.setOnCircleClickListener((circle) -> {
+
+			// Make sure that circle is part of the stop class
 			if (circle.getTag() instanceof Stop) {
 				Stop stop = (Stop) circle.getTag();
-				// Need to get a working info window. For now... toast
+
+				// If the stop doesn't have a marker, just use toast to display the stop ID.
 				if (stop.getMarker() == null) {
-					// Need to get a working info window. For now... toast
 					Toast.makeText(this, stop.stopID, Toast.LENGTH_SHORT).show();
 				} else {
+					// If the stop does have a marker, set the marker to be visible, and show the info window corresponding to that marker.
 					Marker marker = stop.getMarker();
 					marker.setVisible(true);
 					marker.showInfoWindow();
@@ -339,7 +362,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			}
 		});
 
-		// TODO Documentation
+		// Set it so that if the info window was closed for a Stop marker, make that marker invisible, so its just the dot.
 		this.map.setOnInfoWindowCloseListener((marker -> {
 			if (marker.getTag() instanceof Stop) {
 				marker.setVisible(false);
@@ -395,8 +418,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * TODO Comments Documentation and comments
-	 * Toggles the route (and subsequently the buses on that route) to be shown or hidden on the map.
+	 * Toggles the route, buses, and stops on that route to be shown or hidden on the map.
 	 *
 	 * @param routeName The name of the route to be shown or hidden.
 	 * @param enabled   Whether or not the route is to be shown (true), or hidden (false).
@@ -416,12 +438,19 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 					Log.d("toggleRoute", "Found matching route!");
 					this.selectedRoutes.add(route);
 
-					// TODO Comments
+					// If the route has stops (will not have a length of 0) execute the following:
 					if (route.stops.length != 0) {
+
+						// Iterate through all the stops in the route
 						for (Stop stop : route.stops) {
+
+							// If the route has an icon, set it to visible.
 							if (stop.getIcon() != null) {
 								stop.getIcon().setVisible(true);
 							} else {
+
+								// If the route doesn't have an icon, create a new one,
+								// and set it to visible :P
 								stop.setIcon(this.map.addCircle(stop.iconOptions));
 								stop.getIcon().setVisible(true);
 							}
@@ -464,8 +493,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 					// Finally, remove the route from the selected routes array.
 					this.selectedRoutes.remove(route);
 
+					// If there are stops in the route (will have a not equal to 0), execute the following:
 					if (route.stops.length != 0) {
+
+						// Iterate through the stops in the route
 						for (Stop stop : route.stops) {
+
+							// If the stop icon isn't null, set it to be invisible
 							if (stop.getIcon() != null) {
 								stop.getIcon().setVisible(false);
 							}
