@@ -8,14 +8,13 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-import fnsb.macstransit.Network;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 2.0
+ * @version 2.1
  * @since Beta 3
  */
 public class Route {
@@ -64,26 +63,22 @@ public class Route {
 	/**
 	 * Dynamically generates the routes that are used by parsing the master schedule.
 	 * This may return an empty route array if there was an issue parsing the data.
+	 * TODO Documentation
 	 *
+	 * @param routeMatch
 	 * @return An array of routes that <b><i>can be</i></b> tracked.
 	 */
-	public static Route[] generateRoutes(String url) {
+	public static Route[] generateRoutes(RouteMatch routeMatch) {
 
 		// Create an array to store all the generated routes. This will be returned in the end.
 		ArrayList<Route> routes = new ArrayList<>();
 
+		// TODO Refresh comments
 		// First, get the master schedule from the provided url
-		JSONObject masterSchedule = Network.getJsonFromUrl(url + "masterRoute");
+
 
 		// Now get the data array from the JSON object
-		JSONArray data;
-		try {
-			data = masterSchedule.getJSONArray("data");
-		} catch (JSONException e) {
-			// If there was a JSONException in parsing the data, just return from the thread now!
-			Log.w("generateRoutes", "Unable to parse master route! Returning empty route instead.");
-			return new Route[0];
-		}
+		JSONArray data = RouteMatch.parseData(routeMatch.getMasterSchedule());
 
 		// Iterate through the data array to begin parsing the routes
 		int count = data.length();
@@ -125,27 +120,21 @@ public class Route {
 	/**
 	 * Loads the stops from the provided url.
 	 * This may return an empty stop array if there was an issue parsing the data.
+	 * TODO Documentation
 	 *
-	 * @param url The url to fetch the stops from.
+	 * @param routeMatch
 	 * @return The array of stops that were loaded.
 	 */
-	public Stop[] loadStops(String url) {
+	public Stop[] loadStops(RouteMatch routeMatch) {
 
 		// Create an array that will store the parsed stop objects
 		ArrayList<Stop> returnArray = new ArrayList<>();
 
+		// TODO Update comments
 		// Fetch the JSON object that contains all the stops.
-		JSONObject allStops = Network.getJsonFromUrl(url + "stops/" + this.routeName);
 
 		// Parse the JSON object of the stops into a json array based on the data.
-		JSONArray data;
-		try {
-			data = allStops.getJSONArray("data");
-		} catch (JSONException e) {
-			// If the data component is missing, simply return an array of stops with the size of 0.
-			Log.w("loadStops", "No data for the specified stop!");
-			return new Stop[0];
-		}
+		JSONArray data = RouteMatch.parseData(routeMatch.getAllStops(this));
 
 		// Iterate through the data in the JSONArray
 		int count = data.length();

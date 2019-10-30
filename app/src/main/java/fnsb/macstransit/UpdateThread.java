@@ -7,13 +7,14 @@ import org.json.JSONException;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Heading;
 import fnsb.macstransit.RouteMatch.Route;
+import fnsb.macstransit.RouteMatch.RouteMatch;
 
 /**
  * Created by Spud on 2019-10-13 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 2.0
+ * @version 2.1
  * @since Beta 3
  */
 public class UpdateThread {
@@ -129,19 +130,12 @@ public class UpdateThread {
 	 */
 	private void parseBuses(Route route) throws JSONException {
 		// Get the data section of the bus JSON pulled from the routematch server
-		org.json.JSONArray busArray;
-		try {
-			busArray = this.activity.routeMatch.getRoute(route.routeName).getJSONArray("data");
-		} catch (JSONException noData) {
-			Log.w("parseBuses", "No data for buses!");
-			return;
-		}
+		org.json.JSONArray busArray = RouteMatch.parseData(this.activity.routeMatch.getRoute(route));
 
 		// In the event that there are multiple buses running on one route, the array will have a size > 1.
 		// To combat this, just loop through the size of the array, and parse the JSON for the individual buses.
 		int count = busArray.length();
 		for (int i = 0; i < count; i++) {
-
 
 			// Log the progress of parsing the buses.
 			Log.d("parseBuses", String.format("Parsing bus %d/%d", i + 1, count));

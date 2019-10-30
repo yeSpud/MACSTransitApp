@@ -1,12 +1,16 @@
 package fnsb.macstransit.RouteMatch;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import fnsb.macstransit.Network;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 3.0
+ * @version 3.1
  * @since Beta 1
  */
 public class RouteMatch {
@@ -15,57 +19,61 @@ public class RouteMatch {
 	 * The feed url to pull route data from.
 	 * <p>
 	 * Example: https://fnsb.routematch.com/feed/
+	 * TODO Make sure this follows a standard form when created
 	 */
 	private String url;
 
 	/**
-	 * The array of all the bus routes that are <b><i>able to be</i></b> tracked tracked.
-	 */
-	private Route[] routes;
-
-	/**
 	 * Constructor for the RouteMatch object.
 	 *
-	 * @param url    The feed url to pull data from (IE: https://fnsb.routematch.com/feed/)
-	 * @param routes The array of all the bus routes that are <b><i>able to be</i></b> tracked.
+	 * @param url The feed url to pull data from (IE: https://fnsb.routematch.com/feed/)
 	 */
-	public RouteMatch(String url, Route[] routes) {
+	public RouteMatch(String url) {
 		this.url = url;
-		this.routes = routes;
 	}
 
+	/**
+	 * TODO Documentation
+	 *
+	 * @param object
+	 * @return
+	 */
+	public static JSONArray parseData(JSONObject object) {
+		try {
+			return object.getJSONArray("data");
+		} catch (org.json.JSONException e) {
+			android.util.Log.w("parseData", "Unable to parse data!");
+			return new JSONArray();
+		}
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @return
+	 */
+	public JSONObject getMasterSchedule() {
+		return Network.getJsonFromUrl(this.url + "masterRoute/");
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param route
+	 * @return
+	 */
+	public JSONObject getAllStops(Route route) {
+		return Network.getJsonFromUrl(this.url + "stops/" + route.routeName);
+	}
 
 	/**
 	 * Gets the route data from the url provided in the constructor.
+	 * TODO Documentation
 	 *
-	 * @param routeName The name of the route to get the pertaining data from (IE: Red).
+	 * @param route
 	 * @return The JSONObject pertaining to that specific route's data.
 	 */
-	public org.json.JSONObject getRoute(String routeName) {
-		// Example usage: getJsonFromUrl("https://fnsb.routematch.com/feed/vehicle/byRoutes/Red");
-		return fnsb.macstransit.Network.getJsonFromUrl(this.url + "/vehicle/byRoutes/" + routeName);
+	public JSONObject getRoute(Route route) {
+		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + route.routeName);
 	}
-
-	/**
-	 * Gets all the routes as a Json object that were provided in the constructor.
-	 *
-	 * @return A JSONObject array that contains all the individual routes's data.
-	 */
-	@Deprecated
-	public org.json.JSONObject[] getAllRoutes() {
-
-		// Create the JSONObject array, and make it the size of the total routes provided in this object
-		org.json.JSONObject[] jsonObjects = new org.json.JSONObject[this.routes.length];
-
-		// Iterate through each line, and be sure to keep track of the current index
-		for (int index = 0; index < jsonObjects.length; index++) {
-
-			// Retrieve the current routes route, and store it into the JSONObject array
-			jsonObjects[index] = this.getRoute(this.routes[index].routeName);
-		}
-
-		// Return the final JSONObject array
-		return jsonObjects;
-	}
-
 }

@@ -22,21 +22,15 @@ import fnsb.macstransit.RouteMatch.Stop;
 public class MapsActivity extends androidx.fragment.app.FragmentActivity implements com.google.android.gms.maps.OnMapReadyCallback {
 
 	/**
-	 * The url to load the feed from.
-	 */
-	@Deprecated
-	private final String URL = "https://fnsb.routematch.com/feed/";
-
-	/**
 	 * Create an array of all the routes that are used by the transit system. For now leave it uninitialized,
 	 * as it will be dynamically generated in the onCreate method.
 	 */
 	public Route[] allRoutes;
 
 	/**
-	 * Create an instance of the route match object that will be used for this app. This too is loaded dynamically.
+	 * Create an instance of the route match object that will be used for this app.
 	 */
-	public RouteMatch routeMatch;
+	public RouteMatch routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/");
 
 	/**
 	 * Create an array list to determine which routes have been selected from the menu to track.
@@ -212,17 +206,14 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				.findFragmentById(R.id.map))).getMapAsync(this);
 
 		// Load the routes dynamically
-		this.allRoutes = Route.generateRoutes(this.URL);
+		this.allRoutes = Route.generateRoutes(this.routeMatch);
 
 		// If the length of the loaded routes is not zero (aka there are routes to work with, apply the following:
 		if (this.allRoutes.length != 0) {
 
-			// Setup the routematch object.
-			this.routeMatch = new RouteMatch(this.URL, this.allRoutes);
-
 			// For each of the routes in the loaded routes, load the stops that correspond to the route.
 			for (Route route : this.allRoutes) {
-				route.stops = route.loadStops(this.URL);
+				route.stops = route.loadStops(this.routeMatch);
 			}
 		} else {
 			// If the route length is zero, either there are no routes, or there was an issue connecting to the feed.
