@@ -12,6 +12,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 
+import fnsb.macstransit.ActivityListeners.AdjustZoom;
+import fnsb.macstransit.ActivityListeners.StopClicked;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
@@ -49,7 +51,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * Create the map object.
 	 */
-	private GoogleMap map;
+	public GoogleMap map;
 
 	/**
 	 * Create an instance of the thread object that will be used to pull data from the routematch server.
@@ -313,58 +315,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		}
 
 		// Add a listener for when the camera has become idle (ie was moving isn't anymore).
-		this.map.setOnCameraIdleListener(() -> {
-
-			// Get the camera's new zoom position
-			float zoom = this.map.getCameraPosition().zoom;
-			Log.d("CameraChange", "Zoom level: " + zoom);
-
-			// Get how much it has changed from the default zoom (11).
-			float zoomChange = 11.0f / zoom;
-			Log.d("CameraChange", "Zoom change: " + zoomChange);
-
-			// Iterate through all the routes.
-			for (Route route : this.allRoutes) {
-
-				// If the route isn't null, execute the following:
-				if (route != null) {
-					// Iterate through all the stops in the route.
-					for (Stop stop : route.stops) {
-
-						// Get the stop's icon
-						com.google.android.gms.maps.model.Circle icon = stop.getIcon();
-
-						// If the icon isn't null, change its radius in proportion to the zoom change.
-						if (icon != null) {
-							icon.setRadius(Stop.RADIUS * (Math.pow(zoomChange, 5)));
-						}
-					}
-				}
-			}
-		});
+		this.map.setOnCameraIdleListener(new AdjustZoom(this));
 
 		// Add a listener for when a stop icon (circle) is clicked.
-		this.map.setOnCircleClickListener((circle) -> {
-
-			// Make sure the circle is visible first
-			if (circle.isVisible()) {
-
-				// Make sure that circle is part of the stop class
-				if (circle.getTag() instanceof Stop) {
-					Stop stop = (Stop) circle.getTag();
-
-					// If the stop doesn't have a marker, just use toast to display the stop ID.
-					if (stop.getMarker() == null) {
-						Toast.makeText(this, stop.stopID, Toast.LENGTH_SHORT).show();
-					} else {
-						// If the stop does have a marker, set the marker to be visible, and show the info window corresponding to that marker.
-						Marker marker = stop.getMarker();
-						marker.setVisible(true);
-						marker.showInfoWindow();
-					}
-				}
-			}
-		});
+		this.map.setOnCircleClickListener(new StopClicked(this));
 
 		// Set it so that if the info window was closed for a Stop marker, make that marker invisible, so its just the dot.
 		this.map.setOnInfoWindowCloseListener((marker -> {
