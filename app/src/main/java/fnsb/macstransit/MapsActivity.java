@@ -10,6 +10,7 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 
 import fnsb.macstransit.ActivityListeners.AdjustZoom;
@@ -30,7 +31,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * Create an instance of the route match object that will be used for this app.
 	 */
-	public RouteMatch routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/");
+	public RouteMatch routeMatch;
 
 	/**
 	 * Create an array list to determine which routes have been selected from the menu to track.
@@ -204,6 +205,15 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Obtain the SupportMapFragment and get notified when the map is ready to be used.
 		((com.google.android.gms.maps.SupportMapFragment) java.util.Objects.requireNonNull(this.getSupportFragmentManager()
 				.findFragmentById(R.id.map))).getMapAsync(this);
+
+		// Try to setup the routematch object. If it fails, just return early.
+		// Don't bother with the additional setup.
+		try {
+			this.routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/");
+		} catch (MalformedURLException e) {
+			Log.e("onCreate", "Invalid URL!");
+			return;
+		}
 
 		// Load the routes dynamically
 		this.allRoutes = Route.generateRoutes(this.routeMatch);

@@ -3,6 +3,8 @@ package fnsb.macstransit.RouteMatch;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.net.MalformedURLException;
+
 import fnsb.macstransit.Network;
 
 /**
@@ -17,19 +19,21 @@ public class RouteMatch {
 
 	/**
 	 * The feed url to pull route data from.
-	 * <p>
-	 * Example: https://fnsb.routematch.com/feed/
-	 * TODO Make sure this follows a standard form when created
 	 */
 	private String url;
 
 	/**
 	 * Constructor for the RouteMatch object.
+	 * TODO Documentation
 	 *
 	 * @param url The feed url to pull data from (IE: https://fnsb.routematch.com/feed/)
 	 */
-	public RouteMatch(String url) {
-		this.url = url;
+	public RouteMatch(String url) throws MalformedURLException {
+		if (url.matches("^https?://\\S+/$")) {
+			this.url = url;
+		} else {
+			throw new MalformedURLException("Url must either be http, or https, and MUST end with /");
+		}
 	}
 
 	/**
