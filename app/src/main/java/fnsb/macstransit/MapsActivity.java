@@ -10,11 +10,8 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 
-import fnsb.macstransit.ActivityListeners.AdjustZoom;
-import fnsb.macstransit.ActivityListeners.StopClicked;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
@@ -210,7 +207,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Don't bother with the additional setup.
 		try {
 			this.routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/");
-		} catch (MalformedURLException e) {
+		} catch (java.net.MalformedURLException e) {
 			Log.e("onCreate", "Invalid URL!");
 			return;
 		}
@@ -316,10 +313,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		}
 
 		// Add a listener for when the camera has become idle (ie was moving isn't anymore).
-		this.map.setOnCameraIdleListener(new AdjustZoom(this));
+		this.map.setOnCameraIdleListener(new fnsb.macstransit.ActivityListeners.AdjustZoom(this));
 
 		// Add a listener for when a stop icon (circle) is clicked.
-		this.map.setOnCircleClickListener(new StopClicked(this));
+		this.map.setOnCircleClickListener(new fnsb.macstransit.ActivityListeners.StopClicked(this));
 
 		// Set it so that if the info window was closed for a Stop marker, make that marker invisible, so its just the dot.
 		this.map.setOnInfoWindowCloseListener((marker -> {

@@ -46,6 +46,8 @@ public class Stop {
 	 */
 	public CircleOptions iconOptions;
 
+	public String[] stopTimes;
+
 	/**
 	 * The stop icon that is shown on the map.
 	 * <p>

@@ -3,7 +3,9 @@ package fnsb.macstransit.RouteMatch;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URLEncoder;
 
 import fnsb.macstransit.Network;
 
@@ -68,6 +70,21 @@ public class RouteMatch {
 	 */
 	public JSONObject getAllStops(Route route) {
 		return Network.getJsonFromUrl(this.url + "stops/" + route.routeName);
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param stop
+	 * @return
+	 */
+	public JSONObject getStop(Stop stop) {
+		try {
+			return Network.getJsonFromUrl(this.url + "departures/byStop/" + URLEncoder.encode(stop.stopID, "UTF-8").replaceAll("\\+", "%20"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return new JSONObject();
+		}
 	}
 
 	/**

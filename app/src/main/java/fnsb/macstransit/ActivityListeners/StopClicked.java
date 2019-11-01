@@ -1,8 +1,14 @@
 package fnsb.macstransit.ActivityListeners;
 
+import android.util.Log;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import fnsb.macstransit.MapsActivity;
+import fnsb.macstransit.RouteMatch.RouteMatch;
 import fnsb.macstransit.RouteMatch.Stop;
 
 /**
@@ -50,6 +56,29 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 					// If the stop does have a marker, set the marker to be visible, and show the info window corresponding to that marker.
 					com.google.android.gms.maps.model.Marker marker = stop.getMarker();
 					marker.setVisible(true);
+
+					// Get the stops departures and arrivals
+					// Example: url https://fnsb.routematch.com/feed/departures/byStop/484%20-%20Bentley%20Trust%20%40%20KFC
+					// TODO Comments
+					StringBuilder snippetText = new StringBuilder();
+					JSONArray stopData = RouteMatch.parseData(this.activity.routeMatch.getStop(stop));
+					int count = stopData.length();
+					for (int index = 0; index < count; index++) {
+						try {
+
+							Log.d("onCircleClick", String.format("Parsing stop times for stop %d/%d", index, count));
+							JSONObject object = stopData.getJSONObject(index);
+
+							String arrival = object.getString("predictedArrivalTime"), departure = object.getString("predictedDepartureTime");
+
+							snippetText.append(String.format("Arrival: %s | Departure: %s\n", arrival, departure));
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+					}
+
+					marker.setSnippet(snippetText.toString());
+
 					marker.showInfoWindow();
 				}
 			}
