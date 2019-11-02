@@ -16,14 +16,15 @@ import fnsb.macstransit.RouteMatch.Stop;
 public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCameraIdleListener {
 
 	/**
-	 * TODO Documentation
+	 * The MapsActivity that this listener will apply to.
+	 * This is used to get access to all the public variables.
 	 */
 	private MapsActivity activity;
 
 	/**
-	 * TODO Documentation
+	 * Constructor for the listener.
 	 *
-	 * @param activity
+	 * @param activity The MapsActivity that will be using this listener (just pass {@code this} as the argument in the activity).
 	 */
 	public AdjustZoom(MapsActivity activity) {
 		this.activity = activity;

@@ -12,7 +12,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 
-import fnsb.macstransit.ActivityListeners.InfoWindowAdapter;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
@@ -319,8 +318,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Add a listener for when a stop icon (circle) is clicked.
 		this.map.setOnCircleClickListener(new fnsb.macstransit.ActivityListeners.StopClicked(this));
 
-		// TODO Comment
-		this.map.setInfoWindowAdapter(new InfoWindowAdapter(this));
+		// Add a custom info window adapter, to add support for multiline snippets.
+		this.map.setInfoWindowAdapter(new fnsb.macstransit.ActivityListeners.InfoWindowAdapter(this));
 
 		// Set it so that if the info window was closed for a Stop marker, make that marker invisible, so its just the dot.
 		this.map.setOnInfoWindowCloseListener((marker -> {
@@ -471,5 +470,20 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				}
 			}
 		}
+
+		// Validate the stops that are visible (and adjust shared stops if necessary).
+		this.validateStops();
 	}
+
+	/**
+	 * TODO Documentation
+	 */
+	public void validateStops() {
+		// TODO
+		// Check for shared stops.
+		// If shared stops are found, create a shared stop object (represented by a concentric circle).
+		// Color that circle based on stop color
+		// When clicked on, the stop should show all the route times for all the selected stops
+	}
+
 }

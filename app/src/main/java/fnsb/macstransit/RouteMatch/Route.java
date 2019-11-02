@@ -153,11 +153,6 @@ public class Route {
 						stopData.getDouble("latitude"),
 						stopData.getDouble("longitude"), this);
 
-				// If the route has a color, assign the color to the stop
-				if (this.color != 0) {
-					stop.color = this.color;
-				}
-
 				// Iterate through the return array and check if the created stop is a duplicate.
 				boolean found = false;
 				for (Stop s : returnArray) {

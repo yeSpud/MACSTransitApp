@@ -8,9 +8,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -79,26 +78,34 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 							Pattern timeRegex = Pattern.compile("\\d\\d:\\d\\d");
 
-							String arrival = object.getString("predictedArrivalTime"), departure = object.getString("predictedDepartureTime");
-							Matcher arrivalRegex = timeRegex.matcher(arrival), departureRegex = timeRegex.matcher(departure);
+							Matcher arrivalRegex = timeRegex.matcher(object.getString("predictedArrivalTime")),
+									departureRegex = timeRegex.matcher(object.getString("predictedDepartureTime"));
+
 							if (arrivalRegex.find() && departureRegex.find()) {
 
-								if (DateFormat.is24HourFormat(this.activity)) {
+								String arrivalTime = "", departureTime = "";
 
-									snippetText.append(String.format("%s%s\n%s%s\n\n",
-											this.activity.getString(R.string.expected_arrival), arrivalRegex.group(0),
-											this.activity.getString(R.string.expected_departure), departureRegex.group(0)));
+								if (DateFormat.is24HourFormat(this.activity)) {
+									arrivalTime = arrivalRegex.group(0);
+									departureTime = departureRegex.group(0);
+
 								} else {
 									try {
-										final SimpleDateFormat sdf = new SimpleDateFormat("H:mm");
-										final Date arr = sdf.parse(arrivalRegex.group(0)), dep = sdf.parse(departureRegex.group(0));
-										snippetText.append(String.format("%s%s\n%s%s\n\n",
-												this.activity.getString(R.string.expected_arrival), new SimpleDateFormat("K:mm a").format(arr),
-												this.activity.getString(R.string.expected_departure), new SimpleDateFormat("K:mm a").format(dep)));
-									} catch (final ParseException e) {
-										e.printStackTrace();
+										SimpleDateFormat parser = new SimpleDateFormat("H:mm", Locale.US),
+												formatter = new SimpleDateFormat("K:mm a", Locale.US);
+										arrivalTime = formatter.format(parser.parse(arrivalRegex.group(0)));
+										departureTime = formatter.format(parser.parse(departureRegex.group(0)));
+									} catch (java.text.ParseException dateError) {
+										arrivalTime = arrivalRegex.group(0);
+										departureTime = departureRegex.group(0);
 									}
 								}
+
+								snippetText.append(String.format("%s%s\n%s%s\n\n",
+										this.activity.getString(R.string.expected_arrival),
+										arrivalTime, this.activity.getString(R.string.expected_departure),
+										departureTime));
+
 							}
 						} catch (JSONException e) {
 							e.printStackTrace();
@@ -106,7 +113,6 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 					}
 
 					marker.setSnippet(snippetText.toString());
-
 					marker.showInfoWindow();
 				}
 			}

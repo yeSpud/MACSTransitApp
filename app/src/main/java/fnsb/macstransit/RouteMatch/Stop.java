@@ -33,6 +33,7 @@ public class Stop {
 	/**
 	 * The color of the stop. This is typically derived from the route that this stop corresponds to.
 	 */
+	@Deprecated
 	public int color;
 
 	/**
@@ -46,6 +47,10 @@ public class Stop {
 	 */
 	public CircleOptions iconOptions;
 
+	/**
+	 * TODO Documentation
+	 */
+	@Deprecated
 	public String[] stopTimes;
 
 	/**
@@ -90,9 +95,8 @@ public class Stop {
 
 		// If the route color isn't null, set the stop color to the same color as the route color.
 		if (this.route.color != 0) {
-			this.color = this.route.color;
-			options.fillColor(this.color);
-			options.strokeColor(this.color);
+			options.fillColor(this.route.color);
+			options.strokeColor(this.route.color);
 		}
 
 		// Set the icon options to the newly created options, though don't apply the options to the icon just yet.
@@ -139,8 +143,8 @@ public class Stop {
 		this.marker = marker;
 		this.marker.setTag(this);
 		this.marker.setTitle(this.stopID);
-		if (this.color != 0) {
-			this.marker.setIcon(fnsb.macstransit.MapsActivity.getMarkerIcon(this.color));
+		if (this.route.color != 0) {
+			this.marker.setIcon(fnsb.macstransit.MapsActivity.getMarkerIcon(this.route.color));
 		}
 
 	}

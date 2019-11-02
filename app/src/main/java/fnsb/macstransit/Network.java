@@ -38,7 +38,7 @@ public class Network {
 	/**
 	 * The maximum number of retries allowed for the method, stored as a short (as it's not meant to be a large number).
 	 */
-	private static final short MAX_ATTEMPTS = 2;
+	private static final short MAX_ATTEMPTS = 3;
 
 	/**
 	 * Create a private variable that will track the number of attempts made to connect.
