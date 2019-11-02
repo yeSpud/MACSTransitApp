@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">MACS Transit</string>
     <string name="slowResponse">RouteMatch servers are responding slower than usual…</string>
+    <string name="expected_arrival">Expected arrival: </string>
+    <string name="expected_departure">Expected departure: </string>
     <string name="noData">Unable to load routes.\nPlease make sure you have an active network connection, and restart the app.</string>
 </resources>

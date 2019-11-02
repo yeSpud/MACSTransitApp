@@ -7,7 +7,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import fnsb.macstransit.MapsActivity;
+import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.RouteMatch;
 import fnsb.macstransit.RouteMatch.Stop;
 
@@ -69,9 +73,15 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 							Log.d("onCircleClick", String.format("Parsing stop times for stop %d/%d", index, count));
 							JSONObject object = stopData.getJSONObject(index);
 
-							String arrival = object.getString("predictedArrivalTime"), departure = object.getString("predictedDepartureTime");
+							Pattern timeRegex = Pattern.compile("\\d\\d:\\d\\d");
 
-							snippetText.append(String.format("Arrival: %s | Departure: %s\n", arrival, departure));
+							String arrival = object.getString("predictedArrivalTime"), departure = object.getString("predictedDepartureTime");
+							Matcher arrivalRegex = timeRegex.matcher(arrival), departureRegex = timeRegex.matcher(departure);
+							if (arrivalRegex.find() && departureRegex.find()) {
+								snippetText.append(String.format("%s%s\n%s%s\n\n",
+										this.activity.getString(R.string.expected_arrival), arrivalRegex.group(0),
+										this.activity.getString(R.string.expected_departure), departureRegex.group(0)));
+							}
 						} catch (JSONException e) {
 							e.printStackTrace();
 						}

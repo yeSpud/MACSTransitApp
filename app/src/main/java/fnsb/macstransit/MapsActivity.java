@@ -12,6 +12,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 
+import fnsb.macstransit.ActivityListeners.InfoWindowAdapter;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
@@ -317,6 +318,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Add a listener for when a stop icon (circle) is clicked.
 		this.map.setOnCircleClickListener(new fnsb.macstransit.ActivityListeners.StopClicked(this));
+
+		// TODO Comment
+		this.map.setInfoWindowAdapter(new InfoWindowAdapter(this));
 
 		// Set it so that if the info window was closed for a Stop marker, make that marker invisible, so its just the dot.
 		this.map.setOnInfoWindowCloseListener((marker -> {
