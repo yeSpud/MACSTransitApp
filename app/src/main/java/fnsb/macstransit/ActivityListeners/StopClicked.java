@@ -1,5 +1,6 @@
 package fnsb.macstransit.ActivityListeners;
 
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -7,6 +8,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,7 +71,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 					StringBuilder snippetText = new StringBuilder();
 					JSONArray stopData = RouteMatch.parseData(this.activity.routeMatch.getStop(stop));
 					int count = stopData.length();
-					for (int index = 0; index < count; index++) {
+					for (int index = 0; index < count && index < 2; index++) {
 						try {
 
 							Log.d("onCircleClick", String.format("Parsing stop times for stop %d/%d", index, count));
@@ -78,9 +82,23 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 							String arrival = object.getString("predictedArrivalTime"), departure = object.getString("predictedDepartureTime");
 							Matcher arrivalRegex = timeRegex.matcher(arrival), departureRegex = timeRegex.matcher(departure);
 							if (arrivalRegex.find() && departureRegex.find()) {
-								snippetText.append(String.format("%s%s\n%s%s\n\n",
-										this.activity.getString(R.string.expected_arrival), arrivalRegex.group(0),
-										this.activity.getString(R.string.expected_departure), departureRegex.group(0)));
+
+								if (DateFormat.is24HourFormat(this.activity)) {
+
+									snippetText.append(String.format("%s%s\n%s%s\n\n",
+											this.activity.getString(R.string.expected_arrival), arrivalRegex.group(0),
+											this.activity.getString(R.string.expected_departure), departureRegex.group(0)));
+								} else {
+									try {
+										final SimpleDateFormat sdf = new SimpleDateFormat("H:mm");
+										final Date arr = sdf.parse(arrivalRegex.group(0)), dep = sdf.parse(departureRegex.group(0));
+										snippetText.append(String.format("%s%s\n%s%s\n\n",
+												this.activity.getString(R.string.expected_arrival), new SimpleDateFormat("K:mm a").format(arr),
+												this.activity.getString(R.string.expected_departure), new SimpleDateFormat("K:mm a").format(dep)));
+									} catch (final ParseException e) {
+										e.printStackTrace();
+									}
+								}
 							}
 						} catch (JSONException e) {
 							e.printStackTrace();

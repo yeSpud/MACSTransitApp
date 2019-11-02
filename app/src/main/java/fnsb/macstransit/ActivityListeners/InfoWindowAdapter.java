@@ -2,9 +2,11 @@ package fnsb.macstransit.ActivityListeners;
 
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.text.method.ScrollingMovementMethod;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
@@ -65,7 +67,9 @@ public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
 		TextView snippet = new TextView(this.activity);
 		snippet.setTextColor(Color.GRAY);
+		snippet.setMovementMethod(new ScrollingMovementMethod());
 		snippet.setText(marker.getSnippet());
+		snippet.setMaxLines(5);
 
 		info.addView(title);
 		info.addView(snippet);
