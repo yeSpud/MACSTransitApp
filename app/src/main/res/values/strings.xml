@@ -4,4 +4,10 @@
     <string name="expected_arrival">Expected arrival: </string>
     <string name="expected_departure">Expected departure: </string>
     <string name="noData">Unable to load routes.\nPlease make sure you have an active network connection, and restart the app.</string>
+    <string name="fetchmasterschedule">Fetching Master Schedule</string>
+    <string name="loading">Loading…</string>
+    <string name="fetchroutes">Fetching routes…</string>
+    <string name="fetchstops">Fetching stops…</string>
+    <string name="nointernet">No internet connection.</string>
+    <string name="retry">Retry</string>
 </resources>

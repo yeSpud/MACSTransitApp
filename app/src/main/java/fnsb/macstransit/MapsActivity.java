@@ -524,11 +524,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				SharedStop sharedStop = new SharedStop(basicStop.stopID, basicStop.latitude,
 						basicStop.longitude, sharedRoute.toArray(new Route[0]));
 				Circle[] circles = new Circle[sharedStop.routes.length];
+				sharedStop.circleOptions = new CircleOptions[sharedStop.routes.length];
 				for (int index = 0; index < sharedStop.routes.length; index++) {
 					int color = sharedStop.routes[index].color;
+					LatLng latlong = new LatLng(sharedStop.latitude, sharedStop.longitude);
 					sharedStop.circleOptions[index] = new CircleOptions().strokeColor(color)
 							.fillColor(color).clickable(index == 0).radius(Stop.RADIUS * (1d / index))
-							.center(new LatLng(sharedStop.latitude, sharedStop.longitude));
+							.center(latlong);
 					Circle circle = this.map.addCircle(sharedStop.circleOptions[index]);
 					circle.setTag(SharedStop.class);
 					circle.setVisible(true);
