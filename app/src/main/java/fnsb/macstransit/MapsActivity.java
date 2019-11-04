@@ -5,6 +5,8 @@ import android.view.Menu;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
@@ -12,9 +14,11 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 
+import fnsb.macstransit.ActivityListeners.Helpers;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
+import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 
 public class MapsActivity extends androidx.fragment.app.FragmentActivity implements com.google.android.gms.maps.OnMapReadyCallback {
@@ -41,6 +45,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	public ArrayList<Bus> buses = new ArrayList<>();
 
 	/**
+	 * TODO Documentation
+	 */
+	public ArrayList<SharedStop> sharedStops = new ArrayList<>();
+
+	/**
 	 * Create the map object.
 	 */
 	public GoogleMap map;
@@ -55,19 +64,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * This is used to prevent making multiple duplicate menu items in {@code onPrepareOptionsMenu(Menu menu)}.
 	 */
 	private boolean menuCreated;
-
-	/**
-	 * Gets the color of the marker icon based off of the color value given.
-	 * The reason why there needs to be a function for this is because there are only 10 colors that a marker icon can be.
-	 *
-	 * @param color The desired color value as an int.
-	 * @return The BitmapDescriptor used for defining the color of a markers's icon.
-	 */
-	public static com.google.android.gms.maps.model.BitmapDescriptor getMarkerIcon(int color) {
-		float[] hsv = new float[3];
-		android.graphics.Color.colorToHSV(color, hsv);
-		return com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]);
-	}
 
 	/**
 	 * Prepare the Screen's standard options menu to be displayed.
@@ -364,7 +360,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 				// If the route has a color, set its icon to that color
 				if (bus.route.color != 0) {
-					marker.setIcon(MapsActivity.getMarkerIcon(bus.route.color));
+					marker.setIcon(Helpers.getMarkerIcon(bus.route.color));
 				}
 
 				// Make sure that the marker is visible
@@ -479,8 +475,54 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * TODO Documentation
 	 */
 	public void validateStops() {
-		// TODO
+
+		// TODO Remove all the shared stops
+		for (SharedStop s : this.sharedStops) {
+			for (Circle c : s.getCircles()) {
+				if (c != null) {
+					c.remove();
+				}
+			}
+		}
+		this.sharedStops.clear();
+
+		// First, put all the stops into an array
+		ArrayList<SharedStop.BasicStop> allStops = new ArrayList<>();
+		ArrayList<Route> routes = this.selectedRoutes;
+		for (Route r : routes) {
+			for (Stop s : r.stops) {
+				allStops.add(new SharedStop.BasicStop(s.stopID, s.latitude, s.longitude, s.route));
+			}
+		}
+
 		// Check for shared stops.
+		for (SharedStop.BasicStop basicStop : allStops) {
+			// TODO
+			ArrayList<Route> sharedRoute = new ArrayList<>();
+			for (Route r : routes) {
+				for (Stop s : r.stops) {
+					if (s.stopID.equals(basicStop.stopID)) {
+						sharedRoute.add(r);
+						break;
+					}
+				}
+			}
+			if (sharedRoute.size() > 1) {
+				SharedStop sharedStop = new SharedStop(basicStop.stopID, basicStop.latitude, basicStop.longitude, sharedRoute.toArray(new Route[0]));
+				Circle[] circles = new Circle[sharedStop.routes.length];
+				for (int index = 0; index < sharedStop.routes.length; index++) {
+					int color = sharedStop.routes[index].color;
+					sharedStop.circleOptions[index] = new CircleOptions().strokeColor(color)
+							.fillColor(color).clickable(index == 0).radius(Stop.RADIUS * (1d / index));
+					Circle circle = this.map.addCircle(sharedStop.circleOptions[index]);
+					circle.setTag(SharedStop.class);
+					circle.setVisible(true);
+					circles[index] = this.map.addCircle(sharedStop.circleOptions[index]);
+				}
+				sharedStop.setCircles(circles);
+				this.sharedStops.add(sharedStop);
+			}
+		}
 		// If shared stops are found, create a shared stop object (represented by a concentric circle).
 		// Color that circle based on stop color
 		// When clicked on, the stop should show all the route times for all the selected stops

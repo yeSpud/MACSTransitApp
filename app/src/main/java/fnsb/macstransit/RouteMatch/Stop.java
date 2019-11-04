@@ -4,6 +4,8 @@ import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.Marker;
 
+import fnsb.macstransit.ActivityListeners.Helpers;
+
 
 /**
  * Created by Spud on 2019-10-18 for the project: MACS Transit.
@@ -144,7 +146,7 @@ public class Stop {
 		this.marker.setTag(this);
 		this.marker.setTitle(this.stopID);
 		if (this.route.color != 0) {
-			this.marker.setIcon(fnsb.macstransit.MapsActivity.getMarkerIcon(this.route.color));
+			this.marker.setIcon(Helpers.getMarkerIcon(this.route.color));
 		}
 
 	}
