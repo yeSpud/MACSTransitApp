@@ -66,42 +66,4 @@ public class SharedStop {
 	public void setCircles(Circle[] circles) {
 		this.circles = circles;
 	}
-
-	/**
-	 * TODO Documentation
-	 */
-	public static class BasicStop {
-
-		/**
-		 * TODO Documentation
-		 */
-		public double latitude, longitude;
-
-		/**
-		 * TODO Documentation
-		 */
-		public Route route;
-
-		/**
-		 * TODO Documentation
-		 */
-		public String stopID;
-
-		/**
-		 * TODO Documentation
-		 *
-		 * @param stopID
-		 * @param latitude
-		 * @param longitude
-		 * @param route
-		 */
-		public BasicStop(String stopID, double latitude, double longitude, Route route) {
-			this.stopID = stopID;
-			this.latitude = latitude;
-			this.longitude = longitude;
-			this.route = route;
-		}
-
-	}
-
 }

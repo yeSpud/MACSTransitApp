@@ -15,6 +15,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.ArrayList;
 
 import fnsb.macstransit.ActivityListeners.Helpers;
+import fnsb.macstransit.RouteMatch.BasicStop;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
@@ -487,16 +488,16 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.sharedStops.clear();
 
 		// First, put all the stops into an array
-		ArrayList<SharedStop.BasicStop> allStops = new ArrayList<>();
+		ArrayList<BasicStop> allStops = new ArrayList<>();
 		ArrayList<Route> routes = this.selectedRoutes;
 		for (Route r : routes) {
 			for (Stop s : r.stops) {
-				allStops.add(new SharedStop.BasicStop(s.stopID, s.latitude, s.longitude, s.route));
+				allStops.add(new BasicStop(s.stopID, s.latitude, s.longitude, s.route));
 			}
 		}
 
 		// Check for shared stops.
-		for (SharedStop.BasicStop basicStop : allStops) {
+		for (BasicStop basicStop : allStops) {
 			// TODO
 			ArrayList<Route> sharedRoute = new ArrayList<>();
 			for (Route r : routes) {

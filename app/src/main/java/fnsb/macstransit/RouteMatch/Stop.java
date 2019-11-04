@@ -15,22 +15,12 @@ import fnsb.macstransit.ActivityListeners.Helpers;
  * @version 1.0
  * @since beta 6.
  */
-public class Stop {
+public class Stop extends BasicStop {
 
 	/**
 	 * The initial radius size (in meters) for the circle that represents a stop on the map.
 	 */
 	public static final double RADIUS = 50.0d;
-
-	/**
-	 * The ID of the stop. This is usually the stop name.
-	 */
-	public String stopID;
-
-	/**
-	 * The latitude and longitude (coordinates) of the stop.
-	 */
-	public double latitude, longitude;
 
 	/**
 	 * The color of the stop. This is typically derived from the route that this stop corresponds to.
@@ -39,21 +29,10 @@ public class Stop {
 	public int color;
 
 	/**
-	 * The route that this stop corresponds to.
-	 */
-	public Route route;
-
-	/**
 	 * The options that correspond to the stop icon (which is a circle).
 	 * This is primarily used for the position, as well as determining and setting the current radius.
 	 */
 	public CircleOptions iconOptions;
-
-	/**
-	 * TODO Documentation
-	 */
-	@Deprecated
-	public String[] stopTimes;
 
 	/**
 	 * The stop icon that is shown on the map.
@@ -83,12 +62,7 @@ public class Stop {
 	 * @param route     The route this stop corresponds to.
 	 */
 	public Stop(String stopID, double latitude, double longitude, Route route) {
-
-		// Set the stop ID, coordinates, and the corresponding route.
-		this.stopID = stopID;
-		this.latitude = latitude;
-		this.longitude = longitude;
-		this.route = route;
+		super(stopID, latitude, longitude, route);
 
 		// Setup the options that will be used on the stop icon.
 		// This is really just setting up the coordinates, and the initial radius of the stop.
