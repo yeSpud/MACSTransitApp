@@ -4,29 +4,21 @@ import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.Marker;
 
-import fnsb.macstransit.ActivityListeners.Helpers;
-
-
 /**
  * Created by Spud on 2019-10-18 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.0
+ * @version 1.1
  * @since beta 6.
  */
+@SuppressWarnings("WeakerAccess")
 public class Stop extends BasicStop {
 
 	/**
 	 * The initial radius size (in meters) for the circle that represents a stop on the map.
 	 */
 	public static final double RADIUS = 50.0d;
-
-	/**
-	 * The color of the stop. This is typically derived from the route that this stop corresponds to.
-	 */
-	@Deprecated
-	public int color;
 
 	/**
 	 * The options that correspond to the stop icon (which is a circle).
@@ -80,6 +72,17 @@ public class Stop extends BasicStop {
 	}
 
 	/**
+	 * TODO Documentation
+	 *
+	 * @param json
+	 * @param route
+	 * @throws org.json.JSONException
+	 */
+	public Stop(org.json.JSONObject json, Route route) throws org.json.JSONException {
+		this(json.getString("stopId"), json.getDouble("latitude"), json.getDouble("longitude"), route);
+	}
+
+	/**
 	 * Gets the icon corresponding to the stop. This is really just a circle that may or may not be colored as well.
 	 * This may be null if the icon has never been set via {@code setIcon()}.
 	 *
@@ -120,19 +123,7 @@ public class Stop extends BasicStop {
 		this.marker.setTag(this);
 		this.marker.setTitle(this.stopID);
 		if (this.route.color != 0) {
-			this.marker.setIcon(Helpers.getMarkerIcon(this.route.color));
+			this.marker.setIcon(fnsb.macstransit.ActivityListeners.Helpers.getMarkerIcon(this.route.color));
 		}
-
 	}
-
-	/**
-	 * Gets the icon options as a CircleOptions object.
-	 *
-	 * @return the icon options as a CircleOptions object.
-	 */
-	@Deprecated
-	public CircleOptions getIconOptions() {
-		return this.iconOptions;
-	}
-
 }

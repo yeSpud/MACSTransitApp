@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import fnsb.macstransit.MapsActivity;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.RouteMatch;
+import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 
 /**
@@ -115,6 +116,10 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 					marker.setSnippet(snippetText.toString());
 					marker.showInfoWindow();
 				}
+			} else if (circle.getTag() instanceof SharedStop) {
+				// TODO Show Shared stop field
+			} else {
+				Log.w("onCircleClick", "Circle object unaccounted for!");
 			}
 		}
 	}

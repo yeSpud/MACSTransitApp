@@ -331,7 +331,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	public void updateBusMarkers() {
 
-		// Make a copy of the buses that are currently being tracked, to mitigate issue #7 (https://github.com/yeSpud/MACSTransitApp/issues/7)
+		// Make a copy of the buses that are currently being tracked,
+		// to mitigate issue #7 (https://github.com/yeSpud/MACSTransitApp/issues/7)
 		Bus[] trackedBuses = this.buses.toArray(new Bus[0]);
 
 		// Start by iterating through all the buses that are currently being tracked.
@@ -350,7 +351,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				// If the bus doesn't have a marker create a new one,
 				// and overwrite the marker variable with the newly created marker
 				if (marker == null) {
-					marker = this.map.addMarker(new com.google.android.gms.maps.model.MarkerOptions().position(latLng));
+					marker = this.map.addMarker(new com.google.android.gms.maps.model.MarkerOptions()
+							.position(latLng));
 				} else {
 					// Just update the title
 					marker.setPosition(latLng);
@@ -421,7 +423,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		} else {
 			Log.d("toggleRoute", "Disabling route: " + routeName);
 
-			// If the route is to be disabled (and thus removed), start by making a copy of the selected routes array.
+			// If the route is to be disabled (and thus removed),
+			// start by making a copy of the selected routes array.
 			Route[] routes = this.selectedRoutes.toArray(new Route[0]);
 
 			// Then iterate through that array
@@ -449,7 +452,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 					// Finally, remove the route from the selected routes array.
 					this.selectedRoutes.remove(route);
 
-					// If there are stops in the route (will have a not equal to 0), execute the following:
+					// If there are stops in the route (will have a not equal to 0),
+					// execute the following:
 					if (route.stops.length != 0) {
 
 						// Iterate through the stops in the route
@@ -462,7 +466,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 						}
 					}
 
-					// Be sure to break at this point, as there is no need to continue iteration after this operation.
+					// Be sure to break at this point,
+					// as there is no need to continue iteration after this operation.
 					break;
 				}
 			}
@@ -477,8 +482,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	public void validateStops() {
 
-		// TODO Remove all the shared stops
+		// TODO Comments
 		for (SharedStop s : this.sharedStops) {
+			Marker marker = s.getMarker();
+			if (marker != null) {
+				marker.hideInfoWindow();
+				marker.remove();
+			}
 			for (Circle c : s.getCircles()) {
 				if (c != null) {
 					c.remove();
@@ -498,7 +508,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Check for shared stops.
 		for (BasicStop basicStop : allStops) {
-			// TODO
+			// TODO Comments
 			ArrayList<Route> sharedRoute = new ArrayList<>();
 			for (Route r : routes) {
 				for (Stop s : r.stops) {
@@ -508,13 +518,17 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 					}
 				}
 			}
+
+			// TODO Comments
 			if (sharedRoute.size() > 1) {
-				SharedStop sharedStop = new SharedStop(basicStop.stopID, basicStop.latitude, basicStop.longitude, sharedRoute.toArray(new Route[0]));
+				SharedStop sharedStop = new SharedStop(basicStop.stopID, basicStop.latitude,
+						basicStop.longitude, sharedRoute.toArray(new Route[0]));
 				Circle[] circles = new Circle[sharedStop.routes.length];
 				for (int index = 0; index < sharedStop.routes.length; index++) {
 					int color = sharedStop.routes[index].color;
 					sharedStop.circleOptions[index] = new CircleOptions().strokeColor(color)
-							.fillColor(color).clickable(index == 0).radius(Stop.RADIUS * (1d / index));
+							.fillColor(color).clickable(index == 0).radius(Stop.RADIUS * (1d / index))
+							.center(new LatLng(sharedStop.latitude, sharedStop.longitude));
 					Circle circle = this.map.addCircle(sharedStop.circleOptions[index]);
 					circle.setTag(SharedStop.class);
 					circle.setVisible(true);
@@ -524,9 +538,5 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				this.sharedStops.add(sharedStop);
 			}
 		}
-		// If shared stops are found, create a shared stop object (represented by a concentric circle).
-		// Color that circle based on stop color
-		// When clicked on, the stop should show all the route times for all the selected stops
 	}
-
 }

@@ -59,11 +59,39 @@ public class SharedStop {
 		this.routes = routes;
 	}
 
+	/**
+	 * TODO Documentation
+	 *
+	 * @return
+	 */
 	public Circle[] getCircles() {
 		return this.circles;
 	}
 
+	/**
+	 * TODO Documentation
+	 *
+	 * @param circles
+	 */
 	public void setCircles(Circle[] circles) {
 		this.circles = circles;
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @return
+	 */
+	public Marker getMarker() {
+		return this.marker;
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param marker
+	 */
+	public void setMarker(Marker marker) {
+		this.marker = marker;
 	}
 }
