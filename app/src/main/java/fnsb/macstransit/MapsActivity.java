@@ -2,7 +2,6 @@ package fnsb.macstransit;
 
 import android.util.Log;
 import android.view.Menu;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
@@ -28,12 +27,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * Create an array of all the routes that are used by the transit system. For now leave it uninitialized,
 	 * as it will be dynamically generated in the onCreate method.
 	 */
-	public Route[] allRoutes;
+	public static Route[] allRoutes;
 
 	/**
 	 * Create an instance of the route match object that will be used for this app.
 	 */
-	public RouteMatch routeMatch;
+	public static RouteMatch routeMatch;
 
 	/**
 	 * Create an array list to determine which routes have been selected from the menu to track.
@@ -83,7 +82,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		if (!menuCreated) {
 
 			// Iterate through all the routes that can be tracked.
-			for (Route route : this.allRoutes) {
+			for (Route route : MapsActivity.allRoutes) {
 
 				// Add the route to the routes menu group, and make sure its checkable.
 				menu.add(R.id.routes, Menu.NONE, Menu.NONE, route.routeName).setCheckable(true);
@@ -200,35 +199,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		((com.google.android.gms.maps.SupportMapFragment) java.util.Objects.requireNonNull(this.getSupportFragmentManager()
 				.findFragmentById(R.id.map))).getMapAsync(this);
 
-		// Try to setup the routematch object. If it fails, just return early.
-		// Don't bother with the additional setup.
-		/*
-		try {
-			this.routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/");
-		} catch (java.net.MalformedURLException e) {
-			Log.e("onCreate", "Invalid URL!");
-			return;
-		}
-
-		// Load the routes dynamically
-		this.allRoutes = Route.generateRoutes(this.routeMatch);
-
-		// If the length of the loaded routes is not zero (aka there are routes to work with, apply the following:
-		if (this.allRoutes.length != 0) {
-
-			// For each of the routes in the loaded routes, load the stops that correspond to the route.
-			for (Route route : this.allRoutes) {
-				route.stops = route.loadStops(this.routeMatch);
-			}
-		} else {
-			// If the route length is zero, either there are no routes, or there was an issue connecting to the feed.
-			Toast toast = Toast.makeText(this, R.string.noData, Toast.LENGTH_LONG);
-			toast.show();
-		}
-		 */
-
-		// TODO Get the route match and Rotues from the splash screen activity!
-
 	}
 
 	/**
@@ -299,7 +269,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(home, 11.0f));
 
 		// Iterate through all the routes.
-		for (Route route : this.allRoutes) {
+		for (Route route : MapsActivity.allRoutes) {
 
 			// Iterate though all the stops in the route.
 			for (Stop stop : route.stops) {
@@ -392,7 +362,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			Log.d("toggleRoute", "Enabling route: " + routeName);
 
 			// If the route is to be enabled, iterate through all the allRoutes that are able to be tracked.
-			for (Route route : this.allRoutes) {
+			for (Route route : MapsActivity.allRoutes) {
 
 				// If the route that is able to be tracked is equal to that of the route entered as an argument,
 				// add that route to the selected allRoutes array.

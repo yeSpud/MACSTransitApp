@@ -27,7 +27,7 @@ import fnsb.macstransit.RouteMatch.RouteMatch;
  * @version 1.0
  * @since Beta 7
  */
-public class Init extends AppCompatActivity {
+public class SplashActivity extends AppCompatActivity {
 
 	/**
 	 * TODO Documentation
@@ -52,7 +52,7 @@ public class Init extends AppCompatActivity {
 	/**
 	 * TODO Documentation
 	 */
-	private Route[] rotues;
+	private Route[] routes;
 
 
 	/**
@@ -68,12 +68,14 @@ public class Init extends AppCompatActivity {
 		this.console = this.findViewById(R.id.textView);
 		this.progressBar = this.findViewById(R.id.progressBar);
 		this.button = this.findViewById(R.id.button);
+		this.button.setOnClickListener(null);
 		this.button.setVisibility(View.INVISIBLE);
 
 		this.progressBar.setMax(100);
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			this.progressBar.setMin(0);
 		}
+		this.progressBar.setVisibility(View.VISIBLE);
 	}
 
 	/**
@@ -159,23 +161,31 @@ public class Init extends AppCompatActivity {
 			Log.d("loadData", "Loading routes from master schedule");
 			this.setMessage(R.string.load_routes);
 
-			this.rotues = Route.generateRoutes(routeMatch);
+			this.routes = Route.generateRoutes(routeMatch);
 
-			if (this.rotues.length != 0) {
+			if (this.routes.length != 0) {
 				this.setProgress(0.5d);
 				this.setMessage(R.string.load_stops);
 
 				// Load the stops in each route.
-				for (int i = 0; i < this.rotues.length; i++) {
-					Route route = this.rotues[i];
+				for (int i = 0; i < this.routes.length; i++) {
+					Route route = this.routes[i];
 					route.stops = route.loadStops(this.routeMatch);
 
-					this.setProgress(0.5d + (((i + 1d) / this.rotues.length) / 2));
+					this.setProgress(0.5d + (((i + 1d) / this.routes.length) / 2));
 				}
 
 				this.dataLoaded();
 			} else {
 				this.setMessage(R.string.no_routes);
+				this.runOnUiThread(() -> {
+					this.progressBar.setVisibility(View.INVISIBLE);
+					this.button.setText(R.string.retry);
+					this.button.setOnClickListener((click) -> {
+						this.recreate();
+					});
+					this.button.setVisibility(View.VISIBLE);
+				});
 			}
 		});
 		t.setName("Splash-Network");
@@ -186,7 +196,9 @@ public class Init extends AppCompatActivity {
 	 * TODO Documentation
 	 */
 	private void dataLoaded() {
-		// TODO Pass the routematch object, and Route array to the Maps Activity, and then launch it!
+		MapsActivity.routeMatch = this.routeMatch;
+		MapsActivity.allRoutes = this.routes;
+		this.startActivity(new Intent(this, MapsActivity.class));
+		this.finish();
 	}
-
 }
