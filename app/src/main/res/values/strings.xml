@@ -9,5 +9,6 @@
     <string name="fetchroutes">Fetching routes…</string>
     <string name="fetchstops">Fetching stops…</string>
     <string name="nointernet">No internet connection.</string>
+    <string name="open_internet_settins">Open internet settings</string>
     <string name="retry">Retry</string>
 </resources>
