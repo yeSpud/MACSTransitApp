@@ -44,9 +44,11 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	}
 
 	/**
-	 * TODO Documentation
+	 * Called when a circle is clicked.
+	 * <p>
+	 * This is called on the Android UI thread.
 	 *
-	 * @param circle
+	 * @param circle The circle that is clicked.
 	 */
 	@Override
 	public void onCircleClick(com.google.android.gms.maps.model.Circle circle) {

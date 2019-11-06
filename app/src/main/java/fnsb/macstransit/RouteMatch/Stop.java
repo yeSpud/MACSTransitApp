@@ -72,11 +72,13 @@ public class Stop extends BasicStop {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Loads the stop from the provided JSON.
+	 * <p>
+	 * This simply parses the JSON to the constructor.
 	 *
-	 * @param json
-	 * @param route
-	 * @throws org.json.JSONException
+	 * @param json  The JSON to be parsed for the stop.
+	 * @param route The route this stop belongs to. This will also be passed to the constructor.
+	 * @throws org.json.JSONException Thrown if there is an exception in parsing the JSON (ie missing a queried field).
 	 */
 	public Stop(org.json.JSONObject json, Route route) throws org.json.JSONException {
 		this(json.getString("stopId"), json.getDouble("latitude"), json.getDouble("longitude"), route);

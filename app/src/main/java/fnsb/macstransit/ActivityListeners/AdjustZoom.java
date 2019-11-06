@@ -31,7 +31,10 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 	}
 
 	/**
-	 * TODO Documentation
+	 * Called when camera movement has ended,
+	 * there are no pending animations and the user has stopped interacting with the map.
+	 * <p>
+	 * This is called on the Android UI thread.
 	 */
 	@Override
 	public void onCameraIdle() {
@@ -44,7 +47,7 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 		Log.d("CameraChange", "Zoom change: " + zoomChange);
 
 		// Iterate through all the routes.
-		for (fnsb.macstransit.RouteMatch.Route route : this.activity.allRoutes) {
+		for (fnsb.macstransit.RouteMatch.Route route : MapsActivity.allRoutes) {
 
 			// If the route isn't null, execute the following:
 			if (route != null) {
@@ -61,5 +64,7 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 				}
 			}
 		}
+
+		// TODO Iterate through all the shared stops
 	}
 }
