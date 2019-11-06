@@ -6,6 +6,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -15,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.net.MalformedURLException;
 
+import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
 
 /**
@@ -41,6 +43,17 @@ public class Init extends AppCompatActivity {
 	 * TODO Documentation
 	 */
 	private Button button;
+
+	/**
+	 * TODO Documentation
+	 */
+	private RouteMatch routeMatch;
+
+	/**
+	 * TODO Documentation
+	 */
+	private Route[] rotues;
+
 
 	/**
 	 * TODO Documentation
@@ -73,11 +86,22 @@ public class Init extends AppCompatActivity {
 
 		// First, check if the user has internet
 		if (this.hasInternet()) {
-			// ...
+
+			// Then create the routematch object
+			try {
+				this.routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/");
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+				return;
+			}
+
+			// Then, proceed to load the data
+			this.loadData().start();
+
 		} else {
 			// Since the user doesn't have internet, let them know, and add an option to open internet settings via clicking the button
 			this.progressBar.setVisibility(View.INVISIBLE);
-			this.console.setText(R.string.nointernet);
+			this.setMessage(R.string.nointernet);
 			this.button.setText(R.string.open_internet_settins);
 			this.button.setOnClickListener((click) -> {
 				this.startActivityForResult(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS), 0);
@@ -114,6 +138,55 @@ public class Init extends AppCompatActivity {
 				this.progressBar.setProgress(p);
 			}
 		});
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param message
+	 */
+	private void setMessage(int message) {
+		this.runOnUiThread(() -> this.console.setText(message));
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @return
+	 */
+	private Thread loadData() {
+		Thread t = new Thread(() -> {
+			Log.d("loadData", "Loading routes from master schedule");
+			this.setMessage(R.string.load_routes);
+
+			this.rotues = Route.generateRoutes(routeMatch);
+
+			if (this.rotues.length != 0) {
+				this.setProgress(0.5d);
+				this.setMessage(R.string.load_stops);
+
+				// Load the stops in each route.
+				for (int i = 0; i < this.rotues.length; i++) {
+					Route route = this.rotues[i];
+					route.stops = route.loadStops(this.routeMatch);
+
+					this.setProgress(0.5d + (((i + 1d) / this.rotues.length) / 2));
+				}
+
+				this.dataLoaded();
+			} else {
+				this.setMessage(R.string.no_routes);
+			}
+		});
+		t.setName("Splash-Network");
+		return t;
+	}
+
+	/**
+	 * TODO Documentation
+	 */
+	private void dataLoaded() {
+		// TODO Pass the routematch object, and Route array to the Maps Activity, and then launch it!
 	}
 
 }

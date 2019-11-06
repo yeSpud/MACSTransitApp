@@ -202,6 +202,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Try to setup the routematch object. If it fails, just return early.
 		// Don't bother with the additional setup.
+		/*
 		try {
 			this.routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/");
 		} catch (java.net.MalformedURLException e) {
@@ -224,6 +225,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			Toast toast = Toast.makeText(this, R.string.noData, Toast.LENGTH_LONG);
 			toast.show();
 		}
+		 */
+
+		// TODO Get the route match and Rotues from the splash screen activity!
 
 	}
 
