@@ -42,7 +42,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * The RouteMatch object to be loaded in the splash screen.
 	 */
 	private RouteMatch routeMatch;
-	
+
 	/**
 	 * The routes from the RouteMatch object to be loaded in the splash screen.
 	 */

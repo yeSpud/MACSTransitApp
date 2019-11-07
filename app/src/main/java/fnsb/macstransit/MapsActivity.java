@@ -17,7 +17,6 @@ import fnsb.macstransit.ActivityListeners.Helpers;
 import fnsb.macstransit.RouteMatch.BasicStop;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.RouteMatch.RouteMatch;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 
@@ -32,7 +31,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * Create an instance of the route match object that will be used for this app.
 	 */
-	public static RouteMatch routeMatch;
+	public static fnsb.macstransit.RouteMatch.RouteMatch routeMatch;
 
 	/**
 	 * Create an array list to determine which routes have been selected from the menu to track.
@@ -471,7 +470,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 	/**
 	 * TODO Documentation
-	 * FIXME
 	 */
 	public void findSharedStops() {
 
@@ -543,6 +541,17 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	private void clearSharedStops() {
 		for (SharedStop s : this.sharedStops) {
+
+			// Check if the route is still enabled
+			for (Route r : this.selectedRoutes) {
+				for (Stop stop : r.stops) {
+					if (stop.stopID.equals(s.stopID)) {
+						// Set the stop icon to be true
+						stop.getIcon().setVisible(true);
+					}
+				}
+			}
+
 			Marker marker = s.getMarker();
 			if (marker != null) {
 				marker.hideInfoWindow();
@@ -578,7 +587,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 				// Make the circle options for the first one the biggest, and the only one that is clickable
 				CircleOptions circleOption = new CircleOptions().center(new LatLng(s.latitude, s.longitude))
-						.radius(Stop.RADIUS * (1d / (index + 1))).clickable(index == 0);
+						.radius(Stop.RADIUS * (1d / (index + 1)));
+
 
 				// Set the color to the index of the route
 				int color = s.routes[index].color;
@@ -592,6 +602,15 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 				// Now add the circle to the map, but make it invisible for now
 				Circle circle = this.map.addCircle(s.circleOptions[index]);
+				circle.setTag(SharedStop.class);
+				circle.setClickable(true);
+
+				// If this is the primary circle add a marker
+				if (index == 0) {
+					Marker marker = this.map.addMarker(new MarkerOptions().position(circleOption.getCenter())
+							.title(s.stopID).visible(false).icon(Helpers.getMarkerIcon(color)));
+					s.setMarker(marker);
+				}
 
 				// Apply the circle to the array of circles
 				circles[index] = circle;
