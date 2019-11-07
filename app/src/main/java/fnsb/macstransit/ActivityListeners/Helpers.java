@@ -1,5 +1,11 @@
 package fnsb.macstransit.ActivityListeners;
 
+import java.util.ArrayList;
+
+import fnsb.macstransit.RouteMatch.BasicStop;
+import fnsb.macstransit.RouteMatch.Route;
+import fnsb.macstransit.RouteMatch.Stop;
+
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.
  * <p>
@@ -22,5 +28,23 @@ public class Helpers {
 		android.graphics.Color.colorToHSV(color, hsv);
 		return com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]);
 	}
+
+	/**
+	 * TODO Documentation and comments
+	 *
+	 * @param routes
+	 * @return
+	 */
+	public static BasicStop[] loadAllStops(Route[] routes) {
+		ArrayList<BasicStop> stops = new ArrayList<>();
+		for (Route r : routes) {
+			for (Stop s : r.stops) {
+				stops.add(new BasicStop(s.stopID, s.latitude, s.longitude, s.route));
+			}
+		}
+		return stops.toArray(new BasicStop[0]);
+	}
+
+
 
 }

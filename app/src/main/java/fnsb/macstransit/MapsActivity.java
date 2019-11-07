@@ -5,7 +5,6 @@ import android.view.Menu;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
@@ -357,106 +356,191 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	private void toggleRoute(String routeName, boolean enabled) {
 
-		// Check whether or not the route is to be enabled or disabled.
+		// Enable / disable the route depending on the enabled boolean.
 		if (enabled) {
-			Log.d("toggleRoute", "Enabling route: " + routeName);
-
-			// If the route is to be enabled, iterate through all the allRoutes that are able to be tracked.
-			for (Route route : MapsActivity.allRoutes) {
-
-				// If the route that is able to be tracked is equal to that of the route entered as an argument,
-				// add that route to the selected allRoutes array.
-				if (route.routeName.equals(routeName)) {
-					Log.d("toggleRoute", "Found matching route!");
-					this.selectedRoutes.add(route);
-
-					// If the route has stops (will not have a length of 0) execute the following:
-					if (route.stops.length != 0) {
-
-						// Iterate through all the stops in the route
-						for (Stop stop : route.stops) {
-
-							// If the route has an icon, set it to visible.
-							if (stop.getIcon() != null) {
-								stop.getIcon().setVisible(true);
-							} else {
-
-								// If the route doesn't have an icon, create a new one,
-								// and set it to visible :P
-								stop.setIcon(this.map.addCircle(stop.iconOptions));
-								stop.getIcon().setVisible(true);
-							}
-						}
-					}
-
-					// Since we only add one route at a time (as there is only one routeName argument),
-					// break as soon as its added.
-					break;
-				}
-			}
+			this.enableRoute(routeName);
 		} else {
-			Log.d("toggleRoute", "Disabling route: " + routeName);
-
-			// If the route is to be disabled (and thus removed),
-			// start by making a copy of the selected routes array.
-			Route[] routes = this.selectedRoutes.toArray(new Route[0]);
-
-			// Then iterate through that array
-			for (Route route : routes) {
-
-				// If the route is equal to the route provided in the argument, do the following...
-				if (route.routeName.equals(routeName)) {
-
-					// Get a copy of the bus array for iteration.
-					Bus[] b = this.buses.toArray(new Bus[0]);
-
-					// Iterate through the buses to see if the bus route matches that of the route from above.
-					for (Bus bus : b) {
-
-						// If the bus is indeed equal, remove the bus's marker,
-						// and finally remove the bus from the buses array.
-						if (bus.route.equals(route)) {
-							// Remove the bus from the array first, before removing the marker,
-							// so it doesn't get re-added
-							this.buses.remove(bus);
-							bus.getMarker().remove();
-						}
-					}
-
-					// Finally, remove the route from the selected routes array.
-					this.selectedRoutes.remove(route);
-
-					// If there are stops in the route (will have a not equal to 0),
-					// execute the following:
-					if (route.stops.length != 0) {
-
-						// Iterate through the stops in the route
-						for (Stop stop : route.stops) {
-
-							// If the stop icon isn't null, set it to be invisible
-							if (stop.getIcon() != null) {
-								stop.getIcon().setVisible(false);
-							}
-						}
-					}
-
-					// Be sure to break at this point,
-					// as there is no need to continue iteration after this operation.
-					break;
-				}
-			}
+			this.disableRoute(routeName);
 		}
 
-		// Validate the stops that are visible (and adjust shared stops if necessary).
-		this.validateStops();
+		// At this point check for shared stops.
+		this.findSharedStops();
 	}
 
 	/**
 	 * TODO Documentation
+	 *
+	 * @param routeName
 	 */
-	public void validateStops() {
+	private void enableRoute(String routeName) {
+		Log.d("enableRoute", "Enabling route: " + routeName);
 
-		// TODO Comments
+		// If the route is to be enabled, iterate through all the allRoutes that are able to be tracked.
+		for (Route route : MapsActivity.allRoutes) {
+
+			// If the route that is able to be tracked is equal to that of the route entered as an argument,
+			// add that route to the selected allRoutes array.
+			if (route.routeName.equals(routeName)) {
+				Log.d("toggleRoute", "Found matching route!");
+				this.selectedRoutes.add(route);
+
+				// If the route has stops (will not have a length of 0) execute the following:
+				if (route.stops.length != 0) {
+
+					// Iterate through all the stops in the route
+					for (Stop stop : route.stops) {
+
+						// If the route has an icon, set it to visible.
+						if (stop.getIcon() != null) {
+							stop.getIcon().setVisible(true);
+						} else {
+
+							// If the route doesn't have an icon, create a new one,
+							// and set it to visible :P
+							stop.setIcon(this.map.addCircle(stop.iconOptions));
+							stop.getIcon().setVisible(true);
+						}
+					}
+				}
+
+				// Since we only add one route at a time (as there is only one routeName argument),
+				// break as soon as its added.
+				break;
+			}
+		}
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param routeName
+	 */
+	private void disableRoute(String routeName) {
+		Log.d("disableRoute", "Disabling route: " + routeName);
+
+		// If the route is to be disabled (and thus removed),
+		// start by making a copy of the selected routes array.
+		Route[] routes = this.selectedRoutes.toArray(new Route[0]);
+
+		// Then iterate through that array
+		for (Route route : routes) {
+
+			// If the route is equal to the route provided in the argument, do the following...
+			if (route.routeName.equals(routeName)) {
+
+				// Get a copy of the bus array for iteration.
+				Bus[] b = this.buses.toArray(new Bus[0]);
+
+				// Iterate through the buses to see if the bus route matches that of the route from above.
+				for (Bus bus : b) {
+
+					// If the bus is indeed equal, remove the bus's marker,
+					// and finally remove the bus from the buses array.
+					if (bus.route.equals(route)) {
+						// Remove the bus from the array first, before removing the marker,
+						// so it doesn't get re-added
+						this.buses.remove(bus);
+						bus.getMarker().remove();
+					}
+				}
+
+				// Finally, remove the route from the selected routes array.
+				this.selectedRoutes.remove(route);
+
+				// If there are stops in the route (will have a not equal to 0),
+				// execute the following:
+				if (route.stops.length != 0) {
+
+					// Iterate through the stops in the route
+					for (Stop stop : route.stops) {
+
+						// If the stop icon isn't null, set it to be invisible
+						if (stop.getIcon() != null) {
+							stop.getIcon().setVisible(false);
+						}
+					}
+				}
+
+				// Be sure to break at this point,
+				// as there is no need to continue iteration after this operation.
+				break;
+			}
+		}
+	}
+
+	/**
+	 * TODO Documentation
+	 * FIXME
+	 */
+	public void findSharedStops() {
+
+		// Clear all the shared stops from the map
+		this.clearSharedStops();
+
+		// Get all the routes that are being tracked into its own array
+		Route[] routes = this.selectedRoutes.toArray(new Route[0]);
+
+		// Check if there is only 1 or less routes being tracked. If there is,
+		// then there will be no shared stops, so just return.
+		if (routes.length <= 1) {
+			return;
+		}
+
+		// Put all the stops into an array
+		BasicStop[] allStops = Helpers.loadAllStops(routes);
+
+		// Iterate through all the stops
+		for (BasicStop basicStop : allStops) {
+
+			// Create an ArrayList of routes to store all the routes that share this basic stop
+			ArrayList<Route> sharedRoutes = new ArrayList<>();
+
+			// Find which routes share the current basicStop (by ID). Start by iterating though the routes.
+			for (Route r : routes) {
+				Log.d("findSharedStops", "Checking route: " + r.routeName);
+				// For each route, check the stops to see if their stop ID matches the stop ID we are checking.
+				for (Stop s : r.stops) {
+					// If the stop matches our ID, then add that route to an array, so that we can add it to a newly created shared stop.
+					if (s.stopID.equals(basicStop.stopID)) {
+						sharedRoutes.add(r);
+						// Since we are only checking the 1 route, break from this stop for loop to check another stop.
+						break;
+					}
+				}
+			}
+
+			// Check the sharedRoute array. If its greater than size 1,
+			// then it found an additional route that had a stop in common (so it shares a stop).
+			if (sharedRoutes.size() > 1) {
+				// Make sure this shared stop isn't already accounted for (will have the same id)!
+				boolean found = false;
+				for (SharedStop s : this.sharedStops) {
+					// If a shared stop has this basic stop's id, mark it as found and break
+					if (s.stopID.equals(basicStop.stopID)) {
+						found = true;
+						break;
+					}
+				}
+
+				// If the stop was never found, add it to the sharedStops array
+				if (!found) {
+					// Convert this basic stop to a shared stop.
+					Log.d("findSharedStops", String.format("Found %d shared stop for stop %s", sharedRoutes.size(), basicStop.stopID));
+					this.sharedStops.add(new SharedStop(basicStop, sharedRoutes.toArray(new Route[0])));
+				}
+			}
+		}
+
+		// Show the shared stops on the map if there are any
+		if (this.sharedStops.size() > 0) {
+			this.showSharedStops();
+		}
+	}
+
+	/**
+	 * TODO Documentation and comments
+	 */
+	private void clearSharedStops() {
 		for (SharedStop s : this.sharedStops) {
 			Marker marker = s.getMarker();
 			if (marker != null) {
@@ -465,54 +549,22 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			}
 			for (Circle c : s.getCircles()) {
 				if (c != null) {
+					c.setVisible(false);
+					c.setClickable(false);
 					c.remove();
 				}
 			}
 		}
 		this.sharedStops.clear();
+	}
 
-		// First, put all the stops into an array
-		ArrayList<BasicStop> allStops = new ArrayList<>();
-		ArrayList<Route> routes = this.selectedRoutes;
-		for (Route r : routes) {
-			for (Stop s : r.stops) {
-				allStops.add(new BasicStop(s.stopID, s.latitude, s.longitude, s.route));
-			}
-		}
-
-		// Check for shared stops.
-		for (BasicStop basicStop : allStops) {
-			// TODO Comments
-			ArrayList<Route> sharedRoute = new ArrayList<>();
-			for (Route r : routes) {
-				for (Stop s : r.stops) {
-					if (s.stopID.equals(basicStop.stopID)) {
-						sharedRoute.add(r);
-						break;
-					}
-				}
-			}
-
-			// TODO Comments
-			if (sharedRoute.size() > 1) {
-				SharedStop sharedStop = new SharedStop(basicStop.stopID, basicStop.latitude,
-						basicStop.longitude, sharedRoute.toArray(new Route[0]));
-				Circle[] circles = new Circle[sharedStop.routes.length];
-				sharedStop.circleOptions = new CircleOptions[sharedStop.routes.length];
-				for (int index = 0; index < sharedStop.routes.length; index++) {
-					int color = sharedStop.routes[index].color;
-					LatLng latlong = new LatLng(sharedStop.latitude, sharedStop.longitude);
-					sharedStop.circleOptions[index] = new CircleOptions().strokeColor(color)
-							.fillColor(color).clickable(index == 0).radius(Stop.RADIUS * (1d / index))
-							.center(latlong);
-					Circle circle = this.map.addCircle(sharedStop.circleOptions[index]);
-					circle.setTag(SharedStop.class);
-					circle.setVisible(true);
-					circles[index] = this.map.addCircle(sharedStop.circleOptions[index]);
-				}
-				sharedStop.setCircles(circles);
-				this.sharedStops.add(sharedStop);
-			}
+	/**
+	 * TODO Documentation
+	 */
+	private void showSharedStops() {
+		for (SharedStop s : this.sharedStops) {
+			Log.d("showSharedStops", String.format("Adding stop %s to the map", s.stopID));
+			// TODO
 		}
 	}
 }

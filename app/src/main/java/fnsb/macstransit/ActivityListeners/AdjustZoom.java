@@ -2,7 +2,10 @@ package fnsb.macstransit.ActivityListeners;
 
 import android.util.Log;
 
+import com.google.android.gms.maps.model.Circle;
+
 import fnsb.macstransit.MapsActivity;
+import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 
 /**
@@ -55,16 +58,27 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 				for (Stop stop : route.stops) {
 
 					// Get the stop's icon
-					com.google.android.gms.maps.model.Circle icon = stop.getIcon();
+					Circle icon = stop.getIcon();
 
 					// If the icon isn't null, change its radius in proportion to the zoom change.
 					if (icon != null) {
-						icon.setRadius(Stop.RADIUS * (Math.pow(zoomChange, 5)));
+						icon.setRadius(Stop.RADIUS * (Math.pow(zoomChange, 6)));
 					}
 				}
 			}
 		}
 
-		// TODO Iterate through all the shared stops
+		// TODO Iterate through all the shared stops FIXME
+		for (SharedStop sharedStop : this.activity.sharedStops) {
+			Circle[] circles = sharedStop.getCircles();
+			if (sharedStop.circleOptions != null && sharedStop.getCircles() != null) {
+				for (int i = 0; i < circles.length; i++) {
+					Circle circle = circles[i];
+					if (circle != null) {
+						circle.setRadius(Stop.RADIUS * Math.pow(zoomChange, 6) * (1d / i));
+					}
+				}
+			}
+		}
 	}
 }

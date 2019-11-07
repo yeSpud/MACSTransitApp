@@ -15,17 +15,17 @@ import com.google.android.gms.maps.model.Marker;
 public class SharedStop {
 
 	/**
-	 * TODO Documentation
+	 * The latitude and longitude of the SharedStops.
 	 */
 	public double latitude, longitude;
 
 	/**
-	 * TODO Documentation
+	 * The array of routes that this stop is shared with.
 	 */
 	public Route[] routes;
 
 	/**
-	 * TODO Documentation
+	 * The stop ID (usually the stop name).
 	 */
 	public String stopID;
 
@@ -57,6 +57,16 @@ public class SharedStop {
 		this.latitude = latitude;
 		this.longitude = longitude;
 		this.routes = routes;
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param basicStop
+	 * @param routes
+	 */
+	public SharedStop(BasicStop basicStop, Route[] routes) {
+		this(basicStop.stopID, basicStop.latitude, basicStop.longitude, routes);
 	}
 
 	/**
