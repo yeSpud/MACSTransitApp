@@ -71,7 +71,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 					// Example: url https://fnsb.routematch.com/feed/departures/byStop/484%20-%20Bentley%20Trust%20%40%20KFC
 					// TODO Comments
 					StringBuilder snippetText = new StringBuilder();
-					JSONArray stopData = RouteMatch.parseData(this.activity.routeMatch.getStop(stop));
+					JSONArray stopData = RouteMatch.parseData(MapsActivity.routeMatch.getStop(stop));
 					int count = stopData.length();
 					for (int index = 0; index < count && index < 2; index++) {
 						try {

@@ -62,21 +62,19 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 
 					// If the icon isn't null, change its radius in proportion to the zoom change.
 					if (icon != null) {
-						icon.setRadius(Stop.RADIUS * (Math.pow(zoomChange, 6)));
+							icon.setRadius(Stop.RADIUS * (Math.pow(zoomChange, 6)));
 					}
 				}
 			}
 		}
 
-		// TODO Iterate through all the shared stops FIXME
+		// Iterate through all the shared stops.
 		for (SharedStop sharedStop : this.activity.sharedStops) {
-			Circle[] circles = sharedStop.getCircles();
-			if (sharedStop.circleOptions != null && sharedStop.getCircles() != null) {
-				for (int i = 0; i < circles.length; i++) {
-					Circle circle = circles[i];
-					if (circle != null) {
-						circle.setRadius(Stop.RADIUS * Math.pow(zoomChange, 6) * (1d / i));
-					}
+			Circle[] circles =sharedStop.getCircles();
+			for (int index = 0; index < sharedStop.routes.length; index++) {
+				Circle c = circles[index];
+				if (c != null) {
+					c.setRadius((Stop.RADIUS * (1d/(index+1))) * Math.pow(zoomChange, 6));
 				}
 			}
 		}

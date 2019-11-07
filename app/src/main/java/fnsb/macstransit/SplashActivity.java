@@ -19,6 +19,11 @@ import fnsb.macstransit.RouteMatch.RouteMatch;
 public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 	/**
+	 * TODO Documentation
+	 */
+	public static boolean loaded = false;
+
+	/**
 	 * The TextView widget in the activity.
 	 */
 	private android.widget.TextView textView;
@@ -37,7 +42,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * The RouteMatch object to be loaded in the splash screen.
 	 */
 	private RouteMatch routeMatch;
-
+	
 	/**
 	 * The routes from the RouteMatch object to be loaded in the splash screen.
 	 */
@@ -96,6 +101,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		this.progressBar.setVisibility(View.VISIBLE);
 		this.setProgress(0);
 
 		// First, check if the user has internet
@@ -130,8 +136,24 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				this.finish();
 			});
 			this.button.setVisibility(View.VISIBLE);
+
+			// Since technically everything (which is nothing) has been loaded, set the variable as so
+			SplashActivity.loaded = true;
 		}
 
+	}
+
+	/**
+	 * TODO Documentation
+	 */
+	@Override
+	protected void onPause() {
+		super.onPause();
+
+		// Simply close the application, since it hasn't finished loading.
+		if (!SplashActivity.loaded) {
+			System.exit(0);
+		}
 	}
 
 	/**
@@ -235,7 +257,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 					// THen setup the button to relaunch the activity, and make it visible.
 					this.button.setText(R.string.retry);
-					this.button.setOnClickListener((click) -> this.recreate());
+					this.button.setOnClickListener((click) -> this.onResume());
 					this.button.setVisibility(View.VISIBLE);
 				});
 			}
@@ -256,6 +278,9 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 		// Set the routes in the MapsActivity to the routes that were loaded in tis activity.
 		MapsActivity.allRoutes = this.routes;
+
+		// Set the value of loaded to be true at this point.
+		SplashActivity.loaded = true;
 
 		// Start the MapsActivity, and close this splash activity.
 		this.startActivity(new Intent(this, MapsActivity.class));

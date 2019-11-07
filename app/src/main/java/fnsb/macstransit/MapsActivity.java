@@ -5,6 +5,7 @@ import android.view.Menu;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
@@ -533,7 +534,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Show the shared stops on the map if there are any
 		if (this.sharedStops.size() > 0) {
-			this.showSharedStops();
+			this.createSharedStops();
 		}
 	}
 
@@ -561,10 +562,69 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * TODO Documentation
 	 */
+	private void createSharedStops() {
+		for (SharedStop s : this.sharedStops) {
+			Log.d("createSharedStops", String.format("Adding stop %s to the map", s.stopID));
+
+			// Get the count of routes in the shared stop for array purposes.
+			int count = s.routes.length;
+
+			// Create a new circle options array and Circles array based on the number of routes.
+			s.circleOptions = new CircleOptions[count];
+			Circle[] circles = new Circle[count];
+
+			// Iterate though the circles and circle options and initialize them.
+			for (int index = 0; index < count; index++) {
+
+				// Make the circle options for the first one the biggest, and the only one that is clickable
+				CircleOptions circleOption = new CircleOptions().center(new LatLng(s.latitude, s.longitude))
+						.radius(Stop.RADIUS * (1d / (index + 1))).clickable(index == 0);
+
+				// Set the color to the index of the route
+				int color = s.routes[index].color;
+				if (color != 0) {
+					circleOption.strokeColor(color);
+					circleOption.fillColor(color);
+				}
+
+				// Apply the circleOptions to the SharedStop object
+				s.circleOptions[index] = circleOption;
+
+				// Now add the circle to the map, but make it invisible for now
+				Circle circle = this.map.addCircle(s.circleOptions[index]);
+
+				// Apply the circle to the array of circles
+				circles[index] = circle;
+
+			}
+
+			// Now apply the Circles to the SharedStop object
+			s.setCircles(circles);
+		}
+
+		// Now show shared stops
+		this.showSharedStops();
+	}
+
+	/**
+	 * TODO Documentation
+	 */
 	private void showSharedStops() {
 		for (SharedStop s : this.sharedStops) {
-			Log.d("showSharedStops", String.format("Adding stop %s to the map", s.stopID));
-			// TODO
+			// Find the stops in the routes that are in the sharedStop by route id
+			for (Route r : s.routes) {
+				for (Stop stop : r.stops) {
+					// Hide those stops
+					if (stop.stopID.equals(s.stopID)) {
+						stop.getIcon().setVisible(false);
+					}
+				}
+			}
+
+			// Now show the SharedStop icon
+			for (Circle c : s.getCircles()) {
+				c.setVisible(true);
+			}
 		}
 	}
 }
