@@ -397,7 +397,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 							// If the route doesn't have an icon, create a new one,
 							// and set it to visible :P
-							stop.setIcon(this.map.addCircle(stop.iconOptions));
+							stop.setIcon(Helpers.addCircle(this.map, stop.iconOptions, Stop.class, true));
 							stop.getIcon().setVisible(true);
 						}
 					}
@@ -547,7 +547,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				for (Stop stop : r.stops) {
 					if (stop.stopID.equals(s.stopID)) {
 						// Set the stop icon to be true
-						stop.getIcon().setVisible(true);
+						Circle circle = stop.getIcon();
+						circle.setVisible(true);
+						circle.setClickable(true);
 					}
 				}
 			}
@@ -576,46 +578,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			Log.d("createSharedStops", String.format("Adding stop %s to the map", s.stopID));
 
 			// Get the count of routes in the shared stop for array purposes.
-			int count = s.routes.length;
+			//int count = s.routes.length;
 
 			// Create a new circle options array and Circles array based on the number of routes.
-			s.circleOptions = new CircleOptions[count];
-			Circle[] circles = new Circle[count];
-
-			// Iterate though the circles and circle options and initialize them.
-			for (int index = 0; index < count; index++) {
-
-				// Make the circle options for the first one the biggest, and the only one that is clickable
-				CircleOptions circleOption = new CircleOptions().center(new LatLng(s.latitude, s.longitude))
-						.radius(Stop.RADIUS * (1d / (index + 1)));
-
-
-				// Set the color to the index of the route
-				int color = s.routes[index].color;
-				if (color != 0) {
-					circleOption.strokeColor(color);
-					circleOption.fillColor(color);
-				}
-
-				// Apply the circleOptions to the SharedStop object
-				s.circleOptions[index] = circleOption;
-
-				// Now add the circle to the map, but make it invisible for now
-				Circle circle = this.map.addCircle(s.circleOptions[index]);
-				circle.setTag(SharedStop.class);
-				circle.setClickable(true);
-
-				// If this is the primary circle add a marker
-				if (index == 0) {
-					Marker marker = this.map.addMarker(new MarkerOptions().position(circleOption.getCenter())
-							.title(s.stopID).visible(false).icon(Helpers.getMarkerIcon(color)));
-					s.setMarker(marker);
-				}
-
-				// Apply the circle to the array of circles
-				circles[index] = circle;
-
-			}
+			s.circleOptions = this.createCircleOptions(s);
+			Circle[] circles = this.createCircles(s); // TODO Fix circles not being clickable!
 
 			// Now apply the Circles to the SharedStop object
 			s.setCircles(circles);
@@ -645,5 +612,55 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				c.setVisible(true);
 			}
 		}
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param sharedStop
+	 * @return
+	 */
+	private CircleOptions[] createCircleOptions(SharedStop sharedStop) {
+		CircleOptions[] circleOptions = new CircleOptions[sharedStop.routes.length];
+
+		// Iterate though the circles and circle options and initialize them.
+		for (int index = 0; index < circleOptions.length; index++) {
+
+			// Make the circle options for the first one the biggest, and the only one that is clickable
+			CircleOptions circleOption = new CircleOptions().center(new LatLng(sharedStop.latitude, sharedStop.longitude))
+					.radius(Stop.RADIUS * (1d / (index + 1)));
+
+
+			// Set the color to the index of the route
+			int color = sharedStop.routes[index].color;
+			if (color != 0) {
+				circleOption.strokeColor(color);
+				circleOption.fillColor(color);
+			}
+
+			circleOptions[index] = circleOption;
+		}
+
+		return circleOptions;
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param sharedStop
+	 * @return
+	 */
+	private Circle[] createCircles(SharedStop sharedStop) {
+		Circle[] circles = new Circle[sharedStop.routes.length];
+
+		for (int index = 0; index < circles.length; index++) {
+
+			Circle circle = Helpers.addCircle(this.map, sharedStop.circleOptions[index], SharedStop.class, index == 0);
+
+			circles[index] = circle;
+		}
+
+		return circles;
+
 	}
 }

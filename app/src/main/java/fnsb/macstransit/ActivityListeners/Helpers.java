@@ -1,5 +1,11 @@
 package fnsb.macstransit.ActivityListeners;
 
+import android.util.Log;
+
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
+
 import java.util.ArrayList;
 
 import fnsb.macstransit.RouteMatch.BasicStop;
@@ -45,6 +51,27 @@ public class Helpers {
 		return stops.toArray(new BasicStop[0]);
 	}
 
+	/**
+	 * TODO Documentation
+	 *
+	 * @param map
+	 * @param options
+	 * @param tag
+	 * @param clickable
+	 * @return
+	 */
+	public static Circle addCircle(GoogleMap map, CircleOptions options, Object tag, boolean clickable) {
+		String status = "Creating circle";
+		if (clickable) {
+			status += ", and setting it to be clickable";
+		}
+		status += "...";
+		Log.d("addCircle", status);
+		Circle circle = map.addCircle(options);
+		circle.setTag(tag);
+		circle.setClickable(clickable);
+		return circle;
+	}
 
 
 }
