@@ -19,7 +19,7 @@ Simply clone this repository using git, and then open the cloned project in andr
 
 ## Contributing
 
-Make a pull request for your contribution. Though it is highly recommended though that the pull request's resulting build is stable.
+See the [CONTRIBUTING](CONTRIBUTING) file, and be sure to read the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## License
 
