@@ -555,13 +555,30 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		}
 
 		this.createStops();
+
+		// TODO Resize stops
 	}
 
 	/**
 	 * TODO Documentation
 	 */
 	private void createStops() {
-		// TODO
+		Route[] activeRotutes = this.selectedRoutes.toArray(new Route[0]);
+		for (Route route : activeRotutes) {
+			for (Stop stop : route.stops) {
+				boolean found = false;
+				for (SharedStop sharedStop : this.sharedStops) {
+					if (sharedStop.stopID.equals(stop.stopID)) {
+						found = true;
+						break;
+					}
+				}
+
+				if (!found) {
+					stop.setIcon(Helpers.addCircle(this.map, stop.iconOptions, stop, true));
+				}
+			}
+		}
 	}
 
 	/**
