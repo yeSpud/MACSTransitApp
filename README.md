@@ -19,7 +19,7 @@ Simply clone this repository using git, and then open the cloned project in andr
 
 ## Contributing
 
-See the [CONTRIBUTING](CONTRIBUTING) file, and be sure to read the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
+See the file marked [CONTRIBUTING](CONTRIBUTING.md), and be sure to read the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## License
 
