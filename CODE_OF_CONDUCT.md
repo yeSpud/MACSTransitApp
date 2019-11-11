@@ -8,16 +8,16 @@ In the interest of fostering an open and welcoming environment, we as contributo
 
 Examples of behavior that contributes to creating a positive environment include:
 
-* Being respectful of differing viewpoints and experiences
 * Gracefully accepting constructive criticism
 * Focusing on what is best for the community
+* Being respectful of differing viewpoints and experiences
 
 Examples of unacceptable behavior by participants include:
 
-* The use of unwelcome sexual attention or advances
-* Trolling, and political attacks
-* Public or private harassment
 * Publishing others' private information, such as a physical or electronic address, without explicit permission
+* Public or private harassment
+* Trolling, and / or political attacks
+* The use of unwelcome sexual attention or advances
 * Other conduct which could reasonably be considered inappropriate in a professional setting
 
 ## Our Responsibilities
