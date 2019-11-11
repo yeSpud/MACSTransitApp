@@ -5,7 +5,6 @@ import android.view.Menu;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
@@ -36,7 +35,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * Create an array list to determine which routes have been selected from the menu to track.
 	 */
-	public ArrayList<Route> selectedRoutes = new ArrayList<>();
+	public ArrayList<Route> selectedRoutes = new ArrayList<>(); // TODO Change this to a standard array as opposed to an arraylist
 
 	/**
 	 * Create an array of all the buses that will end up being tracked.
@@ -167,7 +166,17 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			boolean enabled = !item.isChecked();
 
 			// Toggle the route based on the menu item's title, and its enabled value
-			this.toggleRoute(item.getTitle().toString(), enabled);
+			if (enabled) {
+				this.enableRoute(item.getTitle().toString());
+			} else {
+				this.disableRoute(item.getTitle().toString());
+			}
+
+			// Remove all the stops (ahd shared stops) from the map
+			this.removeAllStops();
+
+			// (Re) draw the stops onto the map
+			this.drawStops();
 
 			// Set the menu item's checked value to that of the enabled value
 			item.setChecked(enabled);
@@ -349,25 +358,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * Toggles the route, buses, and stops on that route to be shown or hidden on the map.
-	 *
-	 * @param routeName The name of the route to be shown or hidden.
-	 * @param enabled   Whether or not the route is to be shown (true), or hidden (false).
-	 */
-	private void toggleRoute(String routeName, boolean enabled) {
-
-		// Enable / disable the route depending on the enabled boolean.
-		if (enabled) {
-			this.enableRoute(routeName);
-		} else {
-			this.disableRoute(routeName);
-		}
-
-		// At this point check for shared stops.
-		this.findSharedStops();
-	}
-
-	/**
 	 * TODO Documentation
 	 *
 	 * @param routeName
@@ -383,25 +373,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			if (route.routeName.equals(routeName)) {
 				Log.d("toggleRoute", "Found matching route!");
 				this.selectedRoutes.add(route);
-
-				// If the route has stops (will not have a length of 0) execute the following:
-				if (route.stops.length != 0) {
-
-					// Iterate through all the stops in the route
-					for (Stop stop : route.stops) {
-
-						// If the route has an icon, set it to visible.
-						if (stop.getIcon() != null) {
-							stop.getIcon().setVisible(true);
-						} else {
-
-							// If the route doesn't have an icon, create a new one,
-							// and set it to visible :P
-							stop.setIcon(Helpers.addCircle(this.map, stop.iconOptions, Stop.class, true));
-							stop.getIcon().setVisible(true);
-						}
-					}
-				}
 
 				// Since we only add one route at a time (as there is only one routeName argument),
 				// break as soon as its added.
@@ -446,20 +417,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 				// Finally, remove the route from the selected routes array.
 				this.selectedRoutes.remove(route);
-
-				// If there are stops in the route (will have a not equal to 0),
-				// execute the following:
-				if (route.stops.length != 0) {
-
-					// Iterate through the stops in the route
-					for (Stop stop : route.stops) {
-
-						// If the stop icon isn't null, set it to be invisible
-						if (stop.getIcon() != null) {
-							stop.getIcon().setVisible(false);
-						}
-					}
-				}
 
 				// Be sure to break at this point,
 				// as there is no need to continue iteration after this operation.
@@ -529,19 +486,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				}
 			}
 		}
-
-		// Show the shared stops on the map if there are any
-		if (this.sharedStops.size() > 0) {
-			this.createSharedStops();
-		}
 	}
 
 	/**
-	 * TODO Documentation and comments
+	 * TODO Documentation
 	 */
 	private void clearSharedStops() {
 		for (SharedStop s : this.sharedStops) {
-
 			// Check if the route is still enabled
 			for (Route r : this.selectedRoutes) {
 				for (Stop stop : r.stops) {
@@ -577,90 +528,75 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		for (SharedStop s : this.sharedStops) {
 			Log.d("createSharedStops", String.format("Adding stop %s to the map", s.stopID));
 
-			// Get the count of routes in the shared stop for array purposes.
-			//int count = s.routes.length;
+			// Create a new Circles array based on the number of routes.
+			Circle[] circles = new Circle[s.routes.length];
 
-			// Create a new circle options array and Circles array based on the number of routes.
-			s.circleOptions = this.createCircleOptions(s);
-			Circle[] circles = this.createCircles(s); // TODO Fix circles not being clickable!
+			// Create and add the circles to the map.
+			for (int index = 0; index < circles.length; index++) {
+				Circle circle = Helpers.addCircle(this.map, s.circleOptions[index], s, index == 0);
+				circles[index] = circle;
+			}
 
 			// Now apply the Circles to the SharedStop object
 			s.setCircles(circles);
 		}
-
-		// Now show shared stops
-		this.showSharedStops();
 	}
 
 	/**
 	 * TODO Documentation
 	 */
-	private void showSharedStops() {
-		for (SharedStop s : this.sharedStops) {
-			// Find the stops in the routes that are in the sharedStop by route id
-			for (Route r : s.routes) {
-				for (Stop stop : r.stops) {
-					// Hide those stops
-					if (stop.stopID.equals(s.stopID)) {
-						stop.getIcon().setVisible(false);
-					}
+	public void drawStops() {
+		// At this point check for shared stops.
+		this.findSharedStops();
+
+		// Show the shared stops on the map if there are any
+		if (this.sharedStops.size() > 0) {
+			this.createSharedStops();
+		}
+
+		this.createStops();
+	}
+
+	/**
+	 * TODO Documentation
+	 */
+	private void createStops() {
+		// TODO
+	}
+
+	/**
+	 * TODO Documentation
+	 */
+	public void removeAllStops() {
+		Log.d("removeAllStops", "Clearing all sharedStops");
+		for (SharedStop sharedStop : this.sharedStops) {
+			for (Circle c : sharedStop.getCircles()) {
+				if (c != null) {
+					c.remove();
+				}
+			}
+		}
+
+		Log.d("removeAllStops", "Clearing all stops");
+		Route[] activeRoutes = this.selectedRoutes.toArray(new Route[0]);
+		for (Route route : MapsActivity.allRoutes) {
+			boolean found = false;
+			for (Route activeRoute : activeRoutes) {
+				if (activeRoute.equals(route)) {
+					found = true;
+					break;
 				}
 			}
 
-			// Now show the SharedStop icon
-			for (Circle c : s.getCircles()) {
-				c.setVisible(true);
+			if (!found) {
+				Log.d("removeAllStops", "Clearing stops for route: " + route.routeName);
+				for (Stop stop : route.stops) {
+					Circle circle = stop.getIcon();
+					if (circle != null) {
+						circle.remove();
+					}
+				}
 			}
 		}
-	}
-
-	/**
-	 * TODO Documentation
-	 *
-	 * @param sharedStop
-	 * @return
-	 */
-	private CircleOptions[] createCircleOptions(SharedStop sharedStop) {
-		CircleOptions[] circleOptions = new CircleOptions[sharedStop.routes.length];
-
-		// Iterate though the circles and circle options and initialize them.
-		for (int index = 0; index < circleOptions.length; index++) {
-
-			// Make the circle options for the first one the biggest, and the only one that is clickable
-			CircleOptions circleOption = new CircleOptions().center(new LatLng(sharedStop.latitude, sharedStop.longitude))
-					.radius(Stop.RADIUS * (1d / (index + 1)));
-
-
-			// Set the color to the index of the route
-			int color = sharedStop.routes[index].color;
-			if (color != 0) {
-				circleOption.strokeColor(color);
-				circleOption.fillColor(color);
-			}
-
-			circleOptions[index] = circleOption;
-		}
-
-		return circleOptions;
-	}
-
-	/**
-	 * TODO Documentation
-	 *
-	 * @param sharedStop
-	 * @return
-	 */
-	private Circle[] createCircles(SharedStop sharedStop) {
-		Circle[] circles = new Circle[sharedStop.routes.length];
-
-		for (int index = 0; index < circles.length; index++) {
-
-			Circle circle = Helpers.addCircle(this.map, sharedStop.circleOptions[index], SharedStop.class, index == 0);
-
-			circles[index] = circle;
-		}
-
-		return circles;
-
 	}
 }

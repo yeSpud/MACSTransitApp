@@ -54,27 +54,14 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	public void onCircleClick(com.google.android.gms.maps.model.Circle circle) {
 		// Make sure that circle is part of the stop class
 		if (circle.getTag() instanceof Stop) {
-
-			Stop stop = (Stop) circle.getTag();
-
 			// Make sure the circle is visible first
-			if (circle.isVisible()) {
-				Log.d("onCircleClick", "Showing stop infowindow");
-				this.showStopInfoWindow(stop);
-			} /*else {
-				// Check if that circle is hidden because its a shared stop
-				for (SharedStop s : this.activity.sharedStops) {
-					if (s.stopID.equals(stop.stopID)) {
-						this.showSharedStopInfoWindow(s);
-					}
-				}
-			}
-			*/
+			Log.d("onCircleClick", "Showing stop infowindow");
+			this.showStopInfoWindow((Stop) circle.getTag());
 		} else if (circle.getTag() instanceof SharedStop) {
 			Log.d("onCircleClick", "Showing sharedStop infowindow");
 			this.showSharedStopInfoWindow((SharedStop) circle.getTag());
 		} else {
-			Log.w("onCircleClick", "Circle object unaccounted for!");
+			Log.w("onCircleClick", String.format("Circle object (%s) unaccounted for!", circle.getTag().toString()));
 		}
 	}
 

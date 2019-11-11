@@ -57,6 +57,8 @@ public class SharedStop {
 		this.latitude = latitude;
 		this.longitude = longitude;
 		this.routes = routes;
+
+		this.circleOptions = this.createCircleOptions();
 	}
 
 	/**
@@ -103,5 +105,35 @@ public class SharedStop {
 	 */
 	public void setMarker(Marker marker) {
 		this.marker = marker;
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @return
+	 */
+	private CircleOptions[] createCircleOptions() {
+		CircleOptions[] circleOptions = new CircleOptions[this.routes.length];
+
+		// Iterate though the circles and circle options and initialize them.
+		for (int index = 0; index < circleOptions.length; index++) {
+
+			// Make the circle options for the first one the biggest, and the only one that is clickable
+			CircleOptions circleOption = new CircleOptions()
+					.center(new com.google.android.gms.maps.model.LatLng(this.latitude, this.longitude))
+					.radius(Stop.RADIUS * (1d / (index + 1)));
+
+
+			// Set the color to the index of the route
+			int color = this.routes[index].color;
+			if (color != 0) {
+				circleOption.strokeColor(color);
+				circleOption.fillColor(color);
+			}
+
+			circleOptions[index] = circleOption;
+		}
+
+		return circleOptions;
 	}
 }
