@@ -2,13 +2,6 @@ package fnsb.macstransit.ActivityListeners;
 
 import android.util.Log;
 
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.Marker;
-
-import fnsb.macstransit.MapsActivity;
-import fnsb.macstransit.RouteMatch.SharedStop;
-import fnsb.macstransit.RouteMatch.Stop;
-
 /**
  * Created by Spud on 2019-11-11 for the project: MACS Transit.
  * <p>
@@ -17,36 +10,25 @@ import fnsb.macstransit.RouteMatch.Stop;
  * @version 1.0
  * @since Beta 7
  */
-public class StopDeselected implements GoogleMap.OnInfoWindowCloseListener {
+public class StopDeselected implements com.google.android.gms.maps.GoogleMap.OnInfoWindowCloseListener {
 
 	/**
-	 * TODO Documentation
-	 */
-	private MapsActivity activity;
-
-	/**
-	 * TODO Documentation
+	 * Called when the marker's info window is closed.
+	 * <p>
+	 * This is called on the Android UI thread.
 	 *
-	 * @param activity
-	 */
-	public StopDeselected(MapsActivity activity) {
-		this.activity = activity;
-	}
-
-	/**
-	 * TODO Documentation
-	 *
-	 * @param marker
+	 * @param marker The marker of the info window that was closed.
 	 */
 	@Override
-	public void onInfoWindowClose(Marker marker) {
-		if (marker.getTag() instanceof Stop) {
+	public void onInfoWindowClose(com.google.android.gms.maps.model.Marker marker) {
+		// Check if it was a stop info window that was closed.
+		if (marker.getTag() instanceof fnsb.macstransit.RouteMatch.Stop) {
 			Log.d("onInfoWindowClose", "Closing stop window");
 			marker.setVisible(false);
-		} else if (marker.getTag() instanceof SharedStop) {
+		} else if (marker.getTag() instanceof fnsb.macstransit.RouteMatch.SharedStop) { // Check if it was a shared stop info window that was closed.
 			Log.d("onInfoWindowClose", "Closing shared stop window");
 			marker.setVisible(false);
-		} else {
+		} else { // Log that the info window that was closed was neither a Stop nor a SharedStop.
 			Log.w("onInfoWindowClose", "Unhandled info window");
 		}
 	}
