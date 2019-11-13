@@ -67,7 +67,7 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 		TextView snippet = new TextView(this.activity);
 		snippet.setTextColor(Color.GRAY);
 		snippet.setText(marker.getSnippet());
-		snippet.setMaxLines(5);
+		snippet.setMaxLines(15); // TODO Make this scrollable
 
 		info.addView(title);
 		if (!snippet.getText().equals("") && snippet.getText() != null) {

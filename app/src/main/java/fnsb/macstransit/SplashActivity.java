@@ -103,6 +103,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		super.onResume();
 		this.progressBar.setVisibility(View.VISIBLE);
 		this.setProgress(0);
+		this.button.setVisibility(View.INVISIBLE);
 
 		// First, check if the user has internet
 		if (this.hasInternet()) {

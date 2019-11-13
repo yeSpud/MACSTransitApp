@@ -277,6 +277,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(home, 11.0f));
 
 		// Iterate through all the routes.
+		/*
 		for (Route route : MapsActivity.allRoutes) {
 
 			// Iterate though all the stops in the route.
@@ -290,6 +291,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				}
 			}
 		}
+		 */
 
 		// Add a listener for when the camera has become idle (ie was moving isn't anymore).
 		this.map.setOnCameraIdleListener(new fnsb.macstransit.ActivityListeners.AdjustZoom(this));
@@ -301,11 +303,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.map.setInfoWindowAdapter(new fnsb.macstransit.ActivityListeners.InfoWindowAdapter(this));
 
 		// Set it so that if the info window was closed for a Stop marker, make that marker invisible, so its just the dot.
-		this.map.setOnInfoWindowCloseListener((marker -> {
-			if (marker.getTag() instanceof Stop) {
-				marker.setVisible(false);
-			}
-		}));
+		this.map.setOnInfoWindowCloseListener(new fnsb.macstransit.ActivityListeners.StopDeselected(this));
 	}
 
 	/**
@@ -430,9 +428,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	public void findSharedStops() {
 
-		// Clear all the shared stops from the map
-		this.clearSharedStops();
-
 		// Get all the routes that are being tracked into its own array
 		Route[] routes = this.selectedRoutes.toArray(new Route[0]);
 
@@ -491,6 +486,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * TODO Documentation
 	 */
+	@Deprecated
 	private void clearSharedStops() {
 		for (SharedStop s : this.sharedStops) {
 			// Check if the route is still enabled
@@ -534,6 +530,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			// Create and add the circles to the map.
 			for (int index = 0; index < circles.length; index++) {
 				Circle circle = Helpers.addCircle(this.map, s.circleOptions[index], s, index == 0);
+				if (index == 0) {
+					Marker marker = Helpers.addMarker(this.map, new MarkerOptions()
+							.position(new LatLng(s.latitude, s.longitude))
+							.icon(Helpers.getMarkerIcon(s.routes[0].color)), s.stopID, s);
+					marker.setVisible(false);
+					s.setMarker(marker);
+				}
 				circles[index] = circle;
 			}
 
@@ -563,8 +566,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * TODO Documentation
 	 */
 	private void createStops() {
-		Route[] activeRotutes = this.selectedRoutes.toArray(new Route[0]);
-		for (Route route : activeRotutes) {
+		Route[] activeRoutes = this.selectedRoutes.toArray(new Route[0]);
+		for (Route route : activeRoutes) {
 			for (Stop stop : route.stops) {
 				boolean found = false;
 				for (SharedStop sharedStop : this.sharedStops) {
@@ -576,6 +579,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 				if (!found) {
 					stop.setIcon(Helpers.addCircle(this.map, stop.iconOptions, stop, true));
+					Marker marker = Helpers.addMarker(this.map, new MarkerOptions()
+							.position(new LatLng(stop.latitude, stop.longitude))
+							.icon(Helpers.getMarkerIcon(stop.route.color)), stop.stopID, stop);
+					marker.setVisible(false);
+					stop.setMarker(marker);
 				}
 			}
 		}
@@ -587,12 +595,19 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	public void removeAllStops() {
 		Log.d("removeAllStops", "Clearing all sharedStops");
 		for (SharedStop sharedStop : this.sharedStops) {
+
+			Marker marker = sharedStop.getMarker();
+			if (marker != null) {
+				marker.remove();
+			}
+
 			for (Circle c : sharedStop.getCircles()) {
 				if (c != null) {
 					c.remove();
 				}
 			}
 		}
+		this.sharedStops.clear();
 
 		Log.d("removeAllStops", "Clearing all stops");
 		Route[] activeRoutes = this.selectedRoutes.toArray(new Route[0]);

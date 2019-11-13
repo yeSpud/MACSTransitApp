@@ -4,6 +4,8 @@ import android.text.format.DateFormat;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.Marker;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,6 +17,7 @@ import java.util.regex.Pattern;
 
 import fnsb.macstransit.MapsActivity;
 import fnsb.macstransit.R;
+import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
@@ -72,11 +75,11 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 */
 	private void showStopInfoWindow(Stop stop) {
 		// If the stop doesn't have a marker, just use toast to display the stop ID.
-		if (stop.getMarker() == null) {
+		Marker marker = stop.getMarker();
+		if (marker == null) {
 			Toast.makeText(this.activity, stop.stopID, Toast.LENGTH_SHORT).show();
 		} else {
 			// If the stop does have a marker, set the marker to be visible, and show the info window corresponding to that marker.
-			com.google.android.gms.maps.model.Marker marker = stop.getMarker();
 			marker.setVisible(true);
 
 			// Get the stops departures and arrivals
@@ -136,13 +139,71 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 *
 	 * @param sharedStop
 	 */
-	private void showSharedStopInfoWindow(SharedStop sharedStop) {
+	private void showSharedStopInfoWindow(SharedStop sharedStop) { // FIXME
 		// If the shared stop doesn't have a marker, just use toast to display the stop ID.
-		if (sharedStop.getMarker() == null) {
+		Marker marker = sharedStop.getMarker();
+		if (marker == null) {
 			Toast.makeText(this.activity, sharedStop.stopID, Toast.LENGTH_SHORT).show();
 		} else {
-			// TODO
-			Toast.makeText(this.activity, sharedStop.stopID, Toast.LENGTH_SHORT).show();
+			marker.setVisible(true);
+			// TODO Comments
+			StringBuilder snippetText = new StringBuilder();
+			for (Route route : sharedStop.routes) {
+				Stop stop = null;
+				for (Stop stops : route.stops) {
+					if (stops.stopID.equals(sharedStop.stopID)) {
+						stop = stops;
+						break;
+					}
+				}
+				if (stop != null) {
+					JSONArray stopData = RouteMatch.parseData(MapsActivity.routeMatch.getStop(stop));
+					int count = stopData.length();
+					for (int index = 0; index < count && index < 1; index++) {
+						try {
+							Log.d("onCircleClick", String.format("Parsing stop times for stop %d/%d", index, count));
+							JSONObject object = stopData.getJSONObject(index);
+
+							Pattern timeRegex = Pattern.compile("\\d\\d:\\d\\d");
+
+							Matcher arrivalRegex = timeRegex.matcher(object.getString("predictedArrivalTime")),
+									departureRegex = timeRegex.matcher(object.getString("predictedDepartureTime"));
+
+							if (arrivalRegex.find() && departureRegex.find()) {
+
+								String arrivalTime, departureTime;
+
+								if (DateFormat.is24HourFormat(this.activity)) {
+									arrivalTime = arrivalRegex.group(0);
+									departureTime = departureRegex.group(0);
+
+								} else {
+									try {
+										SimpleDateFormat parser = new SimpleDateFormat("H:mm", Locale.US),
+												formatter = new SimpleDateFormat("K:mm a", Locale.US);
+										arrivalTime = formatter.format(parser.parse(arrivalRegex.group(0)));
+										departureTime = formatter.format(parser.parse(departureRegex.group(0)));
+									} catch (java.text.ParseException dateError) {
+										arrivalTime = arrivalRegex.group(0);
+										departureTime = departureRegex.group(0);
+									}
+								}
+
+								snippetText.append(String.format("Route: %s\n%s %s\n%s %s\n\n", route.routeName,
+										this.activity.getString(R.string.expected_arrival),
+										arrivalTime, this.activity.getString(R.string.expected_departure),
+										departureTime));
+
+							}
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+
+			marker.setSnippet(snippetText.toString());
+			marker.showInfoWindow();
 		}
 	}
 }

@@ -5,6 +5,8 @@ import android.util.Log;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 
@@ -71,6 +73,22 @@ public class Helpers {
 		circle.setTag(tag);
 		circle.setClickable(clickable);
 		return circle;
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param map
+	 * @param options
+	 * @param tag
+	 * @param title
+	 * @return
+	 */
+	public static Marker addMarker(GoogleMap map, MarkerOptions options, String title, Object tag) {
+		Marker marker = map.addMarker(options);
+		marker.setTitle(title);
+		marker.setTag(tag);
+		return marker;
 	}
 
 
