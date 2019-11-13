@@ -19,7 +19,7 @@ import fnsb.macstransit.RouteMatch.RouteMatch;
 public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 	/**
-	 * TODO Documentation
+	 * Create a variable to check if the map activity has already been loaded (as to determine if the app needs to close when the back button is clicked, or just needs to refresh the activity)
 	 */
 	public static boolean loaded = false;
 
@@ -145,7 +145,26 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Called as part of the activity lifecycle when the user no longer actively interacts with the activity,
+	 * but it is still visible on screen. The counterpart to onResume().
+	 * <p>
+	 * When activity B is launched in front of activity A, this callback will be invoked on A.
+	 * B will not be created until A's onPause() returns, so be sure to not do anything lengthy here.
+	 * <p>
+	 * This callback is mostly used for saving any persistent state the activity is editing,
+	 * to present a "edit in place" model to the user and making sure nothing is lost if there are not enough resources to start the new activity without first killing this one.
+	 * This is also a good place to stop things that consume a noticeable amount of CPU in order to make the switch to the next activity as fast as possible.
+	 * <p>
+	 * On platform versions prior to Build.VERSION_CODES.Q this is also a good place to try to close exclusive-access devices or to release access to singleton resources.
+	 * Starting with Build.VERSION_CODES.Q there can be multiple resumed activities in the system at the same time, so onTopResumedActivityChanged(boolean) should be used for that purpose instead.
+	 * <p>
+	 * If an activity is launched on top,
+	 * after receiving this call you will usually receive a following call to onStop() (after the next activity has been resumed and displayed above).
+	 * However in some cases there will be a direct call back to onResume() without going through the stopped state.
+	 * An activity can also rest in paused state in some cases when in multi-window mode, still visible to user.
+	 * <p>
+	 * Derived classes must call through to the super class's implementation of this method.
+	 * If they do not, an exception will be thrown.
 	 */
 	@Override
 	protected void onPause() {
@@ -256,7 +275,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 					// First hide the progress bar since it is no longer of use.
 					this.progressBar.setVisibility(View.INVISIBLE);
 
-					// THen setup the button to relaunch the activity, and make it visible.
+					// Then setup the button to relaunch the activity, and make it visible.
 					this.button.setText(R.string.retry);
 					this.button.setOnClickListener((click) -> this.onResume());
 					this.button.setVisibility(View.VISIBLE);
