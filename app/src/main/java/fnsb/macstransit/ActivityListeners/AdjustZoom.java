@@ -34,10 +34,12 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 	}
 
 	/**
-	 * TODO Documentation
+	 * Adjusts the circle size based on the current zoom level.
 	 *
-	 * @param zoomLevel
-	 * @param sharedStops
+	 * @param zoomLevel   The current zoom level.
+	 * @param sharedStops The array of shared stops to update the circles sizes to.
+	 *                    It should be noted that the regular stops will be adjusted on their own,
+	 *                    and do not need to be passed as an argument.
 	 */
 	public static void adjustCircleSize(float zoomLevel, SharedStop[] sharedStops) {
 		// Get how much it has changed from the default zoom (11).
@@ -46,15 +48,12 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 
 		// Iterate through all the routes.
 		for (fnsb.macstransit.RouteMatch.Route route : MapsActivity.allRoutes) {
-
 			// If the route isn't null, execute the following:
 			if (route != null) {
 				// Iterate through all the stops in the route.
 				for (Stop stop : route.stops) {
-
 					// Get the stop's icon
 					Circle icon = stop.getIcon();
-
 					// If the icon isn't null, change its radius in proportion to the zoom change.
 					if (icon != null) {
 						icon.setRadius(Stop.RADIUS * (Math.pow(zoomChange, 6)));
@@ -65,7 +64,10 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 
 		// Iterate through all the shared stops.
 		for (SharedStop sharedStop : sharedStops) {
+			// Get the circles from the shared stop
 			Circle[] circles = sharedStop.getCircles();
+
+			// Iterate through all the circles to adjust their radius.
 			for (int index = 0; index < sharedStop.routes.length; index++) {
 				Circle c = circles[index];
 				if (c != null) {

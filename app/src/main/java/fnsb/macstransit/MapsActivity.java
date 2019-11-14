@@ -539,15 +539,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * TODO Documentation
 	 */
-	@Deprecated
-	public void removeAllStops() {
-
-
-	}
-
-	/**
-	 * TODO Documentation
-	 */
 	private void clearStops() {
 		Log.d("removeAllStops", "Clearing all stops");
 		for (Route selectedRoute : this.selectedRoutes) {
@@ -581,5 +572,4 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		}
 		this.sharedStops.clear();
 	}
-
 }
