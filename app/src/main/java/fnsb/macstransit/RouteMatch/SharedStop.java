@@ -30,51 +30,53 @@ public class SharedStop {
 	public String stopID;
 
 	/**
-	 * TODO Documentation
+	 * The array of options that will be applied to the circles that correspond to this Stop.
 	 */
 	public CircleOptions[] circleOptions;
 
 	/**
-	 * TODO Documentation
+	 * The circles that correspond to this stop.
 	 */
 	private Circle[] circles;
 
 	/**
-	 * TODO Documentation
+	 * The marker that corresponds to this stop.
 	 */
 	private Marker marker;
 
 	/**
-	 * TODO Documentation
+	 * Constructor for the Shared Stop.
 	 *
-	 * @param stopID
-	 * @param latitude
-	 * @param longitude
-	 * @param routes
+	 * @param stopID    The Stop ID. This is typically the name of the stop.
+	 * @param latitude  The latitude of the Stop.
+	 * @param longitude The longitude of the Stop.
+	 * @param routes    The routes that this Stop corresponds to.
 	 */
+	@SuppressWarnings("WeakerAccess")
 	public SharedStop(String stopID, double latitude, double longitude, Route[] routes) {
 		this.stopID = stopID;
 		this.latitude = latitude;
 		this.longitude = longitude;
 		this.routes = routes;
 
+		// Be sure to create the circle options for this object at this point.
 		this.circleOptions = this.createCircleOptions();
 	}
 
 	/**
-	 * TODO Documentation
+	 * Simpler constructor the the Shared Stop.
 	 *
-	 * @param basicStop
-	 * @param routes
+	 * @param basicStop The basic stop that will be changed into a Shared Stop.
+	 * @param routes    The route that this Stop corresponds to.
 	 */
 	public SharedStop(BasicStop basicStop, Route[] routes) {
 		this(basicStop.stopID, basicStop.latitude, basicStop.longitude, routes);
 	}
 
 	/**
-	 * TODO Documentation
+	 * Gets the circles that belong to this Stop.
 	 *
-	 * @return
+	 * @return The array of circles that belong to this Stop.
 	 */
 	public Circle[] getCircles() {
 		return this.circles;
@@ -90,9 +92,9 @@ public class SharedStop {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Gets the marker that belongs to this Stop.
 	 *
-	 * @return
+	 * @return The marker that belongs to this Stop.
 	 */
 	public Marker getMarker() {
 		return this.marker;
@@ -108,9 +110,9 @@ public class SharedStop {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Creates the circle options that will correspond to this class.
 	 *
-	 * @return
+	 * @return The array circle opinions.
 	 */
 	private CircleOptions[] createCircleOptions() {
 		CircleOptions[] circleOptions = new CircleOptions[this.routes.length];
@@ -131,9 +133,11 @@ public class SharedStop {
 				circleOption.fillColor(color);
 			}
 
+			// Finally apply that generated CirCleOption to the CircleOptions array.
 			circleOptions[index] = circleOption;
 		}
 
+		// Return the array of CircleOptions.
 		return circleOptions;
 	}
 }
