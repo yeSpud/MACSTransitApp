@@ -5,6 +5,7 @@ import android.util.Log;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -12,7 +13,6 @@ import java.util.ArrayList;
 
 import fnsb.macstransit.RouteMatch.BasicStop;
 import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.RouteMatch.Stop;
 
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.
@@ -46,7 +46,7 @@ public class Helpers {
 	public static BasicStop[] loadAllStops(Route[] routes) {
 		ArrayList<BasicStop> stops = new ArrayList<>();
 		for (Route r : routes) {
-			for (Stop s : r.stops) {
+			for (fnsb.macstransit.RouteMatch.Stop s : r.stops) {
 				stops.add(new BasicStop(s.stopID, s.latitude, s.longitude, s.route));
 			}
 		}
@@ -79,12 +79,17 @@ public class Helpers {
 	 * TODO Documentation
 	 *
 	 * @param map
-	 * @param options
-	 * @param tag
+	 * @param latitude
+	 * @param longitude
+	 * @param color
 	 * @param title
+	 * @param tag
 	 * @return
 	 */
-	public static Marker addMarker(GoogleMap map, MarkerOptions options, String title, Object tag) {
+	public static Marker addMarker(GoogleMap map, double latitude, double longitude, int color, String title, Object tag) {
+		MarkerOptions options = new MarkerOptions();
+		options.position(new LatLng(latitude, longitude));
+		options.icon(Helpers.getMarkerIcon(color));
 		Marker marker = map.addMarker(options);
 		marker.setTitle(title);
 		marker.setTag(tag);

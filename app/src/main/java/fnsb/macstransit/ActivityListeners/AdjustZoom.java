@@ -34,19 +34,14 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 	}
 
 	/**
-	 * Called when camera movement has ended,
-	 * there are no pending animations and the user has stopped interacting with the map.
-	 * <p>
-	 * This is called on the Android UI thread.
+	 * TODO Documentation
+	 *
+	 * @param zoomLevel
+	 * @param sharedStops
 	 */
-	@Override
-	public void onCameraIdle() {
-		// Get the camera's new zoom position
-		float zoom = this.activity.map.getCameraPosition().zoom;
-		Log.d("CameraChange", "Zoom level: " + zoom);
-
+	public static void adjustCircleSize(float zoomLevel, SharedStop[] sharedStops) {
 		// Get how much it has changed from the default zoom (11).
-		float zoomChange = 11.0f / zoom;
+		float zoomChange = 11.0f / zoomLevel;
 		Log.d("CameraChange", "Zoom change: " + zoomChange);
 
 		// Iterate through all the routes.
@@ -62,21 +57,37 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 
 					// If the icon isn't null, change its radius in proportion to the zoom change.
 					if (icon != null) {
-							icon.setRadius(Stop.RADIUS * (Math.pow(zoomChange, 6)));
+						icon.setRadius(Stop.RADIUS * (Math.pow(zoomChange, 6)));
 					}
 				}
 			}
 		}
 
 		// Iterate through all the shared stops.
-		for (SharedStop sharedStop : this.activity.sharedStops) {
-			Circle[] circles =sharedStop.getCircles();
+		for (SharedStop sharedStop : sharedStops) {
+			Circle[] circles = sharedStop.getCircles();
 			for (int index = 0; index < sharedStop.routes.length; index++) {
 				Circle c = circles[index];
 				if (c != null) {
-					c.setRadius((Stop.RADIUS * (1d/(index+1))) * Math.pow(zoomChange, 6));
+					c.setRadius((Stop.RADIUS * (1d / (index + 1))) * Math.pow(zoomChange, 6));
 				}
 			}
 		}
+	}
+
+	/**
+	 * Called when camera movement has ended,
+	 * there are no pending animations and the user has stopped interacting with the map.
+	 * <p>
+	 * This is called on the Android UI thread.
+	 */
+	@Override
+	public void onCameraIdle() {
+		// Get the camera's new zoom position
+		float zoom = this.activity.map.getCameraPosition().zoom;
+		Log.d("CameraChange", "Zoom level: " + zoom);
+
+		// Adjust the circle size based on zoom level
+		AdjustZoom.adjustCircleSize(zoom, this.activity.sharedStops.toArray(new SharedStop[0]));
 	}
 }
