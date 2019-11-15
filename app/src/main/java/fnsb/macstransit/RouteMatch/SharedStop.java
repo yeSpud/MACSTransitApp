@@ -83,9 +83,9 @@ public class SharedStop {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Sets the circles corresponding to the Shared Stop.
 	 *
-	 * @param circles
+	 * @param circles The circles that apply to the Shared Stop.
 	 */
 	public void setCircles(Circle[] circles) {
 		this.circles = circles;
@@ -101,9 +101,9 @@ public class SharedStop {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Sets the marker that belongs to this Stop.
 	 *
-	 * @param marker
+	 * @param marker The marker that belongs to this Stop.
 	 */
 	public void setMarker(Marker marker) {
 		this.marker = marker;
