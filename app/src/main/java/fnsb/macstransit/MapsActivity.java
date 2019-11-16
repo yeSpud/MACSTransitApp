@@ -280,7 +280,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(home, 11.0f));
 
 		// Add a listener for when the camera has become idle (ie was moving isn't anymore).
-		this.map.setOnCameraIdleListener(new fnsb.macstransit.ActivityListeners.AdjustZoom(this));
+		this.map.setOnCameraIdleListener(new AdjustZoom(this));
 
 		// Add a listener for when a stop icon (circle) is clicked.
 		this.map.setOnCircleClickListener(new fnsb.macstransit.ActivityListeners.StopClicked(this));
@@ -342,9 +342,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * TODO Documentation
+	 * Enables a route by searching for the route by its route name.
+	 * If the route is found it is added to the selectedRoutes array.
 	 *
-	 * @param routeName
+	 * @param routeName The route name belong to the route that should be enabled.
 	 */
 	private void enableRoute(String routeName) {
 		Log.d("enableRoute", "Enabling route: " + routeName);
@@ -366,21 +367,21 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * TODO Documentation
+	 * Disables a route by searching for the route by its route name.
 	 *
-	 * @param routeName
+	 * @param routeName The route name belong to the route that should be disabled.
 	 */
 	private void disableRoute(String routeName) {
 		Log.d("disableRoute", "Disabling route: " + routeName);
 
+		// If the route is to be disabled (and thus removed),
+		// start by making a copy of the selected routes array.
 		Route[] routes = this.selectedRoutes.toArray(new Route[0]);
 
-		// If the route is to be disabled (and thus removed),
-		// start by making a copy of the selected routes array. TODO Update comments
-		// Then iterate through that array
+		// Iterate through the routes array and execute the following:
 		for (Route route : routes) {
 
-			// If the route is equal to the route provided in the argument, do the following...
+			// If the route is equal to the route provided in the argument, execute the following:
 			if (route.routeName.equals(routeName)) {
 
 				// Get a copy of the bus array for iteration.
@@ -410,7 +411,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * TODO Documentation
+	 * Finds the shared stops within the selected routes.
 	 */
 	public void findSharedStops() {
 
@@ -470,9 +471,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * TODO Documentation
+	 * Creates the shared stops and add them to the map.
+	 * Be sure to find all the shared stops before calling this method,
+	 * otherwise it will be iterating though an old array that may no longer be relevant or accurate.
 	 */
 	private void createSharedStops() {
+
+		// Iterate through the shared stop array and execute the following:
 		for (SharedStop s : this.sharedStops) {
 			Log.d("createSharedStops", String.format("Adding stop %s to the map", s.stopID));
 
@@ -482,11 +487,15 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			// Create and add the circles to the map.
 			for (int index = 0; index < circles.length; index++) {
 				Circle circle = Helpers.addCircle(this.map, s.circleOptions[index], s, index == 0);
+
+				// If this is the first circle (will have an index of 0), add a marker to the stop.
 				if (index == 0) {
 					Marker marker = Helpers.addMarker(this.map, s.latitude, s.longitude, s.routes[0].color, s.stopID, s);
 					marker.setVisible(false);
 					s.setMarker(marker);
 				}
+
+				// Apply the circle to the circle array.
 				circles[index] = circle;
 			}
 
@@ -496,36 +505,52 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * TODO Documentation
+	 * Draws the stops and shared stops onto the map, and adjusts the stop sizes based on the zoom level.
 	 */
 	public void drawStops() {
-		// At this point check for shared stops.
+		// Check and load all the shared stops.
 		this.findSharedStops();
 
-		// Show the shared stops on the map if there are any
+		// Create and show the shared stops on the map if there are any (this.sharedStops will have a size greater than 0)
 		if (this.sharedStops.size() > 0) {
 			this.createSharedStops();
 		}
 
+		// Create and show the regular stops.
 		this.createStops();
 
+		// Adjust the circle sizes of the stops on the map given the current zoom.
 		AdjustZoom.adjustCircleSize(this.map.getCameraPosition().zoom, this.sharedStops.toArray(new SharedStop[0]));
 	}
 
 	/**
-	 * TODO Documentation
+	 * Creates stops and adds it to the map (though it should be noted that these stops will initially be invisible).
+	 * This should be executed after all the shared stops have been found,
+	 * as it will not a a stop to the map if its already within the shared stop array.
 	 */
 	private void createStops() {
+
+		// Iterate through the routes in the selected routes and execute the following:
 		for (Route route : this.selectedRoutes) {
+
+			// Iterate through the stops in the route and execute the following:
 			for (Stop stop : route.stops) {
+
+				// Create a boolean that will be used to verify if a stop has been found or not
 				boolean found = false;
+
+				// Iterate through the shared stops and check if the stop we are using to iterate is also within the shared stop array (by stop id only).
 				for (SharedStop sharedStop : this.sharedStops) {
 					if (sharedStop.stopID.equals(stop.stopID)) {
+						// If the stop was indeed found (by id), set the found boolean to true,
+						// and break from the shared stop for loop.
 						found = true;
 						break;
 					}
 				}
 
+				// If the stop was never found (was never in the shared stop array),
+				// add it to the map, but set it to invisible.
 				if (!found) {
 					stop.setIcon(Helpers.addCircle(this.map, stop.iconOptions, stop, true));
 					Marker marker = Helpers.addMarker(this.map, stop.latitude, stop.longitude, stop.route.color, stop.stopID, stop);
@@ -537,13 +562,25 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * TODO Documentation
+	 * Removes all the stops from the map. This does not clear the selected routes.
 	 */
 	private void clearStops() {
 		Log.d("removeAllStops", "Clearing all stops");
+
+		// Iterate through all the stops in the selected routes and execute the following:
 		for (Route selectedRoute : this.selectedRoutes) {
 			Log.d("removeAllStops", "Clearing stops for route: " + selectedRoute.routeName);
+
+			// Iterate through all the stops in the route and execute the following:
 			for (Stop stop : selectedRoute.stops) {
+
+				// Get the marker from the stop, and remove it if its not null.
+				Marker marker = stop.getMarker();
+				if (marker != null) {
+					marker.remove();
+				}
+
+				// Get the circle from the stop, and remove it of its not null.
 				Circle circle = stop.getIcon();
 				if (circle != null) {
 					circle.remove();
@@ -553,23 +590,29 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * TODO Documentation
+	 * Clears the shared stops from the map, and clears the shared stop array once done.
 	 */
 	private void clearSharedStops() {
 		Log.d("clearSharedStops", "Clearing all sharedStops");
+
+		// Iterate through all the shared stops and execute the following.
 		for (SharedStop sharedStop : this.sharedStops) {
 
+			// Get the shared stops marker, and if it's not null remove it.
 			Marker marker = sharedStop.getMarker();
 			if (marker != null) {
 				marker.remove();
 			}
 
+			// Get the circles from the shared shared stop, and if its not null remove it.
 			for (Circle c : sharedStop.getCircles()) {
 				if (c != null) {
 					c.remove();
 				}
 			}
 		}
+
+		// Finally clear the shared stop array.
 		this.sharedStops.clear();
 	}
 }
