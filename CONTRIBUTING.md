@@ -16,5 +16,6 @@ The final bit of software required is [Android Studio](https://developer.android
 Simply clone this repository using git, and then open the cloned project in android studio. That's all there is to it.
 
 ### Submitting updates
-TODO
-Basically make sure its well documented, well commented, elegantly written, and above all else, stable when creating a pull request.
+Submit a pull request stating your proposed version (ie `Beta 7`), and make sure that your updates are well documented, well commented, elegantly written, and above all else, stable.
+
+The pull request will then undergo a review process, and either be accepted and merged, or rejected with comments and critiques for how to do better.
