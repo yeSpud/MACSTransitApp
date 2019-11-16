@@ -4,7 +4,10 @@ This project was originally intended as an entry for the [AK Dev alliance](https
 
 ## Features
 
-TODO
+* Track MACS Buses in real time!
+* Track only the routes you care about
+* See when buses are predicted to arrive at a stop
+* Optional dark theme
 
 ## Contributing
 
@@ -20,4 +23,4 @@ See the [LICENSE](LICENSE) file for details.
 
 MACS (Metropolitan Area Commuter System) Transit is not affilated with the MACSTransitApp or its contributors, and is Copyright © 2015 FNSB - All Rights Reserved.
 
-RouteMatch, and the RouteMatch software is not affiliated with with the MACSTransitApp or its contributors, and is Copyright © 2019 Routematch Software - All Rights Reserved. 
+RouteMatch, and RouteMatch Software is not affiliated with with the MACSTransitApp or its contributors, and is Copyright © 2019 Routematch Software - All Rights Reserved. 
