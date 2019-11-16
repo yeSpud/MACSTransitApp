@@ -1,6 +1,10 @@
 # Understanding
+TODO
 
 ## Flow overview
+TODO
+
+## SplashActivity.java
 TODO
 
 ## MapsActivity.java
