@@ -1,4 +1,4 @@
-package fnsb.macstransit;
+package fnsb.macstransit.Activities;
 
 import android.util.Log;
 import android.view.Menu;
@@ -11,13 +11,15 @@ import com.google.android.gms.maps.model.Marker;
 
 import java.util.ArrayList;
 
-import fnsb.macstransit.ActivityListeners.AdjustZoom;
-import fnsb.macstransit.ActivityListeners.Helpers;
+import fnsb.macstransit.Activities.ActivityListeners.AdjustZoom;
+import fnsb.macstransit.Activities.ActivityListeners.Helpers;
+import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.BasicStop;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
+import fnsb.macstransit.Threads.UpdateThread;
 
 public class MapsActivity extends androidx.fragment.app.FragmentActivity implements com.google.android.gms.maps.OnMapReadyCallback {
 
@@ -283,13 +285,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.map.setOnCameraIdleListener(new AdjustZoom(this));
 
 		// Add a listener for when a stop icon (circle) is clicked.
-		this.map.setOnCircleClickListener(new fnsb.macstransit.ActivityListeners.StopClicked(this));
+		this.map.setOnCircleClickListener(new fnsb.macstransit.Activities.ActivityListeners.StopClicked(this));
 
 		// Add a custom info window adapter, to add support for multiline snippets.
-		this.map.setInfoWindowAdapter(new fnsb.macstransit.ActivityListeners.InfoWindowAdapter(this));
+		this.map.setInfoWindowAdapter(new fnsb.macstransit.Activities.ActivityListeners.InfoWindowAdapter(this));
 
 		// Set it so that if the info window was closed for a Stop marker, make that marker invisible, so its just the dot.
-		this.map.setOnInfoWindowCloseListener(new fnsb.macstransit.ActivityListeners.StopDeselected());
+		this.map.setOnInfoWindowCloseListener(new fnsb.macstransit.Activities.ActivityListeners.StopDeselected());
 	}
 
 	/**

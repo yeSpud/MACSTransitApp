@@ -1,4 +1,4 @@
-package fnsb.macstransit;
+package fnsb.macstransit.Threads;
 
 import android.util.Log;
 
@@ -25,7 +25,7 @@ import java.net.SocketTimeoutException;
  * Since android doesn't like url connections to be run on the UI thread, this needs to be done on its own thread.
  * Hence the complexity :(
  *
- * @version 1.0
+ * @version 1.1
  * @since Beta 6.
  */
 public class Network {

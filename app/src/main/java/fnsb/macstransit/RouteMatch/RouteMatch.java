@@ -7,7 +7,7 @@ import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 
-import fnsb.macstransit.Network;
+import fnsb.macstransit.Threads.Network;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.

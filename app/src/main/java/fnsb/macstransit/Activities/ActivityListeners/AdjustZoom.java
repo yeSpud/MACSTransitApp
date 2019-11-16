@@ -1,10 +1,10 @@
-package fnsb.macstransit.ActivityListeners;
+package fnsb.macstransit.Activities.ActivityListeners;
 
 import android.util.Log;
 
 import com.google.android.gms.maps.model.Circle;
 
-import fnsb.macstransit.MapsActivity;
+import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 

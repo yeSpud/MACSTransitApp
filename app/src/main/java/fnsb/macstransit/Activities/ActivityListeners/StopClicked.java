@@ -1,4 +1,4 @@
-package fnsb.macstransit.ActivityListeners;
+package fnsb.macstransit.Activities.ActivityListeners;
 
 import android.text.format.DateFormat;
 import android.util.Log;
@@ -13,7 +13,7 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-import fnsb.macstransit.MapsActivity;
+import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.RouteMatch;
 import fnsb.macstransit.RouteMatch.SharedStop;

@@ -1,10 +1,11 @@
-package fnsb.macstransit;
+package fnsb.macstransit.Activities;
 
 import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
 import android.view.View;
 
+import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
 

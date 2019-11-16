@@ -125,7 +125,7 @@ public class Stop extends BasicStop {
 		this.marker.setTag(this);
 		this.marker.setTitle(this.stopID);
 		if (this.route.color != 0) {
-			this.marker.setIcon(fnsb.macstransit.ActivityListeners.Helpers.getMarkerIcon(this.route.color));
+			this.marker.setIcon(fnsb.macstransit.Activities.ActivityListeners.Helpers.getMarkerIcon(this.route.color));
 		}
 	}
 }

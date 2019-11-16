@@ -1,4 +1,4 @@
-package fnsb.macstransit.ActivityListeners;
+package fnsb.macstransit.Activities.ActivityListeners;
 
 import android.util.Log;
 

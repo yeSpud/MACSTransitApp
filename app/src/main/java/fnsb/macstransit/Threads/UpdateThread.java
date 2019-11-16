@@ -1,9 +1,10 @@
-package fnsb.macstransit;
+package fnsb.macstransit.Threads;
 
 import android.util.Log;
 
 import org.json.JSONException;
 
+import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Heading;
 import fnsb.macstransit.RouteMatch.Route;
@@ -14,7 +15,7 @@ import fnsb.macstransit.RouteMatch.RouteMatch;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 2.1
+ * @version 2.2
  * @since Beta 3
  */
 public class UpdateThread {
@@ -67,7 +68,7 @@ public class UpdateThread {
 	 *
 	 * @return The thread. Note that this dies not run the thread, that has to be called separately.
 	 */
-	Thread thread() {
+	public Thread thread() {
 		return new Thread(() -> {
 
 			// For debugging purposes, let the poor developer know when the thread has started.
