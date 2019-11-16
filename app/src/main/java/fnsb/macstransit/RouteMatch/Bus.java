@@ -1,13 +1,17 @@
 package fnsb.macstransit.RouteMatch;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+
+import fnsb.macstransit.Activities.ActivityListeners.Helpers;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.0
+ * @version 1.1
  * @since Beta 3
  */
 public class Bus {
@@ -64,6 +68,49 @@ public class Bus {
 	public Bus(String busID, Route route) {
 		this.busID = busID;
 		this.route = route;
+	}
+
+	/**
+	 * TODO Documentaiton
+	 *
+	 * @param buses
+	 * @param map
+	 */
+	public static void updateBuses(Bus[] buses, GoogleMap map) {
+
+		// Start by iterating through all the buses that are currently being tracked.
+		for (Bus bus : buses) {
+
+			// Get the old marker for the bus
+			com.google.android.gms.maps.model.Marker marker = bus.getMarker();
+
+			// Get the current LatLng of the bus
+			LatLng latLng = new LatLng(bus.latitude, bus.longitude);
+
+			// Check if that bus has a marker to begin with.
+			// If the bus doesn't have a marker create a new one,
+			// and overwrite the marker variable with the newly created marker
+			if (marker == null) {
+				marker = map.addMarker(new com.google.android.gms.maps.model.MarkerOptions().position(latLng));
+			} else {
+				// Just update the title
+				marker.setPosition(latLng);
+			}
+
+			// Now update the title
+			marker.setTitle(bus.route.routeName);
+
+			// If the route has a color, set its icon to that color
+			if (bus.route.color != 0) {
+				marker.setIcon(Helpers.getMarkerIcon(bus.route.color));
+			}
+
+			// Make sure that the marker is visible
+			marker.setVisible(true);
+
+			// Finally, (re)assign the marker to the bus
+			bus.setMarker(marker);
+		}
 	}
 
 	/**

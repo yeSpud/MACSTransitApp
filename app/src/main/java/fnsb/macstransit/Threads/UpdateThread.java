@@ -15,7 +15,7 @@ import fnsb.macstransit.RouteMatch.RouteMatch;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 2.2
+ * @version 2.3
  * @since Beta 3
  */
 public class UpdateThread {
@@ -46,6 +46,7 @@ public class UpdateThread {
 	 *
 	 * @param activity The MapsActivity (this should be the main activity).
 	 */
+	@SuppressWarnings("WeakerAccess")
 	public UpdateThread(MapsActivity activity) {
 		this.activity = activity;
 	}
@@ -131,7 +132,7 @@ public class UpdateThread {
 	 */
 	private void parseBuses(Route route) throws JSONException {
 		// Get the data section of the bus JSON pulled from the routematch server
-		org.json.JSONArray busArray = RouteMatch.parseData(this.activity.routeMatch.getRoute(route));
+		org.json.JSONArray busArray = RouteMatch.parseData(MapsActivity.routeMatch.getRoute(route));
 
 		// In the event that there are multiple buses running on one route, the array will have a size > 1.
 		// To combat this, just loop through the size of the array, and parse the JSON for the individual buses.
@@ -193,7 +194,7 @@ public class UpdateThread {
 			}
 
 			// Update the bus markers on the map
-			this.activity.updateBusMarkers();
+			this.activity.runOnUiThread(() -> Bus.updateBuses(this.activity.buses.toArray(new Bus[0]), this.activity.map));
 		}
 	}
 }

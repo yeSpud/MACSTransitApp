@@ -6,6 +6,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+
+import fnsb.macstransit.Activities.MapsActivity;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
@@ -113,6 +116,35 @@ public class Route {
 
 		// Return the route array list as a new array of routes. Yes, they are different.
 		return routes.toArray(new Route[0]);
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param routeName
+	 * @param oldRoutes
+	 * @return
+	 */
+	public static Route[] enableRoutes(String routeName, Route[] oldRoutes) {
+		Log.d("enableRoutes", "Enabling route: " + routeName);
+
+		Route[] routes = Arrays.copyOf(oldRoutes, oldRoutes.length+1);
+
+		// If the route is to be enabled, iterate through all the allRoutes that are able to be tracked.
+		for (Route route : MapsActivity.allRoutes) {
+
+			// If the route that is able to be tracked is equal to that of the route entered as an argument,
+			// add that route to the selected allRoutes array.
+			if (route.routeName.equals(routeName)) {
+				Log.d("enableRoutes", "Found matching route!");
+				routes[oldRoutes.length] = route;
+
+				// Since we only add one route at a time (as there is only one routeName argument),
+				// break as soon as its added.
+				break;
+			}
+		}
+
+		return routes;
 	}
 
 	/**
