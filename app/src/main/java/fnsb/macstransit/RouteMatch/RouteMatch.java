@@ -1,71 +1,105 @@
 package fnsb.macstransit.RouteMatch;
 
+import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.net.MalformedURLException;
+
+import fnsb.macstransit.Network;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 3.0
+ * @version 3.1
  * @since Beta 1
  */
+@SuppressWarnings("WeakerAccess")
 public class RouteMatch {
 
 	/**
 	 * The feed url to pull route data from.
-	 * <p>
-	 * Example: https://fnsb.routematch.com/feed/
 	 */
 	private String url;
 
 	/**
-	 * The array of all the bus routes that are <b><i>able to be</i></b> tracked tracked.
-	 */
-	private Route[] routes;
-
-	/**
 	 * Constructor for the RouteMatch object.
+	 * Be sure that this is a valid url starting with {@code http(s):}, and ends with a {@code /}.
 	 *
-	 * @param url    The feed url to pull data from (IE: https://fnsb.routematch.com/feed/)
-	 * @param routes The array of all the bus routes that are <b><i>able to be</i></b> tracked.
+	 * @param url The feed url to pull data from (IE: https://fnsb.routematch.com/feed/).
+	 * @throws MalformedURLException Thrown if the url entered is not in a valid url format.
 	 */
-	public RouteMatch(String url, Route[] routes) {
-		this.url = url;
-		this.routes = routes;
+	public RouteMatch(String url) throws MalformedURLException {
+		if (url.matches("^https?://\\S+/$")) {
+			this.url = url;
+		} else {
+			throw new MalformedURLException("Url must either be http, or https, and MUST end with /");
+		}
 	}
 
+	/**
+	 * Parses the {@code data} portion of the provided JSONObject, and returns the JSONArray.
+	 * If there was no section called {@code data}, then an empty JSONArray will be returned instead.
+	 *
+	 * @param object The JSONObject to parse.
+	 * @return The JSONArray, or an empty JSONArray if no data section was found.
+	 */
+	public static JSONArray parseData(JSONObject object) {
+		try {
+			return object.getJSONArray("data");
+		} catch (org.json.JSONException e) {
+			android.util.Log.w("parseData", "Unable to parse data!");
+			return new JSONArray();
+		}
+	}
 
 	/**
-	 * Gets the route data from the url provided in the constructor.
+	 * Gets the master schedule from the RouteMatch server.
 	 *
-	 * @param routeName The name of the route to get the pertaining data from (IE: Red).
+	 * @return The master Schedule as a JSONObject.
+	 */
+	public JSONObject getMasterSchedule() {
+		return Network.getJsonFromUrl(this.url + "masterRoute/");
+	}
+
+	/**
+	 * Gets all the stops for the specified route from the RouteMatch server.
+	 *
+	 * @param route The route pertaining to the stops.
+	 * @return The JSONObject pertaining to all the stops for the specified route.
+	 */
+	public JSONObject getAllStops(Route route) {
+		return Network.getJsonFromUrl(this.url + "stops/" + route.routeName);
+	}
+
+	/**
+	 * Gets the stop data from the RouteMatch server.
+	 * If the final encoded url is somehow malformed (most likely through a bad stop id)
+	 * then an empty JSONObject will be returned instead.
+	 *
+	 * @param stop The stop to get the data for.
+	 * @return The data as a JSONObject for the pertaining stop.
+	 */
+	public JSONObject getStop(Stop stop) {
+		try {
+			return Network.getJsonFromUrl(this.url + "departures/byStop/" +
+					java.net.URLEncoder.encode(stop.stopID, "UTF-8").replaceAll("\\+", "%20"));
+		} catch (java.io.UnsupportedEncodingException e) {
+			Log.e("getStop", "The encoded stop was malformed! Returning an empty JSONObject instead");
+			return new JSONObject();
+		}
+	}
+
+	/**
+	 * Gets the route data from the RouteMatch server.
+	 *
+	 * @param route The specific route to be fetched fetched.
 	 * @return The JSONObject pertaining to that specific route's data.
 	 */
-	public org.json.JSONObject getRoute(String routeName) {
-		// Example usage: getJsonFromUrl("https://fnsb.routematch.com/feed/vehicle/byRoutes/Red");
-		return fnsb.macstransit.Network.getJsonFromUrl(this.url + "/vehicle/byRoutes/" + routeName);
+	public JSONObject getRoute(Route route) {
+		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + route.routeName);
 	}
-
-	/**
-	 * Gets all the routes as a Json object that were provided in the constructor.
-	 *
-	 * @return A JSONObject array that contains all the individual routes's data.
-	 */
-	@Deprecated
-	public org.json.JSONObject[] getAllRoutes() {
-
-		// Create the JSONObject array, and make it the size of the total routes provided in this object
-		org.json.JSONObject[] jsonObjects = new org.json.JSONObject[this.routes.length];
-
-		// Iterate through each line, and be sure to keep track of the current index
-		for (int index = 0; index < jsonObjects.length; index++) {
-
-			// Retrieve the current routes route, and store it into the JSONObject array
-			jsonObjects[index] = this.getRoute(this.routes[index].routeName);
-		}
-
-		// Return the final JSONObject array
-		return jsonObjects;
-	}
-
 }

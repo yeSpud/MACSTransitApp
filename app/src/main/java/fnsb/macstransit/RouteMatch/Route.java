@@ -4,18 +4,15 @@ import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
-
-import fnsb.macstransit.Network;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 2.0
+ * @version 2.1
  * @since Beta 3
  */
 public class Route {
@@ -41,22 +38,29 @@ public class Route {
 
 	/**
 	 * Constructor for the route. The name of the route is the only thing that is required.
+	 * Be sure that the provided route name does <b>NOT</b> contain any whitespace characters!
 	 *
-	 * @param routeName The name of the route.
+	 * @param routeName The name of the route. Be sure this does <b>NOT</b> contain any whitespace characters!
+	 * @throws Exception Thrown if the route name contains white space characters.
 	 */
-	public Route(String routeName) {
-		// TODO Make sure this doesn't have whitespace
-		this.routeName = routeName;
+	public Route(String routeName) throws Exception {
+		if (routeName.contains(" ") || routeName.contains("\n") || routeName.contains("\t")) {
+			throw new Exception("Route name cannot contain white space!");
+		} else {
+			this.routeName = routeName;
+		}
 	}
 
 	/**
 	 * Constructor for the route. The name of the route is the only thing that is required.
+	 * Be sure that the provided route name does <b>NOT</b> contain any whitespace characters!
 	 *
-	 * @param routeName The name of the route.
+	 * @param routeName The name of the route. e sure this does <b>NOT</b> contain any whitespace characters!
 	 * @param color     The route's color. This is optional,
 	 *                  and of the color is non-existent simply use the {@code Route(String routeName)} constructor.
+	 * @throws Exception Thrown if the route name contains white space characters.
 	 */
-	public Route(String routeName, int color) {
+	public Route(String routeName, int color) throws Exception {
 		this(routeName);
 		this.color = color;
 	}
@@ -65,37 +69,27 @@ public class Route {
 	 * Dynamically generates the routes that are used by parsing the master schedule.
 	 * This may return an empty route array if there was an issue parsing the data.
 	 *
+	 * @param routeMatch The route match instance (for pulling from the RouteMatch server).
 	 * @return An array of routes that <b><i>can be</i></b> tracked.
 	 */
-	public static Route[] generateRoutes(String url) {
+	public static Route[] generateRoutes(RouteMatch routeMatch) {
 
 		// Create an array to store all the generated routes. This will be returned in the end.
 		ArrayList<Route> routes = new ArrayList<>();
 
-		// First, get the master schedule from the provided url
-		JSONObject masterSchedule = Network.getJsonFromUrl(url + "masterRoute");
-
-		// Now get the data array from the JSON object
-		JSONArray data;
-		try {
-			data = masterSchedule.getJSONArray("data");
-		} catch (JSONException e) {
-			// If there was a JSONException in parsing the data, just return from the thread now!
-			Log.w("generateRoutes", "Unable to parse master route! Returning empty route instead.");
-			return new Route[0];
-		}
+		// Get the data from the master schedule, and store it in a JSONArray.
+		JSONArray data = RouteMatch.parseData(routeMatch.getMasterSchedule());
 
 		// Iterate through the data array to begin parsing the routes
 		int count = data.length();
 		for (int index = 0; index < count; index++) {
-			JSONObject routeData;
 			try {
 
 				// Get the current progress for parsing the routes
 				Log.d("generateRoutes", String.format("Parsing route %d/%d", index + 1, count));
 
 				// Get the routeData that we are currently parsing as its own JSONObject variable.
-				routeData = data.getJSONObject(index);
+				org.json.JSONObject routeData = data.getJSONObject(index);
 
 				// First, parse the name
 				String name = routeData.getString("shortName");
@@ -110,10 +104,9 @@ public class Route {
 					routes.add(new Route(name));
 				}
 
-			} catch (JSONException e) {
+			} catch (Exception e) {
+				// If there was an exception, simply print the stacktrace, and break from the for loop.
 				e.printStackTrace();
-				// If there was a JSONException with either the routeData, or the name, just break from the loop now.
-				// This will also cause the thread to return as this is the last thing in the thread.
 				break;
 			}
 		}
@@ -124,72 +117,55 @@ public class Route {
 
 	/**
 	 * Loads the stops from the provided url.
-	 * This may return an empty stop array if there was an issue parsing the data.
+	 * If there was an error parsing the JSON data for the stop object,
+	 * then this will return what stops it had parsed successfully up until that point.
+	 * As a result, the Stop array returned may be smaller than expected, or have a length of 0.
 	 *
-	 * @param url The url to fetch the stops from.
+	 * @param routeMatch The route match instance (for pulling from the RouteMatch server).
 	 * @return The array of stops that were loaded.
 	 */
-	public Stop[] loadStops(String url) {
+	public Stop[] loadStops(RouteMatch routeMatch) {
 
 		// Create an array that will store the parsed stop objects
 		ArrayList<Stop> returnArray = new ArrayList<>();
 
-		// Fetch the JSON object that contains all the stops.
-		JSONObject allStops = Network.getJsonFromUrl(url + "stops/" + this.routeName);
-
-		// Parse the JSON object of the stops into a json array based on the data.
-		JSONArray data;
-		try {
-			data = allStops.getJSONArray("data");
-		} catch (JSONException e) {
-			// If the data component is missing, simply return an array of stops with the size of 0.
-			Log.w("loadStops", "No data for the specified stop!");
-			return new Stop[0];
-		}
+		// Get the data from all the stops and store it in a JSONArray.
+		JSONArray data = RouteMatch.parseData(routeMatch.getAllStops(this));
 
 		// Iterate through the data in the JSONArray
 		int count = data.length();
 		for (int index = 0; index < count; index++) {
-			JSONObject stopData;
+
+			// Output the current index for debugging reasons
+			Log.d("loadStops", String.format("Parsing stop %d/%d", index + 1, count));
+
+			Stop stop;
 			try {
-
-				// Output the current index for debugging reasons
-				Log.d("loadStops", String.format("Parsing stop %d/%d", index + 1, count));
-
-				// Pull the data from the JSONArray, and store it as a JSONObject
-				stopData = data.getJSONObject(index);
-
-				// Create a stop object from the JSONObject
-				Stop stop = new Stop(stopData.getString("stopId"),
-						stopData.getDouble("latitude"),
-						stopData.getDouble("longitude"), this);
-
-				// If the route has a color, assign the color to the stop
-				if (this.color != 0) {
-					stop.color = this.color;
-				}
-
-				// Iterate through the return array and check if the created stop is a duplicate.
-				boolean found = false;
-				for (Stop s : returnArray) {
-					// If the stop is a duplicate (matches latitude, longitude, and route),
-					// set the found boolean to true, abd break form the for loop
-					if (stop.latitude == s.latitude && s.longitude == s.longitude && stop.route.equals(s.route)) {
-						found = true;
-						break;
-					}
-				}
-
-				// If the stop was never found, add it to the return array
-				if (!found) {
-					Log.d("loadStops", "Adding stop: " + stop.stopID + " to the array");
-					returnArray.add(stop);
-				}
-
+				// Using the data from the stop array, try to create a new stop object.
+				stop = new Stop(data.getJSONObject(index), this);
 			} catch (JSONException e) {
-				// If there was a JSON error just print a stack trace for now, and break from the for loop
-				e.printStackTrace();
+				// If a JSONException was thrown, that means that there was an issue parsing the stop data.
+				// Just print a warning message, and then break from the for loop.
+				// This will cause the function to return whatever was in the return array.
+				Log.w("loadStops", "An issue occurred while attempting to parse the JSON data");
 				break;
+			}
+
+			// Iterate through the return array and check if the created stop is a duplicate.
+			boolean found = false;
+			for (Stop s : returnArray) {
+				// If the stop is a duplicate (matches latitude, longitude, and route),
+				// set the found boolean to true, abd break form the for loop
+				if (stop.latitude == s.latitude && s.longitude == s.longitude && stop.route.equals(s.route)) {
+					found = true;
+					break;
+				}
+			}
+
+			// If the stop was never found, add it to the return array.
+			if (!found) {
+				Log.d("loadStops", "Adding stop: " + stop.stopID + " to the array");
+				returnArray.add(stop);
 			}
 		}
 

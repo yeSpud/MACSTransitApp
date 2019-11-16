@@ -4,41 +4,21 @@ import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.Marker;
 
-
 /**
  * Created by Spud on 2019-10-18 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.0
+ * @version 1.1
  * @since beta 6.
  */
-public class Stop {
+@SuppressWarnings("WeakerAccess")
+public class Stop extends BasicStop {
 
 	/**
 	 * The initial radius size (in meters) for the circle that represents a stop on the map.
 	 */
 	public static final double RADIUS = 50.0d;
-
-	/**
-	 * The ID of the stop. This is usually the stop name.
-	 */
-	public String stopID;
-
-	/**
-	 * The latitude and longitude (coordinates) of the stop.
-	 */
-	public double latitude, longitude;
-
-	/**
-	 * The color of the stop. This is typically derived from the route that this stop corresponds to.
-	 */
-	public int color;
-
-	/**
-	 * The route that this stop corresponds to.
-	 */
-	public Route route;
 
 	/**
 	 * The options that correspond to the stop icon (which is a circle).
@@ -74,12 +54,7 @@ public class Stop {
 	 * @param route     The route this stop corresponds to.
 	 */
 	public Stop(String stopID, double latitude, double longitude, Route route) {
-
-		// Set the stop ID, coordinates, and the corresponding route.
-		this.stopID = stopID;
-		this.latitude = latitude;
-		this.longitude = longitude;
-		this.route = route;
+		super(stopID, latitude, longitude, route);
 
 		// Setup the options that will be used on the stop icon.
 		// This is really just setting up the coordinates, and the initial radius of the stop.
@@ -88,13 +63,25 @@ public class Stop {
 
 		// If the route color isn't null, set the stop color to the same color as the route color.
 		if (this.route.color != 0) {
-			this.color = this.route.color;
-			options.fillColor(this.color);
-			options.strokeColor(this.color);
+			options.fillColor(this.route.color);
+			options.strokeColor(this.route.color);
 		}
 
 		// Set the icon options to the newly created options, though don't apply the options to the icon just yet.
 		this.iconOptions = options;
+	}
+
+	/**
+	 * Loads the stop from the provided JSON.
+	 * <p>
+	 * This simply parses the JSON to the constructor.
+	 *
+	 * @param json  The JSON to be parsed for the stop.
+	 * @param route The route this stop belongs to. This will also be passed to the constructor.
+	 * @throws org.json.JSONException Thrown if there is an exception in parsing the JSON (ie missing a queried field).
+	 */
+	public Stop(org.json.JSONObject json, Route route) throws org.json.JSONException {
+		this(json.getString("stopId"), json.getDouble("latitude"), json.getDouble("longitude"), route);
 	}
 
 	/**
@@ -137,20 +124,8 @@ public class Stop {
 		this.marker = marker;
 		this.marker.setTag(this);
 		this.marker.setTitle(this.stopID);
-		if (this.color != 0) {
-			this.marker.setIcon(fnsb.macstransit.MapsActivity.getMarkerIcon(this.color));
+		if (this.route.color != 0) {
+			this.marker.setIcon(fnsb.macstransit.ActivityListeners.Helpers.getMarkerIcon(this.route.color));
 		}
-
 	}
-
-	/**
-	 * Gets the icon options as a CircleOptions object.
-	 *
-	 * @return the icon options as a CircleOptions object.
-	 */
-	@Deprecated
-	public CircleOptions getIconOptions() {
-		return this.iconOptions;
-	}
-
 }

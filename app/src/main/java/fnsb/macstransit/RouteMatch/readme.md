@@ -1,5 +1,8 @@
 #Understanding
 
+## Basic Stop
+TODO
+
 ## Bus.java
 TODO
 
@@ -10,6 +13,9 @@ TODO
 TODO
 
 ## RouteMatch.java
+TODO
+
+## SharedStop.java
 TODO
 
 ## Stop.java
