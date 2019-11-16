@@ -35,17 +35,17 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * Create an array list to determine which routes have been selected from the menu to track.
 	 */
-	public ArrayList<Route> selectedRoutes = new ArrayList<>();
+	public ArrayList<Route> selectedRoutes = new ArrayList<>(); // TODO Find a way to change this to an array
 
 	/**
 	 * Create an array of all the buses that will end up being tracked.
 	 */
-	public ArrayList<Bus> buses = new ArrayList<>();
+	public ArrayList<Bus> buses = new ArrayList<>(); // TODO Find a way to change this to an array
 
 	/**
 	 * Create an array of all the Shared Stops (stops that share a location).
 	 */
-	public ArrayList<SharedStop> sharedStops = new ArrayList<>();
+	public ArrayList<SharedStop> sharedStops = new ArrayList<>(); // TODO Find a way to change this to an array
 
 	/**
 	 * Create the map object.
