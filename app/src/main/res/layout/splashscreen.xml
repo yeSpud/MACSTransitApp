@@ -9,14 +9,14 @@
 
     <ImageView
         android:id="@+id/logo"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:layout_width="match_parent"
+        android:layout_height="325dp"
         android:layout_marginTop="10dp"
-        android:contentDescription="TODO"
+        android:contentDescription="@string/macs_transit_logo"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@mipmap/macslogo" />
+        app:srcCompat="@mipmap/macslogo_foreground" />
 
     <ProgressBar
         android:id="@+id/progressBar"

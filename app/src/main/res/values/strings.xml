@@ -9,4 +9,5 @@
     <string name="open_internet_settins">Open internet settings</string>
     <string name="retry">Retry</string>
     <string name="no_routes">Unable to load routes!</string>
+    <string name="macs_transit_logo">MACS Transit logo</string>
 </resources>
