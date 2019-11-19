@@ -2,6 +2,8 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
+import com.google.android.gms.maps.model.Marker;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -38,6 +40,11 @@ public class Route {
 	 * and the stops haven't been loaded.
 	 */
 	public Stop[] stops;
+
+	/**
+	 * TODO Documentation
+	 */
+	public Bus[] buses;
 
 	/**
 	 * Constructor for the route. The name of the route is the only thing that is required.
@@ -120,6 +127,7 @@ public class Route {
 
 	/**
 	 * TODO Documentation
+	 *
 	 * @param routeName
 	 * @param oldRoutes
 	 * @return
@@ -127,7 +135,7 @@ public class Route {
 	public static Route[] enableRoutes(String routeName, Route[] oldRoutes) {
 		Log.d("enableRoutes", "Enabling route: " + routeName);
 
-		Route[] routes = Arrays.copyOf(oldRoutes, oldRoutes.length+1);
+		Route[] routes = Arrays.copyOf(oldRoutes, oldRoutes.length + 1);
 
 		// If the route is to be enabled, iterate through all the allRoutes that are able to be tracked.
 		for (Route route : MapsActivity.allRoutes) {
@@ -136,6 +144,15 @@ public class Route {
 			// add that route to the selected allRoutes array.
 			if (route.routeName.equals(routeName)) {
 				Log.d("enableRoutes", "Found matching route!");
+
+				// Be sure to add the buses to this route
+				try {
+					route.buses = Bus.getBuses(route);
+				} catch (JSONException e) {
+					e.printStackTrace();
+					return oldRoutes;
+				}
+
 				routes[oldRoutes.length] = route;
 
 				// Since we only add one route at a time (as there is only one routeName argument),
@@ -143,8 +160,36 @@ public class Route {
 				break;
 			}
 		}
-
 		return routes;
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param routeName
+	 * @param oldRoutes
+	 * @return
+	 */
+	public static Route[] disableRoute(String routeName, Route[] oldRoutes) {
+		Log.d("disableRoute", "Disabling route: " +routeName);
+
+		ArrayList<Route> routes = new ArrayList<>(Arrays.asList(oldRoutes));
+
+		for (Route route : routes) {
+			if (route.routeName.equals(routeName)) {
+				for (Bus bus : route.buses) {
+					Marker marker = bus.getMarker();
+					if (marker != null) {
+						bus.getMarker().remove();
+					}
+				}
+				route.buses = new Bus[0];
+
+				routes.remove(route);
+				break;
+			}
+		}
+
+		return routes.toArray(new Route[0]);
 	}
 
 	/**

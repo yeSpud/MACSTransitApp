@@ -1,8 +1,12 @@
 package fnsb.macstransit.RouteMatch;
 
+import android.util.Log;
+
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.Marker;
+
+import fnsb.macstransit.Activities.ActivityListeners.Helpers;
 
 /**
  * Created by Spud on 2019-10-18 for the project: MACS Transit.
@@ -82,6 +86,74 @@ public class Stop extends BasicStop {
 	 */
 	public Stop(org.json.JSONObject json, Route route) throws org.json.JSONException {
 		this(json.getString("stopId"), json.getDouble("latitude"), json.getDouble("longitude"), route);
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param map
+	 * @param routes
+	 * @param sharedStops
+	 */
+	public static void addStop(com.google.android.gms.maps.GoogleMap map, Route[] routes, SharedStop[] sharedStops) {
+		for (Route route : routes) {
+
+			// Iterate through the stops in the route and execute the following:
+			for (Stop stop : route.stops) {
+
+				// Create a boolean that will be used to verify if a stop has been found or not
+				boolean found = false;
+
+				// Iterate through the shared stops and check if the stop we are using to iterate is also within the shared stop array (by stop id only).
+				for (SharedStop sharedStop : sharedStops) {
+					if (sharedStop.stopID.equals(stop.stopID)) {
+						// If the stop was indeed found (by id), set the found boolean to true,
+						// and break from the shared stop for loop.
+						found = true;
+						break;
+					}
+				}
+
+				// If the stop was never found (was never in the shared stop array),
+				// add it to the map, but set it to invisible.
+				if (!found) {
+					stop.setIcon(Helpers.addCircle(map, stop.iconOptions, stop, true));
+					Marker marker = Helpers.addMarker(map, stop.latitude, stop.longitude, stop.route.color, stop.stopID, stop);
+					marker.setVisible(false);
+					stop.setMarker(marker);
+				}
+			}
+		}
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param routes
+	 */
+	public static void removeStops(Route[] routes) {
+		Log.d("removeStops", "Clearing all stops");
+
+		// Iterate through all the stops in the selected routes and execute the following:
+		for (Route route : routes) {
+			Log.d("removeStops", "Clearing stops for route: " + route.routeName);
+
+			// Iterate through all the stops in the route and execute the following:
+			for (Stop stop : route.stops) {
+
+				// Get the marker from the stop, and remove it if its not null.
+				Marker marker = stop.getMarker();
+				if (marker != null) {
+					marker.remove();
+				}
+
+				// Get the circle from the stop, and remove it of its not null.
+				Circle circle = stop.getIcon();
+				if (circle != null) {
+					circle.remove();
+				}
+			}
+		}
 	}
 
 	/**

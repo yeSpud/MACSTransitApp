@@ -8,6 +8,8 @@ import com.google.android.gms.maps.model.Marker;
 
 import java.util.ArrayList;
 
+import fnsb.macstransit.Activities.ActivityListeners.Helpers;
+
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.
  * <p>
@@ -139,6 +141,39 @@ public class SharedStop {
 			}
 		}
 		return sharedStops.toArray(new SharedStop[0]);
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param map
+	 * @param sharedStops
+	 */
+	public static void addSharedStop(com.google.android.gms.maps.GoogleMap map, SharedStop[] sharedStops) {
+		for (SharedStop sharedStop : sharedStops) {
+			Log.d("addSharedStop", String.format("Adding stop %s to the map", sharedStop.stopID));
+
+			// Create a new Circles array based on the number of routes.
+			Circle[] circles = new Circle[sharedStop.routes.length];
+
+			// Create and add the circles to the map.
+			for (int index = 0; index < circles.length; index++) {
+				Circle circle = Helpers.addCircle(map, sharedStop.circleOptions[index], sharedStop, index == 0);
+
+				// If this is the first circle (will have an index of 0), add a marker to the stop.
+				if (index == 0) {
+					Marker marker = Helpers.addMarker(map, sharedStop.latitude, sharedStop.longitude, sharedStop.routes[0].color, sharedStop.stopID, sharedStop);
+					marker.setVisible(false);
+					sharedStop.setMarker(marker);
+				}
+
+				// Apply the circle to the circle array.
+				circles[index] = circle;
+			}
+
+			// Now apply the Circles to the SharedStop object
+			sharedStop.setCircles(circles);
+		}
 	}
 
 	/**

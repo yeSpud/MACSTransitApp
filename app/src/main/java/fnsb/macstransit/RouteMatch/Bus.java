@@ -1,10 +1,20 @@
 package fnsb.macstransit.RouteMatch;
 
+import android.util.Log;
+
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import fnsb.macstransit.Activities.ActivityListeners.Helpers;
+import fnsb.macstransit.Activities.MapsActivity;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
@@ -111,6 +121,37 @@ public class Bus {
 			// Finally, (re)assign the marker to the bus
 			bus.setMarker(marker);
 		}
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param route
+	 * @return
+	 */
+	public static Bus[] getBuses(Route route) throws JSONException {
+		JSONArray busArray = RouteMatch.parseData(MapsActivity.routeMatch.getBuses(route));
+
+		ArrayList<Bus> buses = new ArrayList<>();
+		int count = busArray.length();
+		for (int i = 0; i < count; i++) {
+
+			Log.d("parseBuses", String.format("Parsing bus %d/%d", i + 1, count));
+			JSONObject object = busArray.getJSONObject(i);
+			Bus bus = new Bus(object.getString("vehicleId"), route);
+			bus.latitude = object.getDouble("latitude");
+			bus.longitude = object.getDouble("longitude");
+			bus.color = route.color;
+			try {
+				// The heading is stored in the data as headingName
+				bus.heading = Heading.valueOf(object.getString("headingName"));
+			} catch (IllegalArgumentException e) {
+				bus.heading = Heading.NORTH;
+			}
+			buses.add(bus);
+		}
+
+		return buses.toArray(new Bus[0]);
 	}
 
 	/**
