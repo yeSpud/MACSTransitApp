@@ -172,6 +172,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				this.selectedRoutes = Route.disableRoute(item.getTitle().toString(), this.selectedRoutes);
 			}
 
+			// Draw the buses.
+			this.drawBuses();
+
 			// (Re) draw the stops onto the map
 			this.drawStops();
 
@@ -328,6 +331,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 						// Make sure that the marker is visible
 						marker.setVisible(true);
+
+
+						bus.setMarker(marker);
+					} else {
+						Marker m = Helpers.addMarker(this.map, bus.latitude, bus.longitude, bus.color, "Bus " + bus.busID, bus);
+						m.setVisible(true);
+						bus.setMarker(m);
 					}
 				}
 			}

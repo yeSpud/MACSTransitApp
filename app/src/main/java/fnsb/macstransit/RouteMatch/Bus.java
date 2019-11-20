@@ -136,7 +136,7 @@ public class Bus {
 		int count = busArray.length();
 		for (int i = 0; i < count; i++) {
 
-			Log.d("parseBuses", String.format("Parsing bus %d/%d", i + 1, count));
+			Log.d("getBuses", String.format("Parsing bus %d/%d", i + 1, count));
 			JSONObject object = busArray.getJSONObject(i);
 			Bus bus = new Bus(object.getString("vehicleId"), route);
 			bus.latitude = object.getDouble("latitude");
@@ -149,8 +149,10 @@ public class Bus {
 				bus.heading = Heading.NORTH;
 			}
 			buses.add(bus);
+			Log.d("getBuses", "Adding bus to array");
 		}
 
+		Log.d("getBuses", "Returning array of size " + buses.size());
 		return buses.toArray(new Bus[0]);
 	}
 
