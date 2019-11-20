@@ -35,7 +35,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	public Route[] selectedRoutes = new Route[0];
 
-
 	/**
 	 * Create an array of all the Shared Stops (stops that share a location).
 	 */
@@ -321,24 +320,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 						// Just update the position
 						marker.setPosition(new LatLng(bus.latitude, bus.longitude));
 
-						// Now update the title
-						marker.setTitle(bus.route.routeName);
-
-						// If the route has a color, set its icon to that color
-						if (bus.route.color != 0) {
-							marker.setIcon(Helpers.getMarkerIcon(bus.route.color));
-						}
-
-						// Make sure that the marker is visible
-						marker.setVisible(true);
-
-
-						bus.setMarker(marker);
 					} else {
-						Marker m = Helpers.addMarker(this.map, bus.latitude, bus.longitude, bus.color, "Bus " + bus.busID, bus);
-						m.setVisible(true);
-						bus.setMarker(m);
+						marker = Helpers.addMarker(this.map, bus.latitude, bus.longitude, bus.color, "Bus " + bus.busID, bus);
 					}
+
+					marker.setVisible(true);
+					bus.setMarker(marker);
 				}
 			}
 		}

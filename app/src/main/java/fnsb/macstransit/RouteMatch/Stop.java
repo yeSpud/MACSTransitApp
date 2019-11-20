@@ -41,15 +41,6 @@ public class Stop extends BasicStop {
 	private Circle icon;
 
 	/**
-	 * The marker object for the stop. This is shown to user when the click on a stop icon (circle).
-	 * This is then made visible, and the info window is also shown.
-	 * <p>
-	 * The reason why this is kept private is because it cannot be created outside a maps activity class
-	 * (otherwise an error is invoked).
-	 */
-	private Marker marker;
-
-	/**
 	 * Creates a stop object.
 	 *
 	 * @param stopID    The ID of the stop. This is usually the stop name.
@@ -175,29 +166,5 @@ public class Stop extends BasicStop {
 		this.icon = icon;
 		this.icon.setTag(this);
 		this.icon.setClickable(true);
-	}
-
-	/**
-	 * Gets the marker object for the stop. This may be null if it has never been set by {@code setMarker()}.
-	 *
-	 * @return The marker object corresponding to the stop.
-	 */
-	public Marker getMarker() {
-		return this.marker;
-	}
-
-	/**
-	 * Sets the marker for the stop for when its clicked on, as well as adding the tag, the title,
-	 * and applying the icon color if there is one.
-	 *
-	 * @param marker The marker created in the map activity (usually done by {@code map.addMarker()}).
-	 */
-	public void setMarker(Marker marker) {
-		this.marker = marker;
-		this.marker.setTag(this);
-		this.marker.setTitle(this.stopID);
-		if (this.route.color != 0) {
-			this.marker.setIcon(fnsb.macstransit.Activities.ActivityListeners.Helpers.getMarkerIcon(this.route.color));
-		}
 	}
 }

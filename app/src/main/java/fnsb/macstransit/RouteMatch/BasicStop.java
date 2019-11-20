@@ -8,7 +8,7 @@ package fnsb.macstransit.RouteMatch;
  * @version 1.0
  * @since Beta 7
  */
-public class BasicStop {
+public class BasicStop extends MarkedObject {
 
 	/**
 	 * The latitude and longitude (coordinates) of the stop.

@@ -18,7 +18,7 @@ import fnsb.macstransit.Activities.ActivityListeners.Helpers;
  * @version 1.1
  * @since Beta 7
  */
-public class SharedStop {
+public class SharedStop extends MarkedObject {
 
 	/**
 	 * The latitude and longitude of the SharedStops.
@@ -44,11 +44,6 @@ public class SharedStop {
 	 * The circles that correspond to this stop.
 	 */
 	private Circle[] circles;
-
-	/**
-	 * The marker that corresponds to this stop.
-	 */
-	private Marker marker;
 
 	/**
 	 * Constructor for the Shared Stop.
@@ -222,24 +217,6 @@ public class SharedStop {
 	 */
 	public void setCircles(Circle[] circles) {
 		this.circles = circles;
-	}
-
-	/**
-	 * Gets the marker that belongs to this Stop.
-	 *
-	 * @return The marker that belongs to this Stop.
-	 */
-	public Marker getMarker() {
-		return this.marker;
-	}
-
-	/**
-	 * Sets the marker that belongs to this Stop.
-	 *
-	 * @param marker The marker that belongs to this Stop.
-	 */
-	public void setMarker(Marker marker) {
-		this.marker = marker;
 	}
 
 	/**
