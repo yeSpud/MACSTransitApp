@@ -6,10 +6,8 @@ import android.view.Menu;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
-import com.google.android.gms.maps.model.Marker;
 
 import fnsb.macstransit.Activities.ActivityListeners.AdjustZoom;
-import fnsb.macstransit.Activities.ActivityListeners.Helpers;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
@@ -315,13 +313,15 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			Bus[] buses = route.buses;
 			if (buses != null) {
 				for (Bus bus : buses) {
-					Marker marker = bus.getMarker();
+					com.google.android.gms.maps.model.Marker marker = bus.getMarker();
 					if (marker != null) {
 						// Just update the position
 						marker.setPosition(new LatLng(bus.latitude, bus.longitude));
 
 					} else {
-						marker = Helpers.addMarker(this.map, bus.latitude, bus.longitude, bus.color, "Bus " + bus.busID, bus);
+						marker = fnsb.macstransit.Activities.ActivityListeners.Helpers
+								.addMarker(this.map, bus.latitude, bus.longitude, bus.color,
+										"Bus " + bus.busID, bus);
 					}
 
 					marker.setVisible(true);

@@ -44,6 +44,95 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	}
 
 	/**
+	 * Returns the time (in 24-hour form) that is found in the provided JSONObject via a regex.
+	 *
+	 * @param json The JSONObject to search.
+	 * @param tag  The tag in the JSONObject to search.
+	 * @return The time (in 24-hour form) as a String that was found in the JSONObject.
+	 * This may be null if no such string was able to be found, or if there was a JSONException.
+	 */
+	private static String getTime(JSONObject json, String tag) {
+		try {
+			// Get a matcher object from the time regex, and have it match the tag.
+			java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\\d\\d:\\d\\d").matcher(json.getString(tag));
+
+			// If the match was found, return it, if not return null.
+			return matcher.find() ? matcher.group(0) : null;
+
+		} catch (JSONException jsonException) {
+			// If there was an error, print a stack trace, and return null.
+			jsonException.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * Formats the time from 24-hour time to 12-hour time (and even includes AM and PM).
+	 *
+	 * @param time The time to format as a string.
+	 * @return The formatted 12-hour time.
+	 * This may return the original 12 hour time if there was an exception parsing the time.
+	 */
+	private static String formatTime(String time) {
+		try {
+			// Try to format the time from 24 hours to 12 hours (including AM and PM).
+			return new SimpleDateFormat("K:mm a", Locale.US).format(new SimpleDateFormat("H:mm", Locale.US).parse(time));
+		} catch (java.text.ParseException parseException) {
+			// If there was a parsing exception simply return the old time.
+			parseException.printStackTrace();
+			return time;
+		}
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param json
+	 * @param expectedArrivalString
+	 * @param expectedDepartureString
+	 * @param is24Hour
+	 * @return
+	 */
+	static String getStopTime(JSONObject json, boolean is24Hour, String expectedArrivalString, String expectedDepartureString) {
+		StringBuilder snippetText = new StringBuilder();
+		JSONArray stopData = RouteMatch.parseData(json);
+		int count = stopData.length();
+
+		// Iterate through the stops, but have a hard limit of 2 (at least while scrolling doesn't work).
+		for (int index = 0; index < count && index < 2; index++) {
+			Log.d("getStopTime", String.format("Parsing stop times for stop %d/%d", index, count));
+
+			// Try to get the stop time from the current stop.
+			JSONObject object;
+			try {
+				object = stopData.getJSONObject(index);
+			} catch (JSONException e) {
+				// If that fails, just print the stack trace, and break from the for loop.
+				e.printStackTrace();
+				break;
+			}
+
+			// Set the arrival and departure time to the arrival and departure time in the jsonObject.
+			// At this point this is stored in 24-hour time.
+			String arrivalTime = StopClicked.getTime(object, "predictedArrivalTime"),
+					departureTime = StopClicked.getTime(object, "predictedDepartureTime");
+
+			// If the user doesn't use 24-hour time, convert to 12-hour time.
+			if (!is24Hour) {
+				Log.d("getStopTime", "Converting time to 12 hour time");
+				arrivalTime = StopClicked.formatTime(arrivalTime);
+				departureTime = StopClicked.formatTime(departureTime);
+			}
+
+			// Append the arrival and departure times to the snippet text.
+			snippetText.append(String.format("%s %s\n%s %s\n\n", expectedArrivalString, arrivalTime,
+					expectedDepartureString, departureTime));
+		}
+
+		return snippetText.toString();
+	}
+
+	/**
 	 * Called when a circle is clicked.
 	 * <p>
 	 * This is called on the Android UI thread.
@@ -80,44 +169,10 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// If the stop does have a marker, set the marker to be visible, and show the info window corresponding to that marker.
 			marker.setVisible(true);
 
-			// Get the stops departures and arrivals
-			StringBuilder snippetText = new StringBuilder();
-			JSONArray stopData = RouteMatch.parseData(MapsActivity.routeMatch.getStop(stop));
-			int count = stopData.length();
-
-			// Iterate through the stops, but have a hard limit of 2 (at least while scrolling doesn't work).
-			for (int index = 0; index < count && index < 2; index++) {
-				Log.d("showStopInfoWindow", String.format("Parsing stop times for stop %d/%d", index, count));
-
-				// Try to get the stop time from the current stop.
-				JSONObject object;
-				try {
-					object = stopData.getJSONObject(index);
-				} catch (JSONException e) {
-					// If that fails, just print the stack trace, and break from the for loop.
-					e.printStackTrace();
-					break;
-				}
-
-				// Set the arrival and departure time to the arrival and departure time in the jsonObject.
-				// At this point this is stored in 24-hour time.
-				String arrivalTime = this.getTime(object, "predictedArrivalTime"),
-						departureTime = this.getTime(object, "predictedDepartureTime");
-
-				// If the user doesn't use 24-hour time, convert to 12-hour time.
-				if (!DateFormat.is24HourFormat(this.activity)) {
-					Log.d("showStopInfoWindow", "Converting time to 12 hour time");
-					arrivalTime = this.formatTime(arrivalTime);
-					departureTime = this.formatTime(departureTime);
-				}
-
-				// Append the arrival and departure times to the snippet text.
-				snippetText.append(String.format("%s %s\n%s %s\n\n", this.activity.getString(R.string.expected_arrival), arrivalTime,
-						this.activity.getString(R.string.expected_departure), departureTime));
-			}
-
 			// Build the snippet text, and show the info window.
-			marker.setSnippet(snippetText.toString());
+			marker.setSnippet(this.activity.getString(R.string.retrieving_stop_times));
+			GetStopTimes stopTimesLoader = new GetStopTimes(marker, this.activity);
+			stopTimesLoader.execute(stop);
 			marker.showInfoWindow();
 		}
 	}
@@ -175,13 +230,13 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 						// Set the arrival and departure time to the arrival and departure time in the jsonObject.
 						// At this point this is stored in 24-hour time.
-						String arrivalTime = this.getTime(object, "predictedArrivalTime"),
-								departureTime = this.getTime(object, "predictedDepartureTime");
+						String arrivalTime = StopClicked.getTime(object, "predictedArrivalTime"),
+								departureTime = StopClicked.getTime(object, "predictedDepartureTime");
 
 						// If the user doesn't use 24-hour time, convert to 12-hour time.
 						if (!DateFormat.is24HourFormat(this.activity)) {
-							arrivalTime = this.formatTime(arrivalTime);
-							departureTime = this.formatTime(departureTime);
+							arrivalTime = StopClicked.formatTime(arrivalTime);
+							departureTime = StopClicked.formatTime(departureTime);
 						}
 
 						// Append the arrival and departure times to the snippet text.
@@ -195,47 +250,6 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// Build the snippet text, and show the info window.
 			marker.setSnippet(snippetText.toString());
 			marker.showInfoWindow();
-		}
-	}
-
-	/**
-	 * Returns the time (in 24-hour form) that is found in the provided JSONObject via a regex.
-	 *
-	 * @param json The JSONObject to search.
-	 * @param tag  The tag in the JSONObject to search.
-	 * @return The time (in 24-hour form) as a String that was found in the JSONObject.
-	 * This may be null if no such string was able to be found, or if there was a JSONException.
-	 */
-	private String getTime(JSONObject json, String tag) {
-		try {
-			// Get a matcher object from the time regex, and have it match the tag.
-			java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\\d\\d:\\d\\d").matcher(json.getString(tag));
-
-			// If the match was found, return it, if not return null.
-			return matcher.find() ? matcher.group(0) : null;
-
-		} catch (JSONException jsonException) {
-			// If there was an error, print a stack trace, and return null.
-			jsonException.printStackTrace();
-			return null;
-		}
-	}
-
-	/**
-	 * Formats the time from 24-hour time to 12-hour time (and even includes AM and PM).
-	 *
-	 * @param time The time to format as a string.
-	 * @return The formatted 12-hour time.
-	 * This may return the original 12 hour time if there was an exception parsing the time.
-	 */
-	private String formatTime(String time) {
-		try {
-			// Try to format the time from 24 hours to 12 hours (including AM and PM).
-			return new SimpleDateFormat("K:mm a", Locale.US).format(new SimpleDateFormat("H:mm", Locale.US).parse(time));
-		} catch (java.text.ParseException parseException) {
-			// If there was a parsing exception simply return the old time.
-			parseException.printStackTrace();
-			return time;
 		}
 	}
 }

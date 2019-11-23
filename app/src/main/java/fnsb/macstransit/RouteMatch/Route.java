@@ -17,7 +17,7 @@ import fnsb.macstransit.Activities.MapsActivity;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 2.1
+ * @version 2.2
  * @since Beta 3
  */
 public class Route {

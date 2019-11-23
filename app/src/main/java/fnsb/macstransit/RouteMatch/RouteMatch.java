@@ -14,7 +14,7 @@ import fnsb.macstransit.Threads.Network;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 3.1
+ * @version 3.2
  * @since Beta 1
  */
 @SuppressWarnings("WeakerAccess")
@@ -62,7 +62,7 @@ public class RouteMatch {
 	 * @return The master Schedule as a JSONObject.
 	 */
 	public JSONObject getMasterSchedule() {
-		return Network.getJsonFromUrl(this.url + "masterRoute/");
+		return Network.getJsonFromUrl(this.url + "masterRoute/", true);
 	}
 
 	/**
@@ -72,7 +72,7 @@ public class RouteMatch {
 	 * @return The JSONObject pertaining to all the stops for the specified route.
 	 */
 	public JSONObject getAllStops(Route route) {
-		return Network.getJsonFromUrl(this.url + "stops/" + route.routeName);
+		return Network.getJsonFromUrl(this.url + "stops/" + route.routeName, true);
 	}
 
 	/**
@@ -86,7 +86,8 @@ public class RouteMatch {
 	public JSONObject getStop(Stop stop) {
 		try {
 			return Network.getJsonFromUrl(this.url + "departures/byStop/" +
-					java.net.URLEncoder.encode(stop.stopID, "UTF-8").replaceAll("\\+", "%20"));
+					java.net.URLEncoder.encode(stop.stopID, "UTF-8")
+							.replaceAll("\\+", "%20"), false);
 		} catch (java.io.UnsupportedEncodingException e) {
 			Log.e("getStop", "The encoded stop was malformed! Returning an empty JSONObject instead");
 			return new JSONObject();
@@ -100,6 +101,6 @@ public class RouteMatch {
 	 * @return The JSONObject pertaining to that specific route's data.
 	 */
 	public JSONObject getBuses(Route route) {
-		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + route.routeName);
+		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + route.routeName, true);
 	}
 }
