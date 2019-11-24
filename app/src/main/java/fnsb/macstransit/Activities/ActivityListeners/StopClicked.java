@@ -5,7 +5,9 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.model.Marker;
 
+import fnsb.macstransit.Activities.InfoWindowAdapter;
 import fnsb.macstransit.Activities.MapsActivity;
+import fnsb.macstransit.Activities.StopPopupWindow;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 

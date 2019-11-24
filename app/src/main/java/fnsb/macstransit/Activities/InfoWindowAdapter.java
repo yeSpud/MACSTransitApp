@@ -1,4 +1,4 @@
-package fnsb.macstransit.Activities.ActivityListeners;
+package fnsb.macstransit.Activities;
 
 import android.graphics.Color;
 import android.view.View;
@@ -6,8 +6,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.model.Marker;
-
-import fnsb.macstransit.Activities.MapsActivity;
 
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.

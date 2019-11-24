@@ -280,13 +280,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.map.setOnCircleClickListener(new fnsb.macstransit.Activities.ActivityListeners.StopClicked(this));
 
 		// Add a custom info window adapter, to add support for multiline snippets.
-		this.map.setInfoWindowAdapter(new fnsb.macstransit.Activities.ActivityListeners.InfoWindowAdapter(this));
+		this.map.setInfoWindowAdapter(new InfoWindowAdapter(this));
 
 		// Set it so that if the info window was closed for a Stop marker, make that marker invisible, so its just the dot.
 		this.map.setOnInfoWindowCloseListener(new fnsb.macstransit.Activities.ActivityListeners.StopDeselected());
 
-		// TODO
-		this.map.setOnInfoWindowClickListener(new fnsb.macstransit.Activities.ActivityListeners.StopPopupWindow(this));
+		// TODO Comment
+		this.map.setOnInfoWindowClickListener(new StopPopupWindow(this));
 
 		// Enable traffic overlay
 		// TODO Have this toggleable via settings

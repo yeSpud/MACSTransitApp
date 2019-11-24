@@ -1,4 +1,4 @@
-package fnsb.macstransit.Activities.ActivityListeners;
+package fnsb.macstransit.Activities;
 
 import android.app.AlertDialog;
 import android.content.Context;
