@@ -99,48 +99,56 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		JSONArray stopData = RouteMatch.parseData(json);
 		int count = stopData.length();
 
-		// Check to see how many times there are to display. If there are 3 or less,
-		// just display all the times. If there are more than 3, display "Click to view all times".
-		if (count <= 3) {
-			for (int index = 0; index < count; index++) {
-				Log.d("getStopTime", String.format("Parsing stop times for stop %d/%d", index, count));
+		// Iterate through the following stops
+		for (int index = 0; index < count; index++) {
+			Log.d("getStopTime", String.format("Parsing stop times for stop %d/%d", index, count));
 
-				// Try to get the stop time from the current stop.
-				JSONObject object;
-				try {
-					object = stopData.getJSONObject(index);
-				} catch (JSONException e) {
-					// If that fails, just print the stack trace, and break from the for loop.
-					e.printStackTrace();
-					break;
-				}
-
-				// Set the arrival and departure time to the arrival and departure time in the jsonObject.
-				// At this point this is stored in 24-hour time.
-				String arrivalTime = StopClicked.getTime(object, "predictedArrivalTime"),
-						departureTime = StopClicked.getTime(object, "predictedDepartureTime");
-
-				// If the user doesn't use 24-hour time, convert to 12-hour time.
-				if (!is24Hour) {
-					Log.d("getStopTime", "Converting time to 12 hour time");
-					arrivalTime = StopClicked.formatTime(arrivalTime);
-					departureTime = StopClicked.formatTime(departureTime);
-				}
-
-				// Append the arrival and departure times to the snippet text.
-				snippetText.append(String.format("%s %s\n%s %s\n\n", expectedArrivalString, arrivalTime,
-						expectedDepartureString, departureTime));
+			// Try to get the stop time from the current stop.
+			JSONObject object;
+			try {
+				object = stopData.getJSONObject(index);
+			} catch (JSONException e) {
+				// If that fails, just print the stack trace, and break from the for loop.
+				e.printStackTrace();
+				break;
 			}
-		} else {
-			snippetText.append("Click to view all the arrival and departure times.");
+
+			// Set the arrival and departure time to the arrival and departure time in the jsonObject.
+			// At this point this is stored in 24-hour time.
+			String arrivalTime = StopClicked.getTime(object, "predictedArrivalTime"),
+					departureTime = StopClicked.getTime(object, "predictedDepartureTime");
+
+			// If the user doesn't use 24-hour time, convert to 12-hour time.
+			if (!is24Hour) {
+				Log.d("getStopTime", "Converting time to 12 hour time");
+				arrivalTime = StopClicked.formatTime(arrivalTime);
+				departureTime = StopClicked.formatTime(departureTime);
+			}
+
+			// Append the arrival and departure times to the snippet text.
+			snippetText.append(String.format("%s %s\n%s %s\n\n", expectedArrivalString, arrivalTime,
+					expectedDepartureString, departureTime));
 		}
+
+		// Get the length of the original snippet text.
+		int length = snippetText.length();
+
+		// Replace the last 2 new lines
+		snippetText.deleteCharAt(length - 1);
+		snippetText.deleteCharAt(length - 2);
 
 		String string = snippetText.toString();
 
-		// TODO also load the string into a popup window for when its clicked on.
+		// Load the string into a popup window for when its clicked on.
 		StopPopupWindow.body = string;
 
-		return string;
+		// Check to see how many times there are to display. If there are 3 or less,
+		// just display all the times. If there are more than 3, display "Click to view all times".
+		if (count <= 3) {
+			return string;
+		} else {
+			return "Click to view all the arrival and departure times.";
+		}
 	}
 
 	/**
@@ -155,12 +163,14 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 */
 	public static String getSharedStopTimes(SharedStop sharedStop, JSONObject[] json, boolean is24Hour, String expectedArrivalString, String expectedDepartureString) {
 		StringBuilder snippetText = new StringBuilder();
+		int count = 0;
 		for (int jsonIndex = 0; jsonIndex < json.length; jsonIndex++) {
 			JSONObject jsonObject = json[jsonIndex];
 			JSONArray stopData = RouteMatch.parseData(jsonObject);
-			int count = stopData.length();
-			// Iterate through the stops, but have a hard limit of 1 (at least while scrolling doesn't work).
-			for (int index = 0; index < count && index < 1; index++) {
+			count = stopData.length();
+
+			// Iterate through the stops.
+			for (int index = 0; index < count; index++) {
 				Log.d("showSharedStopInfo", String.format("Parsing stop times for stop %d/%d",
 						index, count));
 
@@ -194,7 +204,26 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 			}
 		}
-		return snippetText.toString();
+
+		// Get the length of the original snippet text.
+		int length = snippetText.length();
+
+		// Replace the last 2 new lines
+		snippetText.deleteCharAt(length - 1);
+		snippetText.deleteCharAt(length - 2);
+
+		String string = snippetText.toString();
+
+		// Load the string into a popup window for when its clicked on.
+		StopPopupWindow.body = string;
+
+		// Check to see how many times there are to display. If there are 3 or less after being multiplied by the json length,
+		// just display all the times. If there are more than 3, display "Click to view all times".
+		if ((count * json.length) <= 3) {
+			return string;
+		} else {
+			return "Click to view all the arrival and departure times.";
+		}
 	}
 
 	/**

@@ -50,6 +50,11 @@ public class StopPopupWindow extends AlertDialog implements GoogleMap.OnInfoWind
 		this.showDialog(marker.getTitle());
 	}
 
+	/**
+	 * TODO Documentation
+	 *
+	 * @param title
+	 */
 	private void showDialog(String title) {
 		ViewGroup viewGroup = this.findViewById(android.R.id.content);
 
