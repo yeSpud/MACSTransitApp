@@ -6,6 +6,8 @@ import org.json.JSONObject;
 
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.R;
+import fnsb.macstransit.RouteMatch.Route;
+import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 
 /**
@@ -16,7 +18,7 @@ import fnsb.macstransit.RouteMatch.Stop;
  * @version 1.0
  * @since Beta 8
  */
-public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
+public class GetSharedStopTimes extends android.os.AsyncTask<SharedStop, Void, JSONObject[]> {
 
 	/**
 	 * TODO Documentation
@@ -28,16 +30,10 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 	 */
 	private String expectedArrival, expectedDeparture;
 
-	/**
-	 * TODO Documentation
-	 */
 	private boolean is24Hour;
 
 
-	/**
-	 * TODO Documentation
-	 */
-	public GetStopTimes(Marker marker, MapsActivity activity) {
+	public GetSharedStopTimes(Marker marker, MapsActivity activity) {
 		this.marker = marker;
 		this.is24Hour = android.text.format.DateFormat.is24HourFormat(activity);
 		this.expectedArrival = activity.getString(R.string.expected_arrival);
@@ -47,23 +43,41 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 	/**
 	 * TODO Documentation
 	 *
-	 * @param stops
+	 * @param sharedStops
 	 * @return
 	 */
 	@Override
-	protected JSONObject doInBackground(Stop... stops) {
-		return MapsActivity.routeMatch.getStop(stops[0]);
+	protected JSONObject[] doInBackground(SharedStop... sharedStops) {
+		SharedStop sharedStop = sharedStops[0];
+		JSONObject[] json = new JSONObject[sharedStop.routes.length];
+		for (int index = 0; index < json.length; index++) {
+			Route route = sharedStop.routes[index];
+
+			Stop stop = null;
+			for (Stop stops : route.stops) {
+				if (stops.stopID.equals(sharedStop.stopID)) {
+					stop = stops;
+					break;
+				}
+			}
+
+			if (stop != null) {
+				json[index] = MapsActivity.routeMatch.getStop(stop);
+			}
+		}
+		return json;
 	}
 
 	/**
 	 * TODO Documentation
 	 *
-	 * @param result
+	 * @param results
 	 */
 	@Override
-	protected void onPostExecute(JSONObject result) {
+	protected void onPostExecute(JSONObject[] results) {
 		if (this.marker != null) {
-			this.marker.setSnippet(StopClicked.getStopTime(result, is24Hour, expectedArrival, expectedDeparture));
+			this.marker.setSnippet(StopClicked.getSharedStopTimes((SharedStop) marker.getTag(),
+					results, is24Hour, expectedArrival, expectedDeparture));
 			this.marker.showInfoWindow();
 		}
 	}

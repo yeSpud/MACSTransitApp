@@ -1,6 +1,5 @@
 package fnsb.macstransit.Activities.ActivityListeners;
 
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -133,6 +132,60 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	}
 
 	/**
+	 * TODO Documentation
+	 *
+	 * @param sharedStop
+	 * @param json
+	 * @param is24Hour
+	 * @param expectedArrivalString
+	 * @param expectedDepartureString
+	 * @return
+	 */
+	static String getSharedStopTimes(SharedStop sharedStop, JSONObject[] json, boolean is24Hour, String expectedArrivalString, String expectedDepartureString) {
+		StringBuilder snippetText = new StringBuilder();
+		for (int jsonIndex = 0; jsonIndex < json.length; jsonIndex++) {
+			JSONObject jsonObject = json[jsonIndex];
+			JSONArray stopData = RouteMatch.parseData(jsonObject);
+			int count = stopData.length();
+			// Iterate through the stops, but have a hard limit of 1 (at least while scrolling doesn't work).
+			for (int index = 0; index < count && index < 1; index++) {
+				Log.d("showSharedStopInfo", String.format("Parsing stop times for stop %d/%d",
+						index, count));
+
+				// Try to get the stop time from the current stop.
+				JSONObject object;
+				try {
+					object = stopData.getJSONObject(index);
+				} catch (JSONException e) {
+					// If that fails, just print the stack trace, and break from the for loop.
+					e.printStackTrace();
+					break;
+				}
+
+
+				// Set the arrival and departure time to the arrival and departure time in the jsonObject.
+				// At this point this is stored in 24-hour time.
+				String arrivalTime = StopClicked.getTime(object, "predictedArrivalTime"),
+						departureTime = StopClicked.getTime(object, "predictedDepartureTime");
+
+				// If the user doesn't use 24-hour time, convert to 12-hour time.
+				if (!is24Hour) {
+					arrivalTime = StopClicked.formatTime(arrivalTime);
+					departureTime = StopClicked.formatTime(departureTime);
+				}
+
+				// Append the arrival and departure times to the snippet text.
+				snippetText.append(String.format("Route: %s\n%s %s\n%s %s\n\n",
+						sharedStop.routes[jsonIndex].routeName, expectedArrivalString, arrivalTime,
+						expectedDepartureString, departureTime));
+
+
+			}
+		}
+		return snippetText.toString();
+	}
+
+	/**
 	 * Called when a circle is clicked.
 	 * <p>
 	 * This is called on the Android UI thread.
@@ -159,6 +212,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 *
 	 * @param stop The Stop to create the info window for.
 	 */
+	@Deprecated
 	private void showStopInfoWindow(Stop stop) {
 		// Get the marker from the Stop.
 		Marker marker = stop.getMarker();
@@ -169,10 +223,13 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// If the stop does have a marker, set the marker to be visible, and show the info window corresponding to that marker.
 			marker.setVisible(true);
 
-			// Build the snippet text, and show the info window.
+			// Set the snippet text to loading
 			marker.setSnippet(this.activity.getString(R.string.retrieving_stop_times));
-			GetStopTimes stopTimesLoader = new GetStopTimes(marker, this.activity);
-			stopTimesLoader.execute(stop);
+
+			// Retrieve the stops asynchronously
+			new GetStopTimes(marker, this.activity).execute(stop);
+
+			// Show the info window
 			marker.showInfoWindow();
 		}
 	}
@@ -182,6 +239,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 *
 	 * @param sharedStop The Shared Stop to create the info window for.
 	 */
+	@Deprecated
 	private void showSharedStopInfoWindow(SharedStop sharedStop) {
 		// Get the marker from the SharedStop.
 		Marker marker = sharedStop.getMarker();
@@ -192,63 +250,13 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// If the stop does have a marker, set the marker to be visible, and show the info window corresponding to that marker.
 			marker.setVisible(true);
 
-			// Get the stops departures and arrivals for each route that corresponds to that stop.
-			StringBuilder snippetText = new StringBuilder();
-			for (fnsb.macstransit.RouteMatch.Route route : sharedStop.routes) {
-				Stop stop = null;
-				Log.d("showSharedStopInfo", "Parsing stops for route: " + route.routeName);
+			// Set the snippet text to loading
+			marker.setSnippet(this.activity.getString(R.string.retrieving_stop_times));
 
-				// Iterate through all the stops in the route to find the stop that we care about.
-				for (Stop stops : route.stops) {
-					if (stops.stopID.equals(sharedStop.stopID)) {
-						stop = stops;
-						break;
-					}
-				}
+			// Retrieve the stops asynchronously
+			new GetSharedStopTimes(marker, this.activity).execute(sharedStop);
 
-				// Once the stop was found, execute the following:
-				if (stop != null) {
-
-					// Get the stop data for the stop.
-					JSONArray stopData = RouteMatch.parseData(MapsActivity.routeMatch.getStop(stop));
-					int count = stopData.length();
-
-					// Iterate through the stops, but have a hard limit of 1 (at least while scrolling doesn't work).
-					for (int index = 0; index < count && index < 1; index++) {
-						Log.d("showSharedStopInfo", String.format("Parsing stop times for stop %d/%d", index, count));
-
-						// Try to get the stop time from the current stop.
-						JSONObject object;
-						try {
-							object = stopData.getJSONObject(index);
-						} catch (JSONException e) {
-							// If that fails, just print the stack trace, and break from the for loop.
-							e.printStackTrace();
-							break;
-						}
-
-
-						// Set the arrival and departure time to the arrival and departure time in the jsonObject.
-						// At this point this is stored in 24-hour time.
-						String arrivalTime = StopClicked.getTime(object, "predictedArrivalTime"),
-								departureTime = StopClicked.getTime(object, "predictedDepartureTime");
-
-						// If the user doesn't use 24-hour time, convert to 12-hour time.
-						if (!DateFormat.is24HourFormat(this.activity)) {
-							arrivalTime = StopClicked.formatTime(arrivalTime);
-							departureTime = StopClicked.formatTime(departureTime);
-						}
-
-						// Append the arrival and departure times to the snippet text.
-						snippetText.append(String.format("Route: %s\n%s %s\n%s %s\n\n", route.routeName,
-								this.activity.getString(R.string.expected_arrival), arrivalTime,
-								this.activity.getString(R.string.expected_departure), departureTime));
-					}
-				}
-			}
-
-			// Build the snippet text, and show the info window.
-			marker.setSnippet(snippetText.toString());
+			// Show the info window
 			marker.showInfoWindow();
 		}
 	}
