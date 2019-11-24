@@ -19,7 +19,7 @@ import fnsb.macstransit.RouteMatch.Stop;
  * @version 1.0
  * @since Beta 8
  */
-public class GetSharedStopTimes extends android.os.AsyncTask<SharedStop, Void, JSONObject[]> {
+public class GetSharedStopTimes extends android.os.AsyncTask<SharedStop, Void, JSONObject> {
 
 	/**
 	 * TODO Documentation
@@ -48,25 +48,23 @@ public class GetSharedStopTimes extends android.os.AsyncTask<SharedStop, Void, J
 	 * @return
 	 */
 	@Override
-	protected JSONObject[] doInBackground(SharedStop... sharedStops) {
+	protected JSONObject doInBackground(SharedStop... sharedStops) {
 		SharedStop sharedStop = sharedStops[0];
-		JSONObject[] json = new JSONObject[sharedStop.routes.length];
-		for (int index = 0; index < json.length; index++) {
-			Route route = sharedStop.routes[index];
-
-			Stop stop = null;
+		Stop stop = null;
+		for (Route route : sharedStop.routes) {
 			for (Stop stops : route.stops) {
 				if (stops.stopID.equals(sharedStop.stopID)) {
 					stop = stops;
 					break;
 				}
 			}
-
-			if (stop != null) {
-				json[index] = MapsActivity.routeMatch.getStop(stop);
-			}
 		}
-		return json;
+
+		if (stop != null) {
+			return MapsActivity.routeMatch.getStop(stop);
+		} else {
+			return new JSONObject();
+		}
 	}
 
 	/**
@@ -75,7 +73,7 @@ public class GetSharedStopTimes extends android.os.AsyncTask<SharedStop, Void, J
 	 * @param results
 	 */
 	@Override
-	protected void onPostExecute(JSONObject[] results) {
+	protected void onPostExecute(JSONObject results) {
 		if (this.marker != null) {
 			this.marker.setSnippet(StopClicked.getSharedStopTimes((SharedStop) marker.getTag(),
 					results, is24Hour, expectedArrival, expectedDeparture));

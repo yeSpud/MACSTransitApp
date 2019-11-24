@@ -64,7 +64,8 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 	@Override
 	protected void onPostExecute(JSONObject result) {
 		if (this.marker != null) {
-			this.marker.setSnippet(StopClicked.getStopTime(result, is24Hour, expectedArrival, expectedDeparture));
+			this.marker.setSnippet(StopClicked.getStopTime((Stop) marker.getTag(), result, is24Hour,
+					expectedArrival, expectedDeparture));
 			this.marker.showInfoWindow();
 		}
 	}
