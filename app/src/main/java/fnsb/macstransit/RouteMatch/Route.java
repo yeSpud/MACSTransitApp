@@ -145,13 +145,8 @@ public class Route {
 			if (route.routeName.equals(routeName)) {
 				Log.d("enableRoutes", "Found matching route!");
 
-				// Be sure to add the buses to this route
-				try {
-					route.buses = Bus.getBuses(route);
-				} catch (JSONException e) {
-					e.printStackTrace();
-					return oldRoutes;
-				}
+				// For now, just initialize with a 0 length array.
+				route.buses = new Bus[0];
 
 				routes[oldRoutes.length] = route;
 
@@ -165,12 +160,13 @@ public class Route {
 
 	/**
 	 * TODO Documentation
+	 *
 	 * @param routeName
 	 * @param oldRoutes
 	 * @return
 	 */
 	public static Route[] disableRoute(String routeName, Route[] oldRoutes) {
-		Log.d("disableRoute", "Disabling route: " +routeName);
+		Log.d("disableRoute", "Disabling route: " + routeName);
 
 		ArrayList<Route> routes = new ArrayList<>(Arrays.asList(oldRoutes));
 

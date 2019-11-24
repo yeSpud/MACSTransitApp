@@ -101,6 +101,6 @@ public class RouteMatch {
 	 * @return The JSONObject pertaining to that specific route's data.
 	 */
 	public JSONObject getBuses(Route route) {
-		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + route.routeName, true);
+		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + route.routeName, false);
 	}
 }

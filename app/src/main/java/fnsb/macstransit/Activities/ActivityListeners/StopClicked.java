@@ -12,6 +12,8 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
+import fnsb.macstransit.Activities.ActivityListeners.Async.GetSharedStopTimes;
+import fnsb.macstransit.Activities.ActivityListeners.Async.GetStopTimes;
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.RouteMatch;
@@ -92,7 +94,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @param is24Hour
 	 * @return
 	 */
-	static String getStopTime(JSONObject json, boolean is24Hour, String expectedArrivalString, String expectedDepartureString) {
+	public static String getStopTime(JSONObject json, boolean is24Hour, String expectedArrivalString, String expectedDepartureString) {
 		StringBuilder snippetText = new StringBuilder();
 		JSONArray stopData = RouteMatch.parseData(json);
 		int count = stopData.length();
@@ -141,7 +143,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @param expectedDepartureString
 	 * @return
 	 */
-	static String getSharedStopTimes(SharedStop sharedStop, JSONObject[] json, boolean is24Hour, String expectedArrivalString, String expectedDepartureString) {
+	public static String getSharedStopTimes(SharedStop sharedStop, JSONObject[] json, boolean is24Hour, String expectedArrivalString, String expectedDepartureString) {
 		StringBuilder snippetText = new StringBuilder();
 		for (int jsonIndex = 0; jsonIndex < json.length; jsonIndex++) {
 			JSONObject jsonObject = json[jsonIndex];

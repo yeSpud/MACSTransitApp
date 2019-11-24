@@ -75,6 +75,7 @@ public class Bus extends MarkedObject {
 	 * @return
 	 */
 	public static Bus[] getBuses(Route route) throws JSONException {
+
 		JSONArray busArray = RouteMatch.parseData(MapsActivity.routeMatch.getBuses(route));
 
 		ArrayList<Bus> buses = new ArrayList<>();
@@ -99,5 +100,33 @@ public class Bus extends MarkedObject {
 
 		Log.d("getBuses", "Returning array of size " + buses.size());
 		return buses.toArray(new Bus[0]);
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param routes
+	 * @param map
+	 */
+	public static void drawBuses(Route[] routes, GoogleMap map) {
+		for (Route route : routes) {
+			Bus[] buses = route.buses;
+			if (buses != null) {
+				for (Bus bus : buses) {
+					com.google.android.gms.maps.model.Marker marker = bus.getMarker();
+					if (marker != null) {
+						// Just update the position
+						marker.setPosition(new LatLng(bus.latitude, bus.longitude));
+
+					} else {
+						marker = fnsb.macstransit.Activities.ActivityListeners.Helpers.addMarker(map,
+								bus.latitude, bus.longitude, bus.color, "Bus " + bus.busID, bus);
+					}
+
+					marker.setVisible(true);
+					bus.setMarker(marker);
+				}
+			}
+		}
 	}
 }

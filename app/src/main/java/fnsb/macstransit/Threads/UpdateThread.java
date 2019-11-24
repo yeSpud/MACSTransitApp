@@ -3,8 +3,6 @@ package fnsb.macstransit.Threads;
 import android.util.Log;
 
 import fnsb.macstransit.Activities.MapsActivity;
-import fnsb.macstransit.RouteMatch.Bus;
-import fnsb.macstransit.RouteMatch.Route;
 
 /**
  * Created by Spud on 2019-10-13 for the project: MACS Transit.
@@ -75,52 +73,22 @@ public class UpdateThread {
 			while (this.run && !Thread.interrupted()) {
 
 				// Make a copy of the selected routes array to run iterations on (to avoid the ConcurrentModificationException of death).
-				Route[] routes = this.activity.selectedRoutes;
+				fnsb.macstransit.RouteMatch.Route[] routes = this.activity.selectedRoutes;
 
 				// If there are no selected routes, loop quickly (every quarter second) rather than the set frequency.
 				if (routes.length != 0) {
 					// TODO Update comments
-					// Because there is a lot of JSON parsing in the following section, be sure to catch any JSON parsing errors.
+					// For each of the selected routes from the activity, retrieve one, and execute the following
+					this.activity.runOnUiThread(() -> new fnsb.macstransit.Activities
+							.ActivityListeners.Async.UpdateBuses(this.activity.map).execute(routes));
+
+					// Sleep for the given update frequency
 					try {
-
-						// For each of the selected routes from the activity, retrieve one, and execute the following
-						for (Route route : routes) {
-
-							// Update the bus positions
-							Bus[] oldBuses = route.buses;
-
-							Bus[] newBuses = Bus.getBuses(route);
-
-							if (oldBuses.length != newBuses.length) {
-								route.buses = newBuses;
-							} else {
-								for (int index = 0; index < oldBuses.length; index++) {
-									Bus oldBus = oldBuses[index];
-									for (Bus newBus : newBuses) {
-										if (newBus.busID.equals(oldBus.busID)) {
-											oldBus.color = newBus.color;
-											oldBus.heading = newBus.heading;
-											oldBus.latitude = newBus.latitude;
-											oldBus.longitude = newBus.longitude;
-										}
-									}
-									oldBuses[index] = oldBus;
-								}
-							}
-							this.activity.runOnUiThread(() -> this.activity.drawBuses());
-
-						}
-						// Sleep for the given update frequency
-						try {
-							Thread.sleep(this.updateFrequency);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-						Thread.yield();
-					} catch (org.json.JSONException e) {
-						// For now, just print a stack trace if there are any errors.
+						Thread.sleep(this.updateFrequency);
+					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
+					Thread.yield();
 				} else {
 
 					// Quick sleep since there are no routes to track

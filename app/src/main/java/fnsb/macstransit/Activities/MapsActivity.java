@@ -170,7 +170,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			}
 
 			// Draw the buses.
-			this.drawBuses();
+			Bus.drawBuses(this.selectedRoutes, this.map);
 
 			// (Re) draw the stops onto the map
 			this.drawStops();
@@ -303,31 +303,5 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Adjust the circle sizes of the stops on the map given the current zoom.
 		AdjustZoom.adjustCircleSize(this.map.getCameraPosition().zoom, this.sharedStops);
-	}
-
-	/**
-	 * TODO Documentation
-	 */
-	public void drawBuses() {
-		for (Route route : this.selectedRoutes) {
-			Bus[] buses = route.buses;
-			if (buses != null) {
-				for (Bus bus : buses) {
-					com.google.android.gms.maps.model.Marker marker = bus.getMarker();
-					if (marker != null) {
-						// Just update the position
-						marker.setPosition(new LatLng(bus.latitude, bus.longitude));
-
-					} else {
-						marker = fnsb.macstransit.Activities.ActivityListeners.Helpers
-								.addMarker(this.map, bus.latitude, bus.longitude, bus.color,
-										"Bus " + bus.busID, bus);
-					}
-
-					marker.setVisible(true);
-					bus.setMarker(marker);
-				}
-			}
-		}
 	}
 }

@@ -33,12 +33,12 @@ public class Network {
 	/**
 	 * Timeouts (in milliseconds) used by various methods.
 	 */
-	private static final int CONNECTION_TIMEOUT = 7000, READ_TIMEOUT = 7000, PROCESSING_TIMEOUT = 1000;
+	private static final int CONNECTION_TIMEOUT = 5000, READ_TIMEOUT = 5000, PROCESSING_TIMEOUT = 500;
 
 	/**
 	 * The maximum number of retries allowed for the method, stored as a short (as it's not meant to be a large number).
 	 */
-	private static final short MAX_ATTEMPTS = 7;
+	private static final short MAX_ATTEMPTS = 3;
 
 	/**
 	 * Create a private variable that will track the number of attempts made to connect.
