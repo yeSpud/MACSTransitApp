@@ -4,7 +4,9 @@ import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 
+import fnsb.macstransit.BuildConfig;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
@@ -75,6 +77,13 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		this.progressBar = this.findViewById(R.id.progressBar);
 		this.button = this.findViewById(R.id.button);
 
+		// Psst. Hey. Wanna know a secret?
+		// In the debug build you can click on the logo to launch right into the maps activity.
+		// This is mainly for a bypass on sundays. :D
+		if (BuildConfig.DEBUG) {
+			this.findViewById(R.id.logo).setOnClickListener((click) -> this.dataLoaded());
+		}
+
 		// Set the button widget to have no current onClickListener, and set it to be invisible for now.
 		this.button.setOnClickListener(null);
 		this.button.setVisibility(View.INVISIBLE);
@@ -128,10 +137,10 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.progressBar.setVisibility(View.INVISIBLE);
 
 			// Then, set the message of the text view to notify the user that there is no internet connection.
-			this.setMessage(R.string.nointernet);
+			this.setMessage(R.string.no_internet);
 
 			// Then setup the button to open the internet settings when clicked on, and make it visible.
-			this.button.setText(R.string.open_internet_settins);
+			this.button.setText(R.string.open_internet_settings);
 			this.button.setOnClickListener((click) -> {
 				this.startActivityForResult(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS), 0);
 				// Also, close this application when clicked

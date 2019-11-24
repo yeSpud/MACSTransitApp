@@ -19,7 +19,7 @@ public class UpdateBuses extends android.os.AsyncTask<Route, Void, Route[]> {
 	/**
 	 * TODO Documentation
 	 */
-	GoogleMap map;
+	private GoogleMap map;
 
 	/**
 	 * TODO Documentation
@@ -54,7 +54,6 @@ public class UpdateBuses extends android.os.AsyncTask<Route, Void, Route[]> {
 						for (Bus newBus : newBuses) {
 							if (newBus.busID.equals(oldBus.busID)) {
 								oldBus.color = newBus.color;
-								oldBus.heading = newBus.heading;
 								oldBus.latitude = newBus.latitude;
 								oldBus.longitude = newBus.longitude;
 							}

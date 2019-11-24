@@ -5,8 +5,8 @@
     <string name="load_routes">Loading routes…</string>
     <string name="loading">Loading…</string>
     <string name="load_stops">Loading stops…</string>
-    <string name="nointernet">No internet connection.</string>
-    <string name="open_internet_settins">Open internet settings</string>
+    <string name="no_internet">No internet connection.</string>
+    <string name="open_internet_settings">Open internet settings</string>
     <string name="retry">Retry</string>
     <string name="no_routes">Unable to load routes!</string>
     <string name="macs_transit_logo">MACS Transit logo</string>
@@ -14,10 +14,11 @@
     <string name="close">close</string>
     <string name="click_to_view_all_the_arrival_and_departure_times">Click to view all the arrival and departure times.</string>
     <string name="enable_traffic_view">Enable traffic view</string>
-    <string name="launch_with_night_mode">Launch with night mode by default</string>
+    <string name="launch_with_night_mode">Launch with dark theme by default</string>
     <string name="show_polylines">Show polylines for routes</string>
     <string name="secret_VR">Enable VR Options (Coming soon)</string>
     <string name="cancel">Cancel</string>
     <string name="apply">Apply</string>
     <string name="settings">Settings</string>
+    <string name="enable_night_mode">Enable dark theme</string>
 </resources>

@@ -28,6 +28,9 @@ public class StopPopupWindow extends AlertDialog implements GoogleMap.OnInfoWind
 	 */
 	public static String body;
 
+	/**
+	 * TODO Documentation
+	 */
 	private Context context;
 
 	/**
@@ -57,24 +60,15 @@ public class StopPopupWindow extends AlertDialog implements GoogleMap.OnInfoWind
 	 */
 	private void showDialog(String title) {
 		ViewGroup viewGroup = this.findViewById(android.R.id.content);
-
 		View dialogView = LayoutInflater.from(this.context).inflate(R.layout.stop_popup, viewGroup, false);
-
 		TextView titleView = dialogView.findViewById(R.id.title), content = dialogView.findViewById(R.id.body);
-
 		Button closeButton = dialogView.findViewById(R.id.close_popup);
-
 		titleView.setText(title);
 		content.setText(StopPopupWindow.body);
-
 		AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
-
 		builder.setView(dialogView);
-
 		AlertDialog alertDialog = builder.create();
-
 		closeButton.setOnClickListener((click) -> alertDialog.cancel());
-
 		alertDialog.show();
 	}
 }

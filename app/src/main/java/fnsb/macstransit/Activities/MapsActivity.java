@@ -129,10 +129,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Check if the item that was selected belongs to the other group
 		if (item.getGroupId() == R.id.other) {
-
 			// Check if the item ID was that of the night-mode toggle
-			if (item.getItemId() == R.id.nightmode) {
-				Log.d("Menu", "Toggle night-mode has been selected!");
+			if (item.getItemId() == R.id.night_mode) {
+				Log.d("onOptionsItemSelected", "Toggling night mode...");
 
 				// Create a boolean to store the resulting value of the menu item
 				boolean enabled = !item.isChecked();
@@ -147,9 +146,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 				// Set the menu item's checked value to that of the enabled value
 				item.setChecked(!item.isChecked());
+			} else if (item.getItemId() == R.id.settings) {
+				Log.d("onOptionsItemSelected", "Showing settings dialog...");
+				SettingsPopupWindow settingsPopupWindow = new SettingsPopupWindow(this);
+				settingsPopupWindow.showSettingsPopup();
 			} else {
 				// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!
-				Log.w("Menu", "Unaccounted menu item in the other group was checked!");
+				Log.w("onOptionsItemSelected", "Unaccounted menu item in the other group was checked!");
 			}
 		} else if (item.getGroupId() == R.id.routes) { // Check if the item that was selected belongs to the routes group.
 
