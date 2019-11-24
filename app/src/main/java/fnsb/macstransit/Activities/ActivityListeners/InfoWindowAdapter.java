@@ -14,7 +14,7 @@ import fnsb.macstransit.Activities.MapsActivity;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.0
+ * @version 1.1
  * @since Beta 7
  */
 public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.InfoWindowAdapter {
@@ -23,6 +23,11 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 	 * The maps activity that this adapter corresponds to.
 	 */
 	private MapsActivity activity;
+
+	/**
+	 * TODO Documentation
+	 */
+	public static final int MAX_LINES = 12;
 
 	/**
 	 * Constructor for the info window adapter.
@@ -82,7 +87,7 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 		TextView snippet = new TextView(this.activity);
 		snippet.setTextColor(Color.GRAY);
 		snippet.setText(marker.getSnippet());
-		snippet.setMaxLines(9);
+		snippet.setMaxLines(InfoWindowAdapter.MAX_LINES);
 
 		info.addView(title);
 		if (!snippet.getText().equals("") && snippet.getText() != null) {

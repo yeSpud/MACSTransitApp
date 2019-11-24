@@ -18,6 +18,8 @@ import java.util.Locale;
 
 import fnsb.macstransit.RouteMatch.BasicStop;
 import fnsb.macstransit.RouteMatch.Route;
+import fnsb.macstransit.RouteMatch.SharedStop;
+import fnsb.macstransit.RouteMatch.Stop;
 
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.
@@ -28,7 +30,7 @@ import fnsb.macstransit.RouteMatch.Route;
  * This class is full of static methods that are simply used as helper methods,
  * and thus can be used anywhere.
  *
- * @version 1.0
+ * @version 1.1
  * @since Beta 7
  */
 public class Helpers {
@@ -238,6 +240,40 @@ public class Helpers {
 			parseException.printStackTrace();
 			return time;
 		}
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param sharedStop
+	 * @return
+	 */
+	public static Stop findStopInSharedStop(SharedStop sharedStop) {
+		for (Route route : sharedStop.routes) {
+			for (Stop stop : route.stops) {
+				if (stop.stopID.equals(sharedStop.stopID)) {
+					return stop;
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param character
+	 * @param string
+	 * @return
+	 */
+	public static int getCharacterOccurrence(char character, String string) {
+		int count = 0;
+		for (int i = 0; i < string.length(); i++) {
+			if (string.charAt(i) == character) {
+				count++;
+			}
+		}
+		return count;
 	}
 
 }
