@@ -99,38 +99,48 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		JSONArray stopData = RouteMatch.parseData(json);
 		int count = stopData.length();
 
-		// Iterate through the stops, but have a hard limit of 2 (at least while scrolling doesn't work).
-		for (int index = 0; index < count && index < 2; index++) {
-			Log.d("getStopTime", String.format("Parsing stop times for stop %d/%d", index, count));
+		// Check to see how many times there are to display. If there are 3 or less,
+		// just display all the times. If there are more than 3, display "Click to view all times".
+		if (count <= 3) {
+			for (int index = 0; index < count; index++) {
+				Log.d("getStopTime", String.format("Parsing stop times for stop %d/%d", index, count));
 
-			// Try to get the stop time from the current stop.
-			JSONObject object;
-			try {
-				object = stopData.getJSONObject(index);
-			} catch (JSONException e) {
-				// If that fails, just print the stack trace, and break from the for loop.
-				e.printStackTrace();
-				break;
+				// Try to get the stop time from the current stop.
+				JSONObject object;
+				try {
+					object = stopData.getJSONObject(index);
+				} catch (JSONException e) {
+					// If that fails, just print the stack trace, and break from the for loop.
+					e.printStackTrace();
+					break;
+				}
+
+				// Set the arrival and departure time to the arrival and departure time in the jsonObject.
+				// At this point this is stored in 24-hour time.
+				String arrivalTime = StopClicked.getTime(object, "predictedArrivalTime"),
+						departureTime = StopClicked.getTime(object, "predictedDepartureTime");
+
+				// If the user doesn't use 24-hour time, convert to 12-hour time.
+				if (!is24Hour) {
+					Log.d("getStopTime", "Converting time to 12 hour time");
+					arrivalTime = StopClicked.formatTime(arrivalTime);
+					departureTime = StopClicked.formatTime(departureTime);
+				}
+
+				// Append the arrival and departure times to the snippet text.
+				snippetText.append(String.format("%s %s\n%s %s\n\n", expectedArrivalString, arrivalTime,
+						expectedDepartureString, departureTime));
 			}
-
-			// Set the arrival and departure time to the arrival and departure time in the jsonObject.
-			// At this point this is stored in 24-hour time.
-			String arrivalTime = StopClicked.getTime(object, "predictedArrivalTime"),
-					departureTime = StopClicked.getTime(object, "predictedDepartureTime");
-
-			// If the user doesn't use 24-hour time, convert to 12-hour time.
-			if (!is24Hour) {
-				Log.d("getStopTime", "Converting time to 12 hour time");
-				arrivalTime = StopClicked.formatTime(arrivalTime);
-				departureTime = StopClicked.formatTime(departureTime);
-			}
-
-			// Append the arrival and departure times to the snippet text.
-			snippetText.append(String.format("%s %s\n%s %s\n\n", expectedArrivalString, arrivalTime,
-					expectedDepartureString, departureTime));
+		} else {
+			snippetText.append("Click to view all the arrival and departure times.");
 		}
 
-		return snippetText.toString();
+		String string = snippetText.toString();
+
+		// TODO also load the string into a popup window for when its clicked on.
+		StopPopupWindow.body = string;
+
+		return string;
 	}
 
 	/**
@@ -197,69 +207,49 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	@Override
 	public void onCircleClick(com.google.android.gms.maps.model.Circle circle) {
 		if (circle.getTag() instanceof Stop) { // Check if the circle is a stop
-			Log.d("onCircleClick", "Showing stop infowindow");
-			this.showStopInfoWindow((Stop) circle.getTag());
+			Log.d("onCircleClick", "Showing stop info window");
+			Stop stop = (Stop) circle.getTag();
+			Marker marker = stop.getMarker();
+			if (marker == null) {
+				// If the stop doesn't have a marker, just use toast to display the stop ID.
+				Toast.makeText(this.activity, stop.stopID, Toast.LENGTH_SHORT).show();
+			} else {
+				// If the stop does have a marker, set the marker to be visible, and show the info window corresponding to that marker.
+				marker.setVisible(true);
+
+				// Set the snippet text to loading
+				marker.setSnippet(this.activity.getString(R.string.retrieving_stop_times));
+
+				// Retrieve the stops asynchronously
+				new GetStopTimes(marker, this.activity).execute(stop);
+
+				// Show the info window
+				marker.showInfoWindow();
+			}
 		} else if (circle.getTag() instanceof SharedStop) { // Check if the circle is a shared stop
-			Log.d("onCircleClick", "Showing sharedStop infowindow");
-			this.showSharedStopInfoWindow((SharedStop) circle.getTag());
+			Log.d("onCircleClick", "Showing sharedStop info window");
+			SharedStop sharedStop = (SharedStop) circle.getTag();
+			Marker marker = sharedStop.getMarker();
+			if (marker == null) {
+				// If the shared stop doesn't have a marker, just use toast to display the stop ID.
+				Toast.makeText(this.activity, sharedStop.stopID, Toast.LENGTH_SHORT).show();
+			} else {
+				// If the stop does have a marker, set the marker to be visible, and show the info window corresponding to that marker.
+				marker.setVisible(true);
+
+				// Set the snippet text to loading
+				marker.setSnippet(this.activity.getString(R.string.retrieving_stop_times));
+
+				// Retrieve the stops asynchronously
+				new GetSharedStopTimes(marker, this.activity).execute(sharedStop);
+
+				// Show the info window
+				marker.showInfoWindow();
+			}
 		} else {
 			// If it was neither a stop or a shared stop, warn that there was an unaccounted for object.
 			Log.w("onCircleClick", String.format("Circle object (%s) unaccounted for!",
 					java.util.Objects.requireNonNull(circle.getTag()).toString()));
-		}
-	}
-
-	/**
-	 * Creates and shows the info window for the provided Stop.
-	 *
-	 * @param stop The Stop to create the info window for.
-	 */
-	@Deprecated
-	private void showStopInfoWindow(Stop stop) {
-		// Get the marker from the Stop.
-		Marker marker = stop.getMarker();
-		if (marker == null) {
-			// If the stop doesn't have a marker, just use toast to display the stop ID.
-			Toast.makeText(this.activity, stop.stopID, Toast.LENGTH_SHORT).show();
-		} else {
-			// If the stop does have a marker, set the marker to be visible, and show the info window corresponding to that marker.
-			marker.setVisible(true);
-
-			// Set the snippet text to loading
-			marker.setSnippet(this.activity.getString(R.string.retrieving_stop_times));
-
-			// Retrieve the stops asynchronously
-			new GetStopTimes(marker, this.activity).execute(stop);
-
-			// Show the info window
-			marker.showInfoWindow();
-		}
-	}
-
-	/**
-	 * Creates and shows the info window for the provided Shared Stop.
-	 *
-	 * @param sharedStop The Shared Stop to create the info window for.
-	 */
-	@Deprecated
-	private void showSharedStopInfoWindow(SharedStop sharedStop) {
-		// Get the marker from the SharedStop.
-		Marker marker = sharedStop.getMarker();
-		if (marker == null) {
-			// If the shared stop doesn't have a marker, just use toast to display the stop ID.
-			Toast.makeText(this.activity, sharedStop.stopID, Toast.LENGTH_SHORT).show();
-		} else {
-			// If the stop does have a marker, set the marker to be visible, and show the info window corresponding to that marker.
-			marker.setVisible(true);
-
-			// Set the snippet text to loading
-			marker.setSnippet(this.activity.getString(R.string.retrieving_stop_times));
-
-			// Retrieve the stops asynchronously
-			new GetSharedStopTimes(marker, this.activity).execute(sharedStop);
-
-			// Show the info window
-			marker.showInfoWindow();
 		}
 	}
 }

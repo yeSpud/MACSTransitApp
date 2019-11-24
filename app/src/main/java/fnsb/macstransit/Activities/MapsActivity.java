@@ -284,6 +284,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Set it so that if the info window was closed for a Stop marker, make that marker invisible, so its just the dot.
 		this.map.setOnInfoWindowCloseListener(new fnsb.macstransit.Activities.ActivityListeners.StopDeselected());
+
+		// TODO
+		this.map.setOnInfoWindowClickListener(new fnsb.macstransit.Activities.ActivityListeners.StopPopupWindow(this));
 	}
 
 	/**

@@ -82,7 +82,7 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 		TextView snippet = new TextView(this.activity);
 		snippet.setTextColor(Color.GRAY);
 		snippet.setText(marker.getSnippet());
-		snippet.setMaxLines(15);
+		snippet.setMaxLines(9);
 
 		info.addView(title);
 		if (!snippet.getText().equals("") && snippet.getText() != null) {

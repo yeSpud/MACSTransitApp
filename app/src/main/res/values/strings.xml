@@ -11,4 +11,5 @@
     <string name="no_routes">Unable to load routes!</string>
     <string name="macs_transit_logo">MACS Transit logo</string>
     <string name="retrieving_stop_times">Retrieving stop times…</string>
+    <string name="close">close</string>
 </resources>
