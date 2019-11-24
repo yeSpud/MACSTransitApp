@@ -3,6 +3,8 @@ package fnsb.macstransit.Activities.ActivityListeners;
 import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.Marker;
@@ -42,10 +44,10 @@ public class Helpers {
 	 * @param color The desired color value as an int.
 	 * @return The BitmapDescriptor used for defining the color of a markers's icon.
 	 */
-	public static com.google.android.gms.maps.model.BitmapDescriptor getMarkerIcon(int color) {
+	public static BitmapDescriptor getMarkerIcon(int color) {
 		float[] hsv = new float[3];
 		android.graphics.Color.colorToHSV(color, hsv);
-		return com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]);
+		return BitmapDescriptorFactory.defaultMarker(hsv[0]);
 	}
 
 	/**

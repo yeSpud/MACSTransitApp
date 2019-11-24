@@ -13,7 +13,7 @@ This project was originally intended as an entry for the [AK Dev alliance](https
 
 See the file marked [CONTRIBUTING](CONTRIBUTING.md), and be sure to read the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
 
-The source code beings at [app/src/main/java/fnsb/macstransit/](/tree/master/app/src/main/java/fnsb/macstransit)
+The source code beings at [app/src/main/java/fnsb/macstransit/](/app/src/main/java/fnsb/macstransit).
 
 ## License
 

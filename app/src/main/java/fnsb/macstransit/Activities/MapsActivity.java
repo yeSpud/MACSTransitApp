@@ -287,6 +287,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// TODO
 		this.map.setOnInfoWindowClickListener(new fnsb.macstransit.Activities.ActivityListeners.StopPopupWindow(this));
+
+		// Enable traffic overlay
+		// TODO Have this toggleable via settings
+		this.map.setTrafficEnabled(true);
 	}
 
 	/**

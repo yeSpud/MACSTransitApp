@@ -39,11 +39,6 @@ public class Bus extends MarkedObject {
 	public double latitude, longitude;
 
 	/**
-	 * The current heading of the bus (Think cardinal directions).
-	 */
-	public Heading heading;
-
-	/**
 	 * The current bus's color. This is more representative of the route its on (ie what is its route color),
 	 * and thus is optional.
 	 * <p>
@@ -88,12 +83,6 @@ public class Bus extends MarkedObject {
 			bus.latitude = object.getDouble("latitude");
 			bus.longitude = object.getDouble("longitude");
 			bus.color = route.color;
-			try {
-				// The heading is stored in the data as headingName
-				bus.heading = Heading.valueOf(object.getString("headingName"));
-			} catch (IllegalArgumentException e) {
-				bus.heading = Heading.NORTH;
-			}
 			buses.add(bus);
 			Log.d("getBuses", "Adding bus to array");
 		}
