@@ -110,6 +110,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Set the menuCreated variable to false in order to rerun the dynamic menu creation in onPrepareOptionsMenu().
 		this.menuCreated = false;
 
+		// Check if night mode should be enabled by default, and set the checkbox to that value
+		menu.findItem(R.id.night_mode).setChecked(SettingsPopupWindow.DEFAULT_NIGHT_MODE);
+
 		// Return true, otherwise the menu wont be displayed.
 		return true;
 	}
@@ -126,8 +129,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	@Override
 	public boolean onOptionsItemSelected(android.view.MenuItem item) {
-
 		// Check if the item that was selected belongs to the other group
+		// TODO Change this to a switch
 		if (item.getGroupId() == R.id.other) {
 			// Check if the item ID was that of the night-mode toggle
 			if (item.getItemId() == R.id.night_mode) {
@@ -136,16 +139,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				// Create a boolean to store the resulting value of the menu item
 				boolean enabled = !item.isChecked();
 
-				if (enabled) {
-					// Enable night mode
-					this.map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.nightmode));
-				} else {
-					// Disable night mode
-					this.map.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.standard));
-				}
+				// Toggle night mode
+				this.toggleNightMode(enabled);
 
 				// Set the menu item's checked value to that of the enabled value
-				item.setChecked(!item.isChecked());
+				item.setChecked(enabled);
 			} else if (item.getItemId() == R.id.settings) {
 				Log.d("onOptionsItemSelected", "Showing settings dialog...");
 				SettingsPopupWindow settingsPopupWindow = new SettingsPopupWindow(this);
@@ -166,11 +164,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			Stop.removeStops(this.selectedRoutes);
 
 			// Toggle the route based on the menu item's title, and its enabled value
-			if (enabled) {
-				this.selectedRoutes = Route.enableRoutes(item.getTitle().toString(), this.selectedRoutes);
-			} else {
-				this.selectedRoutes = Route.disableRoute(item.getTitle().toString(), this.selectedRoutes);
-			}
+			this.selectedRoutes = enabled ?
+					Route.enableRoutes(item.getTitle().toString(), this.selectedRoutes) :
+					Route.disableRoute(item.getTitle().toString(), this.selectedRoutes);
+
 
 			// Draw the buses.
 			Bus.drawBuses(this.selectedRoutes, this.map);
@@ -291,9 +288,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// TODO Comment
 		this.map.setOnInfoWindowClickListener(new StopPopupWindow(this));
 
-		// Enable traffic overlay
-		// TODO Have this toggleable via settings
-		this.map.setTrafficEnabled(true);
+		// Enable traffic overlay based on settings.
+		this.map.setTrafficEnabled(SettingsPopupWindow.ENABLE_TRAFFIC_VIEW);
+
+		// Toggle night mode at this time if enabled.
+		this.toggleNightMode(SettingsPopupWindow.DEFAULT_NIGHT_MODE);
 	}
 
 	/**
@@ -313,5 +312,17 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Adjust the circle sizes of the stops on the map given the current zoom.
 		AdjustZoom.adjustCircleSize(this.map.getCameraPosition().zoom, this.sharedStops);
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param enabled
+	 */
+	public void toggleNightMode(boolean enabled) {
+		// Toggle night mode
+		this.map.setMapStyle(enabled ?
+				MapStyleOptions.loadRawResourceStyle(this, R.raw.nightmode) :
+				MapStyleOptions.loadRawResourceStyle(this, R.raw.standard));
 	}
 }

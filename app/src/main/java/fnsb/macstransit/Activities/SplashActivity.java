@@ -128,6 +128,9 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				return;
 			}
 
+			// Then load the settings from the settings file
+			SettingsPopupWindow.loadSettings(this);
+
 			// If the activity has made it this far then proceed to load the data from the RouteMatch object.
 			this.loadData().start();
 
@@ -253,6 +256,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 			// If there are routes that were loaded, execute the following:
 			if (this.routes.length != 0) {
+
+				// TODO Account for polylines
 
 				// Update the progress to halfway, and inform the user that we are now loading stops.
 				Log.d("loadData", "Loading stops in the routes");
