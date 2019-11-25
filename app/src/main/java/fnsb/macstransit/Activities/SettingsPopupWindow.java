@@ -6,6 +6,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
+import fnsb.macstransit.Activities.ActivityListeners.Helpers;
 import fnsb.macstransit.R;
 
 /**
@@ -45,6 +49,16 @@ public class SettingsPopupWindow extends AlertDialog {
 	 */
 	private Context context;
 
+	/**
+	 * TODO Documentation
+	 */
+	private int changedSum = 0;
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param context
+	 */
 	public SettingsPopupWindow(Context context) {
 		super(context);
 		this.context = context;
@@ -111,13 +125,6 @@ public class SettingsPopupWindow extends AlertDialog {
 
 	/**
 	 * TODO Documentation
-	 */
-	public static void writeSettings(Context context) {
-		// TODO
-	}
-
-	/**
-	 * TODO Documentation
 	 *
 	 * @param context
 	 */
@@ -176,10 +183,37 @@ public class SettingsPopupWindow extends AlertDialog {
 
 	/**
 	 * TODO Documentation
+	 *
+	 * @param context
+	 * @param checkBoxes
+	 */
+	private void writeSettings(Context context, CheckBox... checkBoxes) {
+		// TODO
+	}
+
+	/**
+	 * TODO Documentation
 	 */
 	public void showSettingsPopup() {
 		ViewGroup viewGroup = this.findViewById(R.id.content);
-		View dialogView = LayoutInflater.from(this.context).inflate(R.layout.settings_popup, viewGroup, false);
+		View dialogView = LayoutInflater.from(this.context).inflate(R.layout.settings_popup,
+				viewGroup, false);
+
+		final Button applyButton = dialogView.findViewById(R.id.apply);
+
+		final CheckBox trafficBox = Helpers.createSettingsPopupCheckbox(dialogView, R.id.traffic,
+				SettingsPopupWindow.ENABLE_TRAFFIC_VIEW, applyButton, this,
+				SettingsPopupWindow.TRAFFIC_KEY),
+				nightBox = Helpers.createSettingsPopupCheckbox(dialogView, R.id.nightMode,
+						SettingsPopupWindow.DEFAULT_NIGHT_MODE, applyButton, this,
+						SettingsPopupWindow.NIGHT_MODE_KEY),
+				polyBox = Helpers.createSettingsPopupCheckbox(dialogView, R.id.polylines,
+						SettingsPopupWindow.SHOW_POLYLINES, applyButton, this,
+						SettingsPopupWindow.POLYLINES_KEY),
+				VRBox = Helpers.createSettingsPopupCheckbox(dialogView, R.id.VR,
+						SettingsPopupWindow.ENABLE_VR_OPTIONS, applyButton, this,
+						SettingsPopupWindow.VR_KEY);
+
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
 		builder.setView(dialogView);
@@ -188,7 +222,27 @@ public class SettingsPopupWindow extends AlertDialog {
 		// Setup the cancel button
 		dialogView.findViewById(R.id.cancel).setOnClickListener((click) -> alertDialog.cancel());
 
+		// Setup the apply button click listener
+		applyButton.setOnClickListener((click) -> {
+			this.writeSettings(this.context, trafficBox, nightBox, polyBox, VRBox);
+			Toast.makeText(this.context, R.string.restart_required, Toast.LENGTH_LONG).show();
+			alertDialog.cancel();
+		});
+
+		// Show the dialog
 		alertDialog.show();
 	}
 
+	/**
+	 * TODO
+	 *
+	 * @param adjustValue
+	 * @param button
+	 */
+	public void changeApplyButton(boolean adjustValue, Button button) {
+		// FIXME
+		this.changedSum = adjustValue ? this.changedSum + 1 : this.changedSum - 1;
+		Log.d("showSettingsPopup", "Updated changedSum to " + this.changedSum);
+		button.setEnabled(this.changedSum > 0);
+	}
 }

@@ -1,6 +1,9 @@
 package fnsb.macstransit.Activities.ActivityListeners;
 
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -18,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import fnsb.macstransit.Activities.SettingsPopupWindow;
 import fnsb.macstransit.RouteMatch.BasicStop;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
@@ -276,6 +280,23 @@ public class Helpers {
 			}
 		}
 		return count;
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param view
+	 * @param id
+	 * @param checked
+	 * @param button
+	 * @param settingsPopupWindow
+	 * @return
+	 */
+	public static CheckBox createSettingsPopupCheckbox(View view, int id, boolean checked, Button button, SettingsPopupWindow settingsPopupWindow, String tag) {
+		CheckBox checkBox = view.findViewById(id);
+		checkBox.setChecked(checked);
+		checkBox.setOnCheckedChangeListener((a, checkedValue) -> settingsPopupWindow.changeApplyButton(checkedValue, button));
+		checkBox.setTag(tag);
+		return checkBox;
 	}
 
 }

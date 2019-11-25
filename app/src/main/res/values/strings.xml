@@ -21,4 +21,5 @@
     <string name="apply">Apply</string>
     <string name="settings">Settings</string>
     <string name="enable_night_mode">Enable dark theme</string>
+    <string name="restart_required">Restart required for changes to take effect</string>
 </resources>
