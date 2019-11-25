@@ -188,7 +188,25 @@ public class SettingsPopupWindow extends AlertDialog {
 	 * @param checkBoxes
 	 */
 	private void writeSettings(Context context, CheckBox... checkBoxes) {
-		// TODO
+
+		// First, create the string based off the check boxes, and whether or no they are checked
+		StringBuilder builder = new StringBuilder();
+		for (CheckBox box : checkBoxes) {
+			Object tag = box.getTag();
+			if (tag != null) {
+				if (tag instanceof String) {
+					builder.append(String.format("%s:%s\n", tag, Boolean.toString(box.isChecked())));
+				}
+			}
+		}
+
+		// Then, write that string to the settings file.
+		// https://developer.android.com/training/data-storage/app-specific#internal-store-stream
+		try (FileOutputStream fos = context.openFileOutput(SettingsPopupWindow.FILENAME, Context.MODE_PRIVATE)) {
+			fos.write(builder.toString().getBytes());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
