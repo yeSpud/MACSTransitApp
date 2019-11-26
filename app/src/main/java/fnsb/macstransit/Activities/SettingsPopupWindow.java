@@ -3,21 +3,14 @@ package fnsb.macstransit.Activities;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 
 import fnsb.macstransit.Activities.ActivityListeners.Helpers;
 import fnsb.macstransit.R;
@@ -70,7 +63,6 @@ public class SettingsPopupWindow extends AlertDialog {
 	 * @param context
 	 */
 	public static void loadSettings(Context context) {
-
 		// First get the settings file
 		File file = new File(context.getFilesDir(), SettingsPopupWindow.FILENAME);
 		Log.d("loadSettings", "Supposed file location: " + file.getAbsolutePath());
@@ -130,6 +122,7 @@ public class SettingsPopupWindow extends AlertDialog {
 	 */
 	private static void createSettingsFile(Context context) {
 		Log.d("createSettingsFile", "Creating new settings file");
+
 		// Create the string to write to the file for the first time.
 		String outputString = SettingsPopupWindow.TRAFFIC_KEY + ":true\n"
 				+ SettingsPopupWindow.NIGHT_MODE_KEY + ":false\n"
@@ -137,12 +130,7 @@ public class SettingsPopupWindow extends AlertDialog {
 				+ SettingsPopupWindow.VR_KEY + ":false";
 
 		// Write that string to the settings file
-		// https://developer.android.com/training/data-storage/app-specific#internal-store-stream
-		try (FileOutputStream fos = context.openFileOutput(SettingsPopupWindow.FILENAME, Context.MODE_PRIVATE)) {
-			fos.write(outputString.getBytes());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		SettingsPopupWindow.writeToFile(outputString, context);
 	}
 
 	/**
@@ -154,14 +142,14 @@ public class SettingsPopupWindow extends AlertDialog {
 	 * @return
 	 */
 	private static String[] readFile(Context context) {
-		FileInputStream fis = null;
+		java.io.FileInputStream fis = null;
 		try {
 			fis = context.openFileInput(SettingsPopupWindow.FILENAME);
-		} catch (FileNotFoundException e) {
+		} catch (java.io.FileNotFoundException e) {
 			e.printStackTrace();
 		}
 		if (fis != null) {
-			InputStreamReader inputStreamReader = new InputStreamReader(fis, StandardCharsets.UTF_8);
+			InputStreamReader inputStreamReader = new InputStreamReader(fis, java.nio.charset.StandardCharsets.UTF_8);
 			StringBuilder stringBuilder = new StringBuilder();
 			try (BufferedReader reader = new BufferedReader(inputStreamReader)) {
 				String line = reader.readLine();
@@ -178,7 +166,21 @@ public class SettingsPopupWindow extends AlertDialog {
 		} else {
 			return null;
 		}
+	}
 
+	/**
+	 * TODO Documentation
+	 * https://developer.android.com/training/data-storage/app-specific#internal-store-stream
+	 *
+	 * @param string
+	 * @param context
+	 */
+	private static void writeToFile(String string, Context context) {
+		try (java.io.FileOutputStream fos = context.openFileOutput(SettingsPopupWindow.FILENAME, Context.MODE_PRIVATE)) {
+			fos.write(string.getBytes());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -188,7 +190,6 @@ public class SettingsPopupWindow extends AlertDialog {
 	 * @param checkBoxes
 	 */
 	private void writeSettings(Context context, CheckBox... checkBoxes) {
-
 		// First, create the string based off the check boxes, and whether or no they are checked
 		StringBuilder builder = new StringBuilder();
 		for (CheckBox box : checkBoxes) {
@@ -201,20 +202,15 @@ public class SettingsPopupWindow extends AlertDialog {
 		}
 
 		// Then, write that string to the settings file.
-		// https://developer.android.com/training/data-storage/app-specific#internal-store-stream
-		try (FileOutputStream fos = context.openFileOutput(SettingsPopupWindow.FILENAME, Context.MODE_PRIVATE)) {
-			fos.write(builder.toString().getBytes());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		SettingsPopupWindow.writeToFile(builder.toString(), context);
 	}
 
 	/**
 	 * TODO Documentation
 	 */
 	public void showSettingsPopup() {
-		ViewGroup viewGroup = this.findViewById(R.id.content);
-		View dialogView = LayoutInflater.from(this.context).inflate(R.layout.settings_popup,
+		android.view.ViewGroup viewGroup = this.findViewById(R.id.content);
+		android.view.View dialogView = android.view.LayoutInflater.from(this.context).inflate(R.layout.settings_popup,
 				viewGroup, false);
 
 		final Button applyButton = dialogView.findViewById(R.id.apply);

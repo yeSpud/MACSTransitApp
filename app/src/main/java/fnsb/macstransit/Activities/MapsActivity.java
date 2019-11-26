@@ -46,7 +46,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * Create an instance of the thread object that will be used to pull data from the routematch server.
 	 */
-	private UpdateThread thread = new UpdateThread(this, 4000);
+	private UpdateThread thread = new UpdateThread(this, 3000);
 
 	/**
 	 * Boolean to check whether or not the menu items for the routes have been (dynamically) created.
@@ -128,58 +128,67 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * @return Return false to allow normal menu processing to proceed, true to consume it here.
 	 */
 	@Override
-	public boolean onOptionsItemSelected(android.view.MenuItem item) {
-		// Check if the item that was selected belongs to the other group
-		// TODO Change this to a switch
-		if (item.getGroupId() == R.id.other) {
-			// Check if the item ID was that of the night-mode toggle
-			if (item.getItemId() == R.id.night_mode) {
-				Log.d("onOptionsItemSelected", "Toggling night mode...");
+	public boolean onOptionsItemSelected(android.view.MenuItem item) { // TODO Update comments
+		switch (item.getGroupId()) {
+			// Check if the item that was selected belongs to the other group
+			case R.id.other:
+				switch (item.getItemId()) {
+					// TODO Comment
+					case R.id.night_mode:
+						Log.d("onOptionsItemSelected", "Toggling night mode...");
 
+						// Create a boolean to store the resulting value of the menu item
+						boolean enabled = !item.isChecked();
+
+						// Toggle night mode
+						this.toggleNightMode(enabled);
+
+						// Set the menu item's checked value to that of the enabled value
+						item.setChecked(enabled);
+						break;
+					// TODO Comment
+					case R.id.settings:
+						Log.d("onOptionsItemSelected", "Showing settings dialog...");
+						SettingsPopupWindow settingsPopupWindow = new SettingsPopupWindow(this);
+						settingsPopupWindow.showSettingsPopup();
+						break;
+
+					default:
+						// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!
+						Log.w("onOptionsItemSelected", "Unaccounted menu item in the other group was checked!");
+						break;
+				}
+				break;
+			// Check if the item that was selected belongs to the routes group.
+			case R.id.routes:
 				// Create a boolean to store the resulting value of the menu item
 				boolean enabled = !item.isChecked();
 
-				// Toggle night mode
-				this.toggleNightMode(enabled);
+				// Then clear the shared stops since they will be recreated
+				this.sharedStops = SharedStop.clearSharedStops(this.sharedStops);
+
+				// Then clear the regular stops from the map (as the stops to be displayed will be re-evaluated)
+				Stop.removeStops(this.selectedRoutes);
+
+				// Toggle the route based on the menu item's title, and its enabled value
+				this.selectedRoutes = enabled ?
+						Route.enableRoutes(item.getTitle().toString(), this.selectedRoutes) :
+						Route.disableRoute(item.getTitle().toString(), this.selectedRoutes);
+
+
+				// Draw the buses.
+				Bus.drawBuses(this.selectedRoutes, this.map);
+
+				// (Re) draw the stops onto the map
+				this.drawStops();
 
 				// Set the menu item's checked value to that of the enabled value
 				item.setChecked(enabled);
-			} else if (item.getItemId() == R.id.settings) {
-				Log.d("onOptionsItemSelected", "Showing settings dialog...");
-				SettingsPopupWindow settingsPopupWindow = new SettingsPopupWindow(this);
-				settingsPopupWindow.showSettingsPopup();
-			} else {
-				// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!
-				Log.w("onOptionsItemSelected", "Unaccounted menu item in the other group was checked!");
-			}
-		} else if (item.getGroupId() == R.id.routes) { // Check if the item that was selected belongs to the routes group.
-
-			// Create a boolean to store the resulting value of the menu item
-			boolean enabled = !item.isChecked();
-
-			// Then clear the shared stops since they will be recreated
-			this.sharedStops = SharedStop.clearSharedStops(this.sharedStops);
-
-			// Then clear the regular stops from the map (as the stops to be displayed will be re-evaluated)
-			Stop.removeStops(this.selectedRoutes);
-
-			// Toggle the route based on the menu item's title, and its enabled value
-			this.selectedRoutes = enabled ?
-					Route.enableRoutes(item.getTitle().toString(), this.selectedRoutes) :
-					Route.disableRoute(item.getTitle().toString(), this.selectedRoutes);
-
-
-			// Draw the buses.
-			Bus.drawBuses(this.selectedRoutes, this.map);
-
-			// (Re) draw the stops onto the map
-			this.drawStops();
-
-			// Set the menu item's checked value to that of the enabled value
-			item.setChecked(enabled);
-		} else {
-			// Since the item's ID and group was not part of anything accounted for (uh oh), log it as a warning!
-			Log.w("Menu", "Unaccounted menu item was checked!");
+				break;
+			default:
+				// Since the item's ID and group was not part of anything accounted for (uh oh), log it as a warning!
+				Log.w("Menu", "Unaccounted menu item was checked!");
+				break;
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -285,7 +294,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Set it so that if the info window was closed for a Stop marker, make that marker invisible, so its just the dot.
 		this.map.setOnInfoWindowCloseListener(new fnsb.macstransit.Activities.ActivityListeners.StopDeselected());
 
-		// TODO Comment
+		// Set it so that when an info window is clicked on, it launches a popup window
 		this.map.setOnInfoWindowClickListener(new StopPopupWindow(this));
 
 		// Enable traffic overlay based on settings.

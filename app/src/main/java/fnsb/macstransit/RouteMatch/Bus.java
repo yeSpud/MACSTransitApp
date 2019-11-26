@@ -52,6 +52,16 @@ public class Bus extends MarkedObject {
 	public Route route;
 
 	/**
+	 * TODO Documentation
+	 */
+	public String heading = "";
+
+	/**
+	 * TODO Documentation
+	 */
+	public int currentCapacity, speed;
+
+	/**
 	 * Construction for the bus.
 	 * Only the bus's ID and its corresponding route are required.
 	 *
@@ -70,23 +80,25 @@ public class Bus extends MarkedObject {
 	 * @return
 	 */
 	public static Bus[] getBuses(Route route) throws JSONException {
-
 		JSONArray busArray = RouteMatch.parseData(MapsActivity.routeMatch.getBuses(route));
-
 		ArrayList<Bus> buses = new ArrayList<>();
 		int count = busArray.length();
 		for (int i = 0; i < count; i++) {
-
 			Log.d("getBuses", String.format("Parsing bus %d/%d", i + 1, count));
 			JSONObject object = busArray.getJSONObject(i);
 			Bus bus = new Bus(object.getString("vehicleId"), route);
 			bus.latitude = object.getDouble("latitude");
 			bus.longitude = object.getDouble("longitude");
+			bus.heading = object.getString("headingName");
+			bus.speed = object.getInt("speed");
+			bus.currentCapacity = object.getInt("currentPassengers");
+			if (bus.currentCapacity < 0) {
+				bus.currentCapacity = 0;
+			}
 			bus.color = route.color;
 			buses.add(bus);
 			Log.d("getBuses", "Adding bus to array");
 		}
-
 		Log.d("getBuses", "Returning array of size " + buses.size());
 		return buses.toArray(new Bus[0]);
 	}

@@ -4,9 +4,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
 
-import fnsb.macstransit.BuildConfig;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
@@ -79,8 +77,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 		// Psst. Hey. Wanna know a secret?
 		// In the debug build you can click on the logo to launch right into the maps activity.
-		// This is mainly for a bypass on sundays. :D
-		if (BuildConfig.DEBUG) {
+		// This is mainly for a bypass on Sundays. :D
+		if (fnsb.macstransit.BuildConfig.DEBUG) {
 			this.findViewById(R.id.logo).setOnClickListener((click) -> this.dataLoaded());
 		}
 

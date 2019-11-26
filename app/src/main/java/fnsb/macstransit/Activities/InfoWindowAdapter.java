@@ -18,14 +18,13 @@ import com.google.android.gms.maps.model.Marker;
 public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.InfoWindowAdapter {
 
 	/**
-	 * The maps activity that this adapter corresponds to.
-	 */
-	private MapsActivity activity;
-
-	/**
 	 * TODO Documentation
 	 */
 	public static final int MAX_LINES = 12;
+	/**
+	 * The maps activity that this adapter corresponds to.
+	 */
+	private MapsActivity activity;
 
 	/**
 	 * Constructor for the info window adapter.
@@ -73,6 +72,7 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 	 */
 	@Override
 	public View getInfoContents(Marker marker) {
+		// TODO Comments
 		LinearLayout info = new LinearLayout(this.activity);
 		info.setOrientation(LinearLayout.VERTICAL);
 
