@@ -2,10 +2,12 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +49,11 @@ public class Route {
 	public Bus[] buses;
 
 	/**
+	 * TODO Documentation
+	 */
+	public LatLng[] polyLineCoordinates;
+
+	/**
 	 * Constructor for the route. The name of the route is the only thing that is required.
 	 * Be sure that the provided route name does <b>NOT</b> contain any whitespace characters!
 	 *
@@ -78,17 +85,18 @@ public class Route {
 	/**
 	 * Dynamically generates the routes that are used by parsing the master schedule.
 	 * This may return an empty route array if there was an issue parsing the data.
+	 * TODO Update documentation
 	 *
-	 * @param routeMatch The route match instance (for pulling from the RouteMatch server).
+	 * @param masterSchedule
 	 * @return An array of routes that <b><i>can be</i></b> tracked.
 	 */
-	public static Route[] generateRoutes(RouteMatch routeMatch) {
+	public static Route[] generateRoutes(JSONObject masterSchedule) {
 
 		// Create an array to store all the generated routes. This will be returned in the end.
 		ArrayList<Route> routes = new ArrayList<>();
 
 		// Get the data from the master schedule, and store it in a JSONArray.
-		JSONArray data = RouteMatch.parseData(routeMatch.getMasterSchedule());
+		JSONArray data = RouteMatch.parseData(masterSchedule);
 
 		// Iterate through the data array to begin parsing the routes
 		int count = data.length();
@@ -244,5 +252,38 @@ public class Route {
 
 		// Return the array list that contains all the stops as a new Stop array.
 		return returnArray.toArray(new Stop[0]);
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param routeMatch
+	 * @return
+	 */
+	public LatLng[] loadPolyLineCoordinates(RouteMatch routeMatch) {
+		JSONArray data = RouteMatch.parseData(routeMatch.getLandRoute(this));
+		JSONArray points = null;
+		try {
+			points = data.getJSONObject(0).getJSONArray("points");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		if (points != null) {
+			int count = points.length();
+			LatLng[] coordinates = new LatLng[count];
+			for (int index = 0; index < count; index++) {
+				Log.d("loadPolyLineCoordinates", String.format("Parsing coordinate %d/%d", index + 1, count));
+				try {
+					JSONObject object = points.getJSONObject(index);
+					LatLng latLng = new LatLng(object.getDouble("latitude"), object.getDouble("longitude"));
+					coordinates[index] = latLng;
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+			}
+			return coordinates;
+		} else {
+			return new LatLng[0];
+		}
 	}
 }

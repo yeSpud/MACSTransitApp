@@ -17,7 +17,6 @@ import fnsb.macstransit.Threads.Network;
  * @version 3.2
  * @since Beta 1
  */
-@SuppressWarnings("WeakerAccess")
 public class RouteMatch {
 
 	/**
@@ -102,5 +101,15 @@ public class RouteMatch {
 	 */
 	public JSONObject getBuses(Route route) {
 		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + route.routeName, false);
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param route
+	 * @return
+	 */
+	public JSONObject getLandRoute(Route route) {
+		return Network.getJsonFromUrl(this.url + "landRoute/byRoute/" + route.routeName, true);
 	}
 }

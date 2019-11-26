@@ -5,6 +5,8 @@ import android.os.Build;
 import android.util.Log;
 import android.view.View;
 
+import org.json.JSONObject;
+
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
@@ -195,7 +197,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	private boolean hasInternet() {
 		android.net.NetworkInfo activeNetwork = ((android.net.ConnectivityManager) this.getApplicationContext()
 				.getSystemService(android.content.Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
-		return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+		return activeNetwork != null && activeNetwork.isConnected();
 	}
 
 	/**
@@ -249,50 +251,90 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			Log.d("loadData", "Loading routes from master schedule");
 			this.setMessage(R.string.load_routes);
 
-			// Load the routes from the RouteMatch object
-			this.routes = Route.generateRoutes(this.routeMatch);
+			// Get the master schedule from the RouteMatch server
+			JSONObject masterSchedule = this.routeMatch.getMasterSchedule();
+			if (masterSchedule.length() != 0) {
 
-			// If there are routes that were loaded, execute the following:
-			if (this.routes.length != 0) {
+				// Load the routes from the RouteMatch object
+				this.routes = Route.generateRoutes(masterSchedule);
 
-				// TODO Account for polylines
+				// If there are routes that were loaded, execute the following:
+				if (this.routes.length != 0) {
+					if (SettingsPopupWindow.SHOW_POLYLINES) {
+						// Update the progress to 1/3, and inform the user that we are now loading polylines
+						Log.d("loadData", "Loading polylines");
+						this.setProgress(1d / 3d);
+						this.setMessage(R.string.load_polylines);
 
-				// Update the progress to halfway, and inform the user that we are now loading stops.
-				Log.d("loadData", "Loading stops in the routes");
-				this.setProgress(0.5d);
-				this.setMessage(R.string.load_stops);
+						// Load the polyline coordinates into each route
+						for (int polylineIndex = 0; polylineIndex < this.routes.length; polylineIndex++) {
+							Route route = this.routes[polylineIndex];
 
-				// Load the stops in each route.
-				for (int i = 0; i < this.routes.length; i++) {
-					// Get the route at the current index (i) from all the routes that were loaded.
-					Route route = this.routes[i];
+							// Load the polylineCoordinates into the route
+							route.polyLineCoordinates = route.loadPolyLineCoordinates(this.routeMatch);
 
-					// Load the stops in the route.
-					route.stops = route.loadStops(this.routeMatch);
+							// Set the progress to the current index (plus 1) out of the all the routes to be parsed,
+							// and then divide that value in third, as this is the other 33% to be processed.
+							this.setProgress((1d / 3d) + (((polylineIndex + 1d) / this.routes.length) / 3d));
+						}
 
-					// Set the progress to the current index (plus 1) out of the all the routes to be parsed,
-					// and then divide that value in half, as this is the other 50% to be processed.
-					this.setProgress(0.5d + (((i + 1d) / this.routes.length) / 2));
+
+						// Update the progress to 2/3, and inform the user that we are now loading stops.
+						Log.d("loadData", "Loading stops in the routes");
+						this.setProgress(2d / 3d);
+						this.setMessage(R.string.load_stops);
+
+						// Load the stops in each route.
+						for (int i = 0; i < this.routes.length; i++) {
+							// Get the route at the current index (i) from all the routes that were loaded.
+							Route route = this.routes[i];
+
+							// Load the stops in the route.
+							route.stops = route.loadStops(this.routeMatch);
+
+							// Set the progress to the current index (plus 1) out of the all the routes to be parsed,
+							// and then divide that value in third, as this is the other 33% to be processed.
+							this.setProgress((2d / 3d) + (((i + 2d) / this.routes.length) / 3d));
+						}
+					} else {
+						// Update the progress to halfway, and inform the user that we are now loading stops.
+						Log.d("loadData", "Loading stops in the routes");
+						this.setProgress(0.5d);
+						this.setMessage(R.string.load_stops);
+
+						// Load the stops in each route.
+						for (int i = 0; i < this.routes.length; i++) {
+							// Get the route at the current index (i) from all the routes that were loaded.
+							Route route = this.routes[i];
+
+							// Load the stops in the route.
+							route.stops = route.loadStops(this.routeMatch);
+
+							// Set the progress to the current index (plus 1) out of the all the routes to be parsed,
+							// and then divide that value in half, as this is the other 50% to be processed.
+							this.setProgress(0.5d + (((i + 1d) / this.routes.length) / 2d));
+						}
+					}
+
+					// Once all the routes and stops have been loaded,
+					// call the dataLoaded function to mark that we are done and ready to load the maps activity.
+					this.dataLoaded();
+				} else {
+					// No routes were loaded from the master schedule.
+					// This is most likely because its Sunday, and the buses don't run on Sundays.
+					Log.w("loadData", "No routes at this time");
+					this.setMessage(R.string.no_routes);
+
+					// Also add a chance for the user to retry
+					this.showRetryButton();
 				}
-
-				// Once all the routes and stops have been loaded,
-				// call the dataLoaded function to mark that we are done and ready to load the maps activity.
-				this.dataLoaded();
 			} else {
 				// Since there were no routes to be loaded, inform the user.
 				Log.w("loadData", "Unable to load routes!");
-				this.setMessage(R.string.no_routes);
+				this.setMessage(R.string.no_schedule);
 
 				// Also add a chance to restart the activity to retry...
-				this.runOnUiThread(() -> {
-					// First hide the progress bar since it is no longer of use.
-					this.progressBar.setVisibility(View.INVISIBLE);
-
-					// Then setup the button to relaunch the activity, and make it visible.
-					this.button.setText(R.string.retry);
-					this.button.setOnClickListener((click) -> this.onResume());
-					this.button.setVisibility(View.VISIBLE);
-				});
+				this.showRetryButton();
 			}
 		});
 
@@ -318,5 +360,17 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Start the MapsActivity, and close this splash activity.
 		this.startActivity(new Intent(this, MapsActivity.class));
 		this.finish();
+	}
+
+	private void showRetryButton() {
+		this.runOnUiThread(() -> {
+			// First hide the progress bar since it is no longer of use.
+			this.progressBar.setVisibility(View.INVISIBLE);
+
+			// Then setup the button to relaunch the activity, and make it visible.
+			this.button.setText(R.string.retry);
+			this.button.setOnClickListener((click) -> this.onResume());
+			this.button.setVisibility(View.VISIBLE);
+		});
 	}
 }
