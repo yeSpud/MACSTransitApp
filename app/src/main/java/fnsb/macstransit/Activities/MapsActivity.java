@@ -179,6 +179,15 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				// Draw the buses.
 				Bus.drawBuses(this.selectedRoutes, this.map);
 
+				// If enabled, draw polylines
+				if (SettingsPopupWindow.SHOW_POLYLINES) {
+					for (Route route : this.selectedRoutes) {
+						if (route.getPolyline() == null) {
+							route.createPolyline(this.map);
+						}
+					}
+				}
+
 				// (Re) draw the stops onto the map
 				this.drawStops();
 
@@ -334,4 +343,5 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				MapStyleOptions.loadRawResourceStyle(this, R.raw.nightmode) :
 				MapStyleOptions.loadRawResourceStyle(this, R.raw.standard));
 	}
+
 }

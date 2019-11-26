@@ -2,8 +2,10 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.Polyline;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -12,7 +14,9 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import fnsb.macstransit.Activities.ActivityListeners.Helpers;
 import fnsb.macstransit.Activities.MapsActivity;
+import fnsb.macstransit.Activities.SettingsPopupWindow;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
@@ -52,6 +56,11 @@ public class Route {
 	 * TODO Documentation
 	 */
 	public LatLng[] polyLineCoordinates;
+
+	/**
+	 * TODO Documentation
+	 */
+	private Polyline polyline;
 
 	/**
 	 * Constructor for the route. The name of the route is the only thing that is required.
@@ -188,6 +197,12 @@ public class Route {
 				}
 				route.buses = new Bus[0];
 
+				Polyline polyline = route.getPolyline();
+				if (polyline != null) {
+					polyline.remove();
+					route.polyline = null;
+				}
+
 				routes.remove(route);
 				break;
 			}
@@ -285,5 +300,23 @@ public class Route {
 		} else {
 			return new LatLng[0];
 		}
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @return
+	 */
+	public Polyline getPolyline() {
+		return this.polyline;
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param map
+	 */
+	public void createPolyline(GoogleMap map) {
+		this.polyline = Helpers.createPolyLine(this, map);
 	}
 }

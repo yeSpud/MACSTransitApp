@@ -362,6 +362,9 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		this.finish();
 	}
 
+	/**
+	 * TODO Documentation
+	 */
 	private void showRetryButton() {
 		this.runOnUiThread(() -> {
 			// First hide the progress bar since it is no longer of use.

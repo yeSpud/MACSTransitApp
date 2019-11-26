@@ -12,6 +12,8 @@ import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -298,6 +300,20 @@ public class Helpers {
 		checkBox.setOnCheckedChangeListener((a, checkedValue) -> settingsPopupWindow.changeApplyButton(checkedValue, checked, button));
 		checkBox.setTag(tag);
 		return checkBox;
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param route
+	 * @param map
+	 * @return
+	 */
+	public static Polyline createPolyLine(Route route, GoogleMap map) {
+		PolylineOptions options = new PolylineOptions().add(route.polyLineCoordinates);
+		options.clickable(false);
+		options.color(route.color);
+		options.visible(true);
+		return map.addPolyline(options);
 	}
 
 }
