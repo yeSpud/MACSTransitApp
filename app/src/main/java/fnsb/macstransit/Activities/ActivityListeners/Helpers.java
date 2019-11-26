@@ -284,6 +284,7 @@ public class Helpers {
 
 	/**
 	 * TODO Documentation
+	 *
 	 * @param view
 	 * @param id
 	 * @param checked
@@ -294,7 +295,7 @@ public class Helpers {
 	public static CheckBox createSettingsPopupCheckbox(View view, int id, boolean checked, Button button, SettingsPopupWindow settingsPopupWindow, String tag) {
 		CheckBox checkBox = view.findViewById(id);
 		checkBox.setChecked(checked);
-		checkBox.setOnCheckedChangeListener((a, checkedValue) -> settingsPopupWindow.changeApplyButton(checkedValue, button));
+		checkBox.setOnCheckedChangeListener((a, checkedValue) -> settingsPopupWindow.changeApplyButton(checkedValue, checked, button));
 		checkBox.setTag(tag);
 		return checkBox;
 	}

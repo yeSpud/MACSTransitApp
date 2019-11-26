@@ -250,12 +250,13 @@ public class SettingsPopupWindow extends AlertDialog {
 	/**
 	 * TODO
 	 *
-	 * @param adjustValue
+	 * @param defaultValue
+	 * @param newValue
 	 * @param button
 	 */
-	public void changeApplyButton(boolean adjustValue, Button button) {
+	public void changeApplyButton(boolean defaultValue, boolean newValue, Button button) {
 		// FIXME
-		this.changedSum = adjustValue ? this.changedSum + 1 : this.changedSum - 1;
+		this.changedSum = (newValue != defaultValue) ? this.changedSum + 1 : this.changedSum - 1;
 		Log.d("showSettingsPopup", "Updated changedSum to " + this.changedSum);
 		button.setEnabled(this.changedSum > 0);
 	}
