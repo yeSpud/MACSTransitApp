@@ -10,7 +10,6 @@ import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 import fnsb.macstransit.Activities.ActivityListeners.Helpers;
 import fnsb.macstransit.R;
@@ -26,31 +25,33 @@ import fnsb.macstransit.R;
 public class SettingsPopupWindow extends AlertDialog {
 
 	/**
-	 * TODO Documentation
+	 * Various string constants used by this class,
+	 * such as the key names for various settings, or the file name for the settings file.
 	 */
 	private static final String TRAFFIC_KEY = "Enable Traffic View",
 			NIGHT_MODE_KEY = "Enable Dark Theme", POLYLINES_KEY = "Show Polylines",
 			VR_KEY = "Show VR Options", FILENAME = "settings.txt";
 
 	/**
-	 * TODO Documentation
+	 * Booleans used by the application to determine what settings should be enabled during initialization.
 	 */
 	public static boolean ENABLE_TRAFFIC_VIEW, DEFAULT_NIGHT_MODE, SHOW_POLYLINES, ENABLE_VR_OPTIONS;
 
 	/**
-	 * TODO Documentation
+	 * Context object used to create various elements and widgets.
 	 */
 	private Context context;
 
 	/**
-	 * TODO Documentation
+	 * Variable used to track how many changes are to be applied when writing new settings.
+	 * This is also used to determine whether or not the apply button should be enabled or disabled.
 	 */
 	private int changedSum = 0;
 
 	/**
-	 * TODO Documentation
+	 * Constructor for the Settings popup window.
 	 *
-	 * @param context
+	 * @param context The context this class is being called from (the activity).
 	 */
 	public SettingsPopupWindow(Context context) {
 		super(context);
@@ -58,9 +59,10 @@ public class SettingsPopupWindow extends AlertDialog {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Loads the settings from the settings file,
+	 * and stores them in the static global variables for this class.
 	 *
-	 * @param context
+	 * @param context The context of the application (the activity that this is being called from).
 	 */
 	public static void loadSettings(Context context) {
 		// First get the settings file
@@ -116,9 +118,9 @@ public class SettingsPopupWindow extends AlertDialog {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Creates a new settings file with default values.
 	 *
-	 * @param context
+	 * @param context The context of the application (the activity that this is being called from).
 	 */
 	private static void createSettingsFile(Context context) {
 		Log.d("createSettingsFile", "Creating new settings file");
@@ -134,12 +136,13 @@ public class SettingsPopupWindow extends AlertDialog {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Reads the content of the settings file, and splits on the new line.
 	 * <p>
+	 * Derived from:
 	 * https://developer.android.com/training/data-storage/app-specific#internal-access-stream
 	 *
-	 * @param context
-	 * @return
+	 * @param context The context of the application (the activity that this is being called from).
+	 * @return The content of the settings file as a string array. Each new line is a new string.
 	 */
 	private static String[] readFile(Context context) {
 		java.io.FileInputStream fis = null;
@@ -149,9 +152,9 @@ public class SettingsPopupWindow extends AlertDialog {
 			e.printStackTrace();
 		}
 		if (fis != null) {
-			InputStreamReader inputStreamReader = new InputStreamReader(fis, java.nio.charset.StandardCharsets.UTF_8);
 			StringBuilder stringBuilder = new StringBuilder();
-			try (BufferedReader reader = new BufferedReader(inputStreamReader)) {
+			try (BufferedReader reader = new BufferedReader(new java.io.
+					InputStreamReader(fis, java.nio.charset.StandardCharsets.UTF_8))) {
 				String line = reader.readLine();
 				while (line != null) {
 					stringBuilder.append(line).append("\n");
@@ -169,11 +172,13 @@ public class SettingsPopupWindow extends AlertDialog {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Writes a given string to the settings file.
+	 * <p>
+	 * Derived from:
 	 * https://developer.android.com/training/data-storage/app-specific#internal-store-stream
 	 *
-	 * @param string
-	 * @param context
+	 * @param string  The string to write to the file.
+	 * @param context The context of the application (the activity that this is being called from).
 	 */
 	private static void writeToFile(String string, Context context) {
 		try (java.io.FileOutputStream fos = context.openFileOutput(SettingsPopupWindow.FILENAME, Context.MODE_PRIVATE)) {
@@ -184,14 +189,16 @@ public class SettingsPopupWindow extends AlertDialog {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Writes all the settings to the file by determining which checkboxes are checked and unchecked.
 	 *
-	 * @param context
-	 * @param checkBoxes
+	 * @param checkBoxes The checkboxes that dictate the current settings.
 	 */
-	private void writeSettings(Context context, CheckBox... checkBoxes) {
+	private void writeSettings(CheckBox... checkBoxes) {
 		// First, create the string based off the check boxes, and whether or no they are checked
 		StringBuilder builder = new StringBuilder();
+
+		// Then iterate through each checkbox, and determine the String name,
+		// and whether or not the box has been checked.
 		for (CheckBox box : checkBoxes) {
 			Object tag = box.getTag();
 			if (tag != null) {
@@ -202,19 +209,22 @@ public class SettingsPopupWindow extends AlertDialog {
 		}
 
 		// Then, write that string to the settings file.
-		SettingsPopupWindow.writeToFile(builder.toString(), context);
+		SettingsPopupWindow.writeToFile(builder.toString(), this.context);
 	}
 
 	/**
-	 * TODO Documentation
+	 * Creates and shows the settings popup dialog.
 	 */
 	public void showSettingsPopup() {
-		android.view.ViewGroup viewGroup = this.findViewById(R.id.content);
-		android.view.View dialogView = android.view.LayoutInflater.from(this.context).inflate(R.layout.settings_popup,
-				viewGroup, false);
+		// Find and inflate the settings view.
+		android.view.View dialogView = android.view.LayoutInflater.from(this.context)
+				.inflate(R.layout.settings_popup, this.findViewById(R.id.content), false);
 
+
+		// Setup the apply button.
 		final Button applyButton = dialogView.findViewById(R.id.apply);
 
+		// Create the checkboxes in the settings popup menu.
 		final CheckBox trafficBox = Helpers.createSettingsPopupCheckbox(dialogView, R.id.traffic,
 				SettingsPopupWindow.ENABLE_TRAFFIC_VIEW, applyButton, this,
 				SettingsPopupWindow.TRAFFIC_KEY),
@@ -228,7 +238,7 @@ public class SettingsPopupWindow extends AlertDialog {
 						SettingsPopupWindow.ENABLE_VR_OPTIONS, applyButton, this,
 						SettingsPopupWindow.VR_KEY);
 
-
+		// Create the dialog via the alert dialog builder.
 		AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
 		builder.setView(dialogView);
 		AlertDialog alertDialog = builder.create();
@@ -238,7 +248,7 @@ public class SettingsPopupWindow extends AlertDialog {
 
 		// Setup the apply button click listener
 		applyButton.setOnClickListener((click) -> {
-			this.writeSettings(this.context, trafficBox, nightBox, polyBox, VRBox);
+			this.writeSettings(trafficBox, nightBox, polyBox, VRBox);
 			Toast.makeText(this.context, R.string.restart_required, Toast.LENGTH_LONG).show();
 			alertDialog.cancel();
 		});
@@ -248,13 +258,15 @@ public class SettingsPopupWindow extends AlertDialog {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Sets the apply button to be enabled or disabled depending on the changedSum value.
 	 *
-	 * @param defaultValue
-	 * @param newValue
-	 * @param button
+	 * @param defaultValue The default value of the boolean.
+	 * @param newValue     The current value of the boolean.
+	 * @param button       The apply button.
 	 */
 	public void changeApplyButton(boolean defaultValue, boolean newValue, Button button) {
+		// If the default current value is different than the default value, increase the change sum by 1.
+		// If the two values are the same, decrease the change sum by 1.
 		this.changedSum = (newValue != defaultValue) ? this.changedSum + 1 : this.changedSum - 1;
 		Log.d("showSettingsPopup", "Updated changedSum to " + this.changedSum);
 		button.setEnabled(this.changedSum > 0);
