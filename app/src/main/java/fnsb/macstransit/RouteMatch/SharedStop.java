@@ -53,7 +53,6 @@ public class SharedStop extends MarkedObject {
 	 * @param longitude The longitude of the Stop.
 	 * @param routes    The routes that this Stop corresponds to.
 	 */
-	@SuppressWarnings("WeakerAccess")
 	public SharedStop(String stopID, double latitude, double longitude, Route[] routes) {
 		this.stopID = stopID;
 		this.latitude = latitude;
@@ -75,11 +74,11 @@ public class SharedStop extends MarkedObject {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Finds stops that are shared by different routes, as well as current shared stops.
 	 *
-	 * @param routes
-	 * @param currentSharedStops
-	 * @return
+	 * @param routes             The routes to check for shared stops.
+	 * @param currentSharedStops Previous shared stops.
+	 * @return An array of Shared Stops that were found.
 	 */
 	public static SharedStop[] findSharedStops(Route[] routes, SharedStop[] currentSharedStops) {
 
@@ -139,10 +138,10 @@ public class SharedStop extends MarkedObject {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Adds the shared stops to the map.
 	 *
-	 * @param map
-	 * @param sharedStops
+	 * @param map         The map to add the shared stops to.
+	 * @param sharedStops The array of shared stops to be added to the map.
 	 */
 	public static void addSharedStop(com.google.android.gms.maps.GoogleMap map, SharedStop[] sharedStops) {
 		for (SharedStop sharedStop : sharedStops) {
@@ -172,10 +171,10 @@ public class SharedStop extends MarkedObject {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Clears all the elements from the shared stop (as in removes the markers and circles from the map).
 	 *
-	 * @param sharedStops
-	 * @return
+	 * @param sharedStops The array of shared stops to remove from the map.
+	 * @return An array of shared stops with the size of 0.
 	 */
 	public static SharedStop[] clearSharedStops(SharedStop[] sharedStops) {
 		Log.d("clearSharedStops", "Clearing all sharedStops");
