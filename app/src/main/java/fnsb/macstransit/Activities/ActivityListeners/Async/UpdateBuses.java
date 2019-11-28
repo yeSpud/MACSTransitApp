@@ -96,7 +96,7 @@ public class UpdateBuses extends android.os.AsyncTask<Route, Void, Route[]> {
 		// Finally, return the initial routes, but with the updated buses.
 		return routes;
 	}
-	
+
 	/**
 	 * Runs on the UI thread after doInBackground(Params...).
 	 * The specified result is the value returned by doInBackground(Params...).
