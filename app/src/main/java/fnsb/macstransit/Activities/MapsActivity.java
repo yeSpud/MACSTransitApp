@@ -304,7 +304,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.map.setOnInfoWindowCloseListener(new fnsb.macstransit.Activities.ActivityListeners.StopDeselected());
 
 		// Set it so that when an info window is clicked on, it launches a popup window
-		this.map.setOnInfoWindowClickListener(new StopPopupWindow(this));
+		this.map.setOnInfoWindowClickListener(new PopupWindow(this));
 
 		// Enable traffic overlay based on settings.
 		this.map.setTrafficEnabled(SettingsPopupWindow.ENABLE_TRAFFIC_VIEW);

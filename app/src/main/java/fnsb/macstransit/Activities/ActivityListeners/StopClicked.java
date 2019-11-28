@@ -7,7 +7,7 @@ import com.google.android.gms.maps.model.Marker;
 
 import fnsb.macstransit.Activities.InfoWindowAdapter;
 import fnsb.macstransit.Activities.MapsActivity;
-import fnsb.macstransit.Activities.StopPopupWindow;
+import fnsb.macstransit.Activities.PopupWindow;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 
@@ -64,7 +64,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 							((SharedStop) stop).routes, stop instanceof SharedStop);
 
 			// Load the times string into a popup window for when its clicked on.
-			StopPopupWindow.body = string;
+			PopupWindow.body = string;
 
 			// Check to see how many new lines there are in the display.
 			// If there are more than the maximum lines allowed bu the info window adapter,
