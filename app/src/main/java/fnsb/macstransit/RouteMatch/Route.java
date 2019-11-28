@@ -55,7 +55,7 @@ public class Route {
 	/**
 	 * TODO Documentation
 	 */
-	public LatLng[] polyLineCoordinates;
+	public LatLng[] polyLineCoordinates = new LatLng[0];
 
 	/**
 	 * TODO Documentation

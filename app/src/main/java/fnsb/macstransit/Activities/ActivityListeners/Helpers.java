@@ -1,21 +1,14 @@
 package fnsb.macstransit.Activities.ActivityListeners;
 
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 import android.widget.CheckBox;
 
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -23,10 +16,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import fnsb.macstransit.Activities.SettingsPopupWindow;
 import fnsb.macstransit.RouteMatch.BasicStop;
 import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 
 /**
@@ -50,10 +41,10 @@ public class Helpers {
 	 * @param color The desired color value as an int.
 	 * @return The BitmapDescriptor used for defining the color of a markers's icon.
 	 */
-	public static BitmapDescriptor getMarkerIcon(int color) {
+	public static com.google.android.gms.maps.model.BitmapDescriptor getMarkerIcon(int color) {
 		float[] hsv = new float[3];
 		android.graphics.Color.colorToHSV(color, hsv);
-		return BitmapDescriptorFactory.defaultMarker(hsv[0]);
+		return com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]);
 	}
 
 	/**
@@ -79,7 +70,7 @@ public class Helpers {
 		}
 		Log.i("loadAllStops", String.format("Successfully loaded %d stops", stops.size()));
 
-		// Convert the stop arraylist to an array of stops, and return it.
+		// Convert the stop array list to an array of stops, and return it.
 		return stops.toArray(new BasicStop[0]);
 	}
 
@@ -93,7 +84,7 @@ public class Helpers {
 	 * @param clickable Whether or not this circle should be clickable.
 	 * @return The generated circle.
 	 */
-	public static Circle addCircle(GoogleMap map, CircleOptions options, Object tag, boolean clickable) {
+	public static Circle addCircle(GoogleMap map, com.google.android.gms.maps.model.CircleOptions options, Object tag, boolean clickable) {
 		// Add the circle to the map.
 		Circle circle = map.addCircle(options);
 
@@ -145,19 +136,21 @@ public class Helpers {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Helper function that formats a string containing the arrival and departure times that is to be used in the body section of a stop info window.
 	 *
-	 * @param stopArray
-	 * @param count
-	 * @param expectedArrivalString
-	 * @param expectedDepartureString
-	 * @param is24Hour
-	 * @param routes
-	 * @param includeRouteName
-	 * @return
-	 * @throws JSONException
+	 * @param stopArray               The JSONArray containing the times to be formatted.
+	 * @param count                   The number of stops to parse the time for.
+	 * @param expectedArrivalString   The expected arrival place holder string.
+	 * @param expectedDepartureString THe expected departure placeholder string.
+	 * @param is24Hour                Whether or not the user is using 24 hour time or not.
+	 * @param routes                  The routes that correspond to the times that need to be parsed.
+	 * @param includeRouteName        Whether or not to include the route name in the final string corresponding to the times.
+	 * @return The formatted time string (to be used in the body section of an info window).
+	 * @throws JSONException Thrown if there are any exceptions when parsing the JSONObjects.
 	 */
-	public static String generateTimeString(JSONArray stopArray, int count, String expectedArrivalString, String expectedDepartureString, boolean is24Hour, Route[] routes, boolean includeRouteName) throws JSONException {
+	public static String generateTimeString(org.json.JSONArray stopArray, int count, String expectedArrivalString,
+	                                        String expectedDepartureString, boolean is24Hour,
+	                                        Route[] routes, boolean includeRouteName) throws JSONException {
 
 		StringBuilder snippetText = new StringBuilder();
 
@@ -251,28 +244,32 @@ public class Helpers {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Helper function that finds the stop within a shared stop based on the route in common.
 	 *
-	 * @param sharedStop
-	 * @return
+	 * @param sharedStop The shared stop to look through.
+	 * @return The stop that is contained within the shared stop, or null if none exists.
 	 */
-	public static Stop findStopInSharedStop(SharedStop sharedStop) {
+	public static Stop findStopInSharedStop(fnsb.macstransit.RouteMatch.SharedStop sharedStop) {
+		// Iterate through the routes within the shared stop
 		for (Route route : sharedStop.routes) {
+			// Iterate through the stops withing that route.
 			for (Stop stop : route.stops) {
+				// If the stop equals the route ID, return that stop.
 				if (stop.stopID.equals(sharedStop.stopID)) {
 					return stop;
 				}
 			}
 		}
+		// If no stop was ever found, return null.
 		return null;
 	}
 
 	/**
-	 * TODO Documentation
+	 * Helper function that determines the number of times a given character occurs within a given string.
 	 *
-	 * @param character
-	 * @param string
-	 * @return
+	 * @param character The character to get the number of occurrences of.
+	 * @param string    The string to check.
+	 * @return The number of times that character occurs within the given within the given string.
 	 */
 	public static int getCharacterOccurrence(char character, String string) {
 		int count = 0;
@@ -285,34 +282,57 @@ public class Helpers {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Creates a checkbox for the settings popup window.
+	 * This also sets up a listener for when the checkbox is checked to update the apply button value based on the checkboxes changed value.
 	 *
-	 * @param view
-	 * @param id
-	 * @param checked
-	 * @param button
-	 * @param settingsPopupWindow
-	 * @return
+	 * @param view                The view to get the checkbox from.
+	 * @param id                  The id of the check box.
+	 * @param checked             Whether or not the checkbox should be checked by default.
+	 * @param button              The apply button for the settings popup window.
+	 * @param settingsPopupWindow The settings popup window class.
+	 * @return The newly created checkbox.
 	 */
-	public static CheckBox createSettingsPopupCheckbox(View view, int id, boolean checked, Button button, SettingsPopupWindow settingsPopupWindow, String tag) {
+	public static CheckBox createSettingsPopupCheckbox(android.view.View view, int id, boolean checked,
+	                                                   android.widget.Button button,
+	                                                   fnsb.macstransit.Activities.SettingsPopupWindow settingsPopupWindow,
+	                                                   String tag) {
+		// Find the checkbox within the view.
 		CheckBox checkBox = view.findViewById(id);
+
+		// Set the checkbox to be checked based on the checked value.
 		checkBox.setChecked(checked);
+
+		// Add an onCheckChanged listener to update the apply button.
 		checkBox.setOnCheckedChangeListener((a, checkedValue) -> settingsPopupWindow.changeApplyButton(checkedValue, checked, button));
+
+		// Set the tag of the checkbox.
 		checkBox.setTag(tag);
+
+		// Return the newly created checkbox.
 		return checkBox;
 	}
 
 	/**
-	 * TODO Documentation
-	 * @param route
-	 * @param map
-	 * @return
+	 * Helper function that creates the polyline for the specified route.
+	 *
+	 * @param route The route that the polyline corresponds to.
+	 * @param map   The map that will have the polyline added to.
+	 * @return The polyline (already added to the map, and set to be visible).
 	 */
-	public static Polyline createPolyLine(Route route, GoogleMap map) {
+	public static com.google.android.gms.maps.model.Polyline createPolyLine(Route route, GoogleMap map) {
+		// Add the polyline based off the polyline coordinates within the route.
 		PolylineOptions options = new PolylineOptions().add(route.polyLineCoordinates);
+
+		// Make sure its not clickable.
 		options.clickable(false);
+
+		// Set the color of the polylines based on the route color.
 		options.color(route.color);
+
+		// Make sure the polyline is visible.
 		options.visible(true);
+
+		// Add the polyline to the map, and return it.
 		return map.addPolyline(options);
 	}
 
