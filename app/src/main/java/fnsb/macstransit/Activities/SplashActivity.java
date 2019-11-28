@@ -237,14 +237,13 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 	/**
 	 * Creates the thread that will be used to parse the routematch object,
-	 * load the routes from the routematch object,
+	 * load the routes from the routematch object, load the routes polylines (if enabled),
 	 * and load the stops from the routes.
 	 *
 	 * @return The thread created. Note that this has not been started at this point,
 	 * so start() needs to be called in order for this to run.
 	 */
 	private Thread loadData() {
-		// TODO Update comments
 		// Create a thread that will be used to load the data.
 		Thread t = new Thread(() -> {
 
@@ -261,7 +260,10 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 				// If there are routes that were loaded, execute the following:
 				if (this.routes.length != 0) {
+
+					// If polylines are enabled, execute the following:
 					if (SettingsPopupWindow.SHOW_POLYLINES) {
+
 						// Update the progress to 1/3, and inform the user that we are now loading polylines
 						Log.d("loadData", "Loading polylines");
 						this.setProgress(1d / 3d);
@@ -278,7 +280,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 							// and then divide that value in third, as this is the other 33% to be processed.
 							this.setProgress((1d / 3d) + (((polylineIndex + 1d) / this.routes.length) / 3d));
 						}
-
 
 						// Update the progress to 2/3, and inform the user that we are now loading stops.
 						Log.d("loadData", "Loading stops in the routes");
@@ -364,7 +365,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Shows the retry button by setting the view to visible, hiding the progress bar,
+	 * and by setting the click action of the button to launch the onResume() method once again.
 	 */
 	private void showRetryButton() {
 		this.runOnUiThread(() -> {
