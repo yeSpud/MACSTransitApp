@@ -16,7 +16,6 @@ import fnsb.macstransit.Activities.ActivityListeners.Helpers;
  * @version 1.2
  * @since beta 6.
  */
-@SuppressWarnings("WeakerAccess")
 public class Stop extends BasicStop {
 
 	/**
@@ -80,11 +79,13 @@ public class Stop extends BasicStop {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Adds a stop to the map based on the routes.
+	 * This will not add the stop to the map if it is a shared stop.
+	 * Because of this check, this should be called after the sharedStops have been found and created.
 	 *
-	 * @param map
-	 * @param routes
-	 * @param sharedStops
+	 * @param map         The map to add the stops to.
+	 * @param routes      The routes to add the stops to.
+	 * @param sharedStops The array of shared stops to check if the stops have already been added.
 	 */
 	public static void addStop(com.google.android.gms.maps.GoogleMap map, Route[] routes, SharedStop[] sharedStops) {
 		for (Route route : routes) {
@@ -118,9 +119,9 @@ public class Stop extends BasicStop {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Clears all the stops in the provided routes.
 	 *
-	 * @param routes
+	 * @param routes The routes to have the stops cleared from.
 	 */
 	public static void removeStops(Route[] routes) {
 		Log.d("removeStops", "Clearing all stops");

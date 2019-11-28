@@ -23,6 +23,6 @@ See the [LICENSE](LICENSE) file for details.
 
 ## Disclaimer(s)
 
-MACS (Metropolitan Area Commuter System) Transit is not affilated with the MACSTransitApp or its contributors, and is Copyright © 2015 FNSB - All Rights Reserved.
+MACS (Metropolitan Area Commuter System) Transit is not affilIated with the MACSTransitApp or its contributors, and is Copyright © 2015 FNSB - All Rights Reserved.
 
-RouteMatch, and RouteMatch Software is not affiliated with with the MACSTransitApp or its contributors, and is Copyright © 2019 Routematch Software - All Rights Reserved. 
+RouteMatch, and RouteMatch Software is not affiliated with the MACSTransitApp or its contributors, and is Copyright © 2019 Routematch Software - All Rights Reserved. 
