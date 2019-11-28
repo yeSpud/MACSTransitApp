@@ -4,18 +4,17 @@ import android.util.Log;
 import android.view.Menu;
 
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 
 import fnsb.macstransit.Activities.ActivityListeners.AdjustZoom;
 import fnsb.macstransit.R;
-import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 import fnsb.macstransit.Threads.UpdateThread;
 
-public class MapsActivity extends androidx.fragment.app.FragmentActivity implements com.google.android.gms.maps.OnMapReadyCallback {
+public class MapsActivity extends androidx.fragment.app.FragmentActivity implements
+		com.google.android.gms.maps.OnMapReadyCallback {
 
 	/**
 	 * Create an array of all the routes that are used by the transit system. For now leave it uninitialized,
@@ -129,12 +128,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	@Override
 	public boolean onOptionsItemSelected(android.view.MenuItem item) {
-		// TODO Update comments
 		switch (item.getGroupId()) {
 			// Check if the item that was selected belongs to the other group
 			case R.id.other:
 				switch (item.getItemId()) {
-					// TODO Comment
+					// Check if the item that was selected was the night mode toggle.
 					case R.id.night_mode:
 						Log.d("onOptionsItemSelected", "Toggling night mode...");
 
@@ -147,7 +145,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 						// Set the menu item's checked value to that of the enabled value
 						item.setChecked(enabled);
 						break;
-					// TODO Comment
+					// Check if the item that was selected was the settings button.
 					case R.id.settings:
 						Log.d("onOptionsItemSelected", "Showing settings dialog...");
 						SettingsPopupWindow settingsPopupWindow = new SettingsPopupWindow(this);
@@ -178,7 +176,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 
 				// Draw the buses.
-				Bus.drawBuses(this.selectedRoutes, this.map);
+				fnsb.macstransit.RouteMatch.Bus.drawBuses(this.selectedRoutes, this.map);
 
 				// If enabled, draw polylines
 				if (SettingsPopupWindow.SHOW_POLYLINES) {
@@ -289,8 +287,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.map = googleMap;
 
 		// Move the camera to the 'home' position
-		LatLng home = new LatLng(64.8391975, -147.7684709);
-		this.map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(home, 11.0f));
+		this.map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory
+				.newLatLngZoom(new com.google.android.gms.maps.model
+						.LatLng(64.8391975, -147.7684709), 11.0f));
 
 		// Add a listener for when the camera has become idle (ie was moving isn't anymore).
 		this.map.setOnCameraIdleListener(new AdjustZoom(this));
@@ -334,15 +333,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * TODO Documentation
+	 * Toggles the map's night mode (dark theme).
 	 *
-	 * @param enabled
+	 * @param enabled Whether to toggle the maps night mode
 	 */
 	public void toggleNightMode(boolean enabled) {
-		// Toggle night mode
 		this.map.setMapStyle(enabled ?
 				MapStyleOptions.loadRawResourceStyle(this, R.raw.nightmode) :
 				MapStyleOptions.loadRawResourceStyle(this, R.raw.standard));
 	}
-
 }
