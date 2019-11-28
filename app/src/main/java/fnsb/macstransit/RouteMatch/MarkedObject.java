@@ -13,23 +13,23 @@ import com.google.android.gms.maps.model.Marker;
 public class MarkedObject {
 
 	/**
-	 * TODO Documentation
+	 * The marker of the marker of the marked object.
 	 */
 	private Marker marker;
 
 	/**
-	 * TODO Documentation
+	 * Retrieves the marker of the object.
 	 *
-	 * @return
+	 * @return The marker.
 	 */
 	public Marker getMarker() {
 		return this.marker;
 	}
 
 	/**
-	 * TODO Documentation
+	 * Sets the marker of the object.
 	 *
-	 * @param marker
+	 * @param marker The marker to be set.
 	 */
 	public void setMarker(Marker marker) {
 		this.marker = marker;
