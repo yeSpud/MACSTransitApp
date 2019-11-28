@@ -96,7 +96,7 @@ public class RouteMatch {
 	/**
 	 * Gets the route data from the RouteMatch server.
 	 *
-	 * @param route The specific route to be fetched fetched.
+	 * @param route The specific route to be fetched.
 	 * @return The JSONObject pertaining to that specific route's data.
 	 */
 	public JSONObject getBuses(Route route) {
@@ -104,10 +104,11 @@ public class RouteMatch {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Gets the land route (the route the buses will take) of a particular route from the RouteMatch server.
 	 *
-	 * @param route
-	 * @return
+	 * @param route The route to be fetched.
+	 * @return The JSONObject pertaining to the specific route's route
+	 * (what route it will take as a series of latitude and longitude coordinates).
 	 */
 	public JSONObject getLandRoute(Route route) {
 		return Network.getJsonFromUrl(this.url + "landRoute/byRoute/" + route.routeName, true);
