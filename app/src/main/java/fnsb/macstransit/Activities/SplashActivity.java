@@ -5,8 +5,6 @@ import android.os.Build;
 import android.util.Log;
 import android.view.View;
 
-import org.json.JSONObject;
-
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
@@ -22,7 +20,9 @@ import fnsb.macstransit.RouteMatch.RouteMatch;
 public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 	/**
-	 * Create a variable to check if the map activity has already been loaded (as to determine if the app needs to close when the back button is clicked, or just needs to refresh the activity)
+	 * Create a variable to check if the map activity has already been loaded
+	 * (as to determine if the app needs to close when the back button is clicked,
+	 * or just needs to refresh the activity)
 	 */
 	public static boolean loaded = false;
 
@@ -244,6 +244,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * so start() needs to be called in order for this to run.
 	 */
 	private Thread loadData() {
+		// TODO Update comments
 		// Create a thread that will be used to load the data.
 		Thread t = new Thread(() -> {
 
@@ -252,7 +253,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.setMessage(R.string.load_routes);
 
 			// Get the master schedule from the RouteMatch server
-			JSONObject masterSchedule = this.routeMatch.getMasterSchedule();
+			org.json.JSONObject masterSchedule = this.routeMatch.getMasterSchedule();
 			if (masterSchedule.length() != 0) {
 
 				// Load the routes from the RouteMatch object

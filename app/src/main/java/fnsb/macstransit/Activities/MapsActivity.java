@@ -128,7 +128,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * @return Return false to allow normal menu processing to proceed, true to consume it here.
 	 */
 	@Override
-	public boolean onOptionsItemSelected(android.view.MenuItem item) { // TODO Update comments
+	public boolean onOptionsItemSelected(android.view.MenuItem item) {
+		// TODO Update comments
 		switch (item.getGroupId()) {
 			// Check if the item that was selected belongs to the other group
 			case R.id.other:

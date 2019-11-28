@@ -50,7 +50,7 @@ public class RouteMatch {
 		try {
 			return object.getJSONArray("data");
 		} catch (org.json.JSONException e) {
-			android.util.Log.w("parseData", "Unable to parse data!");
+			Log.w("parseData", "Unable to parse data!");
 			return new JSONArray();
 		}
 	}

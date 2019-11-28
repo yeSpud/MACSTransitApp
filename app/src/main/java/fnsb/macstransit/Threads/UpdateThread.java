@@ -40,7 +40,6 @@ public class UpdateThread {
 	 *
 	 * @param activity The MapsActivity (this should be the main activity).
 	 */
-	@SuppressWarnings("WeakerAccess")
 	public UpdateThread(MapsActivity activity) {
 		this.activity = activity;
 	}
@@ -65,20 +64,23 @@ public class UpdateThread {
 	 */
 	public Thread thread() {
 		return new Thread(() -> {
-
 			// For debugging purposes, let the poor developer know when the thread has started.
 			Log.w("Update thread", "Starting up...");
 
-			// Loop continuously while the run variable is true, and  the thread hasn't been interrupted for whatever reason.
+			// Loop continuously while the run variable is true, and the thread hasn't been interrupted.
 			while (this.run && !Thread.interrupted()) {
 
-				// Make a copy of the selected routes array to run iterations on (to avoid the ConcurrentModificationException of death).
+				// Make a copy of the selected routes array to run iterations on (to avoid Concurrent Modification Exceptions).
 				fnsb.macstransit.RouteMatch.Route[] routes = this.activity.selectedRoutes;
 
-				// If there are no selected routes, loop quickly (every quarter second) rather than the set frequency.
-				if (routes.length != 0) {
-					// TODO Update comments
-					// For each of the selected routes from the activity, retrieve one, and execute the following
+				/*
+				 * If there are no selected routes,
+				 * loop quickly (every quarter second) rather than the set frequency.
+				 * If there are selected routes (route length will be greater than 0),
+				 * update the bus positions on the map (and do so on the UI thread).
+				 * Then, sleep for the given update frequency.
+				 */
+				if (routes.length > 0) {
 					this.activity.runOnUiThread(() -> new fnsb.macstransit.Activities
 							.ActivityListeners.Async.UpdateBuses(this.activity.map).execute(routes));
 
@@ -90,8 +92,7 @@ public class UpdateThread {
 					}
 					Thread.yield();
 				} else {
-
-					// Quick sleep since there are no routes to track
+					// Quick sleep since there are no routes to track.
 					try {
 						Thread.sleep(250);
 					} catch (InterruptedException e) {
