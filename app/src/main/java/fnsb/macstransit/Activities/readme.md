@@ -1,9 +1,6 @@
 # Understanding
 TODO
 
-## ActivityListeners
-TODO
-
 ## MapsActivity.java
 TODO
 

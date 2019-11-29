@@ -51,7 +51,7 @@ public class Network {
 	 * This may be an empty JSONObject if the page times out and the method can no longer retry, or if any other error occurs.
 	 *
 	 * @param url         The URL to retrieve the JSON data from.
-	 * @param useTimeouts
+	 * @param useTimeouts Whether or not to use the builtin timeouts for this method.
 	 * @return The JSONObject containing the data, or an empty JSONObject if there was an error, or the page timed out.
 	 */
 	public static JSONObject getJsonFromUrl(String url, boolean useTimeouts) {
@@ -109,7 +109,7 @@ public class Network {
 	 * otherwise it will throw a {@code SocketTimeoutException}.
 	 *
 	 * @param url         The url to read from.
-	 * @param useTimeouts
+	 * @param useTimeouts Whether or not to use the builtin timeouts for this method.
 	 * @return The string (hopefully) containing the Json data, which can then be parsed into a JSONObject.
 	 * @throws IOException            Thrown if there is an issue with the connection, buffered reader, or input stream.
 	 * @throws SocketTimeoutException Thrown if the connection time surpasses the allotted time in the connection timeout.

@@ -91,7 +91,7 @@ public class Route {
 	 * This may return an empty route array if there was an issue parsing the data,
 	 * or if there were no routes to parse based off the master schedule.
 	 *
-	 * @param masterSchedule The master schedule JSONObject from teh RouteMatch server
+	 * @param masterSchedule The master schedule JSONObject from the RouteMatch server.
 	 * @return An array of routes that <b><i>can be</i></b> tracked.
 	 */
 	public static Route[] generateRoutes(JSONObject masterSchedule) {
