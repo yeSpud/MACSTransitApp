@@ -261,6 +261,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				// If there are routes that were loaded, execute the following:
 				if (this.routes.length != 0) {
 
+					// TODO Simplify this!
 					// If polylines are enabled, execute the following:
 					if (SettingsPopupWindow.SHOW_POLYLINES) {
 

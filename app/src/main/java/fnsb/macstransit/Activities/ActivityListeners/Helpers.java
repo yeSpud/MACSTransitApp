@@ -32,7 +32,8 @@ import fnsb.macstransit.RouteMatch.Stop;
  * @version 1.1
  * @since Beta 7
  */
-public class Helpers {
+@Deprecated
+public class Helpers { // TODO Deprecate all of these!
 
 	/**
 	 * Gets the color of the marker icon based off of the color value given.

@@ -8,7 +8,7 @@ package fnsb.macstransit.RouteMatch;
  * @version 1.1
  * @since Beta 7
  */
-public class BasicStop extends MarkedObject {
+public class BasicStop extends MarkedObject { // FIXME What needs to happen is that Stop needs to extend this, as well as Shared Stop. Both of those are also marked objects.
 
 	/**
 	 * The latitude and longitude (coordinates) of the stop.
