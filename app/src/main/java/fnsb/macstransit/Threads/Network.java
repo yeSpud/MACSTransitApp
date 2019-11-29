@@ -1,4 +1,4 @@
-package fnsb.macstransit;
+package fnsb.macstransit.Threads;
 
 import android.util.Log;
 
@@ -25,7 +25,7 @@ import java.net.SocketTimeoutException;
  * Since android doesn't like url connections to be run on the UI thread, this needs to be done on its own thread.
  * Hence the complexity :(
  *
- * @version 1.0
+ * @version 1.1
  * @since Beta 6.
  */
 public class Network {
@@ -33,12 +33,12 @@ public class Network {
 	/**
 	 * Timeouts (in milliseconds) used by various methods.
 	 */
-	private static final int CONNECTION_TIMEOUT = 3000, READ_TIMEOUT = 1000, PROCESSING_TIMEOUT = 100;
+	private static final int CONNECTION_TIMEOUT = 5000, READ_TIMEOUT = 5000, PROCESSING_TIMEOUT = 500;
 
 	/**
 	 * The maximum number of retries allowed for the method, stored as a short (as it's not meant to be a large number).
 	 */
-	private static final short MAX_ATTEMPTS = 5;
+	private static final short MAX_ATTEMPTS = 3;
 
 	/**
 	 * Create a private variable that will track the number of attempts made to connect.
@@ -50,10 +50,11 @@ public class Network {
 	 * Reads the JSON from the provided URL, and formats it into a JSONObject.
 	 * This may be an empty JSONObject if the page times out and the method can no longer retry, or if any other error occurs.
 	 *
-	 * @param url The URL to retrieve the JSON data from.
+	 * @param url         The URL to retrieve the JSON data from.
+	 * @param useTimeouts Whether or not to use the builtin timeouts for this method.
 	 * @return The JSONObject containing the data, or an empty JSONObject if there was an error, or the page timed out.
 	 */
-	public static JSONObject getJsonFromUrl(String url) {
+	public static JSONObject getJsonFromUrl(String url, boolean useTimeouts) {
 
 		// Log the url that was passed as an argument for debugging purposes
 		Log.d("getJsonFromUrl", url);
@@ -65,7 +66,7 @@ public class Network {
 		Thread t = new Thread(() -> {
 			try {
 				// Append the Json read from the URL to the string builder.
-				jsonString.append(Network.readFromUrl(url));
+				jsonString.append(Network.readFromUrl(url, useTimeouts));
 			} catch (java.io.FileNotFoundException | SocketTimeoutException e) {
 				// In the event that it took too long to process, throw a runtime exception
 				// This will be cause by setUncaughtExceptionHandler();
@@ -88,11 +89,12 @@ public class Network {
 		try {
 			// All the thread to run for the combined time of the CONNECTION_TIMEOUT, READ_TIMEOUT,
 			// and PROCESSING_TIMEOUT.
-			t.join(Network.CONNECTION_TIMEOUT + Network.READ_TIMEOUT + Network.PROCESSING_TIMEOUT);
+			t.join(useTimeouts ? Network.CONNECTION_TIMEOUT + Network.READ_TIMEOUT + Network.PROCESSING_TIMEOUT : 0);
 
 			// Run the jsonString and the url through the validateJson() method to make sure this doesn't need to be retried,
 			// and return the newly formatted Json.
 			return Network.validateJson(jsonString, url);
+
 		} catch (InterruptedException e) {
 			// If this got interrupted at all, simply print the stacktrace, and return a blank JSONObject.
 			e.printStackTrace();
@@ -106,13 +108,14 @@ public class Network {
 	 * and must read within the time determined by {@code READ_TIMEOUT},
 	 * otherwise it will throw a {@code SocketTimeoutException}.
 	 *
-	 * @param url The url to read from.
+	 * @param url         The url to read from.
+	 * @param useTimeouts Whether or not to use the builtin timeouts for this method.
 	 * @return The string (hopefully) containing the Json data, which can then be parsed into a JSONObject.
 	 * @throws IOException            Thrown if there is an issue with the connection, buffered reader, or input stream.
 	 * @throws SocketTimeoutException Thrown if the connection time surpasses the allotted time in the connection timeout.
 	 *                                Same with the read timeout.
 	 */
-	private static String readFromUrl(String url) throws IOException, SocketTimeoutException {
+	private static String readFromUrl(String url, boolean useTimeouts) throws IOException, SocketTimeoutException {
 
 		// Specify the URL connection, and try to open a connection. If unsuccessful, just return null.
 		java.net.URLConnection connection;
@@ -128,9 +131,14 @@ public class Network {
 		// Since we made it this far (didn't return null). meaning connection was established, log that in the debugger.
 		Log.d("readFromUrl", "Connection established");
 
-		// Add timeouts for the connection (1 second to connect, 1 second to read, 2 seconds total)
-		connection.setConnectTimeout(Network.CONNECTION_TIMEOUT);
-		connection.setReadTimeout(Network.READ_TIMEOUT);
+		if (useTimeouts) {
+			// Add timeouts for the connection (1 second to connect, 1 second to read, 2 seconds total)
+			connection.setConnectTimeout(Network.CONNECTION_TIMEOUT);
+			connection.setReadTimeout(Network.READ_TIMEOUT);
+		} else {
+			connection.setConnectTimeout(0);
+			connection.setReadTimeout(0);
+		}
 
 		// Get the input stream from the connection
 		java.io.InputStream inputStream = connection.getInputStream();
@@ -182,7 +190,7 @@ public class Network {
 				Log.w("validateJson", String.format("Url didn't respond, going to retry! (%d/%d)", Network.attempts, Network.MAX_ATTEMPTS));
 
 				// Try to return the JsonObject from the new attempt.
-				return Network.getJsonFromUrl(url);
+				return Network.getJsonFromUrl(url, true);
 			} else {
 				// Since the maximum number of tries has been attempted, reset the count,
 				// and return an empty JsonObject.

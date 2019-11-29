@@ -7,17 +7,16 @@ import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 
-import fnsb.macstransit.Network;
+import fnsb.macstransit.Threads.Network;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 3.1
+ * @version 3.2
  * @since Beta 1
  */
-@SuppressWarnings("WeakerAccess")
 public class RouteMatch {
 
 	/**
@@ -51,7 +50,7 @@ public class RouteMatch {
 		try {
 			return object.getJSONArray("data");
 		} catch (org.json.JSONException e) {
-			android.util.Log.w("parseData", "Unable to parse data!");
+			Log.w("parseData", "Unable to parse data!");
 			return new JSONArray();
 		}
 	}
@@ -62,7 +61,7 @@ public class RouteMatch {
 	 * @return The master Schedule as a JSONObject.
 	 */
 	public JSONObject getMasterSchedule() {
-		return Network.getJsonFromUrl(this.url + "masterRoute/");
+		return Network.getJsonFromUrl(this.url + "masterRoute/", true);
 	}
 
 	/**
@@ -72,7 +71,7 @@ public class RouteMatch {
 	 * @return The JSONObject pertaining to all the stops for the specified route.
 	 */
 	public JSONObject getAllStops(Route route) {
-		return Network.getJsonFromUrl(this.url + "stops/" + route.routeName);
+		return Network.getJsonFromUrl(this.url + "stops/" + route.routeName, true);
 	}
 
 	/**
@@ -86,7 +85,8 @@ public class RouteMatch {
 	public JSONObject getStop(Stop stop) {
 		try {
 			return Network.getJsonFromUrl(this.url + "departures/byStop/" +
-					java.net.URLEncoder.encode(stop.stopID, "UTF-8").replaceAll("\\+", "%20"));
+					java.net.URLEncoder.encode(stop.stopID, "UTF-8")
+							.replaceAll("\\+", "%20"), false);
 		} catch (java.io.UnsupportedEncodingException e) {
 			Log.e("getStop", "The encoded stop was malformed! Returning an empty JSONObject instead");
 			return new JSONObject();
@@ -96,10 +96,21 @@ public class RouteMatch {
 	/**
 	 * Gets the route data from the RouteMatch server.
 	 *
-	 * @param route The specific route to be fetched fetched.
+	 * @param route The specific route to be fetched.
 	 * @return The JSONObject pertaining to that specific route's data.
 	 */
-	public JSONObject getRoute(Route route) {
-		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + route.routeName);
+	public JSONObject getBuses(Route route) {
+		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + route.routeName, false);
+	}
+
+	/**
+	 * Gets the land route (the route the buses will take) of a particular route from the RouteMatch server.
+	 *
+	 * @param route The route to be fetched.
+	 * @return The JSONObject pertaining to the specific route's route
+	 * (what route it will take as a series of latitude and longitude coordinates).
+	 */
+	public JSONObject getLandRoute(Route route) {
+		return Network.getJsonFromUrl(this.url + "landRoute/byRoute/" + route.routeName, true);
 	}
 }

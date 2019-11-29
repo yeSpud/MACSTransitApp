@@ -1,10 +1,11 @@
-package fnsb.macstransit;
+package fnsb.macstransit.Activities;
 
 import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
 import android.view.View;
 
+import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
 
@@ -13,13 +14,15 @@ import fnsb.macstransit.RouteMatch.RouteMatch;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.0
+ * @version 1.1
  * @since Beta 7
  */
 public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 	/**
-	 * Create a variable to check if the map activity has already been loaded (as to determine if the app needs to close when the back button is clicked, or just needs to refresh the activity)
+	 * Create a variable to check if the map activity has already been loaded
+	 * (as to determine if the app needs to close when the back button is clicked,
+	 * or just needs to refresh the activity)
 	 */
 	public static boolean loaded = false;
 
@@ -74,6 +77,13 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		this.progressBar = this.findViewById(R.id.progressBar);
 		this.button = this.findViewById(R.id.button);
 
+		// Psst. Hey. Wanna know a secret?
+		// In the debug build you can click on the logo to launch right into the maps activity.
+		// This is mainly for a bypass on Sundays. :D
+		if (fnsb.macstransit.BuildConfig.DEBUG) {
+			this.findViewById(R.id.logo).setOnClickListener((click) -> this.dataLoaded());
+		}
+
 		// Set the button widget to have no current onClickListener, and set it to be invisible for now.
 		this.button.setOnClickListener(null);
 		this.button.setVisibility(View.INVISIBLE);
@@ -118,6 +128,9 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				return;
 			}
 
+			// Then load the settings from the settings file
+			SettingsPopupWindow.loadSettings(this);
+
 			// If the activity has made it this far then proceed to load the data from the RouteMatch object.
 			this.loadData().start();
 
@@ -127,10 +140,10 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.progressBar.setVisibility(View.INVISIBLE);
 
 			// Then, set the message of the text view to notify the user that there is no internet connection.
-			this.setMessage(R.string.nointernet);
+			this.setMessage(R.string.no_internet);
 
 			// Then setup the button to open the internet settings when clicked on, and make it visible.
-			this.button.setText(R.string.open_internet_settins);
+			this.button.setText(R.string.open_internet_settings);
 			this.button.setOnClickListener((click) -> {
 				this.startActivityForResult(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS), 0);
 				// Also, close this application when clicked
@@ -184,7 +197,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	private boolean hasInternet() {
 		android.net.NetworkInfo activeNetwork = ((android.net.ConnectivityManager) this.getApplicationContext()
 				.getSystemService(android.content.Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
-		return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+		return activeNetwork != null && activeNetwork.isConnected();
 	}
 
 	/**
@@ -224,7 +237,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 	/**
 	 * Creates the thread that will be used to parse the routematch object,
-	 * load the routes from the routematch object,
+	 * load the routes from the routematch object, load the routes polylines (if enabled),
 	 * and load the stops from the routes.
 	 *
 	 * @return The thread created. Note that this has not been started at this point,
@@ -238,48 +251,92 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			Log.d("loadData", "Loading routes from master schedule");
 			this.setMessage(R.string.load_routes);
 
-			// Load the routes from the RouteMatch object
-			this.routes = Route.generateRoutes(this.routeMatch);
+			// Get the master schedule from the RouteMatch server
+			org.json.JSONObject masterSchedule = this.routeMatch.getMasterSchedule();
+			if (masterSchedule.length() != 0) {
 
-			// If there are routes that were loaded, execute the following:
-			if (this.routes.length != 0) {
+				// Load the routes from the RouteMatch object
+				this.routes = Route.generateRoutes(masterSchedule);
 
-				// Update the progress to halfway, and inform the user that we are now loading stops.
-				Log.d("loadData", "Loading stops in the routes");
-				this.setProgress(0.5d);
-				this.setMessage(R.string.load_stops);
+				// If there are routes that were loaded, execute the following:
+				if (this.routes.length != 0) {
 
-				// Load the stops in each route.
-				for (int i = 0; i < this.routes.length; i++) {
-					// Get the route at the current index (i) from all the routes that were loaded.
-					Route route = this.routes[i];
+					// If polylines are enabled, execute the following:
+					if (SettingsPopupWindow.SHOW_POLYLINES) {
 
-					// Load the stops in the route.
-					route.stops = route.loadStops(this.routeMatch);
+						// Update the progress to 1/3, and inform the user that we are now loading polylines
+						Log.d("loadData", "Loading polylines");
+						this.setProgress(1d / 3d);
+						this.setMessage(R.string.load_polylines);
 
-					// Set the progress to the current index (plus 1) out of the all the routes to be parsed,
-					// and then divide that value in half, as this is the other 50% to be processed.
-					this.setProgress(0.5d + (((i + 1d) / this.routes.length) / 2));
+						// Load the polyline coordinates into each route
+						for (int polylineIndex = 0; polylineIndex < this.routes.length; polylineIndex++) {
+							Route route = this.routes[polylineIndex];
+
+							// Load the polylineCoordinates into the route
+							route.polyLineCoordinates = route.loadPolyLineCoordinates(this.routeMatch);
+
+							// Set the progress to the current index (plus 1) out of the all the routes to be parsed,
+							// and then divide that value in third, as this is the other 33% to be processed.
+							this.setProgress((1d / 3d) + (((polylineIndex + 1d) / this.routes.length) / 3d));
+						}
+
+						// Update the progress to 2/3, and inform the user that we are now loading stops.
+						Log.d("loadData", "Loading stops in the routes");
+						this.setProgress(2d / 3d);
+						this.setMessage(R.string.load_stops);
+
+						// Load the stops in each route.
+						for (int i = 0; i < this.routes.length; i++) {
+							// Get the route at the current index (i) from all the routes that were loaded.
+							Route route = this.routes[i];
+
+							// Load the stops in the route.
+							route.stops = route.loadStops(this.routeMatch);
+
+							// Set the progress to the current index (plus 1) out of the all the routes to be parsed,
+							// and then divide that value in third, as this is the other 33% to be processed.
+							this.setProgress((2d / 3d) + (((i + 2d) / this.routes.length) / 3d));
+						}
+					} else {
+						// Update the progress to halfway, and inform the user that we are now loading stops.
+						Log.d("loadData", "Loading stops in the routes");
+						this.setProgress(0.5d);
+						this.setMessage(R.string.load_stops);
+
+						// Load the stops in each route.
+						for (int i = 0; i < this.routes.length; i++) {
+							// Get the route at the current index (i) from all the routes that were loaded.
+							Route route = this.routes[i];
+
+							// Load the stops in the route.
+							route.stops = route.loadStops(this.routeMatch);
+
+							// Set the progress to the current index (plus 1) out of the all the routes to be parsed,
+							// and then divide that value in half, as this is the other 50% to be processed.
+							this.setProgress(0.5d + (((i + 1d) / this.routes.length) / 2d));
+						}
+					}
+
+					// Once all the routes and stops have been loaded,
+					// call the dataLoaded function to mark that we are done and ready to load the maps activity.
+					this.dataLoaded();
+				} else {
+					// No routes were loaded from the master schedule.
+					// This is most likely because its Sunday, and the buses don't run on Sundays.
+					Log.w("loadData", "No routes at this time");
+					this.setMessage(R.string.no_routes);
+
+					// Also add a chance for the user to retry
+					this.showRetryButton();
 				}
-
-				// Once all the routes and stops have been loaded,
-				// call the dataLoaded function to mark that we are done and ready to load the maps activity.
-				this.dataLoaded();
 			} else {
 				// Since there were no routes to be loaded, inform the user.
 				Log.w("loadData", "Unable to load routes!");
-				this.setMessage(R.string.no_routes);
+				this.setMessage(R.string.no_schedule);
 
 				// Also add a chance to restart the activity to retry...
-				this.runOnUiThread(() -> {
-					// First hide the progress bar since it is no longer of use.
-					this.progressBar.setVisibility(View.INVISIBLE);
-
-					// Then setup the button to relaunch the activity, and make it visible.
-					this.button.setText(R.string.retry);
-					this.button.setOnClickListener((click) -> this.onResume());
-					this.button.setVisibility(View.VISIBLE);
-				});
+				this.showRetryButton();
 			}
 		});
 
@@ -305,5 +362,21 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Start the MapsActivity, and close this splash activity.
 		this.startActivity(new Intent(this, MapsActivity.class));
 		this.finish();
+	}
+
+	/**
+	 * Shows the retry button by setting the view to visible, hiding the progress bar,
+	 * and by setting the click action of the button to launch the onResume() method once again.
+	 */
+	private void showRetryButton() {
+		this.runOnUiThread(() -> {
+			// First hide the progress bar since it is no longer of use.
+			this.progressBar.setVisibility(View.INVISIBLE);
+
+			// Then setup the button to relaunch the activity, and make it visible.
+			this.button.setText(R.string.retry);
+			this.button.setOnClickListener((click) -> this.onResume());
+			this.button.setVisibility(View.VISIBLE);
+		});
 	}
 }

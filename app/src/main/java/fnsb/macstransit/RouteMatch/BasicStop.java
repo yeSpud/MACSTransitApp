@@ -5,10 +5,10 @@ package fnsb.macstransit.RouteMatch;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.0
+ * @version 1.1
  * @since Beta 7
  */
-public class BasicStop {
+public class BasicStop extends MarkedObject {
 
 	/**
 	 * The latitude and longitude (coordinates) of the stop.

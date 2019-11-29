@@ -1,4 +1,4 @@
-package fnsb.macstransit.ActivityListeners;
+package fnsb.macstransit.Activities;
 
 import android.graphics.Color;
 import android.view.View;
@@ -7,17 +7,20 @@ import android.widget.TextView;
 
 import com.google.android.gms.maps.model.Marker;
 
-import fnsb.macstransit.MapsActivity;
-
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.0
+ * @version 1.1
  * @since Beta 7
  */
 public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.InfoWindowAdapter {
+
+	/**
+	 * The maximum number of lines (new lines) allowed in the info window's snippet section.
+	 */
+	public static final int MAX_LINES = 12;
 
 	/**
 	 * The maps activity that this adapter corresponds to.
@@ -70,24 +73,36 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 	 */
 	@Override
 	public View getInfoContents(Marker marker) {
+		// Create the info section of the info window, and make sure its orientation is set to vertical
 		LinearLayout info = new LinearLayout(this.activity);
 		info.setOrientation(LinearLayout.VERTICAL);
 
+		// Create the title portion of the info window, and make sure its in a bold font and centered.
 		TextView title = new TextView(this.activity);
 		title.setTextColor(Color.BLACK);
 		title.setGravity(android.view.Gravity.CENTER);
 		title.setTypeface(null, android.graphics.Typeface.BOLD);
+
+		// Set the titles text to the markers title.
 		title.setText(marker.getTitle());
 
+		// Create the actual snippet view and set it the text ot the marker's snippet text.
 		TextView snippet = new TextView(this.activity);
 		snippet.setTextColor(Color.GRAY);
 		snippet.setText(marker.getSnippet());
-		snippet.setMaxLines(15);
 
+		// Be sure to set the maximum number of lines for the snippet.
+		snippet.setMaxLines(InfoWindowAdapter.MAX_LINES);
+
+		// Add the title to the info window.
 		info.addView(title);
+
+		// If the snippet is not null or empty, add it to the info window as well.
 		if (!snippet.getText().equals("") && snippet.getText() != null) {
 			info.addView(snippet);
 		}
+
+		// Finally, return the info window.
 		return info;
 	}
 }

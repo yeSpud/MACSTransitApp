@@ -1,10 +1,10 @@
-package fnsb.macstransit.ActivityListeners;
+package fnsb.macstransit.Activities.ActivityListeners;
 
 import android.util.Log;
 
 import com.google.android.gms.maps.model.Circle;
 
-import fnsb.macstransit.MapsActivity;
+import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 
@@ -13,7 +13,7 @@ import fnsb.macstransit.RouteMatch.Stop;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.0
+ * @version 1.1
  * @since Beta 7
  */
 public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCameraIdleListener {
@@ -90,6 +90,6 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 		Log.d("CameraChange", "Zoom level: " + zoom);
 
 		// Adjust the circle size based on zoom level
-		AdjustZoom.adjustCircleSize(zoom, this.activity.sharedStops.toArray(new SharedStop[0]));
+		AdjustZoom.adjustCircleSize(zoom, this.activity.sharedStops);
 	}
 }
