@@ -15,10 +15,10 @@ import fnsb.macstransit.Activities.ActivityListeners.Helpers;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.1
+ * @version 1.2
  * @since Beta 7
  */
-public class SharedStop extends MarkedObject {
+public class SharedStop extends MarkedObject { // FIXME
 
 	/**
 	 * The latitude and longitude of the SharedStops.
@@ -156,7 +156,7 @@ public class SharedStop extends MarkedObject {
 
 				// If this is the first circle (will have an index of 0), add a marker to the stop.
 				if (index == 0) {
-					Marker marker = Helpers.addMarker(map, sharedStop.latitude, sharedStop.longitude, sharedStop.routes[0].color, sharedStop.stopID, sharedStop);
+					Marker marker = sharedStop.addMarker(map, sharedStop.latitude, sharedStop.longitude, sharedStop.routes[0].color, sharedStop.stopID);
 					marker.setVisible(false);
 					sharedStop.setMarker(marker);
 				}

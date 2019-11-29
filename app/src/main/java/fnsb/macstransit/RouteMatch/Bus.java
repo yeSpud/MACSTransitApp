@@ -9,7 +9,7 @@ import java.util.ArrayList;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.2
+ * @version 1.3
  * @since Beta 3
  */
 public class Bus extends MarkedObject {
@@ -139,8 +139,7 @@ public class Bus extends MarkedObject {
 						marker.setPosition(new com.google.android.gms.maps.model.LatLng(bus.latitude, bus.longitude));
 					} else {
 						// Since the buses marker does not exist, add it to the map.
-						marker = fnsb.macstransit.Activities.ActivityListeners.Helpers.addMarker(map,
-								bus.latitude, bus.longitude, bus.color, "Bus " + bus.busID, bus);
+						marker = bus.addMarker(map, bus.latitude, bus.longitude, bus.color, "Bus " + bus.busID);
 					}
 
 					// Set the bus mareker to be visible, and update the bus marker by calling setMarker();

@@ -16,7 +16,7 @@ import fnsb.macstransit.Activities.ActivityListeners.Helpers;
  * @version 1.2
  * @since beta 6.
  */
-public class Stop extends BasicStop {
+public class Stop extends BasicStop { // FIXME
 
 	/**
 	 * The initial radius size (in meters) for the circle that represents a stop on the map.
@@ -110,7 +110,7 @@ public class Stop extends BasicStop {
 				// add it to the map, but set it to invisible.
 				if (!found) {
 					stop.setIcon(Helpers.addCircle(map, stop.iconOptions, stop, true));
-					Marker marker = Helpers.addMarker(map, stop.latitude, stop.longitude, stop.route.color, stop.stopID, stop);
+					Marker marker = stop.addMarker(map, stop.latitude, stop.longitude, stop.route.color, stop.stopID);
 					marker.setVisible(false);
 					stop.setMarker(marker);
 				}

@@ -100,43 +100,6 @@ public class Helpers { // TODO Deprecate all of these!
 	}
 
 	/**
-	 * Helper function that adds a marker to the map at the provided location,
-	 * with the provided title, and sets the color to the provided color.
-	 * <p>
-	 * The marker can also be assigned a class that it belongs to via the tag argument.
-	 *
-	 * @param map       The map to add the marker to.
-	 * @param latitude  The latitude of the marker.
-	 * @param longitude The longitude of the marker.
-	 * @param color     The color of the marker.
-	 * @param title     The title of the marker.
-	 * @param tag       The object that this maker belongs to.
-	 * @return The generated marker.
-	 */
-	public static Marker addMarker(GoogleMap map, double latitude, double longitude, int color, String title, Object tag) {
-		// Create a new maker options object
-		MarkerOptions options = new MarkerOptions();
-
-		// Set the position of the marker via the latitude and longitude.
-		options.position(new com.google.android.gms.maps.model.LatLng(latitude, longitude));
-
-		// Set the color of the marker.
-		options.icon(Helpers.getMarkerIcon(color));
-
-		// Add the marker to the map.
-		Marker marker = map.addMarker(options);
-
-		// Set the marker title.
-		marker.setTitle(title);
-
-		// Set the marker's tag.
-		marker.setTag(tag);
-
-		// Return the generated marker.
-		return marker;
-	}
-
-	/**
 	 * Helper function that formats a string containing the arrival and departure times that is to be used in the body section of a stop info window.
 	 *
 	 * @param stopArray               The JSONArray containing the times to be formatted.

@@ -7,8 +7,8 @@ android {
         applicationId "fnsb.macstransit"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 8
-        versionName "Beta 8"
+        versionCode 9
+        versionName "Release 1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
