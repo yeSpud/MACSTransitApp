@@ -224,10 +224,10 @@ public class SettingsPopupWindow extends AlertDialog {
 		final Button applyButton = dialogView.findViewById(R.id.apply);
 
 		// Create the checkboxes in the settings popup menu.
-		final CheckBox trafficBox = this.createSettingsPopupCheckbox(dialogView, R.id.traffic, SettingsPopupWindow.ENABLE_TRAFFIC_VIEW, applyButton, SettingsPopupWindow.TRAFFIC_KEY),
-				nightBox = this.createSettingsPopupCheckbox(dialogView, R.id.nightMode, SettingsPopupWindow.DEFAULT_NIGHT_MODE, applyButton, SettingsPopupWindow.NIGHT_MODE_KEY),
-				polyBox = this.createSettingsPopupCheckbox(dialogView, R.id.polylines, SettingsPopupWindow.SHOW_POLYLINES, applyButton, SettingsPopupWindow.POLYLINES_KEY),
-				VRBox = this.createSettingsPopupCheckbox(dialogView, R.id.VR, SettingsPopupWindow.ENABLE_VR_OPTIONS, applyButton, SettingsPopupWindow.VR_KEY);
+		final CheckBox trafficBox = this.createCheckbox(dialogView, R.id.traffic, SettingsPopupWindow.ENABLE_TRAFFIC_VIEW, applyButton, SettingsPopupWindow.TRAFFIC_KEY),
+				nightBox = this.createCheckbox(dialogView, R.id.nightMode, SettingsPopupWindow.DEFAULT_NIGHT_MODE, applyButton, SettingsPopupWindow.NIGHT_MODE_KEY),
+				polyBox = this.createCheckbox(dialogView, R.id.polylines, SettingsPopupWindow.SHOW_POLYLINES, applyButton, SettingsPopupWindow.POLYLINES_KEY),
+				VRBox = this.createCheckbox(dialogView, R.id.VR, SettingsPopupWindow.ENABLE_VR_OPTIONS, applyButton, SettingsPopupWindow.VR_KEY);
 
 		// Create the dialog via the alert dialog builder.
 		AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
@@ -258,7 +258,7 @@ public class SettingsPopupWindow extends AlertDialog {
 	 * @param tag
 	 * @return
 	 */
-	private CheckBox createSettingsPopupCheckbox(android.view.View view, int id, boolean checked, Button button, String tag) {
+	private CheckBox createCheckbox(android.view.View view, int id, boolean checked, Button button, String tag) {
 		// Find the checkbox within the view.
 		CheckBox checkBox = view.findViewById(id);
 

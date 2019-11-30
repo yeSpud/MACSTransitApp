@@ -28,19 +28,6 @@ import fnsb.macstransit.RouteMatch.Stop;
 public class Helpers { // TODO Deprecate all of these!
 
 	/**
-	 * Gets the color of the marker icon based off of the color value given.
-	 * The reason why there needs to be a function for this is because there are only 10 colors that a marker icon can be.
-	 *
-	 * @param color The desired color value as an int.
-	 * @return The BitmapDescriptor used for defining the color of a markers's icon.
-	 */
-	public static com.google.android.gms.maps.model.BitmapDescriptor getMarkerIcon(int color) {
-		float[] hsv = new float[3];
-		android.graphics.Color.colorToHSV(color, hsv);
-		return com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]);
-	}
-
-	/**
 	 * Loads all the stops from the provided routes.
 	 *
 	 * @param routes The routes to get the stops from.
@@ -110,23 +97,6 @@ public class Helpers { // TODO Deprecate all of these!
 		}
 		// If no stop was ever found, return null.
 		return null;
-	}
-
-	/**
-	 * Helper function that determines the number of times a given character occurs within a given string.
-	 *
-	 * @param character The character to get the number of occurrences of.
-	 * @param string    The string to check.
-	 * @return The number of times that character occurs within the given within the given string.
-	 */
-	public static int getCharacterOccurrence(char character, String string) {
-		int count = 0;
-		for (int i = 0; i < string.length(); i++) {
-			if (string.charAt(i) == character) {
-				count++;
-			}
-		}
-		return count;
 	}
 
 	/**

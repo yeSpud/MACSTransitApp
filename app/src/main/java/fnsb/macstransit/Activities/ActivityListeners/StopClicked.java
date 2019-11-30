@@ -68,7 +68,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// Check to see how many new lines there are in the display.
 			// If there are more than the maximum lines allowed bu the info window adapter,
 			// display "Click to view all the arrival and departure times.".
-			return Helpers.getCharacterOccurrence('\n', string) <= fnsb.macstransit.Activities.InfoWindowAdapter.MAX_LINES ? string : context.getString(R.string.click_to_view_all_the_arrival_and_departure_times);
+			return StopClicked.getCharacterOccurrence('\n', string) <= fnsb.macstransit.Activities.InfoWindowAdapter.MAX_LINES ? string : context.getString(R.string.click_to_view_all_the_arrival_and_departure_times);
 
 		} catch (JSONException e) {
 			// If there was an error, just print a stack trace, and return an empty string.
@@ -127,6 +127,15 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			}
 		}
 
+		// Get the length of the original snippet text.
+		int length = snippetText.length();
+
+		// Replace the last 2 new lines
+		if (length > 2) {
+			snippetText.deleteCharAt(length - 1);
+			snippetText.deleteCharAt(length - 2);
+		}
+
 		return snippetText.toString();
 	}
 
@@ -167,6 +176,23 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			parseException.printStackTrace();
 			return time;
 		}
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param character
+	 * @param string
+	 * @return
+	 */
+	private static int getCharacterOccurrence(char character, String string) {
+		int count = 0;
+		for (int i = 0; i < string.length(); i++) {
+			if (string.charAt(i) == character) {
+				count++;
+			}
+		}
+		return count;
 	}
 
 	/**

@@ -21,6 +21,18 @@ public class MarkedObject {
 	private Marker marker;
 
 	/**
+	 * TODO Documentation
+	 *
+	 * @param color
+	 * @return
+	 */
+	private static com.google.android.gms.maps.model.BitmapDescriptor getMarkerIcon(int color) {
+		float[] hsv = new float[3];
+		android.graphics.Color.colorToHSV(color, hsv);
+		return com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]);
+	}
+
+	/**
 	 * Retrieves the marker of the object.
 	 *
 	 * @return The marker.
@@ -58,7 +70,7 @@ public class MarkedObject {
 
 		// Set the color of the marker.
 		Log.d("addMarker", "Applying marker color");
-		options.icon(fnsb.macstransit.Activities.ActivityListeners.Helpers.getMarkerIcon(color));
+		options.icon(MarkedObject.getMarkerIcon(color));
 
 		// Add the marker to the map.
 		Log.d("addMarker", "Adding marker to the map");
