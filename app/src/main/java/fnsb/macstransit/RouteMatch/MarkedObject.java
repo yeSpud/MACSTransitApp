@@ -51,7 +51,7 @@ public class MarkedObject {
 	}
 
 	/**
-	 * TODO TODO Documentation
+	 * TODO Documentation
 	 *
 	 * @param map
 	 * @param latitude
@@ -61,7 +61,7 @@ public class MarkedObject {
 	 * @return
 	 */
 	public Marker addMarker(com.google.android.gms.maps.GoogleMap map, double latitude, double longitude, int color, String title) {
-		// Create a new maker options object
+		// Create a new maker parentCircleOptions object
 		MarkerOptions options = new MarkerOptions();
 
 		// Set the position of the marker via the latitude and longitude.

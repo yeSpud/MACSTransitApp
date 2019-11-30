@@ -4,6 +4,8 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.common.util.ArrayUtils;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -12,6 +14,7 @@ import java.util.Locale;
 
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.R;
+import fnsb.macstransit.RouteMatch.BasicStop;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
@@ -22,7 +25,7 @@ import fnsb.macstransit.RouteMatch.Stop;
  * For the license, view the file titled LICENSE at the root of the project
  *
  * @version 1.2
- * @since Beta 7
+ * @since Beta 7.
  */
 public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCircleClickListener {
 
@@ -48,7 +51,8 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @param stop    The stop (either an actual Stop object, or a SharedStop).
 	 * @param json    The json object retrieved from the RouteMatch server.
 	 * @param context TODO Documentation
-	 * @return The string containing either all the arrival and departure times for the stop, or the overflowString if there is too much data.
+	 * @return The string containing either all the arrival and departure times for the stop,
+	 * or the overflowString if there is too much data.
 	 */
 	public static String postStopTimes(Object stop, org.json.JSONObject json, Context context) {
 
@@ -60,7 +64,23 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// Get the times for the stop.
 			// Since the method arguments are slightly different for a shared stop compared to a regular stop,
 			// check if the marker is an instance of a Stop or SharedStop.
-			String string = StopClicked.generateTimeString(stopData, count, context, (stop instanceof Stop) ? new Route[]{((Stop) stop).route} : ((SharedStop) stop).routes, stop instanceof SharedStop);
+			String string;
+
+			if (stop instanceof SharedStop) {
+				SharedStop sharedStop = ((SharedStop) stop);
+				Route[] routes = new Route[sharedStop.childRoutes.length + 1];
+				routes[0] = sharedStop.parentRoute;
+				System.arraycopy(sharedStop.childRoutes, 0, routes, 1,
+						sharedStop.childRoutes.length);
+				string = StopClicked.generateTimeString(stopData, count, context, routes,
+						true);
+			} else if (stop instanceof Stop) {
+				string = StopClicked.generateTimeString(stopData, count, context,
+						new Route[]{((Stop) stop).parentRoute}, false);
+			} else {
+				Log.w("postStopTimes", "Object unaccounted for!");
+				return "";
+			}
 
 			// Load the times string into a popup window for when its clicked on.
 			fnsb.macstransit.Activities.PopupWindow.body = string;
@@ -68,7 +88,9 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// Check to see how many new lines there are in the display.
 			// If there are more than the maximum lines allowed bu the info window adapter,
 			// display "Click to view all the arrival and departure times.".
-			return StopClicked.getCharacterOccurrence('\n', string) <= fnsb.macstransit.Activities.InfoWindowAdapter.MAX_LINES ? string : context.getString(R.string.click_to_view_all_the_arrival_and_departure_times);
+			return StopClicked.getCharacterOccurrence('\n', string) <=
+					fnsb.macstransit.Activities.InfoWindowAdapter.MAX_LINES ? string :
+					context.getString(R.string.click_to_view_all_the_arrival_and_departure_times);
 
 		} catch (JSONException e) {
 			// If there was an error, just print a stack trace, and return an empty string.
@@ -99,7 +121,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// Get the stop time from the current stop.
 			JSONObject object = stopArray.getJSONObject(index);
 
-			// First, check if the current time does belong to the desired route
+			// First, check if the current time does belong to the desired parentRoute
 			for (Route route : routes) {
 				if (route.routeName.equals(object.getString("routeId"))) {
 
@@ -115,9 +137,9 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 						departureTime = StopClicked.formatTime(departureTime);
 					}
 
-					// Append the route name if there is one
+					// Append the parentRoute name if there is one
 					if (includeRouteName) {
-						Log.d("generateTimeString", "Adding route " + route.routeName);
+						Log.d("generateTimeString", "Adding parentRoute " + route.routeName);
 						snippetText.append(String.format("Route: %s\n", route.routeName));
 					}
 
@@ -204,7 +226,6 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 */
 	@Override
 	public void onCircleClick(com.google.android.gms.maps.model.Circle circle) {
-
 		// Check if the circle is a stop or a shared stop.
 		if (circle.getTag() instanceof Stop) {
 			Log.d("onCircleClick", "Showing stop info window");
@@ -212,16 +233,9 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// Get the stop, and show its marker.
 			Stop stop = (Stop) circle.getTag();
 			this.showStop(stop, stop.getMarker(), stop.stopID);
-		} else if (circle.getTag() instanceof SharedStop) {
-			Log.d("onCircleClick", "Showing SharedStop info window");
-
-			// Get the shared stop, and show its marker.
-			SharedStop sharedStop = (SharedStop) circle.getTag();
-			this.showStop(Helpers.findStopInSharedStop(sharedStop), sharedStop.getMarker(), sharedStop.stopID);
 		} else {
 			// If it was neither a stop or a shared stop, warn that there was an unaccounted for object.
-			Log.w("onCircleClick", String.format("Circle object (%s) unaccounted for!",
-					java.util.Objects.requireNonNull(circle.getTag()).toString()));
+			Log.w("onCircleClick", String.format("Circle object (%s) unaccounted for!", java.util.Objects.requireNonNull(circle.getTag()).toString()));
 		}
 	}
 

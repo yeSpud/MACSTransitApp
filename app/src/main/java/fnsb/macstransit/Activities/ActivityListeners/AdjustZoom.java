@@ -48,15 +48,15 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 
 		// Iterate through all the routes.
 		for (fnsb.macstransit.RouteMatch.Route route : MapsActivity.allRoutes) {
-			// If the route isn't null, execute the following:
+			// If the parentRoute isn't null, execute the following:
 			if (route != null) {
-				// Iterate through all the stops in the route.
+				// Iterate through all the stops in the parentRoute.
 				for (Stop stop : route.stops) {
 					// Get the stop's icon
-					Circle icon = stop.getIcon();
+					Circle circle = stop.getCircle();
 					// If the icon isn't null, change its radius in proportion to the zoom change.
-					if (icon != null) {
-						icon.setRadius(Stop.RADIUS * (Math.pow(zoomChange, 6)));
+					if (circle != null) {
+						AdjustZoom.adjustParentCircleSize(zoomChange, circle);
 					}
 				}
 			}
@@ -64,17 +64,37 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 
 		// Iterate through all the shared stops.
 		for (SharedStop sharedStop : sharedStops) {
+
+			Circle parentCircle = sharedStop.getCircle();
+			if (parentCircle != null) {
+				AdjustZoom.adjustParentCircleSize(zoomChange, parentCircle);
+			}
+
 			// Get the circles from the shared stop
 			Circle[] circles = sharedStop.getCircles();
 
 			// Iterate through all the circles to adjust their radius.
-			for (int index = 0; index < sharedStop.routes.length; index++) {
+			for (int index = 0; index < sharedStop.childRoutes.length; index++) {
 				Circle c = circles[index];
 				if (c != null) {
-					c.setRadius((Stop.RADIUS * (1d / (index + 1))) * Math.pow(zoomChange, 6));
+					double size = (Stop.PARENT_RADIUS * (1d / (index + 2))) * Math.pow(zoomChange, 6);
+					Log.d("adjustCircleSize", "Setting size to: " + size);
+					c.setRadius(size);
 				}
 			}
 		}
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param zoomChange
+	 * @param circle
+	 */
+	private static void adjustParentCircleSize(float zoomChange, Circle circle) {
+		double size = Stop.PARENT_RADIUS * (Math.pow(zoomChange, 6));
+		Log.d("adjustParentCircleSize", "Setting size to: " + size);
+		circle.setRadius(size);
 	}
 
 	/**

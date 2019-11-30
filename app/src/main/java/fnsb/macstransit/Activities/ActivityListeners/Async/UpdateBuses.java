@@ -40,13 +40,13 @@ public class UpdateBuses extends android.os.AsyncTask<Route, Void, Route[]> {
 	 * This method may take several seconds to complete,
 	 * so it should only be called from a worker thread.
 	 *
-	 * @param routes The parameters of the task. In our case its the routes for the buses.
+	 * @param routes The parameters of the task. In our case its the childRoutes for the buses.
 	 * @return A result, defined by the subclass of this task.
-	 * In our case it's the same routes as before, just with updated bus positions.
+	 * In our case it's the same childRoutes as before, just with updated bus positions.
 	 */
 	@Override
 	protected Route[] doInBackground(Route... routes) {
-		// For each of the routes provided, execute the following:
+		// For each of the childRoutes provided, execute the following:
 		for (Route route : routes) {
 
 			// First, make sure this wasn't canceled. If it was, simply break from the loop now.
@@ -56,17 +56,17 @@ public class UpdateBuses extends android.os.AsyncTask<Route, Void, Route[]> {
 
 			try {
 
-				// Store the old buses from the route into its own array,
+				// Store the old buses from the parentRoute into its own array,
 				// and create another bus array containing the newly queried buses.
 				Bus[] oldBuses = route.buses, newBuses = Bus.getBuses(route);
 
 				// Check to see if the length of the old buses does not match that of the new buses.
-				// If they're different, simply replace the buses in the route with the new buses.
+				// If they're different, simply replace the buses in the parentRoute with the new buses.
 				if (oldBuses.length != newBuses.length) {
 					route.buses = newBuses;
 				} else {
 
-					// Since the buses in the route were the same length, check the individual buses.
+					// Since the buses in the parentRoute were the same length, check the individual buses.
 					// Start by iterating through the old buses.
 					for (int index = 0; index < oldBuses.length; index++) {
 
@@ -76,7 +76,7 @@ public class UpdateBuses extends android.os.AsyncTask<Route, Void, Route[]> {
 						// Iterate trough the new buses, and check of the new bus ID equals that of the old bus ID.
 						for (Bus newBus : newBuses) {
 
-							// If the IDs match, update the route color, as well as the coordinates.
+							// If the IDs match, update the parentRoute color, as well as the coordinates.
 							if (newBus.busID.equals(oldBus.busID)) {
 								oldBus.color = newBus.color;
 								oldBus.latitude = newBus.latitude;
@@ -93,7 +93,7 @@ public class UpdateBuses extends android.os.AsyncTask<Route, Void, Route[]> {
 			}
 		}
 
-		// Finally, return the initial routes, but with the updated buses.
+		// Finally, return the initial childRoutes, but with the updated buses.
 		return routes;
 	}
 

@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 
+import fnsb.macstransit.RouteMatch.BasicStop;
 import fnsb.macstransit.RouteMatch.Stop;
 
 /**

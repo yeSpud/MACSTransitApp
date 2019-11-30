@@ -47,7 +47,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	private RouteMatch routeMatch;
 
 	/**
-	 * The routes from the RouteMatch object to be loaded in the splash screen.
+	 * The childRoutes from the RouteMatch object to be loaded in the splash screen.
 	 */
 	private Route[] routes;
 
@@ -122,7 +122,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			try {
 				this.routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/");
 			} catch (java.net.MalformedURLException e) {
-				// If the route match url is malformed (hence an error was thrown) simply log it, and then return early.
+				// If the parentRoute match url is malformed (hence an error was thrown) simply log it, and then return early.
 				// Don't start loading data.
 				Log.e("onResume", "The RouteMatch URL is malformed!");
 				return;
@@ -237,8 +237,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 	/**
 	 * Creates the thread that will be used to parse the routematch object,
-	 * load the routes from the routematch object, load the routes polylines (if enabled),
-	 * and load the stops from the routes.
+	 * load the childRoutes from the routematch object, load the childRoutes polylines (if enabled),
+	 * and load the stops from the childRoutes.
 	 *
 	 * @return The thread created. Note that this has not been started at this point,
 	 * so start() needs to be called in order for this to run.
@@ -247,18 +247,18 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Create a thread that will be used to load the data.
 		Thread t = new Thread(() -> {
 
-			// Inform the user that the routes are being loaded
-			Log.d("loadData", "Loading routes from master schedule");
+			// Inform the user that the childRoutes are being loaded
+			Log.d("loadData", "Loading childRoutes from master schedule");
 			this.setMessage(R.string.load_routes);
 
 			// Get the master schedule from the RouteMatch server
 			org.json.JSONObject masterSchedule = this.routeMatch.getMasterSchedule();
 			if (masterSchedule.length() != 0) {
 
-				// Load the routes from the RouteMatch object
+				// Load the childRoutes from the RouteMatch object
 				this.routes = Route.generateRoutes(masterSchedule);
 
-				// If there are routes that were loaded, execute the following:
+				// If there are childRoutes that were loaded, execute the following:
 				if (this.routes.length != 0) {
 
 					// TODO Simplify this!
@@ -270,70 +270,70 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 						this.setProgress(1d / 3d);
 						this.setMessage(R.string.load_polylines);
 
-						// Load the polyline coordinates into each route
+						// Load the polyline coordinates into each parentRoute
 						for (int polylineIndex = 0; polylineIndex < this.routes.length; polylineIndex++) {
 							Route route = this.routes[polylineIndex];
 
-							// Load the polylineCoordinates into the route
+							// Load the polylineCoordinates into the parentRoute
 							route.polyLineCoordinates = route.loadPolyLineCoordinates(this.routeMatch);
 
-							// Set the progress to the current index (plus 1) out of the all the routes to be parsed,
+							// Set the progress to the current index (plus 1) out of the all the childRoutes to be parsed,
 							// and then divide that value in third, as this is the other 33% to be processed.
 							this.setProgress((1d / 3d) + (((polylineIndex + 1d) / this.routes.length) / 3d));
 						}
 
 						// Update the progress to 2/3, and inform the user that we are now loading stops.
-						Log.d("loadData", "Loading stops in the routes");
+						Log.d("loadData", "Loading stops in the childRoutes");
 						this.setProgress(2d / 3d);
 						this.setMessage(R.string.load_stops);
 
-						// Load the stops in each route.
+						// Load the stops in each parentRoute.
 						for (int i = 0; i < this.routes.length; i++) {
-							// Get the route at the current index (i) from all the routes that were loaded.
+							// Get the parentRoute at the current index (i) from all the childRoutes that were loaded.
 							Route route = this.routes[i];
 
-							// Load the stops in the route.
+							// Load the stops in the parentRoute.
 							route.stops = route.loadStops(this.routeMatch);
 
-							// Set the progress to the current index (plus 1) out of the all the routes to be parsed,
+							// Set the progress to the current index (plus 1) out of the all the childRoutes to be parsed,
 							// and then divide that value in third, as this is the other 33% to be processed.
 							this.setProgress((2d / 3d) + (((i + 2d) / this.routes.length) / 3d));
 						}
 					} else {
 						// Update the progress to halfway, and inform the user that we are now loading stops.
-						Log.d("loadData", "Loading stops in the routes");
+						Log.d("loadData", "Loading stops in the childRoutes");
 						this.setProgress(0.5d);
 						this.setMessage(R.string.load_stops);
 
-						// Load the stops in each route.
+						// Load the stops in each parentRoute.
 						for (int i = 0; i < this.routes.length; i++) {
-							// Get the route at the current index (i) from all the routes that were loaded.
+							// Get the parentRoute at the current index (i) from all the childRoutes that were loaded.
 							Route route = this.routes[i];
 
-							// Load the stops in the route.
+							// Load the stops in the parentRoute.
 							route.stops = route.loadStops(this.routeMatch);
 
-							// Set the progress to the current index (plus 1) out of the all the routes to be parsed,
+							// Set the progress to the current index (plus 1) out of the all the childRoutes to be parsed,
 							// and then divide that value in half, as this is the other 50% to be processed.
 							this.setProgress(0.5d + (((i + 1d) / this.routes.length) / 2d));
 						}
 					}
 
-					// Once all the routes and stops have been loaded,
+					// Once all the childRoutes and stops have been loaded,
 					// call the dataLoaded function to mark that we are done and ready to load the maps activity.
 					this.dataLoaded();
 				} else {
-					// No routes were loaded from the master schedule.
+					// No childRoutes were loaded from the master schedule.
 					// This is most likely because its Sunday, and the buses don't run on Sundays.
-					Log.w("loadData", "No routes at this time");
+					Log.w("loadData", "No childRoutes at this time");
 					this.setMessage(R.string.no_routes);
 
 					// Also add a chance for the user to retry
 					this.showRetryButton();
 				}
 			} else {
-				// Since there were no routes to be loaded, inform the user.
-				Log.w("loadData", "Unable to load routes!");
+				// Since there were no childRoutes to be loaded, inform the user.
+				Log.w("loadData", "Unable to load childRoutes!");
 				this.setMessage(R.string.no_schedule);
 
 				// Also add a chance to restart the activity to retry...
@@ -354,7 +354,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Set the routeMatch object in the MapsActivity to that of this routeMatch object.
 		MapsActivity.routeMatch = this.routeMatch;
 
-		// Set the routes in the MapsActivity to the routes that were loaded in tis activity.
+		// Set the childRoutes in the MapsActivity to the childRoutes that were loaded in tis activity.
 		MapsActivity.allRoutes = this.routes;
 
 		// Set the value of loaded to be true at this point.

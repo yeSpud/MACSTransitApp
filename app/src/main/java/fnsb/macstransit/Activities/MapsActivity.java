@@ -17,18 +17,18 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		com.google.android.gms.maps.OnMapReadyCallback {
 
 	/**
-	 * Create an array of all the routes that are used by the transit system. For now leave it uninitialized,
+	 * Create an array of all the childRoutes that are used by the transit system. For now leave it uninitialized,
 	 * as it will be dynamically generated in the onCreate method.
 	 */
 	public static Route[] allRoutes;
 
 	/**
-	 * Create an instance of the route match object that will be used for this app.
+	 * Create an instance of the parentRoute match object that will be used for this app.
 	 */
 	public static fnsb.macstransit.RouteMatch.RouteMatch routeMatch;
 
 	/**
-	 * Create an array list to determine which routes have been selected from the menu to track.
+	 * Create an array list to determine which childRoutes have been selected from the menu to track.
 	 */
 	public Route[] selectedRoutes = new Route[0];
 
@@ -48,20 +48,20 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	private UpdateThread thread = new UpdateThread(this, 3000);
 
 	/**
-	 * Boolean to check whether or not the menu items for the routes have been (dynamically) created.
+	 * Boolean to check whether or not the menu items for the childRoutes have been (dynamically) created.
 	 * This is used to prevent making multiple duplicate menu items in {@code onPrepareOptionsMenu(Menu menu)}.
 	 */
 	private boolean menuCreated;
 
 	/**
-	 * Prepare the Screen's standard options menu to be displayed.
+	 * Prepare the Screen's standard parentCircleOptions menu to be displayed.
 	 * This is called right before the menu is shown, every time it is shown.
 	 * You can use this method to efficiently enable/disable items or otherwise dynamically modify the contents.
 	 * <p>
 	 * The default implementation updates the system menu items based on the activity's state.
 	 * Deriving classes should always call through to the base class implementation.
 	 *
-	 * @param menu The options menu as last shown or first initialized by onCreateOptionsMenu().
+	 * @param menu The parentCircleOptions menu as last shown or first initialized by onCreateOptionsMenu().
 	 * @return You must return true for the menu to be displayed; if you return false it will not be shown.
 	 */
 	@Override
@@ -69,10 +69,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Check if the menu has not yet been created.
 		if (!menuCreated) {
 
-			// Iterate through all the routes that can be tracked.
+			// Iterate through all the childRoutes that can be tracked.
 			for (Route route : MapsActivity.allRoutes) {
 
-				// Add the route to the routes menu group, and make sure its checkable.
+				// Add the parentRoute to the childRoutes menu group, and make sure its checkable.
 				menu.add(R.id.routes, Menu.NONE, Menu.NONE, route.routeName).setCheckable(true);
 			}
 
@@ -84,9 +84,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * Initialize the contents of the Activity's standard options menu. You should place your menu items in to menu.
+	 * Initialize the contents of the Activity's standard parentCircleOptions menu. You should place your menu items in to menu.
 	 * <p>
-	 * This is only called once, the first time the options menu is displayed. To update the menu every time it is displayed,
+	 * This is only called once, the first time the parentCircleOptions menu is displayed. To update the menu every time it is displayed,
 	 * see {@code onPrepareOptionsMenu(Menu)}.
 	 * <p>
 	 * The default implementation populates the menu with standard system menu items.
@@ -98,7 +98,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * <p>
 	 * When you add items to the menu, you can implement the Activity's {@code onOptionsItemSelected(MenuItem)} method to handle them there.
 	 *
-	 * @param menu The options menu in which you place your items.
+	 * @param menu The parentCircleOptions menu in which you place your items.
 	 * @return You must return true for the menu to be displayed; if you return false it will not be shown.
 	 */
 	@Override
@@ -117,7 +117,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * This hook is called whenever an item in your options menu is selected.
+	 * This hook is called whenever an item in your parentCircleOptions menu is selected.
 	 * The default implementation simply returns false to have the normal processing happen (calling the item's Runnable or sending a message to its Handler as appropriate).
 	 * You can use this method for any items for which you would like to do processing without those other facilities.
 	 * <p>
@@ -158,7 +158,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 						break;
 				}
 				break;
-			// Check if the item that was selected belongs to the routes group.
+			// Check if the item that was selected belongs to the childRoutes group.
 			case R.id.routes:
 				// Create a boolean to store the resulting value of the menu item
 				boolean enabled = !item.isChecked();
@@ -169,7 +169,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				// Then clear the regular stops from the map (as the stops to be displayed will be re-evaluated)
 				Stop.removeStops(this.selectedRoutes);
 
-				// Toggle the route based on the menu item's title, and its enabled value
+				// Toggle the parentRoute based on the menu item's title, and its enabled value
 				this.selectedRoutes = enabled ?
 						Route.enableRoutes(item.getTitle().toString(), this.selectedRoutes) :
 						Route.disableRoute(item.getTitle().toString(), this.selectedRoutes);

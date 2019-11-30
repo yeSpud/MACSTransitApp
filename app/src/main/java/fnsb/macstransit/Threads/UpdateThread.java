@@ -57,7 +57,7 @@ public class UpdateThread {
 	}
 
 	/**
-	 * This is the thread that repeatedly queries the routematch server for data on the buses, routes, and stops.
+	 * This is the thread that repeatedly queries the routematch server for data on the buses, childRoutes, and stops.
 	 * It loops with the frequency defined by the {@code updateFrequency} variable (default of 4000 milliseconds, or 4 seconds).
 	 *
 	 * @return The thread. Note that this dies not run the thread, that has to be called separately.
@@ -70,13 +70,13 @@ public class UpdateThread {
 			// Loop continuously while the run variable is true, and the thread hasn't been interrupted.
 			while (this.run && !Thread.interrupted()) {
 
-				// Make a copy of the selected routes array to run iterations on (to avoid Concurrent Modification Exceptions).
+				// Make a copy of the selected childRoutes array to run iterations on (to avoid Concurrent Modification Exceptions).
 				fnsb.macstransit.RouteMatch.Route[] routes = this.activity.selectedRoutes;
 
 				/*
-				 * If there are no selected routes,
+				 * If there are no selected childRoutes,
 				 * loop quickly (every quarter second) rather than the set frequency.
-				 * If there are selected routes (route length will be greater than 0),
+				 * If there are selected childRoutes (parentRoute length will be greater than 0),
 				 * update the bus positions on the map (and do so on the UI thread).
 				 * Then, sleep for the given update frequency.
 				 */
@@ -92,7 +92,7 @@ public class UpdateThread {
 					}
 					Thread.yield();
 				} else {
-					// Quick sleep since there are no routes to track.
+					// Quick sleep since there are no childRoutes to track.
 					try {
 						Thread.sleep(250);
 					} catch (InterruptedException e) {
