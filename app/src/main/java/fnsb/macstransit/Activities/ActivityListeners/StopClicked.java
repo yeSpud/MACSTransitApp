@@ -1,13 +1,18 @@
 package fnsb.macstransit.Activities.ActivityListeners;
 
+import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.model.Marker;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import fnsb.macstransit.Activities.InfoWindowAdapter;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 import fnsb.macstransit.Activities.MapsActivity;
-import fnsb.macstransit.Activities.PopupWindow;
+import fnsb.macstransit.R;
+import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 
@@ -16,7 +21,7 @@ import fnsb.macstransit.RouteMatch.Stop;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.1
+ * @version 1.2
  * @since Beta 7
  */
 public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCircleClickListener {
@@ -40,15 +45,12 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * which contains when the (selected) buses for that stop will be arriving and departing.
 	 * This method also posts this string to the body of the popup window when the info window is clicked on.
 	 *
-	 * @param stop                    The stop (either an actual Stop object, or a SharedStop).
-	 * @param json                    The json object retrieved from the RouteMatch server.
-	 * @param is24Hour                Whether or not the user is using 24 hour time.
-	 * @param expectedArrivalString   The expected arrival string resource.
-	 * @param expectedDepartureString The expected departure string resource.
-	 * @param overflowString          The string resource used to notify the user to click on the info window when there is too much content to be displayed.
+	 * @param stop    The stop (either an actual Stop object, or a SharedStop).
+	 * @param json    The json object retrieved from the RouteMatch server.
+	 * @param context TODO Documentation
 	 * @return The string containing either all the arrival and departure times for the stop, or the overflowString if there is too much data.
 	 */
-	public static String postStopTimes(Object stop, org.json.JSONObject json, boolean is24Hour, String expectedArrivalString, String expectedDepartureString, String overflowString) {
+	public static String postStopTimes(Object stop, org.json.JSONObject json, Context context) {
 
 		// Get the stop data from the retrieved json.
 		org.json.JSONArray stopData = fnsb.macstransit.RouteMatch.RouteMatch.parseData(json);
@@ -58,26 +60,112 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// Get the times for the stop.
 			// Since the method arguments are slightly different for a shared stop compared to a regular stop,
 			// check if the marker is an instance of a Stop or SharedStop.
-			String string = Helpers.generateTimeString(stopData, count, expectedArrivalString,
-					expectedDepartureString, is24Hour, (stop instanceof Stop) ?
-							new fnsb.macstransit.RouteMatch.Route[]{((Stop) stop).route} :
-							((SharedStop) stop).routes, stop instanceof SharedStop);
+			String string = StopClicked.generateTimeString(stopData, count, context, (stop instanceof Stop) ? new Route[]{((Stop) stop).route} : ((SharedStop) stop).routes, stop instanceof SharedStop);
 
 			// Load the times string into a popup window for when its clicked on.
-			PopupWindow.body = string;
+			fnsb.macstransit.Activities.PopupWindow.body = string;
 
 			// Check to see how many new lines there are in the display.
 			// If there are more than the maximum lines allowed bu the info window adapter,
 			// display "Click to view all the arrival and departure times.".
-			if (Helpers.getCharacterOccurrence('\n', string) <= InfoWindowAdapter.MAX_LINES) {
-				return string;
-			} else {
-				return overflowString;
-			}
-		} catch (org.json.JSONException e) {
+			return Helpers.getCharacterOccurrence('\n', string) <= fnsb.macstransit.Activities.InfoWindowAdapter.MAX_LINES ? string : context.getString(R.string.click_to_view_all_the_arrival_and_departure_times);
+
+		} catch (JSONException e) {
 			// If there was an error, just print a stack trace, and return an empty string.
 			e.printStackTrace();
 			return "";
+		}
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param stopArray
+	 * @param count
+	 * @param context
+	 * @param routes
+	 * @param includeRouteName
+	 * @return
+	 * @throws JSONException
+	 */
+	private static String generateTimeString(org.json.JSONArray stopArray, int count, Context context, Route[] routes, boolean includeRouteName) throws JSONException {
+
+		StringBuilder snippetText = new StringBuilder();
+
+		// Iterate through the stops in the json object to get the time for.
+		for (int index = 0; index < count; index++) {
+			Log.d("generateTimeString", String.format("Parsing stop times for stop %d/%d", index, count));
+
+			// Get the stop time from the current stop.
+			JSONObject object = stopArray.getJSONObject(index);
+
+			// First, check if the current time does belong to the desired route
+			for (Route route : routes) {
+				if (route.routeName.equals(object.getString("routeId"))) {
+
+					// Set the arrival and departure time to the arrival and departure time in the jsonObject.
+					// At this point this is stored in 24-hour time.
+					String arrivalTime = StopClicked.getTime(object, "predictedArrivalTime"),
+							departureTime = StopClicked.getTime(object, "predictedDepartureTime");
+
+					// If the user doesn't use 24-hour time, convert to 12-hour time.
+					if (!android.text.format.DateFormat.is24HourFormat(context)) {
+						Log.d("generateTimeString", "Converting time to 12 hour time");
+						arrivalTime = StopClicked.formatTime(arrivalTime);
+						departureTime = StopClicked.formatTime(departureTime);
+					}
+
+					// Append the route name if there is one
+					if (includeRouteName) {
+						Log.d("generateTimeString", "Adding route " + route.routeName);
+						snippetText.append(String.format("Route: %s\n", route.routeName));
+					}
+
+					// Append the arrival and departure times to the snippet text.
+					snippetText.append(String.format("%s %s\n%s %s\n\n", context.getString(R.string.expected_arrival), arrivalTime, context.getString(R.string.expected_departure), departureTime));
+				}
+			}
+		}
+
+		return snippetText.toString();
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param json
+	 * @param tag
+	 * @return
+	 */
+	private static String getTime(JSONObject json, String tag) {
+		try {
+			// Get a matcher object from the time regex, and have it match the tag.
+			java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\\d\\d:\\d\\d").matcher(json.getString(tag));
+
+			// If the match was found, return it, if not return null.
+			return matcher.find() ? matcher.group(0) : null;
+
+		} catch (JSONException jsonException) {
+			// If there was an error, print a stack trace, and return null.
+			jsonException.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param time
+	 * @return
+	 */
+	private static String formatTime(String time) {
+		try {
+			// Try to format the time from 24 hours to 12 hours (including AM and PM).
+			return new SimpleDateFormat("K:mm a", Locale.US).format(new SimpleDateFormat("H:mm", Locale.US).parse(time));
+		} catch (java.text.ParseException parseException) {
+			// If there was a parsing exception simply return the old time.
+			parseException.printStackTrace();
+			return time;
 		}
 	}
 
@@ -118,7 +206,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @param marker The marker corresponding to the stop (this may be null).
 	 * @param stopId The Id if the stop if the marker is null. This may NOT be null.
 	 */
-	private void showStop(Stop stop, Marker marker, String stopId) {
+	private void showStop(Stop stop, com.google.android.gms.maps.model.Marker marker, String stopId) {
 		if (marker == null) {
 			// If the stop doesn't have a marker, just use toast to display the stop ID.
 			Toast.makeText(this.activity, stopId, Toast.LENGTH_SHORT).show();

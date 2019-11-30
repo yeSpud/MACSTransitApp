@@ -5,16 +5,9 @@ import android.widget.CheckBox;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Locale;
 
 import fnsb.macstransit.RouteMatch.BasicStop;
 import fnsb.macstransit.RouteMatch.Route;
@@ -97,114 +90,6 @@ public class Helpers { // TODO Deprecate all of these!
 
 		// Return the circle.
 		return circle;
-	}
-
-	/**
-	 * Helper function that formats a string containing the arrival and departure times that is to be used in the body section of a stop info window.
-	 *
-	 * @param stopArray               The JSONArray containing the times to be formatted.
-	 * @param count                   The number of stops to parse the time for.
-	 * @param expectedArrivalString   The expected arrival place holder string.
-	 * @param expectedDepartureString THe expected departure placeholder string.
-	 * @param is24Hour                Whether or not the user is using 24 hour time or not.
-	 * @param routes                  The routes that correspond to the times that need to be parsed.
-	 * @param includeRouteName        Whether or not to include the route name in the final string corresponding to the times.
-	 * @return The formatted time string (to be used in the body section of an info window).
-	 * @throws JSONException Thrown if there are any exceptions when parsing the JSONObjects.
-	 */
-	public static String generateTimeString(org.json.JSONArray stopArray, int count, String expectedArrivalString,
-	                                        String expectedDepartureString, boolean is24Hour,
-	                                        Route[] routes, boolean includeRouteName) throws JSONException {
-
-		StringBuilder snippetText = new StringBuilder();
-
-		// Iterate through the stops in the json object to get the time for.
-		for (int index = 0; index < count; index++) {
-			Log.d("generateTimeString", String.format("Parsing stop times for stop %d/%d", index, count));
-
-			// Get the stop time from the current stop.
-			JSONObject object = stopArray.getJSONObject(index);
-
-			// First, check if the current time does belong to the desired route
-			for (Route route : routes) {
-				if (route.routeName.equals(object.getString("routeId"))) {
-
-					// Set the arrival and departure time to the arrival and departure time in the jsonObject.
-					// At this point this is stored in 24-hour time.
-					String arrivalTime = Helpers.getTime(object, "predictedArrivalTime"),
-							departureTime = Helpers.getTime(object, "predictedDepartureTime");
-
-					// If the user doesn't use 24-hour time, convert to 12-hour time.
-					if (!is24Hour) {
-						Log.d("generateTimeString", "Converting time to 12 hour time");
-						arrivalTime = Helpers.formatTime(arrivalTime);
-						departureTime = Helpers.formatTime(departureTime);
-					}
-
-					// Append the route name if there is one
-					if (includeRouteName) {
-						Log.d("generateTimeString", "Adding route " + route.routeName);
-						snippetText.append(String.format("Route: %s\n", route.routeName));
-					}
-
-					// Append the arrival and departure times to the snippet text.
-					snippetText.append(String.format("%s %s\n%s %s\n\n", expectedArrivalString, arrivalTime,
-							expectedDepartureString, departureTime));
-				}
-			}
-		}
-
-		// Get the length of the original snippet text.
-		int length = snippetText.length();
-
-		// Replace the last 2 new lines
-		if (length > 2) {
-			snippetText.deleteCharAt(length - 1);
-			snippetText.deleteCharAt(length - 2);
-		}
-
-		return snippetText.toString();
-	}
-
-	/**
-	 * Helper function that returns the time (in 24-hour form) that is found in the provided JSONObject via a regex.
-	 *
-	 * @param json The JSONObject to search.
-	 * @param tag  The tag in the JSONObject to search.
-	 * @return The time (in 24-hour form) as a String that was found in the JSONObject.
-	 * This may be null if no such string was able to be found, or if there was a JSONException.
-	 */
-	public static String getTime(JSONObject json, String tag) {
-		try {
-			// Get a matcher object from the time regex, and have it match the tag.
-			java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\\d\\d:\\d\\d").matcher(json.getString(tag));
-
-			// If the match was found, return it, if not return null.
-			return matcher.find() ? matcher.group(0) : null;
-
-		} catch (JSONException jsonException) {
-			// If there was an error, print a stack trace, and return null.
-			jsonException.printStackTrace();
-			return null;
-		}
-	}
-
-	/**
-	 * Helper function that returns the time from 24-hour time to 12-hour time (and even includes AM and PM).
-	 *
-	 * @param time The time to format as a string.
-	 * @return The formatted 12-hour time.
-	 * This may return the original 12 hour time if there was an exception parsing the time.
-	 */
-	public static String formatTime(String time) {
-		try {
-			// Try to format the time from 24 hours to 12 hours (including AM and PM).
-			return new SimpleDateFormat("K:mm a", Locale.US).format(new SimpleDateFormat("H:mm", Locale.US).parse(time));
-		} catch (java.text.ParseException parseException) {
-			// If there was a parsing exception simply return the old time.
-			parseException.printStackTrace();
-			return time;
-		}
 	}
 
 	/**
