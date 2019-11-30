@@ -11,7 +11,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 
-import fnsb.macstransit.Activities.ActivityListeners.Helpers;
 import fnsb.macstransit.R;
 
 /**
@@ -19,7 +18,7 @@ import fnsb.macstransit.R;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.0
+ * @version 1.1
  * @since Beta 8
  */
 public class SettingsPopupWindow extends AlertDialog {
@@ -225,18 +224,10 @@ public class SettingsPopupWindow extends AlertDialog {
 		final Button applyButton = dialogView.findViewById(R.id.apply);
 
 		// Create the checkboxes in the settings popup menu.
-		final CheckBox trafficBox = Helpers.createSettingsPopupCheckbox(dialogView, R.id.traffic,
-				SettingsPopupWindow.ENABLE_TRAFFIC_VIEW, applyButton, this,
-				SettingsPopupWindow.TRAFFIC_KEY),
-				nightBox = Helpers.createSettingsPopupCheckbox(dialogView, R.id.nightMode,
-						SettingsPopupWindow.DEFAULT_NIGHT_MODE, applyButton, this,
-						SettingsPopupWindow.NIGHT_MODE_KEY),
-				polyBox = Helpers.createSettingsPopupCheckbox(dialogView, R.id.polylines,
-						SettingsPopupWindow.SHOW_POLYLINES, applyButton, this,
-						SettingsPopupWindow.POLYLINES_KEY),
-				VRBox = Helpers.createSettingsPopupCheckbox(dialogView, R.id.VR,
-						SettingsPopupWindow.ENABLE_VR_OPTIONS, applyButton, this,
-						SettingsPopupWindow.VR_KEY);
+		final CheckBox trafficBox = this.createSettingsPopupCheckbox(dialogView, R.id.traffic, SettingsPopupWindow.ENABLE_TRAFFIC_VIEW, applyButton, SettingsPopupWindow.TRAFFIC_KEY),
+				nightBox = this.createSettingsPopupCheckbox(dialogView, R.id.nightMode, SettingsPopupWindow.DEFAULT_NIGHT_MODE, applyButton, SettingsPopupWindow.NIGHT_MODE_KEY),
+				polyBox = this.createSettingsPopupCheckbox(dialogView, R.id.polylines, SettingsPopupWindow.SHOW_POLYLINES, applyButton, SettingsPopupWindow.POLYLINES_KEY),
+				VRBox = this.createSettingsPopupCheckbox(dialogView, R.id.VR, SettingsPopupWindow.ENABLE_VR_OPTIONS, applyButton, SettingsPopupWindow.VR_KEY);
 
 		// Create the dialog via the alert dialog builder.
 		AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
@@ -258,13 +249,40 @@ public class SettingsPopupWindow extends AlertDialog {
 	}
 
 	/**
+	 * TODO Documentation
+	 *
+	 * @param view
+	 * @param id
+	 * @param checked
+	 * @param button
+	 * @param tag
+	 * @return
+	 */
+	private CheckBox createSettingsPopupCheckbox(android.view.View view, int id, boolean checked, Button button, String tag) {
+		// Find the checkbox within the view.
+		CheckBox checkBox = view.findViewById(id);
+
+		// Set the checkbox to be checked based on the checked value.
+		checkBox.setChecked(checked);
+
+		// Add an onCheckChanged listener to update the apply button.
+		checkBox.setOnCheckedChangeListener((a, checkedValue) -> this.changeApplyButton(checkedValue, checked, button));
+
+		// Set the tag of the checkbox.
+		checkBox.setTag(tag);
+
+		// Return the newly created checkbox.
+		return checkBox;
+	}
+
+	/**
 	 * Sets the apply button to be enabled or disabled depending on the changedSum value.
 	 *
 	 * @param defaultValue The default value of the boolean.
 	 * @param newValue     The current value of the boolean.
 	 * @param button       The apply button.
 	 */
-	public void changeApplyButton(boolean defaultValue, boolean newValue, Button button) {
+	private void changeApplyButton(boolean defaultValue, boolean newValue, Button button) {
 		// If the default current value is different than the default value, increase the change sum by 1.
 		// If the two values are the same, decrease the change sum by 1.
 		this.changedSum = (newValue != defaultValue) ? this.changedSum + 1 : this.changedSum - 1;

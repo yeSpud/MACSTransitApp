@@ -1,7 +1,6 @@
 package fnsb.macstransit.Activities.ActivityListeners;
 
 import android.util.Log;
-import android.widget.CheckBox;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
@@ -128,37 +127,6 @@ public class Helpers { // TODO Deprecate all of these!
 			}
 		}
 		return count;
-	}
-
-	/**
-	 * Creates a checkbox for the settings popup window.
-	 * This also sets up a listener for when the checkbox is checked to update the apply button value based on the checkboxes changed value.
-	 *
-	 * @param view                The view to get the checkbox from.
-	 * @param id                  The id of the check box.
-	 * @param checked             Whether or not the checkbox should be checked by default.
-	 * @param button              The apply button for the settings popup window.
-	 * @param settingsPopupWindow The settings popup window class.
-	 * @return The newly created checkbox.
-	 */
-	public static CheckBox createSettingsPopupCheckbox(android.view.View view, int id, boolean checked,
-	                                                   android.widget.Button button,
-	                                                   fnsb.macstransit.Activities.SettingsPopupWindow settingsPopupWindow,
-	                                                   String tag) {
-		// Find the checkbox within the view.
-		CheckBox checkBox = view.findViewById(id);
-
-		// Set the checkbox to be checked based on the checked value.
-		checkBox.setChecked(checked);
-
-		// Add an onCheckChanged listener to update the apply button.
-		checkBox.setOnCheckedChangeListener((a, checkedValue) -> settingsPopupWindow.changeApplyButton(checkedValue, checked, button));
-
-		// Set the tag of the checkbox.
-		checkBox.setTag(tag);
-
-		// Return the newly created checkbox.
-		return checkBox;
 	}
 
 	/**
