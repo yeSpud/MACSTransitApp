@@ -261,62 +261,14 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				// If there are childRoutes that were loaded, execute the following:
 				if (this.routes.length != 0) {
 
-					// TODO Simplify this!
 					// If polylines are enabled, execute the following:
 					if (SettingsPopupWindow.SHOW_POLYLINES) {
-
-						// Update the progress to 1/3, and inform the user that we are now loading polylines
-						Log.d("loadData", "Loading polylines");
-						this.setProgress(1d / 3d);
-						this.setMessage(R.string.load_polylines);
-
-						// Load the polyline coordinates into each parentRoute
-						for (int polylineIndex = 0; polylineIndex < this.routes.length; polylineIndex++) {
-							Route route = this.routes[polylineIndex];
-
-							// Load the polylineCoordinates into the parentRoute
-							route.polyLineCoordinates = route.loadPolyLineCoordinates(this.routeMatch);
-
-							// Set the progress to the current index (plus 1) out of the all the childRoutes to be parsed,
-							// and then divide that value in third, as this is the other 33% to be processed.
-							this.setProgress((1d / 3d) + (((polylineIndex + 1d) / this.routes.length) / 3d));
-						}
-
-						// Update the progress to 2/3, and inform the user that we are now loading stops.
-						Log.d("loadData", "Loading stops in the childRoutes");
-						this.setProgress(2d / 3d);
-						this.setMessage(R.string.load_stops);
-
-						// Load the stops in each parentRoute.
-						for (int i = 0; i < this.routes.length; i++) {
-							// Get the parentRoute at the current index (i) from all the childRoutes that were loaded.
-							Route route = this.routes[i];
-
-							// Load the stops in the parentRoute.
-							route.stops = route.loadStops(this.routeMatch);
-
-							// Set the progress to the current index (plus 1) out of the all the childRoutes to be parsed,
-							// and then divide that value in third, as this is the other 33% to be processed.
-							this.setProgress((2d / 3d) + (((i + 2d) / this.routes.length) / 3d));
-						}
+						// TODO Comments
+						this.loadPolylines(1d, 3d);
+						this.loadStops(2d, 3d);
 					} else {
-						// Update the progress to halfway, and inform the user that we are now loading stops.
-						Log.d("loadData", "Loading stops in the childRoutes");
-						this.setProgress(0.5d);
-						this.setMessage(R.string.load_stops);
-
-						// Load the stops in each parentRoute.
-						for (int i = 0; i < this.routes.length; i++) {
-							// Get the parentRoute at the current index (i) from all the childRoutes that were loaded.
-							Route route = this.routes[i];
-
-							// Load the stops in the parentRoute.
-							route.stops = route.loadStops(this.routeMatch);
-
-							// Set the progress to the current index (plus 1) out of the all the childRoutes to be parsed,
-							// and then divide that value in half, as this is the other 50% to be processed.
-							this.setProgress(0.5d + (((i + 1d) / this.routes.length) / 2d));
-						}
+						// TODO Comments
+						this.loadStops(1d, 2d);
 					}
 
 					// Once all the childRoutes and stops have been loaded,
@@ -379,5 +331,64 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.button.setOnClickListener((click) -> this.onResume());
 			this.button.setVisibility(View.VISIBLE);
 		});
+	}
+
+	/**
+	 * TODO Documentation and fix comments
+	 *
+	 * @param currentProgress
+	 * @param maxProgress
+	 */
+	private void loadPolylines(double currentProgress, double maxProgress) {
+
+		double startingProgress = currentProgress / maxProgress;
+		Log.d("loadPolylines", String.format("Setting starting progress to: %.2f", startingProgress));
+		this.setProgress(startingProgress);
+
+		Log.d("loadPolylines", "Loading polylines");
+		this.setMessage(R.string.load_polylines);
+
+		// Load the polyline coordinates into each parentRoute
+		for (int i = 0; i < this.routes.length; i++) {
+			Route route = this.routes[i];
+
+			// Load the polylineCoordinates into the parentRoute
+			route.polyLineCoordinates = route.loadPolyLineCoordinates(this.routeMatch);
+
+			double forLoopProgress = (i + 1d) / this.routes.length;
+			Log.d("loadPolylines", String.format("Current for loop progress: %.2f", forLoopProgress));
+
+			this.setProgress(startingProgress + (forLoopProgress / maxProgress));
+		}
+	}
+
+	/**
+	 * TODO Documentation and fix comments
+	 *
+	 * @param currentProgress
+	 * @param maxProgress
+	 */
+	private void loadStops(double currentProgress, double maxProgress) {
+
+		double startingProgress = currentProgress / maxProgress;
+		Log.d("loadStops", String.format("Setting starting progress to: %.2f", startingProgress));
+		this.setProgress(startingProgress);
+
+		Log.d("loadStops", "Loading stops in the childRoutes");
+		this.setMessage(R.string.load_stops);
+
+		// Load the stops in each parentRoute.
+		for (int i = 0; i < this.routes.length; i++) {
+			// Get the route at the current index (i) from all the routes that were loaded.
+			Route route = this.routes[i];
+
+			// Load all the stops in the given route.
+			route.stops = route.loadStops(this.routeMatch);
+
+			double forLoopProgress = (i + 1d) / this.routes.length;
+			Log.d("loadStops", String.format("Current for loop progress: %.2f", forLoopProgress));
+
+			this.setProgress(startingProgress + (forLoopProgress / maxProgress));
+		}
 	}
 }
