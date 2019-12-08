@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -17,7 +18,7 @@ import java.util.Arrays;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 2.2
+ * @version 2.3
  * @since Beta 3
  */
 public class Route {
@@ -338,11 +339,24 @@ public class Route {
 	}
 
 	/**
-	 * Creates and sets the polyline for the parentRoute, as well as adds it to the map.
+	 * TODO Documentation
 	 *
 	 * @param map The map to add the polyline to.
 	 */
 	public void createPolyline(com.google.android.gms.maps.GoogleMap map) {
-		this.polyline = fnsb.macstransit.Activities.ActivityListeners.Helpers.createPolyLine(this, map);
+		// Add the polyline based off the polyline coordinates within the parentRoute.
+		PolylineOptions options = new PolylineOptions().add(this.polyLineCoordinates);
+
+		// Make sure its not clickable.
+		options.clickable(false);
+
+		// Set the color of the polylines based on the parentRoute color.
+		options.color(this.color);
+
+		// Make sure the polyline is visible.
+		options.visible(true);
+
+		// Add the polyline to the map, and return it.
+		this.polyline = map.addPolyline(options);
 	}
 }

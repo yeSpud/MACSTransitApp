@@ -19,7 +19,7 @@ import fnsb.macstransit.R;
  * For the license, view the file titled LICENSE at the root of the project
  *
  * @version 1.1
- * @since Beta 8
+ * @since Beta 8.
  */
 public class SettingsPopupWindow extends AlertDialog {
 
@@ -144,16 +144,19 @@ public class SettingsPopupWindow extends AlertDialog {
 	 * @return The content of the settings file as a string array. Each new line is a new string.
 	 */
 	private static String[] readFile(Context context) {
+		// Try to create a file input stream in order to read the data from the file.
 		java.io.FileInputStream fis = null;
 		try {
 			fis = context.openFileInput(SettingsPopupWindow.FILENAME);
 		} catch (java.io.FileNotFoundException e) {
 			e.printStackTrace();
 		}
+
+		// If the file input stream was created successfully, execute the following:
 		if (fis != null) {
 			StringBuilder stringBuilder = new StringBuilder();
-			try (BufferedReader reader = new BufferedReader(new java.io.
-					InputStreamReader(fis, java.nio.charset.StandardCharsets.UTF_8))) {
+			try (BufferedReader reader = new BufferedReader(new java.io.InputStreamReader(fis,
+					java.nio.charset.StandardCharsets.UTF_8))) {
 				String line = reader.readLine();
 				while (line != null) {
 					stringBuilder.append(line).append("\n");
@@ -166,6 +169,7 @@ public class SettingsPopupWindow extends AlertDialog {
 			String contents = stringBuilder.toString();
 			return contents.split("\n");
 		} else {
+			// If the file input stream was unable to be created, return null (for now).
 			return null;
 		}
 	}
@@ -219,44 +223,52 @@ public class SettingsPopupWindow extends AlertDialog {
 		android.view.View dialogView = android.view.LayoutInflater.from(this.context)
 				.inflate(R.layout.settings_popup, this.findViewById(R.id.content), false);
 
-
 		// Setup the apply button.
 		final Button applyButton = dialogView.findViewById(R.id.apply);
 
 		// Create the checkboxes in the settings popup menu.
-		final CheckBox trafficBox = this.createCheckbox(dialogView, R.id.traffic, SettingsPopupWindow.ENABLE_TRAFFIC_VIEW, applyButton, SettingsPopupWindow.TRAFFIC_KEY),
-				nightBox = this.createCheckbox(dialogView, R.id.nightMode, SettingsPopupWindow.DEFAULT_NIGHT_MODE, applyButton, SettingsPopupWindow.NIGHT_MODE_KEY),
-				polyBox = this.createCheckbox(dialogView, R.id.polylines, SettingsPopupWindow.SHOW_POLYLINES, applyButton, SettingsPopupWindow.POLYLINES_KEY),
-				VRBox = this.createCheckbox(dialogView, R.id.VR, SettingsPopupWindow.ENABLE_VR_OPTIONS, applyButton, SettingsPopupWindow.VR_KEY);
+		final CheckBox trafficBox = this.createCheckbox(dialogView, R.id.traffic,
+				SettingsPopupWindow.ENABLE_TRAFFIC_VIEW, applyButton, SettingsPopupWindow.TRAFFIC_KEY),
+				nightBox = this.createCheckbox(dialogView, R.id.nightMode,
+						SettingsPopupWindow.DEFAULT_NIGHT_MODE, applyButton,
+						SettingsPopupWindow.NIGHT_MODE_KEY), polyBox = this.createCheckbox(dialogView,
+				R.id.polylines, SettingsPopupWindow.SHOW_POLYLINES, applyButton,
+				SettingsPopupWindow.POLYLINES_KEY), VRBox = this.createCheckbox(dialogView, R.id.VR,
+				SettingsPopupWindow.ENABLE_VR_OPTIONS, applyButton, SettingsPopupWindow.VR_KEY);
 
 		// Create the dialog via the alert dialog builder.
 		AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
 		builder.setView(dialogView);
 		AlertDialog alertDialog = builder.create();
 
-		// Setup the cancel button
+		// Setup the cancel button.
 		dialogView.findViewById(R.id.cancel).setOnClickListener((click) -> alertDialog.cancel());
 
-		// Setup the apply button click listener
+		// Setup the apply button click listener.
 		applyButton.setOnClickListener((click) -> {
+			// Write the settings to the settings file.
 			this.writeSettings(trafficBox, nightBox, polyBox, VRBox);
+
+			// Inform the user that a restart is required in order for changes to take effect.
 			Toast.makeText(this.context, R.string.restart_required, Toast.LENGTH_LONG).show();
+
+			// Close the alert dialog.
 			alertDialog.cancel();
 		});
 
-		// Show the dialog
+		// Show the dialog.
 		alertDialog.show();
 	}
 
 	/**
-	 * TODO Documentation
+	 * Creates the checkboxes as that will be used in the settings popup window.
 	 *
-	 * @param view
-	 * @param id
-	 * @param checked
-	 * @param button
-	 * @param tag
-	 * @return
+	 * @param view    The settings popup window view.
+	 * @param id      THe ID of the Checkbox within the View.
+	 * @param checked Whether or not the box is to be checkd by default.
+	 * @param button  The apply button (as the apply button needs to be passed as an argument for the checkbox's listener).
+	 * @param tag     The text of the checkbox (which will be applied as the checkbox's tag)
+	 * @return The newly created checkbox object.
 	 */
 	private CheckBox createCheckbox(android.view.View view, int id, boolean checked, Button button, String tag) {
 		// Find the checkbox within the view.
