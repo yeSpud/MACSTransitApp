@@ -14,8 +14,8 @@ import fnsb.macstransit.RouteMatch.RouteMatch;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.1
- * @since Beta 7
+ * @version 1.2
+ * @since Beta 7.
  */
 public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
@@ -47,7 +47,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	private RouteMatch routeMatch;
 
 	/**
-	 * The routes from the RouteMatch object to be loaded in the splash screen.
+	 * The childRoutes from the RouteMatch object to be loaded in the splash screen.
 	 */
 	private Route[] routes;
 
@@ -122,7 +122,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			try {
 				this.routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/");
 			} catch (java.net.MalformedURLException e) {
-				// If the route match url is malformed (hence an error was thrown) simply log it, and then return early.
+				// If the parentRoute match url is malformed (hence an error was thrown) simply log it, and then return early.
 				// Don't start loading data.
 				Log.e("onResume", "The RouteMatch URL is malformed!");
 				return;
@@ -165,16 +165,23 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * B will not be created until A's onPause() returns, so be sure to not do anything lengthy here.
 	 * <p>
 	 * This callback is mostly used for saving any persistent state the activity is editing,
-	 * to present a "edit in place" model to the user and making sure nothing is lost if there are not enough resources to start the new activity without first killing this one.
-	 * This is also a good place to stop things that consume a noticeable amount of CPU in order to make the switch to the next activity as fast as possible.
+	 * to present a "edit in place" model to the user and making sure nothing is lost if there are
+	 * not enough resources to start the new activity without first killing this one.
+	 * This is also a good place to stop things that consume a noticeable amount of CPU in order to
+	 * make the switch to the next activity as fast as possible.
 	 * <p>
-	 * On platform versions prior to Build.VERSION_CODES.Q this is also a good place to try to close exclusive-access devices or to release access to singleton resources.
-	 * Starting with Build.VERSION_CODES.Q there can be multiple resumed activities in the system at the same time, so onTopResumedActivityChanged(boolean) should be used for that purpose instead.
+	 * On platform versions prior to Build.VERSION_CODES.Q this is also a good place to try to close
+	 * exclusive-access devices or to release access to singleton resources.
+	 * Starting with Build.VERSION_CODES.Q there can be multiple resumed activities in the system
+	 * at the same time, so onTopResumedActivityChanged(boolean) should be used for that purpose instead.
 	 * <p>
 	 * If an activity is launched on top,
-	 * after receiving this call you will usually receive a following call to onStop() (after the next activity has been resumed and displayed above).
-	 * However in some cases there will be a direct call back to onResume() without going through the stopped state.
-	 * An activity can also rest in paused state in some cases when in multi-window mode, still visible to user.
+	 * after receiving this call you will usually receive a following call to onStop()
+	 * (after the next activity has been resumed and displayed above).
+	 * However in some cases there will be a direct call back to onResume()
+	 * without going through the stopped state.
+	 * An activity can also rest in paused state in some cases when in multi-window mode,
+	 * still visible to user.
 	 * <p>
 	 * Derived classes must call through to the super class's implementation of this method.
 	 * If they do not, an exception will be thrown.
@@ -237,8 +244,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 	/**
 	 * Creates the thread that will be used to parse the routematch object,
-	 * load the routes from the routematch object, load the routes polylines (if enabled),
-	 * and load the stops from the routes.
+	 * load the childRoutes from the routematch object, load the childRoutes polylines (if enabled),
+	 * and load the stops from the childRoutes.
 	 *
 	 * @return The thread created. Note that this has not been started at this point,
 	 * so start() needs to be called in order for this to run.
@@ -247,92 +254,45 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Create a thread that will be used to load the data.
 		Thread t = new Thread(() -> {
 
-			// Inform the user that the routes are being loaded
-			Log.d("loadData", "Loading routes from master schedule");
+			// Inform the user that the childRoutes are being loaded
+			Log.d("loadData", "Loading childRoutes from master schedule");
 			this.setMessage(R.string.load_routes);
 
 			// Get the master schedule from the RouteMatch server
 			org.json.JSONObject masterSchedule = this.routeMatch.getMasterSchedule();
 			if (masterSchedule.length() != 0) {
 
-				// Load the routes from the RouteMatch object
+				// Load the childRoutes from the RouteMatch object
 				this.routes = Route.generateRoutes(masterSchedule);
 
-				// If there are routes that were loaded, execute the following:
+				// If there are childRoutes that were loaded, execute the following:
 				if (this.routes.length != 0) {
 
-					// If polylines are enabled, execute the following:
+					// Determine whether or not to show polylines.
 					if (SettingsPopupWindow.SHOW_POLYLINES) {
-
-						// Update the progress to 1/3, and inform the user that we are now loading polylines
-						Log.d("loadData", "Loading polylines");
-						this.setProgress(1d / 3d);
-						this.setMessage(R.string.load_polylines);
-
-						// Load the polyline coordinates into each route
-						for (int polylineIndex = 0; polylineIndex < this.routes.length; polylineIndex++) {
-							Route route = this.routes[polylineIndex];
-
-							// Load the polylineCoordinates into the route
-							route.polyLineCoordinates = route.loadPolyLineCoordinates(this.routeMatch);
-
-							// Set the progress to the current index (plus 1) out of the all the routes to be parsed,
-							// and then divide that value in third, as this is the other 33% to be processed.
-							this.setProgress((1d / 3d) + (((polylineIndex + 1d) / this.routes.length) / 3d));
-						}
-
-						// Update the progress to 2/3, and inform the user that we are now loading stops.
-						Log.d("loadData", "Loading stops in the routes");
-						this.setProgress(2d / 3d);
-						this.setMessage(R.string.load_stops);
-
-						// Load the stops in each route.
-						for (int i = 0; i < this.routes.length; i++) {
-							// Get the route at the current index (i) from all the routes that were loaded.
-							Route route = this.routes[i];
-
-							// Load the stops in the route.
-							route.stops = route.loadStops(this.routeMatch);
-
-							// Set the progress to the current index (plus 1) out of the all the routes to be parsed,
-							// and then divide that value in third, as this is the other 33% to be processed.
-							this.setProgress((2d / 3d) + (((i + 2d) / this.routes.length) / 3d));
-						}
+						// Load the polylines and then the stops if polylines are enabled.
+						this.loadPolylines(1d, 3d);
+						this.loadStops(2d, 3d);
 					} else {
-						// Update the progress to halfway, and inform the user that we are now loading stops.
-						Log.d("loadData", "Loading stops in the routes");
-						this.setProgress(0.5d);
-						this.setMessage(R.string.load_stops);
-
-						// Load the stops in each route.
-						for (int i = 0; i < this.routes.length; i++) {
-							// Get the route at the current index (i) from all the routes that were loaded.
-							Route route = this.routes[i];
-
-							// Load the stops in the route.
-							route.stops = route.loadStops(this.routeMatch);
-
-							// Set the progress to the current index (plus 1) out of the all the routes to be parsed,
-							// and then divide that value in half, as this is the other 50% to be processed.
-							this.setProgress(0.5d + (((i + 1d) / this.routes.length) / 2d));
-						}
+						// Since polylines are disabled just load the stops.
+						this.loadStops(1d, 2d);
 					}
 
-					// Once all the routes and stops have been loaded,
+					// Once all the childRoutes and stops have been loaded,
 					// call the dataLoaded function to mark that we are done and ready to load the maps activity.
 					this.dataLoaded();
 				} else {
-					// No routes were loaded from the master schedule.
+					// No childRoutes were loaded from the master schedule.
 					// This is most likely because its Sunday, and the buses don't run on Sundays.
-					Log.w("loadData", "No routes at this time");
+					Log.w("loadData", "No childRoutes at this time");
 					this.setMessage(R.string.no_routes);
 
 					// Also add a chance for the user to retry
 					this.showRetryButton();
 				}
 			} else {
-				// Since there were no routes to be loaded, inform the user.
-				Log.w("loadData", "Unable to load routes!");
+				// Since there were no childRoutes to be loaded, inform the user.
+				Log.w("loadData", "Unable to load childRoutes!");
 				this.setMessage(R.string.no_schedule);
 
 				// Also add a chance to restart the activity to retry...
@@ -353,7 +313,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Set the routeMatch object in the MapsActivity to that of this routeMatch object.
 		MapsActivity.routeMatch = this.routeMatch;
 
-		// Set the routes in the MapsActivity to the routes that were loaded in tis activity.
+		// Set the childRoutes in the MapsActivity to the childRoutes that were loaded in tis activity.
 		MapsActivity.allRoutes = this.routes;
 
 		// Set the value of loaded to be true at this point.
@@ -378,5 +338,74 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.button.setOnClickListener((click) -> this.onResume());
 			this.button.setVisibility(View.VISIBLE);
 		});
+	}
+
+	/**
+	 * Loads the polylines for all the routes, and updates the progress bar.
+	 *
+	 * @param currentProgress The current progress numerator (ie 1/x or 2/x).
+	 * @param maxProgress     The denominator value for the progress
+	 *                        (at what value must the numerator be for the resulting value to equal 1).
+	 */
+	@SuppressWarnings("SameParameterValue")
+	private void loadPolylines(double currentProgress, double maxProgress) {
+		// Get the starting progress based off of the arguments. Use this to set the initial progress.
+		double startingProgress = currentProgress / maxProgress;
+		Log.d("loadPolylines", String.format("Setting starting progress to: %.2f", startingProgress));
+		this.setProgress(startingProgress);
+
+		// Display the loading message.
+		Log.d("loadPolylines", "Loading polylines");
+		this.setMessage(R.string.load_polylines);
+
+		// Load the polyline coordinates into each parentRoute
+		for (int i = 0; i < this.routes.length; i++) {
+			// Get the route at index i.
+			Route route = this.routes[i];
+
+			// Load the polylineCoordinates into the selected route.
+			route.polyLineCoordinates = route.loadPolyLineCoordinates(this.routeMatch);
+
+			// Get the current progress of the for loop.
+			double forLoopProgress = (i + 1d) / this.routes.length;
+			Log.d("loadPolylines", String.format("Current for loop progress: %.2f", forLoopProgress));
+
+			// Set the updated progress to that of the starting progress plus the for loop progress.
+			this.setProgress(startingProgress + (forLoopProgress / maxProgress));
+		}
+	}
+
+	/**
+	 * Loads the stops for all the routes, and updates the progress bar.
+	 *
+	 * @param currentProgress The current progress numerator (ie 1/x or 2/x).
+	 * @param maxProgress     The denominator value for the progress
+	 *                        (at what value must the numerator be for the resulting value to equal 1).
+	 */
+	private void loadStops(double currentProgress, double maxProgress) {
+		// Get the starting progress based off of the arguments. Use this to set the initial progress.
+		double startingProgress = currentProgress / maxProgress;
+		Log.d("loadStops", String.format("Setting starting progress to: %.2f", startingProgress));
+		this.setProgress(startingProgress);
+
+		// Display the loading message.
+		Log.d("loadStops", "Loading stops in the childRoutes");
+		this.setMessage(R.string.load_stops);
+
+		// Load the stops in each parentRoute.
+		for (int i = 0; i < this.routes.length; i++) {
+			// Get the route at the current index (i) from all the routes that were loaded.
+			Route route = this.routes[i];
+
+			// Load all the stops in the given route.
+			route.stops = route.loadStops(this.routeMatch);
+
+			// Get the current progress of the for loop.
+			double forLoopProgress = (i + 1d) / this.routes.length;
+			Log.d("loadStops", String.format("Current for loop progress: %.2f", forLoopProgress));
+
+			// Set the updated progress to that of the starting progress plus the for loop progress.
+			this.setProgress(startingProgress + (forLoopProgress / maxProgress));
+		}
 	}
 }

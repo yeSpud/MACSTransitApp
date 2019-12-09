@@ -11,16 +11,18 @@ import fnsb.macstransit.RouteMatch.Stop;
 /**
  * Created by Spud on 2019-10-28 for the project: MACS Transit.
  * <p>
- * For the license, view the file titled LICENSE at the root of the project
+ * For the license, view the file titled LICENSE at the root of the project.
+ * <p>
+ * This is used to adjust the circle sizes of the stops and shared stops when the zoom level is changed by the user.
  *
- * @version 1.1
- * @since Beta 7
+ * @version 1.2
+ * @since Beta 7.
  */
 public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCameraIdleListener {
 
 	/**
 	 * The MapsActivity that this listener will apply to.
-	 * This is used to get access to all the public variables.
+	 * This is used to get access to all the public variables within the class.
 	 */
 	private MapsActivity activity;
 
@@ -38,7 +40,8 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 	 *
 	 * @param zoomLevel   The current zoom level.
 	 * @param sharedStops The array of shared stops to update the circles sizes to.
-	 *                    It should be noted that the regular stops will be adjusted on their own,
+	 *                    It should be noted that the regular stops will be adjusted on their own
+	 *                    (as those are declared as a static variable within the maps activity),
 	 *                    and do not need to be passed as an argument.
 	 */
 	public static void adjustCircleSize(float zoomLevel, SharedStop[] sharedStops) {
@@ -52,29 +55,58 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 			if (route != null) {
 				// Iterate through all the stops in the route.
 				for (Stop stop : route.stops) {
-					// Get the stop's icon
-					Circle icon = stop.getIcon();
-					// If the icon isn't null, change its radius in proportion to the zoom change.
-					if (icon != null) {
-						icon.setRadius(Stop.RADIUS * (Math.pow(zoomChange, 6)));
+					// Get the stop's circle.
+					Circle circle = stop.getCircle();
+					// If the circle isn't null, change its radius in proportion to the zoom change.
+					if (circle != null) {
+						AdjustZoom.adjustParentCircleSize(zoomChange, circle);
 					}
 				}
 			}
 		}
 
-		// Iterate through all the shared stops.
+		// Iterate through all the shared stops and execute the following:
 		for (SharedStop sharedStop : sharedStops) {
-			// Get the circles from the shared stop
+
+			// Get the parent circle from the shared stop.
+			Circle parentCircle = sharedStop.getCircle();
+
+			// If the parent circle isn't null, adjust its size in proportion to the zoom level.
+			if (parentCircle != null) {
+				AdjustZoom.adjustParentCircleSize(zoomChange, parentCircle);
+			}
+
+			// Get the rest of the circles from the shared stop.
 			Circle[] circles = sharedStop.getCircles();
 
-			// Iterate through all the circles to adjust their radius.
-			for (int index = 0; index < sharedStop.routes.length; index++) {
+			// Iterate through all the circles and adjust their sizes.
+			for (int index = 0; index < sharedStop.childRoutes.length; index++) {
 				Circle c = circles[index];
 				if (c != null) {
-					c.setRadius((Stop.RADIUS * (1d / (index + 1))) * Math.pow(zoomChange, 6));
+					// Calculate the new size of the parent circle.
+					double size = (Stop.PARENT_RADIUS * (1d / (index + 2))) * Math.pow(zoomChange, 6);
+
+					// Set the parent circle size.
+					Log.d("adjustCircleSize", "Setting size to: " + size);
+					c.setRadius(size);
 				}
 			}
 		}
+	}
+
+	/**
+	 * Adjusts the circle size of the parent circle.
+	 *
+	 * @param zoomChange The value representing how much the view has changed relative to that of the original zoom level.
+	 * @param circle     The parent circle.
+	 */
+	private static void adjustParentCircleSize(float zoomChange, Circle circle) {
+		// Calculate the new size of the parent circle.
+		double size = Stop.PARENT_RADIUS * (Math.pow(zoomChange, 6));
+
+		// Set the parent circle size.
+		Log.d("adjustParentCircleSize", "Setting size to: " + size);
+		circle.setRadius(size);
 	}
 
 	/**

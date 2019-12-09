@@ -15,12 +15,13 @@ import fnsb.macstransit.Threads.Network;
  * For the license, view the file titled LICENSE at the root of the project
  *
  * @version 3.2
- * @since Beta 1
+ * @since Beta 1.
  */
+@SuppressWarnings("WeakerAccess")
 public class RouteMatch {
 
 	/**
-	 * The feed url to pull route data from.
+	 * The feed url to pull parentRoute data from.
 	 */
 	private String url;
 
@@ -65,10 +66,10 @@ public class RouteMatch {
 	}
 
 	/**
-	 * Gets all the stops for the specified route from the RouteMatch server.
+	 * Gets all the stops for the specified parentRoute from the RouteMatch server.
 	 *
-	 * @param route The route pertaining to the stops.
-	 * @return The JSONObject pertaining to all the stops for the specified route.
+	 * @param route The parentRoute pertaining to the stops.
+	 * @return The JSONObject pertaining to all the stops for the specified parentRoute.
 	 */
 	public JSONObject getAllStops(Route route) {
 		return Network.getJsonFromUrl(this.url + "stops/" + route.routeName, true);
@@ -94,21 +95,22 @@ public class RouteMatch {
 	}
 
 	/**
-	 * Gets the route data from the RouteMatch server.
+	 * Gets the parentRoute data from the RouteMatch server.
 	 *
-	 * @param route The specific route to be fetched.
-	 * @return The JSONObject pertaining to that specific route's data.
+	 * @param route The specific parentRoute to be fetched.
+	 * @return The JSONObject pertaining to that specific parentRoute's data.
 	 */
 	public JSONObject getBuses(Route route) {
 		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + route.routeName, false);
 	}
 
 	/**
-	 * Gets the land route (the route the buses will take) of a particular route from the RouteMatch server.
+	 * Gets the land parentRoute
+	 * (the parentRoute the buses will take) of a particular parentRoute from the RouteMatch server.
 	 *
-	 * @param route The route to be fetched.
-	 * @return The JSONObject pertaining to the specific route's route
-	 * (what route it will take as a series of latitude and longitude coordinates).
+	 * @param route The parentRoute to be fetched.
+	 * @return The JSONObject pertaining to the specific parentRoute's parentRoute
+	 * (what parentRoute it will take as a series of latitude and longitude coordinates).
 	 */
 	public JSONObject getLandRoute(Route route) {
 		return Network.getJsonFromUrl(this.url + "landRoute/byRoute/" + route.routeName, true);

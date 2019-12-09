@@ -13,7 +13,7 @@ import com.google.android.gms.maps.model.Marker;
  * For the license, view the file titled LICENSE at the root of the project
  *
  * @version 1.1
- * @since Beta 7
+ * @since Beta 7.
  */
 public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.InfoWindowAdapter {
 
@@ -32,6 +32,7 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 	 *
 	 * @param activity The maps activity that this info window adapter corresponds to.
 	 */
+	@SuppressWarnings("WeakerAccess")
 	public InfoWindowAdapter(MapsActivity activity) {
 		this.activity = activity;
 	}
@@ -62,7 +63,8 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 	 * <p><br >
 	 * <p>
 	 * Credit where credits due:
-	 * this custom implementation was modified off of a stackoverflow post by user Hiren Patel - https://stackoverflow.com/users/4233197/hiren-patel.
+	 * this custom implementation was modified off of a stackoverflow post
+	 * by user Hiren Patel - https://stackoverflow.com/users/4233197/hiren-patel.
 	 * <p>
 	 * The original post can be found at this link:
 	 * https://stackoverflow.com/questions/13904651/android-google-maps-v2-how-to-add-marker-with-multiline-snippet.

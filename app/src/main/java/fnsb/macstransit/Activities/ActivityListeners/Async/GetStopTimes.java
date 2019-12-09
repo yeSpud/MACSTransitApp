@@ -1,13 +1,14 @@
 package fnsb.macstransit.Activities.ActivityListeners.Async;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.Marker;
 
 import org.json.JSONObject;
 
-import fnsb.macstransit.Activities.MapsActivity;
-import fnsb.macstransit.R;
+import java.lang.ref.WeakReference;
+
 import fnsb.macstransit.RouteMatch.Stop;
 
 /**
@@ -15,8 +16,8 @@ import fnsb.macstransit.RouteMatch.Stop;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.0
- * @since Beta 8
+ * @version 1.1
+ * @since Beta 8.
  */
 public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 
@@ -28,31 +29,24 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 	private Marker marker;
 
 	/**
-	 * The expected arrival, departure, and overflow strings (retrieved from the string value file).
+	 * A weak reference for the context object.
+	 * This is used in order to pass a context object between async tasks without having a memory leak.
+	 * <p>
+	 * https://stackoverflow.com/questions/45653121/passing-context-from-service-to-asynctask-without-leaking-it
 	 */
-	private String expectedArrival, expectedDeparture, overflowString;
-
-	/**
-	 * Boolean that will be used later to check if the current device is in 24 hour time.
-	 */
-	private boolean is24Hour;
+	private WeakReference<Context> context;
 
 	/**
 	 * Constructor for the Asynchronous method.
 	 * This is used to initialize a few variables that will be used later in the background,
 	 * or once execution has completed.
 	 *
-	 * @param marker   The marker object that will be updated once the background async process has finished.
-	 * @param activity The activity of the application.
-	 *                 This is used to determine whether the user is using 24 time or not,
-	 *                 and to retrieve the expected arrival, departure, and overflow strings.
+	 * @param marker  The marker object that will be updated once the background async process has finished.
+	 * @param context The context from which this is being called from.
 	 */
-	public GetStopTimes(Marker marker, MapsActivity activity) {
+	public GetStopTimes(Marker marker, Context context) {
 		this.marker = marker;
-		this.is24Hour = android.text.format.DateFormat.is24HourFormat(activity);
-		this.expectedArrival = activity.getString(R.string.expected_arrival);
-		this.expectedDeparture = activity.getString(R.string.expected_departure);
-		this.overflowString = activity.getString(R.string.click_to_view_all_the_arrival_and_departure_times);
+		this.context = new WeakReference<>(context);
 	}
 
 	/**
@@ -72,7 +66,7 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 	@Override
 	protected JSONObject doInBackground(Stop... stops) {
 		Log.d("doInBackground", "Retrieving stop data...");
-		return MapsActivity.routeMatch.getStop(stops[0]);
+		return fnsb.macstransit.Activities.MapsActivity.routeMatch.getStop(stops[0]);
 	}
 
 	/**
@@ -97,7 +91,7 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 			// Update the snippet text of the marker's info window
 			Log.d("onPostExecute", "Updating snippet");
 			this.marker.setSnippet(fnsb.macstransit.Activities.ActivityListeners.StopClicked
-					.postStopTimes(marker.getTag(), result, is24Hour, expectedArrival, expectedDeparture, overflowString));
+					.postStopTimes(marker.getTag(), result, this.context.get()));
 
 			// Refresh the info window by calling showInfoWindow().
 			Log.d("onPostExecute", "Refreshing info window");

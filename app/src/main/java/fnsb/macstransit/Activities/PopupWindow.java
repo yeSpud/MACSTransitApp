@@ -16,7 +16,7 @@ import fnsb.macstransit.RouteMatch.Bus;
  * For the license, view the file titled LICENSE at the root of the project
  *
  * @version 1.0
- * @since Beta 8
+ * @since Beta 8.
  */
 public class PopupWindow extends AlertDialog implements
 		com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener {
@@ -37,6 +37,7 @@ public class PopupWindow extends AlertDialog implements
 	 *
 	 * @param context The application context.
 	 */
+	@SuppressWarnings("WeakerAccess")
 	public PopupWindow(Context context) {
 		super(context);
 		this.context = context;
@@ -77,14 +78,15 @@ public class PopupWindow extends AlertDialog implements
 
 		// Check the marker instance to determine the content text.
 		// If its a stop or shared stop, just set it to the body.
-		if (marker.getTag() instanceof fnsb.macstransit.RouteMatch.Stop || marker.getTag() instanceof fnsb.macstransit.RouteMatch.SharedStop) {
+		if (marker.getTag() instanceof fnsb.macstransit.RouteMatch.Stop || marker.getTag()
+				instanceof fnsb.macstransit.RouteMatch.SharedStop) {
 			content.setText(PopupWindow.body);
 		} else if (marker.getTag() instanceof Bus) {
 			// Since the instance is that of a bus, set the content to the heading, speed, and current capacity.
 			Bus bus = (Bus) marker.getTag();
 			StringBuilder builder = new StringBuilder();
 
-			// Make sure to set the heading if it exists, and format it to be all lower case, except the first charater.
+			// Make sure to set the heading if it exists, and format it to be all lower case, except the first character.
 			if (!bus.heading.equals("")) {
 				String lowercaseHeading = bus.heading.toLowerCase();
 				builder.append(String.format("Heading: %s\n", lowercaseHeading.substring(0, 1).toUpperCase() + lowercaseHeading.substring(1)));
