@@ -4,8 +4,6 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.android.gms.common.util.ArrayUtils;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -14,7 +12,6 @@ import java.util.Locale;
 
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.R;
-import fnsb.macstransit.RouteMatch.BasicStop;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
@@ -50,7 +47,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 *
 	 * @param stop    The stop (either an actual Stop object, or a SharedStop).
 	 * @param json    The json object retrieved from the RouteMatch server.
-	 * @param context TODO Documentation
+	 * @param context The context from which this method is being called from (for string lookup).
 	 * @return The string containing either all the arrival and departure times for the stop,
 	 * or the overflowString if there is too much data.
 	 */
@@ -66,18 +63,29 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// check if the marker is an instance of a Stop or SharedStop.
 			String string;
 
+			// If the stop is a shared stop, execute the following:
 			if (stop instanceof SharedStop) {
+				// Cast the stop to a shared stop.
 				SharedStop sharedStop = ((SharedStop) stop);
+
+				// Create an array of routes that will contain all the child routes plus the parent route.
 				Route[] routes = new Route[sharedStop.childRoutes.length + 1];
+
+				// Copy the parent and child route into the array.
 				routes[0] = sharedStop.parentRoute;
 				System.arraycopy(sharedStop.childRoutes, 0, routes, 1,
 						sharedStop.childRoutes.length);
+
+				// Then generate the time string, with the route name included.
 				string = StopClicked.generateTimeString(stopData, count, context, routes,
 						true);
 			} else if (stop instanceof Stop) {
+				// Since the stop is just a stop, just go straight into generating the time string,
+				// without the route name.
 				string = StopClicked.generateTimeString(stopData, count, context,
 						new Route[]{((Stop) stop).parentRoute}, false);
 			} else {
+				// If the instance of the stop was undetermined, warn the developer.
 				Log.w("postStopTimes", "Object unaccounted for!");
 				return "";
 			}
@@ -100,23 +108,27 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	}
 
 	/**
-	 * TODO Documentation
+	 * Generates the large string that is used to display the departure and arrival times of a
+	 * particular stop when clicked on.
 	 *
-	 * @param stopArray
-	 * @param count
-	 * @param context
-	 * @param routes
-	 * @param includeRouteName
-	 * @return
-	 * @throws JSONException
+	 * @param stopArray        The JSONArray that contains all the stops for the route.
+	 * @param count            The number of stops within the JSONArray.
+	 * @param context          The context from which this method is being called
+	 *                         (used for string lookup).
+	 * @param routes           The routes to get the times for.
+	 * @param includeRouteName Whether or not to include the route name in the final string.
+	 * @return The string containing all the departure and arrival times for the particular stop.
+	 * @throws JSONException Thrown if there is a JSONException while parsing the data for the stop.
 	 */
-	private static String generateTimeString(org.json.JSONArray stopArray, int count, Context context, Route[] routes, boolean includeRouteName) throws JSONException {
+	private static String generateTimeString(org.json.JSONArray stopArray, int count, Context context,
+	                                         Route[] routes, boolean includeRouteName) throws JSONException {
 
 		StringBuilder snippetText = new StringBuilder();
 
 		// Iterate through the stops in the json object to get the time for.
 		for (int index = 0; index < count; index++) {
-			Log.d("generateTimeString", String.format("Parsing stop times for stop %d/%d", index, count));
+			Log.d("generateTimeString", String.format("Parsing stop times for stop %d/%d",
+					index, count));
 
 			// Get the stop time from the current stop.
 			JSONObject object = stopArray.getJSONObject(index);
@@ -125,7 +137,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			for (Route route : routes) {
 				if (route.routeName.equals(object.getString("routeId"))) {
 
-					// Set the arrival and departure time to the arrival and departure time in the jsonObject.
+					// Set the arrival and departure time to the arrival and departure time in the JSONObject.
 					// At this point this is stored in 24-hour time.
 					String arrivalTime = StopClicked.getTime(object, "predictedArrivalTime"),
 							departureTime = StopClicked.getTime(object, "predictedDepartureTime");
@@ -137,14 +149,15 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 						departureTime = StopClicked.formatTime(departureTime);
 					}
 
-					// Append the parentRoute name if there is one
+					// Append the route name if there is one.
 					if (includeRouteName) {
-						Log.d("generateTimeString", "Adding parentRoute " + route.routeName);
+						Log.d("generateTimeString", "Adding route: " + route.routeName);
 						snippetText.append(String.format("Route: %s\n", route.routeName));
 					}
 
 					// Append the arrival and departure times to the snippet text.
-					snippetText.append(String.format("%s %s\n%s %s\n\n", context.getString(R.string.expected_arrival), arrivalTime, context.getString(R.string.expected_departure), departureTime));
+					snippetText.append(String.format("%s %s\n%s %s\n\n", context.getString(R.string.expected_arrival),
+							arrivalTime, context.getString(R.string.expected_departure), departureTime));
 				}
 			}
 		}
@@ -158,20 +171,23 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			snippetText.deleteCharAt(length - 2);
 		}
 
+		// Finally, build the text and return it.
 		return snippetText.toString();
 	}
 
 	/**
-	 * TODO Documentation
+	 * Gets the the time (predicted arrival or predicted departure depending on the tag)
+	 * for the stop via its JSONObject.
 	 *
-	 * @param json
-	 * @param tag
-	 * @return
+	 * @param json The JSONObject containing the time for the stop.
+	 * @param tag  The specific tag to search for within the JSONObject.
+	 * @return The time found within the JSONObject.
 	 */
 	private static String getTime(JSONObject json, String tag) {
 		try {
-			// Get a matcher object from the time regex, and have it match the tag.
-			java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\\d\\d:\\d\\d").matcher(json.getString(tag));
+			// Get a matcher object from the time regex (example: 00:00), and have it match the tag.
+			java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\\d\\d:\\d\\d")
+					.matcher(json.getString(tag));
 
 			// If the match was found, return it, if not return null.
 			return matcher.find() ? matcher.group(0) : null;
@@ -184,15 +200,16 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	}
 
 	/**
-	 * TODO Documentation
+	 * Formats a given 24 hour time string into a 12 hour time string complete with AM/PM characters.
 	 *
-	 * @param time
-	 * @return
+	 * @param time The time string (ie 13:15 for what should be 1:15 PM).
+	 * @return The formatted time string with the AM/PM characters included.
 	 */
 	private static String formatTime(String time) {
 		try {
 			// Try to format the time from 24 hours to 12 hours (including AM and PM).
-			return new SimpleDateFormat("K:mm a", Locale.US).format(new SimpleDateFormat("H:mm", Locale.US).parse(time));
+			return new SimpleDateFormat("K:mm a", Locale.US)
+					.format(new SimpleDateFormat("H:mm", Locale.US).parse(time));
 		} catch (java.text.ParseException parseException) {
 			// If there was a parsing exception simply return the old time.
 			parseException.printStackTrace();
@@ -201,19 +218,23 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	}
 
 	/**
-	 * TODO Documentation
+	 * Function that finds the number of times a character occurs within a given string.
 	 *
-	 * @param character
-	 * @param string
-	 * @return
+	 * @param character The character to find the within the string.
+	 * @param string    The string to search.
+	 * @return The number of times the character occurs within the string.
 	 */
 	private static int getCharacterOccurrence(char character, String string) {
+		// Create a variable to store the occurrence.
 		int count = 0;
+		// Iterate through the string.
 		for (int i = 0; i < string.length(); i++) {
+			// If the character at the current index matches our character, increase the count.
 			if (string.charAt(i) == character) {
 				count++;
 			}
 		}
+		// Finally, return the count.
 		return count;
 	}
 
@@ -256,7 +277,8 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// and set the snippet to the times when the bus is expected to arrive / depart.
 			marker.setVisible(true);
 			marker.setSnippet(this.activity.getString(fnsb.macstransit.R.string.retrieving_stop_times));
-			new fnsb.macstransit.Activities.ActivityListeners.Async.GetStopTimes(marker, this.activity).execute(stop);
+			new fnsb.macstransit.Activities.ActivityListeners.Async.GetStopTimes(marker, this.activity)
+					.execute(stop);
 			marker.showInfoWindow();
 		}
 	}

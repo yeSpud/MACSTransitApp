@@ -14,12 +14,13 @@ import java.util.ArrayList;
  * For the license, view the file titled LICENSE at the root of the project
  *
  * @version 1.2
- * @since Beta 7
+ * @since Beta 7.
  */
 public class BasicStop extends MarkedObject {
 
 	/**
-	 * TODO Documentation
+	 * The starting radius of the parent circle for the stop.
+	 * Because this is used for a reference, it must never be changed during run time!
 	 */
 	public static final double PARENT_RADIUS = 50.0d;
 
@@ -39,23 +40,25 @@ public class BasicStop extends MarkedObject {
 	public String stopID;
 
 	/**
-	 * TODO Documentation
+	 * The circle options that will be applied to the parent circle of the stop.
 	 */
 	public CircleOptions parentCircleOptions;
 
 	/**
-	 * TODO Documentation
+	 * The parent circle of the stop.
+	 * The reason this is private is because it should be retrieved via the getter method,
+	 * and should be set via the setter method for finer control.
 	 */
 	private Circle parentCircle;
 
 	/**
 	 * Constructor for the BasicStop object. All that is required is the stopID, latitude, longitude,
-	 * and parentRoute.
+	 * and route.
 	 *
 	 * @param stopID    The ID of the stop. This is typically the name of the Stop.
 	 * @param latitude  The latitude of the stop.
 	 * @param longitude The longitude of the stop.
-	 * @param route     The parentRoute this stop corresponds to.
+	 * @param route     The route this stop corresponds to.
 	 */
 	public BasicStop(String stopID, double latitude, double longitude, Route route) {
 		// Set the stop ID, coordinates, and the corresponding parentRoute.
@@ -66,10 +69,10 @@ public class BasicStop extends MarkedObject {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Loads all the stops from the provided routes into an array of BasicStop objects.
 	 *
-	 * @param routes
-	 * @return
+	 * @param routes The routes to load the stops for.
+	 * @return The array of all the stops for the routes provided.
 	 */
 	public static BasicStop[] loadAllStops(Route[] routes) {
 		// Create an array-list to store all the stops.
@@ -92,14 +95,18 @@ public class BasicStop extends MarkedObject {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Creates and adds a parentCircle to the provided map with the provided circle options.
+	 * It should be noted that this does not override the current parentCircle defined for this class,
+	 * but rather just creates a new, unconstrained circle.
 	 *
-	 * @param map
-	 * @param options
-	 * @param clickable
-	 * @return
+	 * @param map       The map to add the parentCircle to.
+	 * @param options   The circle options to apply to the circle.
+	 *                  Note that this will not override what is set for the
+	 *                  parentCircleOptions object in this class.
+	 * @param clickable Whether or not the circle should be clickable.
+	 * @return The newly created parentCircle.
 	 */
-	Circle addCircle(GoogleMap map, com.google.android.gms.maps.model.CircleOptions options, boolean clickable) {
+	public Circle addCircle(GoogleMap map, CircleOptions options, boolean clickable) {
 		// Add the circle to the map.
 		Log.d("addCircle", "Adding circle to map");
 		Circle circle = map.addCircle(options);
@@ -117,19 +124,22 @@ public class BasicStop extends MarkedObject {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Retrieves the parentCircle that corresponds to this stop.
+	 * This may be null if the parentCircle was never created.
 	 *
-	 * @return
+	 * @return The parent circle.
 	 */
 	public Circle getCircle() {
 		return this.parentCircle;
 	}
 
 	/**
-	 * TODO Documentation
+	 * Adds the parent circle to the map, as well as sets the objects parent circle.
+	 * Using this method will default to the corresponding parentCircleOptions
+	 * as opposed to something that is custom.
 	 *
-	 * @param map
-	 * @param clickable
+	 * @param map       The map to add the parentCircle to.
+	 * @param clickable Whether or not the parentCircle should be clickable.
 	 */
 	public void setCircle(GoogleMap map, boolean clickable) {
 		this.parentCircle = this.addCircle(map, this.parentCircleOptions, clickable);

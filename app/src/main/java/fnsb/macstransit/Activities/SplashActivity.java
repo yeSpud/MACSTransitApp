@@ -15,7 +15,7 @@ import fnsb.macstransit.RouteMatch.RouteMatch;
  * For the license, view the file titled LICENSE at the root of the project
  *
  * @version 1.1
- * @since Beta 7
+ * @since Beta 7.
  */
 public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
@@ -261,13 +261,13 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				// If there are childRoutes that were loaded, execute the following:
 				if (this.routes.length != 0) {
 
-					// If polylines are enabled, execute the following:
+					// Determine whether or not to show polylines.
 					if (SettingsPopupWindow.SHOW_POLYLINES) {
-						// TODO Comments
+						// Load the polylines and then the stops if polylines are enabled.
 						this.loadPolylines(1d, 3d);
 						this.loadStops(2d, 3d);
 					} else {
-						// TODO Comments
+						// Since polylines are disabled just load the stops.
 						this.loadStops(1d, 2d);
 					}
 
@@ -334,46 +334,53 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	}
 
 	/**
-	 * TODO Documentation and fix comments
+	 * Loads the polylines for all the routes, and updates the progress bar.
 	 *
-	 * @param currentProgress
-	 * @param maxProgress
+	 * @param currentProgress The current progress numerator (ie 1/x or 2/x).
+	 * @param maxProgress     The denominator value for the progress
+	 *                        (at what value must the numerator be for the resulting value to equal 1).
 	 */
 	private void loadPolylines(double currentProgress, double maxProgress) {
-
+		// Get the starting progress based off of the arguments. Use this to set the initial progress.
 		double startingProgress = currentProgress / maxProgress;
 		Log.d("loadPolylines", String.format("Setting starting progress to: %.2f", startingProgress));
 		this.setProgress(startingProgress);
 
+		// Display the loading message.
 		Log.d("loadPolylines", "Loading polylines");
 		this.setMessage(R.string.load_polylines);
 
 		// Load the polyline coordinates into each parentRoute
 		for (int i = 0; i < this.routes.length; i++) {
+			// Get the route at index i.
 			Route route = this.routes[i];
 
-			// Load the polylineCoordinates into the parentRoute
+			// Load the polylineCoordinates into the selected route.
 			route.polyLineCoordinates = route.loadPolyLineCoordinates(this.routeMatch);
 
+			// Get the current progress of the for loop.
 			double forLoopProgress = (i + 1d) / this.routes.length;
 			Log.d("loadPolylines", String.format("Current for loop progress: %.2f", forLoopProgress));
 
+			// Set the updated progress to that of the starting progress plus the for loop progress.
 			this.setProgress(startingProgress + (forLoopProgress / maxProgress));
 		}
 	}
 
 	/**
-	 * TODO Documentation and fix comments
+	 * Loads the stops for all the routes, and updates the progress bar.
 	 *
-	 * @param currentProgress
-	 * @param maxProgress
+	 * @param currentProgress The current progress numerator (ie 1/x or 2/x).
+	 * @param maxProgress     The denominator value for the progress
+	 *                        (at what value must the numerator be for the resulting value to equal 1).
 	 */
 	private void loadStops(double currentProgress, double maxProgress) {
-
+		// Get the starting progress based off of the arguments. Use this to set the initial progress.
 		double startingProgress = currentProgress / maxProgress;
 		Log.d("loadStops", String.format("Setting starting progress to: %.2f", startingProgress));
 		this.setProgress(startingProgress);
 
+		// Display the loading message.
 		Log.d("loadStops", "Loading stops in the childRoutes");
 		this.setMessage(R.string.load_stops);
 
@@ -385,9 +392,11 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			// Load all the stops in the given route.
 			route.stops = route.loadStops(this.routeMatch);
 
+			// Get the current progress of the for loop.
 			double forLoopProgress = (i + 1d) / this.routes.length;
 			Log.d("loadStops", String.format("Current for loop progress: %.2f", forLoopProgress));
 
+			// Set the updated progress to that of the starting progress plus the for loop progress.
 			this.setProgress(startingProgress + (forLoopProgress / maxProgress));
 		}
 	}

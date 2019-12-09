@@ -22,7 +22,8 @@ public class StopDeselected implements com.google.android.gms.maps.GoogleMap.OnI
 	@Override
 	public void onInfoWindowClose(com.google.android.gms.maps.model.Marker marker) {
 		// Check if it was a stop info window that was closed.
-		if (marker.getTag() instanceof fnsb.macstransit.RouteMatch.Stop || marker.getTag() instanceof fnsb.macstransit.RouteMatch.SharedStop) {
+		if (marker.getTag() instanceof fnsb.macstransit.RouteMatch.Stop ||
+				marker.getTag() instanceof fnsb.macstransit.RouteMatch.SharedStop) {
 			Log.d("onInfoWindowClose", "Closing stop window");
 			marker.setVisible(false);
 		} else {

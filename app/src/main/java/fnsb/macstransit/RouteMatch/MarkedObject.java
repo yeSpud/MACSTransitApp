@@ -21,10 +21,11 @@ public class MarkedObject {
 	private Marker marker;
 
 	/**
-	 * TODO Documentation
+	 * Static helper function that determines and returns the marker's BitmapDescriptor color based off of the provided color.
 	 *
-	 * @param color
-	 * @return
+	 * @param color The color to set the marker to (or something close to it).
+	 * @return The resulting BitmapDescriptor. This will almost certainly not be the exact color,
+	 * but rather will be something close to it.
 	 */
 	private static com.google.android.gms.maps.model.BitmapDescriptor getMarkerIcon(int color) {
 		float[] hsv = new float[3];
@@ -51,17 +52,18 @@ public class MarkedObject {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Creates and adds a marker to the provided map.
 	 *
-	 * @param map
-	 * @param latitude
-	 * @param longitude
-	 * @param color
-	 * @param title
-	 * @return
+	 * @param map       The map to add the marker to.
+	 * @param latitude  The latitude of the marker.
+	 * @param longitude The longitude of the marker.
+	 * @param color     The desired color of the marker.
+	 * @param title     The marker's title.
+	 * @return The newly created marker that has also been added to the map.
 	 */
-	public Marker addMarker(com.google.android.gms.maps.GoogleMap map, double latitude, double longitude, int color, String title) {
-		// Create a new maker parentCircleOptions object
+	public Marker addMarker(com.google.android.gms.maps.GoogleMap map, double latitude,
+	                        double longitude, int color, String title) {
+		// Create a new maker options object
 		MarkerOptions options = new MarkerOptions();
 
 		// Set the position of the marker via the latitude and longitude.
@@ -87,5 +89,4 @@ public class MarkedObject {
 		// Return the generated marker.
 		return marker;
 	}
-
 }

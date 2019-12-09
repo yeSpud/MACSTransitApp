@@ -339,7 +339,7 @@ public class Route {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Creates the polyline that correspond to this route's path by utilizing the polyLineCoordinates.
 	 *
 	 * @param map The map to add the polyline to.
 	 */

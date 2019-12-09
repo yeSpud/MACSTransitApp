@@ -9,7 +9,6 @@ import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 
-import fnsb.macstransit.RouteMatch.BasicStop;
 import fnsb.macstransit.RouteMatch.Stop;
 
 /**
@@ -30,7 +29,8 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 	private Marker marker;
 
 	/**
-	 * TODO Documentation
+	 * A weak reference for the context object.
+	 * This is used in order to pass a context object between async tasks without having a memory leak.
 	 * <p>
 	 * https://stackoverflow.com/questions/45653121/passing-context-from-service-to-asynctask-without-leaking-it
 	 */
@@ -42,7 +42,7 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 	 * or once execution has completed.
 	 *
 	 * @param marker  The marker object that will be updated once the background async process has finished.
-	 * @param context TODO Documentation
+	 * @param context The context from which this is being called from.
 	 */
 	public GetStopTimes(Marker marker, Context context) {
 		this.marker = marker;
@@ -90,7 +90,8 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 
 			// Update the snippet text of the marker's info window
 			Log.d("onPostExecute", "Updating snippet");
-			this.marker.setSnippet(fnsb.macstransit.Activities.ActivityListeners.StopClicked.postStopTimes(marker.getTag(), result, this.context.get()));
+			this.marker.setSnippet(fnsb.macstransit.Activities.ActivityListeners.StopClicked
+					.postStopTimes(marker.getTag(), result, this.context.get()));
 
 			// Refresh the info window by calling showInfoWindow().
 			Log.d("onPostExecute", "Refreshing info window");
