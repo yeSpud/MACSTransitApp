@@ -8,7 +8,7 @@ import android.util.Log;
  * For the license, view the file titled LICENSE at the root of the project
  *
  * @version 1.1
- * @since Beta 7
+ * @since Beta 7.
  */
 public class StopDeselected implements com.google.android.gms.maps.GoogleMap.OnInfoWindowCloseListener {
 

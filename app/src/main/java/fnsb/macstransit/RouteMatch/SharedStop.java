@@ -16,6 +16,7 @@ import java.util.ArrayList;
  * @version 2.0
  * @since Beta 7.
  */
+@SuppressWarnings("WeakerAccess")
 public class SharedStop extends Stop {
 
 	/**
@@ -121,7 +122,8 @@ public class SharedStop extends Stop {
 				// If the stop was never found, add it to the sharedStops array.
 				if (!found) {
 					// Convert this basic stop to a shared stop.
-					Log.d("findSharedStops", String.format("Found %d shared stop for stop %s", sharedRoutes.size(), basicStop.stopID));
+					Log.d("findSharedStops", String.format("Found %d shared stop for stop %s",
+							sharedRoutes.size(), basicStop.stopID));
 					sharedStops.add(new SharedStop(basicStop, sharedRoutes.toArray(new Route[0])));
 				}
 			}

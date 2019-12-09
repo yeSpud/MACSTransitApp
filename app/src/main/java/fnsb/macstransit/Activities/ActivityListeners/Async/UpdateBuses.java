@@ -11,7 +11,7 @@ import fnsb.macstransit.RouteMatch.Route;
  * For the license, view the file titled LICENSE at the root of the project
  *
  * @version 1.0
- * @since Beta 8
+ * @since Beta 8.
  */
 public class UpdateBuses extends android.os.AsyncTask<Route, Void, Route[]> {
 

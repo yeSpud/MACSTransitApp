@@ -17,7 +17,7 @@ import fnsb.macstransit.RouteMatch.Stop;
  * For the license, view the file titled LICENSE at the root of the project
  *
  * @version 1.1
- * @since Beta 8
+ * @since Beta 8.
  */
 public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 

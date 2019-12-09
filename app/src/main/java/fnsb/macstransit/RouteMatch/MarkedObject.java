@@ -21,7 +21,8 @@ public class MarkedObject {
 	private Marker marker;
 
 	/**
-	 * Static helper function that determines and returns the marker's BitmapDescriptor color based off of the provided color.
+	 * Static helper function that determines and returns the marker's BitmapDescriptor color
+	 * based off of the provided color.
 	 *
 	 * @param color The color to set the marker to (or something close to it).
 	 * @return The resulting BitmapDescriptor. This will almost certainly not be the exact color,
@@ -61,6 +62,7 @@ public class MarkedObject {
 	 * @param title     The marker's title.
 	 * @return The newly created marker that has also been added to the map.
 	 */
+	@SuppressWarnings("WeakerAccess")
 	public Marker addMarker(com.google.android.gms.maps.GoogleMap map, double latitude,
 	                        double longitude, int color, String title) {
 		// Create a new maker options object

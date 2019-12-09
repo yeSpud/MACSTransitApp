@@ -10,13 +10,14 @@ import java.util.ArrayList;
  * For the license, view the file titled LICENSE at the root of the project
  *
  * @version 1.3
- * @since Beta 3
+ * @since Beta 3.
  */
 public class Bus extends MarkedObject {
 
 	/**
 	 * The ID of the bus. While typically this is a number, on the rare occasion it can also be a name.
-	 * As such, it should just be stored as a string. If this needs to be a number try parsing it from the string.
+	 * As such, it should just be stored as a string.
+	 * If this needs to be a number try parsing it from the string.
 	 */
 	public String busID;
 
@@ -27,7 +28,8 @@ public class Bus extends MarkedObject {
 	public double latitude, longitude;
 
 	/**
-	 * The current bus's color. This is more representative of the parentRoute its on (ie what is its parentRoute color),
+	 * The current bus's color.
+	 * This is more representative of the parentRoute its on (ie what is its parentRoute color),
 	 * and thus is optional.
 	 * <p>
 	 * This is an int instead of a Color object because for whatever reason android stores its colors as ints.
@@ -71,7 +73,8 @@ public class Bus extends MarkedObject {
 	 */
 	public static Bus[] getBuses(Route route) throws org.json.JSONException {
 		// Get the bus array for the provided rotue.
-		org.json.JSONArray busArray = RouteMatch.parseData(fnsb.macstransit.Activities.MapsActivity.routeMatch.getBuses(route));
+		org.json.JSONArray busArray = RouteMatch.parseData(fnsb.macstransit.Activities.
+				MapsActivity.routeMatch.getBuses(route));
 
 		// Create an arraylist to store the buses.
 		ArrayList<Bus> buses = new ArrayList<>();
@@ -86,7 +89,8 @@ public class Bus extends MarkedObject {
 			// Get the JSONObject corresonding to the bus.
 			org.json.JSONObject object = busArray.getJSONObject(i);
 
-			// Create the bus by getting the bus ID from the JSONObject, as well as the provided parentRoute.
+			// Create the bus by getting the bus ID from the JSONObject,
+			// as well as the provided parentRoute.
 			Bus bus = new Bus(object.getString("vehicleId"), route);
 
 			// Get the lattitude, longitude, heading, speed, and current capacity from the JSONObject.
@@ -130,16 +134,19 @@ public class Bus extends MarkedObject {
 			// If the buses are not null execute the following:
 			if (buses != null) {
 
-				// Iterate throug the buses in the parentRoute, and get the marker corresponding to the bus.
+				// Iterate throug the buses in the parentRoute,
+				// and get the marker corresponding to the bus.
 				for (Bus bus : buses) {
 					com.google.android.gms.maps.model.Marker marker = bus.getMarker();
 
 					// If the marker already exists (is not null), just update the buses position
 					if (marker != null) {
-						marker.setPosition(new com.google.android.gms.maps.model.LatLng(bus.latitude, bus.longitude));
+						marker.setPosition(new com.google.android.gms.maps.model.LatLng(bus.latitude,
+								bus.longitude));
 					} else {
 						// Since the buses marker does not exist, add it to the map.
-						marker = bus.addMarker(map, bus.latitude, bus.longitude, bus.color, "Bus " + bus.busID);
+						marker = bus.addMarker(map, bus.latitude, bus.longitude, bus.color,
+								"Bus " + bus.busID);
 					}
 
 					// Set the bus mareker to be visible, and update the bus marker by calling setMarker();

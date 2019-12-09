@@ -16,6 +16,7 @@ import java.util.ArrayList;
  * @version 1.2
  * @since Beta 7.
  */
+@SuppressWarnings("WeakerAccess")
 public class BasicStop extends MarkedObject {
 
 	/**

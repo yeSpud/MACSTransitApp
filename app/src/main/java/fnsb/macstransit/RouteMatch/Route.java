@@ -19,25 +19,28 @@ import java.util.Arrays;
  * For the license, view the file titled LICENSE at the root of the project
  *
  * @version 2.3
- * @since Beta 3
+ * @since Beta 3.
  */
 public class Route {
 
 	/**
-	 * The name of the parentRoute. Note: This cannot contain whitespace characters (ie spaces, tabs, or new lines),
+	 * The name of the parentRoute.
+	 * Note: This cannot contain whitespace characters (ie spaces, tabs, or new lines),
 	 * as its used in a url.
 	 */
 	public String routeName;
 
 	/**
-	 * The color of the parentRoute. This is optional, as there is a high chance that the parentRoute does not have one.
+	 * The color of the parentRoute.
+	 * This is optional, as there is a high chance that the parentRoute does not have one.
 	 * <p>
 	 * This is an int instead of a Color object because for whatever reason android stores its colors as ints.
 	 */
 	public int color;
 
 	/**
-	 * The array of stops for this parentRoute. This may be empty / null if the parentRoute has not been initialized,
+	 * The array of stops for this parentRoute.
+	 * This may be empty / null if the parentRoute has not been initialized,
 	 * and the stops haven't been loaded.
 	 */
 	public Stop[] stops;
@@ -62,7 +65,8 @@ public class Route {
 	 * Constructor for the parentRoute. The name of the parentRoute is the only thing that is required.
 	 * Be sure that the provided parentRoute name does <b>NOT</b> contain any whitespace characters!
 	 *
-	 * @param routeName The name of the parentRoute. Be sure this does <b>NOT</b> contain any whitespace characters!
+	 * @param routeName The name of the parentRoute. Be sure this does <b>NOT</b>
+	 *                  contain any whitespace characters!
 	 * @throws Exception Thrown if the parentRoute name contains white space characters.
 	 */
 	public Route(String routeName) throws Exception {
@@ -77,9 +81,11 @@ public class Route {
 	 * Constructor for the parentRoute. The name of the parentRoute is the only thing that is required.
 	 * Be sure that the provided parentRoute name does <b>NOT</b> contain any whitespace characters!
 	 *
-	 * @param routeName The name of the parentRoute. e sure this does <b>NOT</b> contain any whitespace characters!
+	 * @param routeName The name of the parentRoute. e sure this does <b>NOT</b>
+	 *                  contain any whitespace characters!
 	 * @param color     The parentRoute's color. This is optional,
-	 *                  and of the color is non-existent simply use the {@code Route(String routeName)} constructor.
+	 *                  and of the color is non-existent simply use the
+	 *                  {@code Route(String routeName)} constructor.
 	 * @throws Exception Thrown if the parentRoute name contains white space characters.
 	 */
 	public Route(String routeName, int color) throws Exception {
@@ -109,7 +115,8 @@ public class Route {
 			try {
 
 				// Get the current progress for parsing the childRoutes
-				Log.d("generateRoutes", String.format("Parsing parentRoute %d/%d", index + 1, count));
+				Log.d("generateRoutes", String.format("Parsing parentRoute %d/%d", index + 1,
+						count));
 
 				// Get the routeData that we are currently parsing as its own JSONObject variable.
 				org.json.JSONObject routeData = data.getJSONObject(index);
@@ -156,7 +163,8 @@ public class Route {
 		// If the parentRoute is to be enabled, iterate through all the allRoutes that are able to be tracked.
 		for (Route route : fnsb.macstransit.Activities.MapsActivity.allRoutes) {
 
-			// If the parentRoute that is able to be tracked is equal to that of the parentRoute entered as an argument,
+			// If the parentRoute that is able to be tracked is equal to that of the parentRoute
+			// entered as an argument,
 			// add that parentRoute to the selected allRoutes array.
 			if (route.routeName.equals(routeName)) {
 				Log.d("enableRoutes", "Found matching parentRoute!");
@@ -177,7 +185,8 @@ public class Route {
 	}
 
 	/**
-	 * Disables a parentRoute by name, and removes all elements of that parentRoute from the map (except stops).
+	 * Disables a parentRoute by name, and removes all elements of that parentRoute from the map
+	 * (except stops).
 	 *
 	 * @param routeName The parentRoute the be disabled by name.
 	 * @param oldRoutes The array of old, though currently enabled childRoutes.
@@ -305,18 +314,21 @@ public class Route {
 			// Get the number of points in the array.
 			int count = points.length();
 
-			// Create a new array of LatLng coordinates with the size being that of the number of points in the array.
+			// Create a new array of LatLng coordinates with the size being that of the number
+			// of points in the array.
 			LatLng[] coordinates = new LatLng[count];
 
 			// Initialize the array fo coordinates by iterating through the JSONArray.
 			for (int index = 0; index < count; index++) {
-				Log.d("loadPolyLineCoordinates", String.format("Parsing coordinate %d/%d", index + 1, count));
+				Log.d("loadPolyLineCoordinates", String.format("Parsing coordinate %d/%d",
+						index + 1, count));
 				try {
 					// Get the JSONObject at the current index of the array.
 					JSONObject object = points.getJSONObject(index);
 
 					// Set the LatLng object to the latitude and longitude data from the JSONObject.
-					LatLng latLng = new LatLng(object.getDouble("latitude"), object.getDouble("longitude"));
+					LatLng latLng = new LatLng(object.getDouble("latitude"),
+							object.getDouble("longitude"));
 					coordinates[index] = latLng;
 				} catch (JSONException e) {
 					e.printStackTrace();

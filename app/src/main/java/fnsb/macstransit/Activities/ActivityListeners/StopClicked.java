@@ -224,6 +224,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @param string    The string to search.
 	 * @return The number of times the character occurs within the string.
 	 */
+	@SuppressWarnings("SameParameterValue")
 	private static int getCharacterOccurrence(char character, String string) {
 		// Create a variable to store the occurrence.
 		int count = 0;

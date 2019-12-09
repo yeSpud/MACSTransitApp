@@ -17,8 +17,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		com.google.android.gms.maps.OnMapReadyCallback {
 
 	/**
-	 * Create an array of all the childRoutes that are used by the transit system. For now leave it uninitialized,
-	 * as it will be dynamically generated in the onCreate method.
+	 * Create an array of all the childRoutes that are used by the transit system.
+	 * For now leave it uninitialized, as it will be dynamically generated in the onCreate method.
 	 */
 	public static Route[] allRoutes;
 
@@ -84,19 +84,22 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * Initialize the contents of the Activity's standard parentCircleOptions menu. You should place your menu items in to menu.
+	 * Initialize the contents of the Activity's standard parentCircleOptions menu.
+	 * You should place your menu items in to menu.
 	 * <p>
-	 * This is only called once, the first time the parentCircleOptions menu is displayed. To update the menu every time it is displayed,
-	 * see {@code onPrepareOptionsMenu(Menu)}.
+	 * This is only called once, the first time the parentCircleOptions menu is displayed.
+	 * To update the menu every time it is displayed, see {@code onPrepareOptionsMenu(Menu)}.
 	 * <p>
 	 * The default implementation populates the menu with standard system menu items.
-	 * These are placed in the {@code Menu.CATEGORY_SYSTEM} group so that they will be correctly ordered with application-defined menu items.
+	 * These are placed in the {@code Menu.CATEGORY_SYSTEM}
+	 * group so that they will be correctly ordered with application-defined menu items.
 	 * Deriving classes should always call through to the base implementation.
 	 * <p>
 	 * You can safely hold on to menu (and any items created from it),
 	 * making modifications to it as desired, until the next time {@code onCreateOptionsMenu()} is called.
 	 * <p>
-	 * When you add items to the menu, you can implement the Activity's {@code onOptionsItemSelected(MenuItem)} method to handle them there.
+	 * When you add items to the menu, you can implement the Activity's
+	 * {@code onOptionsItemSelected(MenuItem)} method to handle them there.
 	 *
 	 * @param menu The parentCircleOptions menu in which you place your items.
 	 * @return You must return true for the menu to be displayed; if you return false it will not be shown.
@@ -118,7 +121,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 	/**
 	 * This hook is called whenever an item in your parentCircleOptions menu is selected.
-	 * The default implementation simply returns false to have the normal processing happen (calling the item's Runnable or sending a message to its Handler as appropriate).
+	 * The default implementation simply returns false to have the normal processing happen
+	 * (calling the item's Runnable or sending a message to its Handler as appropriate).
 	 * You can use this method for any items for which you would like to do processing without those other facilities.
 	 * <p>
 	 * Derived classes should call through to the base class for it to perform the default menu handling.
@@ -218,9 +222,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.setContentView(R.layout.activity_maps);
 
 		// Obtain the SupportMapFragment and get notified when the map is ready to be used.
-		((com.google.android.gms.maps.SupportMapFragment) java.util.Objects.requireNonNull(this.getSupportFragmentManager()
-				.findFragmentById(R.id.map))).getMapAsync(this);
-
+		((com.google.android.gms.maps.SupportMapFragment) java.util.Objects
+				.requireNonNull(this.getSupportFragmentManager().findFragmentById(R.id.map)))
+				.getMapAsync(this);
 	}
 
 	/**
@@ -320,7 +324,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Check and load all the shared stops.
 		this.sharedStops = SharedStop.findSharedStops(this.selectedRoutes, this.sharedStops);
 
-		// Create and show the shared stops on the map if there are any (this.sharedStops will have a size greater than 0)
+		// Create and show the shared stops on the map if there are any (this.sharedStops will have a size greater than 0).
 		if (this.sharedStops.length > 0) {
 			SharedStop.addSharedStop(this.map, this.sharedStops);
 		}

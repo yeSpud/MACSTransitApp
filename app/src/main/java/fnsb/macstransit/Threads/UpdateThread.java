@@ -10,7 +10,7 @@ import fnsb.macstransit.Activities.MapsActivity;
  * For the license, view the file titled LICENSE at the root of the project
  *
  * @version 2.3
- * @since Beta 3
+ * @since Beta 3.
  */
 public class UpdateThread {
 
@@ -40,6 +40,7 @@ public class UpdateThread {
 	 *
 	 * @param activity The MapsActivity (this should be the main activity).
 	 */
+	@SuppressWarnings("WeakerAccess")
 	public UpdateThread(MapsActivity activity) {
 		this.activity = activity;
 	}
@@ -57,8 +58,10 @@ public class UpdateThread {
 	}
 
 	/**
-	 * This is the thread that repeatedly queries the routematch server for data on the buses, childRoutes, and stops.
-	 * It loops with the frequency defined by the {@code updateFrequency} variable (default of 4000 milliseconds, or 4 seconds).
+	 * This is the thread that repeatedly queries the routematch server for data on the buses,
+	 * childRoutes, and stops.
+	 * It loops with the frequency defined by the {@code updateFrequency} variable
+	 * (default of 4000 milliseconds, or 4 seconds).
 	 *
 	 * @return The thread. Note that this dies not run the thread, that has to be called separately.
 	 */
@@ -70,7 +73,8 @@ public class UpdateThread {
 			// Loop continuously while the run variable is true, and the thread hasn't been interrupted.
 			while (this.run && !Thread.interrupted()) {
 
-				// Make a copy of the selected childRoutes array to run iterations on (to avoid Concurrent Modification Exceptions).
+				// Make a copy of the selected childRoutes array to run iterations on
+				// (to avoid Concurrent Modification Exceptions).
 				fnsb.macstransit.RouteMatch.Route[] routes = this.activity.selectedRoutes;
 
 				/*

@@ -29,7 +29,9 @@ public class Stop extends BasicStop {
 
 		// Setup the parentCircleOptions that will be used on the stop icon.
 		// This is really just setting up the coordinates, and the initial radius of the stop.
-		CircleOptions circleOptions = new CircleOptions().center(new com.google.android.gms.maps.model.LatLng(this.latitude, this.longitude)).radius(Stop.PARENT_RADIUS);
+		CircleOptions circleOptions = new CircleOptions()
+				.center(new com.google.android.gms.maps.model.LatLng(this.latitude, this.longitude))
+				.radius(Stop.PARENT_RADIUS);
 
 		// If the parentRoute color isn't null, set the stop color to the same color as the parentRoute color.
 		if (this.parentRoute.color != 0) {
@@ -37,7 +39,8 @@ public class Stop extends BasicStop {
 			circleOptions.strokeColor(this.parentRoute.color);
 		}
 
-		// Set the icon parentCircleOptions to the newly created parentCircleOptions, though don't apply the parentCircleOptions to the icon just yet.
+		// Set the icon parentCircleOptions to the newly created parentCircleOptions,
+		// though don't apply the parentCircleOptions to the icon just yet.
 		this.parentCircleOptions = circleOptions;
 	}
 
@@ -63,7 +66,8 @@ public class Stop extends BasicStop {
 	 * @param routes      The childRoutes to add the stops to.
 	 * @param sharedStops The array of shared stops to check if the stops have already been added.
 	 */
-	public static void addStop(com.google.android.gms.maps.GoogleMap map, Route[] routes, SharedStop[] sharedStops) {
+	public static void addStop(com.google.android.gms.maps.GoogleMap map, Route[] routes,
+	                           SharedStop[] sharedStops) {
 		for (Route route : routes) {
 
 			// Iterate through the stops in the parentRoute and execute the following:
@@ -72,7 +76,8 @@ public class Stop extends BasicStop {
 				// Create a boolean that will be used to verify if a stop has been found or not
 				boolean found = false;
 
-				// Iterate through the shared stops and check if the stop we are using to iterate is also within the shared stop array (by stop id only).
+				// Iterate through the shared stops and check if the stop we are using
+				// to iterate is also within the shared stop array (by stop id only).
 				for (SharedStop sharedStop : sharedStops) {
 					if (sharedStop.stopID.equals(stop.stopID)) {
 						// If the stop was indeed found (by id), set the found boolean to true,
@@ -86,7 +91,8 @@ public class Stop extends BasicStop {
 				// add it to the map, but set it to invisible.
 				if (!found) {
 					stop.setCircle(map, true);
-					Marker marker = stop.addMarker(map, stop.latitude, stop.longitude, stop.parentRoute.color, stop.stopID);
+					Marker marker = stop.addMarker(map, stop.latitude, stop.longitude,
+							stop.parentRoute.color, stop.stopID);
 					marker.setVisible(false);
 					stop.setMarker(marker);
 				}

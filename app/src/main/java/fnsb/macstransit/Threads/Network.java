@@ -13,7 +13,8 @@ import java.net.SocketTimeoutException;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  * <p>
- * <i><b>Yo dawg. I heard you like static methods. So I got you some static methods, so you could static method while you static method :D</b></i>
+ * <i><b>Yo dawg. I heard you like static methods. So I got you some static methods,
+ * so you could static method while you static method :D</b></i>
  * <p>
  * <p>
  * <i>Ok, I've had my fun.</i>
@@ -22,7 +23,8 @@ import java.net.SocketTimeoutException;
  * and is to be used outside this class as a result.
  * The reason why all the other methods exist is simply for more easy of use within the primary method.
  * The reason for this is because this class is used to actually connect to a server via the provided url.
- * Since android doesn't like url connections to be run on the UI thread, this needs to be done on its own thread.
+ * Since android doesn't like url connections to be run on the UI thread,
+ * this needs to be done on its own thread.
  * Hence the complexity :(
  *
  * @version 1.1
@@ -36,7 +38,8 @@ public class Network {
 	private static final int CONNECTION_TIMEOUT = 5000, READ_TIMEOUT = 5000, PROCESSING_TIMEOUT = 500;
 
 	/**
-	 * The maximum number of retries allowed for the method, stored as a short (as it's not meant to be a large number).
+	 * The maximum number of retries allowed for the method, stored as a short
+	 * (as it's not meant to be a large number).
 	 */
 	private static final short MAX_ATTEMPTS = 3;
 
@@ -48,11 +51,13 @@ public class Network {
 
 	/**
 	 * Reads the JSON from the provided URL, and formats it into a JSONObject.
-	 * This may be an empty JSONObject if the page times out and the method can no longer retry, or if any other error occurs.
+	 * This may be an empty JSONObject if the page times out and the method can no longer retry,
+	 * or if any other error occurs.
 	 *
 	 * @param url         The URL to retrieve the JSON data from.
 	 * @param useTimeouts Whether or not to use the builtin timeouts for this method.
-	 * @return The JSONObject containing the data, or an empty JSONObject if there was an error, or the page timed out.
+	 * @return The JSONObject containing the data, or an empty JSONObject if there was an error,
+	 * or the page timed out.
 	 */
 	public static JSONObject getJsonFromUrl(String url, boolean useTimeouts) {
 
@@ -72,7 +77,7 @@ public class Network {
 				// This will be cause by setUncaughtExceptionHandler();
 				throw new RuntimeException();
 			} catch (IOException e) {
-				// If a different type of error occurred (IOException, print the stack trace instead)
+				// If a different type of error occurred (IOException, print the stack trace instead).
 				e.printStackTrace();
 			}
 		});
@@ -144,7 +149,8 @@ public class Network {
 		java.io.InputStream inputStream = connection.getInputStream();
 
 		// Create a buffered reader for the input stream
-		BufferedReader bufferedReader = new BufferedReader(new java.io.InputStreamReader(inputStream, java.nio.charset.StandardCharsets.UTF_8));
+		BufferedReader bufferedReader = new BufferedReader(new java.io.InputStreamReader(inputStream,
+				java.nio.charset.StandardCharsets.UTF_8));
 
 		// Store the inputted text into a string variable
 		String output = Network.readAll(bufferedReader);
@@ -160,13 +166,16 @@ public class Network {
 	}
 
 	/**
-	 * This method tried to validate the Json that is provided as a StringBuilder object by first checking if its not of length 0,
+	 * This method tried to validate the Json that is provided as a StringBuilder object
+	 * by first checking if its not of length 0,
 	 * and then by attempting to parse it to a JSONObject.
 	 *
-	 * @param stringBuilder The StringBuilder that will be validated. Mainly used for checking if the length is 0.
+	 * @param stringBuilder The StringBuilder that will be validated.
+	 *                      Mainly used for checking if the length is 0.
 	 *                      If it's not the StringBuilder is then attempted to be parsed into a JSONObject.
 	 * @param url           The url in the event that this needs to be retried.
-	 * @return The JSONObject containing the parsed data from the string, or an empty JSONObject if there was an error while parsing.
+	 * @return The JSONObject containing the parsed data from the string,
+	 * or an empty JSONObject if there was an error while parsing.
 	 */
 	private static JSONObject validateJson(StringBuilder stringBuilder, String url) {
 
@@ -178,7 +187,8 @@ public class Network {
 			// If there have been less than 3 retries, keep retrying.
 			if (Network.attempts < Network.MAX_ATTEMPTS) {
 
-				// Sleep for a second to alleviate some stress from the receiving servers (in the event that this was the issue).
+				// Sleep for a second to alleviate some stress from the receiving servers
+				// (in the event that this was the issue).
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException ex) {
@@ -187,7 +197,8 @@ public class Network {
 
 				// Up the number of network attempts here, and log the current attempt number
 				Network.attempts++;
-				Log.w("validateJson", String.format("Url didn't respond, going to retry! (%d/%d)", Network.attempts, Network.MAX_ATTEMPTS));
+				Log.w("validateJson", String.format("Url didn't respond, going to retry! (%d/%d)",
+						Network.attempts, Network.MAX_ATTEMPTS));
 
 				// Try to return the JsonObject from the new attempt.
 				return Network.getJsonFromUrl(url, true);
@@ -235,7 +246,8 @@ public class Network {
 		// Create a variable for character parsing
 		int character;
 
-		// Loop through all the characters until there are no more characters to run through (returns -1)
+		// Loop through all the characters until there are no more characters to run through
+		// (returns -1).
 		while ((character = reader.read()) != -1) {
 
 			// Append the character to the string

@@ -15,8 +15,9 @@ import fnsb.macstransit.Threads.Network;
  * For the license, view the file titled LICENSE at the root of the project
  *
  * @version 3.2
- * @since Beta 1
+ * @since Beta 1.
  */
+@SuppressWarnings("WeakerAccess")
 public class RouteMatch {
 
 	/**
@@ -104,7 +105,8 @@ public class RouteMatch {
 	}
 
 	/**
-	 * Gets the land parentRoute (the parentRoute the buses will take) of a particular parentRoute from the RouteMatch server.
+	 * Gets the land parentRoute
+	 * (the parentRoute the buses will take) of a particular parentRoute from the RouteMatch server.
 	 *
 	 * @param route The parentRoute to be fetched.
 	 * @return The JSONObject pertaining to the specific parentRoute's parentRoute

@@ -21,6 +21,7 @@ import fnsb.macstransit.R;
  * @version 1.1
  * @since Beta 8.
  */
+@SuppressWarnings("WeakerAccess")
 public class SettingsPopupWindow extends AlertDialog {
 
 	/**
@@ -250,7 +251,8 @@ public class SettingsPopupWindow extends AlertDialog {
 			this.writeSettings(trafficBox, nightBox, polyBox, VRBox);
 
 			// Inform the user that a restart is required in order for changes to take effect.
-			Toast.makeText(this.context, R.string.restart_required, Toast.LENGTH_LONG).show();
+			Toast.makeText(this.context, R.string.restart_required, Toast.LENGTH_LONG)
+					.show();
 
 			// Close the alert dialog.
 			alertDialog.cancel();
@@ -265,12 +267,15 @@ public class SettingsPopupWindow extends AlertDialog {
 	 *
 	 * @param view    The settings popup window view.
 	 * @param id      THe ID of the Checkbox within the View.
-	 * @param checked Whether or not the box is to be checkd by default.
-	 * @param button  The apply button (as the apply button needs to be passed as an argument for the checkbox's listener).
+	 * @param checked Whether or not the box is to be checked by default.
+	 * @param button  The apply button
+	 *                (as the apply button needs to be passed as an argument for the checkbox's listener).
 	 * @param tag     The text of the checkbox (which will be applied as the checkbox's tag)
 	 * @return The newly created checkbox object.
 	 */
-	private CheckBox createCheckbox(android.view.View view, int id, boolean checked, Button button, String tag) {
+	private CheckBox createCheckbox(android.view.View view, int id, boolean checked, Button button,
+	                                String tag) {
+
 		// Find the checkbox within the view.
 		CheckBox checkBox = view.findViewById(id);
 
@@ -278,7 +283,8 @@ public class SettingsPopupWindow extends AlertDialog {
 		checkBox.setChecked(checked);
 
 		// Add an onCheckChanged listener to update the apply button.
-		checkBox.setOnCheckedChangeListener((a, checkedValue) -> this.changeApplyButton(checkedValue, checked, button));
+		checkBox.setOnCheckedChangeListener((a, checkedValue) -> this
+				.changeApplyButton(checkedValue, checked, button));
 
 		// Set the tag of the checkbox.
 		checkBox.setTag(tag);
@@ -295,7 +301,8 @@ public class SettingsPopupWindow extends AlertDialog {
 	 * @param button       The apply button.
 	 */
 	private void changeApplyButton(boolean defaultValue, boolean newValue, Button button) {
-		// If the default current value is different than the default value, increase the change sum by 1.
+		// If the default current value is different than the default value,
+		// increase the change sum by 1.
 		// If the two values are the same, decrease the change sum by 1.
 		this.changedSum = (newValue != defaultValue) ? this.changedSum + 1 : this.changedSum - 1;
 		Log.d("showSettingsPopup", "Updated changedSum to " + this.changedSum);
