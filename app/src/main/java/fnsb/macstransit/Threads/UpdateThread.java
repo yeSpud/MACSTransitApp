@@ -80,14 +80,12 @@ public class UpdateThread {
 				/*
 				 * If there are no selected route,
 				 * loop quickly (every quarter second) rather than the set frequency.
-				 * If there are selected childRoutes (parentRoute length will be greater than 0),
-				 * update the bus positions on the map (and do so on the UI thread).
+				 * If there are selected routes (parentRoute length will be greater than 0),
+				 * update the bus positions on the map.
 				 * Then, sleep for the given update frequency.
 				 */
 				if (routes.length > 0) {
-					// TODO Change this to the maps activity.
-					this.activity.runOnUiThread(() -> new fnsb.macstransit.Activities
-							.ActivityListeners.Async.UpdateBuses(this.activity.map).execute(routes));
+					this.activity.drawBuses();
 
 					// Sleep for the given update frequency
 					try {

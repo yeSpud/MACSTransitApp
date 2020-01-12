@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import fnsb.macstransit.Activities.ActivityListeners.AdjustZoom;
+import fnsb.macstransit.Activities.ActivityListeners.Async.UpdateBuses;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
@@ -44,7 +45,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * TODO Documentation
 	 */
-	public Bus[] trackedBuses = new Bus[0];
+	public static Bus[] trackedBuses = new Bus[0];
 
 	/**
 	 * Create the map object.
@@ -189,7 +190,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 
 				// Create a copy of the array of buses that were previously being tracked.
-				ArrayList<Bus> buses = new ArrayList<>(Arrays.asList(this.trackedBuses));
+				ArrayList<Bus> buses = new ArrayList<>(Arrays.asList(MapsActivity.trackedBuses));
 
 				// Add or remove any buses based on the selected routes.
 				// Start by iterating through the buses
@@ -213,14 +214,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				}
 
 				// Then apply the bus array list to the array of buses
-				this.trackedBuses = buses.toArray(new Bus[0]);
+				MapsActivity.trackedBuses = buses.toArray(new Bus[0]);
 
 				// Now, redraw the buses.
-				//this.drawBuses();
-
-				// Draw the buses.
-				// TODO Remove
-				fnsb.macstransit.RouteMatch.Bus.drawBuses(this.selectedRoutes, this.map);
+				this.drawBuses();
 
 				// If enabled, draw polylines
 				if (SettingsPopupWindow.SHOW_POLYLINES) {
@@ -389,12 +386,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			// Update the array of buses and their positions asynchronously.
 			// This can be achieved by passing an asynchronous method the array of selected routes,
 			// and the current array of buses.
-			// TODO
 
-			// TODO: Add this to the async activity as well.
 			// Then, iterate through the array of bus markers.
 			// If the markers exist, update their position.
 			// If the marker doesn't exist, create a new marker, and add it to the map.
+			new UpdateBuses(this.map).execute(this.selectedRoutes);
 		});
 	}
 

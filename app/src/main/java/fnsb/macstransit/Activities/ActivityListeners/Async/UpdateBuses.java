@@ -1,7 +1,11 @@
 package fnsb.macstransit.Activities.ActivityListeners.Async;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.Marker;
 
+import java.util.ArrayList;
+
+import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 
@@ -10,12 +14,10 @@ import fnsb.macstransit.RouteMatch.Route;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.0
+ * @version 2.0
  * @since Beta 8.
  */
-// TODO: This needs to be revised to retrieve the bus positions given a copy of the active routes,
-//  and then update or draw the markers on the map.
-public class UpdateBuses extends android.os.AsyncTask<Route, Void, Route[]> {
+public class UpdateBuses extends android.os.AsyncTask<Route, Void, Bus[]> {
 
 	/**
 	 * The map used later once the background process has finished.
@@ -47,8 +49,11 @@ public class UpdateBuses extends android.os.AsyncTask<Route, Void, Route[]> {
 	 * In our case it's the same childRoutes as before, just with updated bus positions.
 	 */
 	@Override
-	protected Route[] doInBackground(Route... routes) {
-		// For each of the childRoutes provided, execute the following:
+	protected Bus[] doInBackground(Route... routes) {
+
+		// Get all the buses used by the selected routes.
+		ArrayList<Bus> buses = new ArrayList<>();
+
 		for (Route route : routes) {
 
 			// First, make sure this wasn't canceled. If it was, simply break from the loop now.
@@ -56,47 +61,17 @@ public class UpdateBuses extends android.os.AsyncTask<Route, Void, Route[]> {
 				break;
 			}
 
+			// Then, try to get the buses used by the route.
 			try {
-
-				// Store the old buses from the parentRoute into its own array,
-				// and create another bus array containing the newly queried buses.
-				Bus[] oldBuses = route.buses, newBuses = Bus.getBuses(route);
-
-				// Check to see if the length of the old buses does not match that of the new buses.
-				// If they're different, simply replace the buses in the parentRoute with the new buses.
-				if (oldBuses.length != newBuses.length) {
-					route.buses = newBuses;
-				} else {
-
-					// Since the buses in the parentRoute were the same length, check the individual buses.
-					// Start by iterating through the old buses.
-					for (int index = 0; index < oldBuses.length; index++) {
-
-						// Get an old bus.
-						Bus oldBus = oldBuses[index];
-
-						// Iterate trough the new buses, and check of the new bus ID equals that of the old bus ID.
-						for (Bus newBus : newBuses) {
-
-							// If the IDs match, update the parentRoute color, as well as the coordinates.
-							if (newBus.busID.equals(oldBus.busID)) {
-								oldBus.color = newBus.color;
-								oldBus.latitude = newBus.latitude;
-								oldBus.longitude = newBus.longitude;
-							}
-						}
-
-						// Finally, update the old bus at the current index to that of the newly updated bus.
-						oldBuses[index] = oldBus;
-					}
-				}
+				// Get the buses used in the selected routes
+				buses.addAll(java.util.Arrays.asList(Bus.getBuses(route)));
 			} catch (org.json.JSONException e) {
 				e.printStackTrace();
 			}
 		}
 
-		// Finally, return the initial childRoutes, but with the updated buses.
-		return routes;
+		// Finally, return all the buses that were retrieved from the server
+		return buses.toArray(new Bus[0]);
 	}
 
 	/**
@@ -116,7 +91,49 @@ public class UpdateBuses extends android.os.AsyncTask<Route, Void, Route[]> {
 	 * @param result he result of the operation computed by doInBackground(Params...).
 	 */
 	@Override
-	protected void onPostExecute(Route[] result) {
-		Bus.drawBuses(result, this.map);
+	protected void onPostExecute(Bus[] result) {
+		// TODO Comments
+		for (int i = 0; i < result.length; i++) {
+			Bus newBus = result[i];
+			boolean found = false;
+			for (Bus oldBus : MapsActivity.trackedBuses) {
+				if (newBus.busID.equals(oldBus.busID)) {
+					found = true;
+					newBus.setMarker(this.updateMarkerPosition(oldBus.getMarker(), newBus));
+					break;
+				}
+			}
+
+			if (!found) {
+				newBus.setMarker(this.updateMarkerPosition(newBus.getMarker(), newBus));
+			}
+			result[i] = newBus;
+		}
+		MapsActivity.trackedBuses = result;
+	}
+
+	/**
+	 * TODO Documentation
+	 * TODO Update comments
+	 *
+	 * @param marker
+	 * @param bus
+	 * @return
+	 */
+	private Marker updateMarkerPosition(Marker marker, Bus bus) {
+
+		// If the marker already exists (is not null), just update the buses position
+		if (marker != null) {
+			marker.setPosition(new com.google.android.gms.maps.model.LatLng(bus.latitude,
+					bus.longitude));
+		} else {
+			// Since the buses marker does not exist, add it to the map.
+			marker = bus.addMarker(this.map, bus.latitude, bus.longitude, bus.color,
+					"Bus " + bus.busID);
+		}
+
+		// Set the bus marker to be visible, and update the bus marker by calling setMarker();
+		marker.setVisible(true);
+		return marker;
 	}
 }

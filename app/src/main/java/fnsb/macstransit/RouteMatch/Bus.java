@@ -117,44 +117,4 @@ public class Bus extends MarkedObject {
 		// Return the bus array as an array of buses.
 		return buses.toArray(new Bus[0]);
 	}
-
-	/**
-	 * Draws the buses of the provided childRoutes to the provided map.
-	 *
-	 * @param routes The childRoutes that the buses correspond to.
-	 * @param map    The map to have the buses drawn on.
-	 */
-	@Deprecated
-	public static void drawBuses(Route[] routes, com.google.android.gms.maps.GoogleMap map) {
-		// Iterate through the provided childRoutes and execute the following:
-		for (Route route : routes) {
-
-			// Get the buses in the parentRoute
-			Bus[] buses = route.buses;
-
-			// If the buses are not null execute the following:
-			if (buses != null) {
-
-				// Iterate throug the buses in the parentRoute,
-				// and get the marker corresponding to the bus.
-				for (Bus bus : buses) {
-					com.google.android.gms.maps.model.Marker marker = bus.getMarker();
-
-					// If the marker already exists (is not null), just update the buses position
-					if (marker != null) {
-						marker.setPosition(new com.google.android.gms.maps.model.LatLng(bus.latitude,
-								bus.longitude));
-					} else {
-						// Since the buses marker does not exist, add it to the map.
-						marker = bus.addMarker(map, bus.latitude, bus.longitude, bus.color,
-								"Bus " + bus.busID);
-					}
-
-					// Set the bus mareker to be visible, and update the bus marker by calling setMarker();
-					marker.setVisible(true);
-					bus.setMarker(marker);
-				}
-			}
-		}
-	}
 }

@@ -46,12 +46,6 @@ public class Route {
 	public Stop[] stops;
 
 	/**
-	 * The array of buses that correspond to this parentRoute.
-	 */
-	@Deprecated
-	public Bus[] buses;
-
-	/**
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
 	 * This should be initialized with an array of length 0.
 	 */
@@ -170,10 +164,6 @@ public class Route {
 			if (route.routeName.equals(routeName)) {
 				Log.d("enableRoutes", "Found matching parentRoute!");
 
-				// For now, just initialize with a 0 length array.
-				// TODO Remove this.
-				route.buses = new Bus[0];
-
 				routes[oldRoutes.length] = route;
 
 				// Since we only add one parentRoute at a time (as there is only one routeName argument),
@@ -209,16 +199,6 @@ public class Route {
 			// execute the following:
 			if (route.routeName.equals(routeName)) {
 
-				// Remove the buses from the map as well as the parentRoute.
-				// TODO Remove this.
-				for (Bus bus : route.buses) {
-					com.google.android.gms.maps.model.Marker marker = bus.getMarker();
-					if (marker != null) {
-						bus.getMarker().remove();
-					}
-				}
-				route.buses = new Bus[0];
-
 				// Remove the polyline from the map as well as the parentRoute.
 				Polyline polyline = route.getPolyline();
 				if (polyline != null) {
@@ -232,7 +212,6 @@ public class Route {
 				break;
 			}
 		}
-
 
 		return routes.toArray(new Route[0]);
 	}
