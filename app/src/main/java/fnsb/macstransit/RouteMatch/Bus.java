@@ -9,7 +9,7 @@ import java.util.ArrayList;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.3
+ * @version 1.4
  * @since Beta 3.
  */
 public class Bus extends MarkedObject {
@@ -124,6 +124,7 @@ public class Bus extends MarkedObject {
 	 * @param routes The childRoutes that the buses correspond to.
 	 * @param map    The map to have the buses drawn on.
 	 */
+	@Deprecated
 	public static void drawBuses(Route[] routes, com.google.android.gms.maps.GoogleMap map) {
 		// Iterate through the provided childRoutes and execute the following:
 		for (Route route : routes) {

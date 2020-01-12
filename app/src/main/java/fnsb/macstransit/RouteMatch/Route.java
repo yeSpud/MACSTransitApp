@@ -18,7 +18,7 @@ import java.util.Arrays;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 2.3
+ * @version 2.4
  * @since Beta 3.
  */
 public class Route {
@@ -48,6 +48,7 @@ public class Route {
 	/**
 	 * The array of buses that correspond to this parentRoute.
 	 */
+	@Deprecated
 	public Bus[] buses;
 
 	/**
@@ -170,6 +171,7 @@ public class Route {
 				Log.d("enableRoutes", "Found matching parentRoute!");
 
 				// For now, just initialize with a 0 length array.
+				// TODO Remove this.
 				route.buses = new Bus[0];
 
 				routes[oldRoutes.length] = route;
@@ -208,6 +210,7 @@ public class Route {
 			if (route.routeName.equals(routeName)) {
 
 				// Remove the buses from the map as well as the parentRoute.
+				// TODO Remove this.
 				for (Bus bus : route.buses) {
 					com.google.android.gms.maps.model.Marker marker = bus.getMarker();
 					if (marker != null) {

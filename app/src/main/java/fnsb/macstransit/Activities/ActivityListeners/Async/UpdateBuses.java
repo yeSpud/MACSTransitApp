@@ -13,6 +13,8 @@ import fnsb.macstransit.RouteMatch.Route;
  * @version 1.0
  * @since Beta 8.
  */
+// TODO: This needs to be revised to retrieve the bus positions given a copy of the active routes,
+//  and then update or draw the markers on the map.
 public class UpdateBuses extends android.os.AsyncTask<Route, Void, Route[]> {
 
 	/**

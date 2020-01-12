@@ -9,7 +9,7 @@ import fnsb.macstransit.Activities.MapsActivity;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 2.3
+ * @version 2.4
  * @since Beta 3.
  */
 public class UpdateThread {
@@ -78,13 +78,14 @@ public class UpdateThread {
 				fnsb.macstransit.RouteMatch.Route[] routes = this.activity.selectedRoutes;
 
 				/*
-				 * If there are no selected childRoutes,
+				 * If there are no selected route,
 				 * loop quickly (every quarter second) rather than the set frequency.
 				 * If there are selected childRoutes (parentRoute length will be greater than 0),
 				 * update the bus positions on the map (and do so on the UI thread).
 				 * Then, sleep for the given update frequency.
 				 */
 				if (routes.length > 0) {
+					// TODO Change this to the maps activity.
 					this.activity.runOnUiThread(() -> new fnsb.macstransit.Activities
 							.ActivityListeners.Async.UpdateBuses(this.activity.map).execute(routes));
 

@@ -6,8 +6,12 @@ import android.view.Menu;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.MapStyleOptions;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import fnsb.macstransit.Activities.ActivityListeners.AdjustZoom;
 import fnsb.macstransit.R;
+import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
@@ -36,6 +40,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * Create an array of all the Shared Stops (stops that share a location).
 	 */
 	public SharedStop[] sharedStops = new SharedStop[0];
+
+	/**
+	 * TODO Documentation
+	 */
+	public Bus[] trackedBuses = new Bus[0];
 
 	/**
 	 * Create the map object.
@@ -164,22 +173,53 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				break;
 			// Check if the item that was selected belongs to the childRoutes group.
 			case R.id.routes:
-				// Create a boolean to store the resulting value of the menu item
+				// Create a boolean to store the resulting value of the menu item.
 				boolean enabled = !item.isChecked();
 
-				// Then clear the shared stops since they will be recreated
+				// Then clear the shared stops since they will be recreated.
 				this.sharedStops = SharedStop.clearSharedStops(this.sharedStops);
 
-				// Then clear the regular stops from the map (as the stops to be displayed will be re-evaluated)
+				// Then clear the regular stops from the map (as the stops to be displayed will be re-evaluated).
 				Stop.removeStops(this.selectedRoutes);
 
-				// Toggle the parentRoute based on the menu item's title, and its enabled value
+				// Toggle the parentRoute based on the menu item's title, and its enabled value.
 				this.selectedRoutes = enabled ?
 						Route.enableRoutes(item.getTitle().toString(), this.selectedRoutes) :
 						Route.disableRoute(item.getTitle().toString(), this.selectedRoutes);
 
 
+				// Create a copy of the array of buses that were previously being tracked.
+				ArrayList<Bus> buses = new ArrayList<>(Arrays.asList(this.trackedBuses));
+
+				// Add or remove any buses based on the selected routes.
+				// Start by iterating through the buses
+				for (Bus bus : buses) {
+
+					// Then iterate through the new active routes,
+					// and check if that bus is in the new active routes.
+					boolean found = false;
+					for (Route route : this.selectedRoutes) {
+						if (bus.route.equals(route)) {
+							found = true;
+							break;
+						}
+					}
+
+					// If the bus was not found, remove it from the map and bus array.
+					if (!found) {
+						bus.getMarker().remove();
+						buses.remove(bus);
+					}
+				}
+
+				// Then apply the bus array list to the array of buses
+				this.trackedBuses = buses.toArray(new Bus[0]);
+
+				// Now, redraw the buses.
+				//this.drawBuses();
+
 				// Draw the buses.
+				// TODO Remove
 				fnsb.macstransit.RouteMatch.Bus.drawBuses(this.selectedRoutes, this.map);
 
 				// If enabled, draw polylines
@@ -334,6 +374,28 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Adjust the circle sizes of the stops on the map given the current zoom.
 		AdjustZoom.adjustCircleSize(this.map.getCameraPosition().zoom, this.sharedStops);
+	}
+
+	/**
+	 * TODO Documentation
+	 */
+	public void drawBuses() {
+
+		// Make sure the following is executed on the UI Thread
+		this.runOnUiThread(() -> {
+			/*
+			 What needs to happen is that the buses that we do care about need to either have their positions updated, or they need to be added to the map.
+			 */
+			// Update the array of buses and their positions asynchronously.
+			// This can be achieved by passing an asynchronous method the array of selected routes,
+			// and the current array of buses.
+			// TODO
+
+			// TODO: Add this to the async activity as well.
+			// Then, iterate through the array of bus markers.
+			// If the markers exist, update their position.
+			// If the marker doesn't exist, create a new marker, and add it to the map.
+		});
 	}
 
 	/**
