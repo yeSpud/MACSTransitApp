@@ -48,9 +48,9 @@ public class Bus extends MarkedObject {
 	public String heading = "";
 
 	/**
-	 * Variables to store the current bus capacity, as well as the speed in mph.
+	 * Variables to store the current bus speed in mph.
 	 */
-	public int currentCapacity, speed;
+	public int speed;
 
 	/**
 	 * Construction for the bus.
@@ -98,12 +98,6 @@ public class Bus extends MarkedObject {
 			bus.longitude = object.getDouble("longitude");
 			bus.heading = object.getString("headingName");
 			bus.speed = object.getInt("speed");
-			bus.currentCapacity = object.getInt("currentPassengers");
-
-			// If the buses current capacity is less than 0, just set it to 0.
-			if (bus.currentCapacity < 0) {
-				bus.currentCapacity = 0;
-			}
 
 			// Set the bus color to that of the parentRoute.
 			bus.color = route.color;

@@ -92,10 +92,9 @@ public class PopupWindow extends AlertDialog implements
 				builder.append(String.format("Heading: %s\n", lowercaseHeading.substring(0, 1).toUpperCase() + lowercaseHeading.substring(1)));
 			}
 
-			// Append the speed in mph, and the current capacity.
+			// Append the speed in mph.
 			builder.append(String.format(Locale.ENGLISH, "Speed: %d mph\n", bus.speed));
-			builder.append(String.format(Locale.ENGLISH, "Current capacity: %d\n",
-					bus.currentCapacity));
+
 
 			// Then set the text to the determined content.
 			content.setText(builder.toString());
