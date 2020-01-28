@@ -118,7 +118,7 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 	@Override
 	public void onCameraIdle() {
 		// Get the camera's new zoom position
-		float zoom = this.activity.map.getCameraPosition().zoom;
+		float zoom = MapsActivity.map.getCameraPosition().zoom;
 		Log.d("CameraChange", "Zoom level: " + zoom);
 
 		// Adjust the circle size based on zoom level

@@ -1,7 +1,6 @@
 package fnsb.macstransit.Activities.ActivityListeners.Async;
 
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.Marker;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -17,21 +16,21 @@ import fnsb.macstransit.RouteMatch.Route;
  * @version 2.0
  * @since Beta 8.
  */
-public class UpdateBuses extends android.os.AsyncTask<Route, Void, Bus[]> {
+public class UpdateBuses extends android.os.AsyncTask<Void, Void, Bus[]> {
 
 	/**
-	 * The map used later once the background process has finished.
+	 * TODO
 	 */
-	private GoogleMap map;
+	private Route route;
 
 	/**
 	 * Constructor for the Async UpdateBuses class.
 	 * All that's needed is the map that will be used once the background processes have finished.
 	 *
-	 * @param map The map that will be used to update the bus positions.
+	 * @param route TODO
 	 */
-	public UpdateBuses(GoogleMap map) {
-		this.map = map;
+	public UpdateBuses(Route route) {
+		this.route = route;
 	}
 
 	/**
@@ -44,27 +43,22 @@ public class UpdateBuses extends android.os.AsyncTask<Route, Void, Bus[]> {
 	 * This method may take several seconds to complete,
 	 * so it should only be called from a worker thread.
 	 *
-	 * @param routes The parameters of the task. In our case its the childRoutes for the buses.
+	 * @param no The parameters of the task. Since its void in our case don't use it.
 	 * @return A result, defined by the subclass of this task.
 	 * In our case it's the same childRoutes as before, just with updated bus positions.
 	 */
 	@Override
-	protected Bus[] doInBackground(Route... routes) {
+	protected Bus[] doInBackground(Void... no) {
 
 		// Get all the buses used by the selected routes.
 		ArrayList<Bus> buses = new ArrayList<>();
 
-		for (Route route : routes) {
-
-			// First, make sure this wasn't canceled. If it was, simply break from the loop now.
-			if (this.isCancelled()) {
-				break;
-			}
-
+		// First, make sure this wasn't canceled. If it was, simply continue and return the empty array list.
+		if (!this.isCancelled() && this.route != null) {
 			// Then, try to get the buses used by the route.
 			try {
-				// Get the buses used in the selected routes
-				buses.addAll(java.util.Arrays.asList(Bus.getBuses(route)));
+				// Get the buses used in the selected routes from the RouteMatch server.
+				buses.addAll(java.util.Arrays.asList(Bus.getBuses(this.route)));
 			} catch (org.json.JSONException e) {
 				e.printStackTrace();
 			}
@@ -88,52 +82,70 @@ public class UpdateBuses extends android.os.AsyncTask<Route, Void, Bus[]> {
 	 * <p>
 	 * Essentially this should draw the buses to the map once complete.
 	 *
-	 * @param result he result of the operation computed by doInBackground(Params...).
+	 * @param result The result of the operation computed by doInBackground(Params...).
 	 */
 	@Override
 	protected void onPostExecute(Bus[] result) {
-		// TODO Comments
+
+		// TODO Check for matching buses!
+		// Iterate through each of the resulting buses and execute the following:
 		for (int i = 0; i < result.length; i++) {
-			Bus newBus = result[i];
+			Bus bus = result[i];
+
+			// TODO Comments
 			boolean found = false;
-			for (Bus oldBus : MapsActivity.trackedBuses) {
-				if (newBus.busID.equals(oldBus.busID)) {
+			for (Bus preExistingBus : this.route.buses) {
+				if (bus.busID.equals(preExistingBus.busID)) {
+					bus = preExistingBus;
 					found = true;
-					newBus.setMarker(this.updateMarkerPosition(oldBus.getMarker(), newBus));
 					break;
 				}
 			}
 
-			if (!found) {
-				newBus.setMarker(this.updateMarkerPosition(newBus.getMarker(), newBus));
+			// If the activity was canceled by this point, just return.
+			if (this.isCancelled()) {
+				return;
 			}
-			result[i] = newBus;
+
+			// Get the bus marker
+			com.google.android.gms.maps.model.Marker marker;
+
+			if (found) {
+				Log.d("onPostExecute", "Updating position for bus " + bus.busID);
+
+				marker = bus.getMarker();
+
+				// If the marker already exists (is not null), just update the buses position.
+				if (marker != null) {
+					Log.d("onPostExecute", "Bus marker already exists. Updating position...");
+					marker.setPosition(new com.google.android.gms.maps.model.LatLng(bus.latitude,
+							bus.longitude));
+				} else {
+					// Since the buses marker does not exist, add it to the map.
+					Log.d("onPostExecute", "Bus marker does not yet exits. Creating marker...");
+					marker = bus.addMarker(MapsActivity.map, bus.latitude, bus.longitude, bus.color,
+							"Bus " + bus.busID);
+				}
+			} else {
+				// Since the buses marker does not exist, add it to the map.
+				Log.d("onPostExecute", "Bus marker does not yet exits. Creating marker...");
+				marker = bus.addMarker(MapsActivity.map, bus.latitude, bus.longitude, bus.color,
+						"Bus " + bus.busID);
+			}
+
+			// Apply the bus marker.
+			Log.d("onPostExecute", "Applying bus marker");
+			bus.setMarker(marker);
+
+			// Be sure to set the marker as visible.
+			Log.d("onPostExecute", "Setting marker to visible");
+			marker.setVisible(true);
+
+			// Apply the bus to the result.
+			result[i] = bus;
 		}
-		MapsActivity.trackedBuses = result;
-	}
 
-	/**
-	 * TODO Documentation
-	 * TODO Update comments
-	 *
-	 * @param marker
-	 * @param bus
-	 * @return
-	 */
-	private Marker updateMarkerPosition(Marker marker, Bus bus) {
-
-		// If the marker already exists (is not null), just update the buses position
-		if (marker != null) {
-			marker.setPosition(new com.google.android.gms.maps.model.LatLng(bus.latitude,
-					bus.longitude));
-		} else {
-			// Since the buses marker does not exist, add it to the map.
-			marker = bus.addMarker(this.map, bus.latitude, bus.longitude, bus.color,
-					"Bus " + bus.busID);
-		}
-
-		// Set the bus marker to be visible, and update the bus marker by calling setMarker();
-		marker.setVisible(true);
-		return marker;
+		// Apply the buses to the route
+		this.route.buses = result;
 	}
 }

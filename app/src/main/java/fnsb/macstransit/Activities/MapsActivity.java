@@ -6,17 +6,11 @@ import android.view.Menu;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.MapStyleOptions;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import fnsb.macstransit.Activities.ActivityListeners.AdjustZoom;
-import fnsb.macstransit.Activities.ActivityListeners.Async.UpdateBuses;
 import fnsb.macstransit.R;
-import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
-import fnsb.macstransit.Threads.UpdateThread;
 
 public class MapsActivity extends androidx.fragment.app.FragmentActivity implements
 		com.google.android.gms.maps.OnMapReadyCallback {
@@ -25,12 +19,17 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * Create an array of all the childRoutes that are used by the transit system.
 	 * For now leave it uninitialized, as it will be dynamically generated in the onCreate method.
 	 */
-	public static Route[] allRoutes;
+	public static Route[] allRoutes = new Route[0];
 
 	/**
 	 * Create an instance of the parentRoute match object that will be used for this app.
 	 */
 	public static fnsb.macstransit.RouteMatch.RouteMatch routeMatch;
+
+	/**
+	 * Create the map object.
+	 */
+	public static GoogleMap map;
 
 	/**
 	 * Create an array list to determine which childRoutes have been selected from the menu to track.
@@ -41,21 +40,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * Create an array of all the Shared Stops (stops that share a location).
 	 */
 	public SharedStop[] sharedStops = new SharedStop[0];
-
-	/**
-	 * TODO Documentation
-	 */
-	public static Bus[] trackedBuses = new Bus[0];
-
-	/**
-	 * Create the map object.
-	 */
-	public GoogleMap map;
-
-	/**
-	 * Create an instance of the thread object that will be used to pull data from the routematch server.
-	 */
-	private UpdateThread thread = new UpdateThread(this, 3000);
 
 	/**
 	 * Boolean to check whether or not the menu items for the childRoutes have been (dynamically) created.
@@ -80,10 +64,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		if (!menuCreated) {
 
 			// Iterate through all the childRoutes that can be tracked.
-			for (Route route : MapsActivity.allRoutes) {
-
-				// Add the parentRoute to the childRoutes menu group, and make sure its checkable.
-				menu.add(R.id.routes, Menu.NONE, Menu.NONE, route.routeName).setCheckable(true);
+			try {
+				for (Route route : MapsActivity.allRoutes) {
+					// Add the parentRoute to the childRoutes menu group, and make sure its checkable.
+					menu.add(R.id.routes, Menu.NONE, Menu.NONE, route.routeName).setCheckable(true);
+				}
+			} catch (NullPointerException ignore) {
 			}
 
 			// Once finished, set the menuCreated variable to true so that this will not be run again.
@@ -188,42 +174,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 						Route.enableRoutes(item.getTitle().toString(), this.selectedRoutes) :
 						Route.disableRoute(item.getTitle().toString(), this.selectedRoutes);
 
-
-				// Create a copy of the array of buses that were previously being tracked.
-				ArrayList<Bus> buses = new ArrayList<>(Arrays.asList(MapsActivity.trackedBuses));
-
-				// Add or remove any buses based on the selected routes.
-				// Start by iterating through the buses
-				for (Bus bus : buses) {
-
-					// Then iterate through the new active routes,
-					// and check if that bus is in the new active routes.
-					boolean found = false;
-					for (Route route : this.selectedRoutes) {
-						if (bus.route.equals(route)) {
-							found = true;
-							break;
-						}
-					}
-
-					// If the bus was not found, remove it from the map and bus array.
-					if (!found) {
-						bus.getMarker().remove();
-						buses.remove(bus);
-					}
-				}
-
-				// Then apply the bus array list to the array of buses
-				MapsActivity.trackedBuses = buses.toArray(new Bus[0]);
-
-				// Now, redraw the buses.
-				this.drawBuses();
-
 				// If enabled, draw polylines
 				if (SettingsPopupWindow.SHOW_POLYLINES) {
 					for (Route route : this.selectedRoutes) {
 						if (route.getPolyline() == null) {
-							route.createPolyline(this.map);
+							route.createPolyline(MapsActivity.map);
 						}
 					}
 				}
@@ -274,8 +229,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	@Override
 	protected void onResume() {
 		super.onResume();
-		this.thread.run = true;
-		this.thread.thread().start();
+		for (Route route : this.selectedRoutes) {
+			route.updateThread.run = true;
+			route.updateThread.thread().start();
+		}
 	}
 
 	/**
@@ -290,7 +247,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	@Override
 	protected void onPause() {
 		super.onPause();
-		this.thread.run = false;
+		for (Route route : this.selectedRoutes) {
+			route.updateThread.run = false;
+		}
 	}
 
 	/**
@@ -312,7 +271,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		this.thread.run = false;
+		for (Route route : this.selectedRoutes) {
+			route.updateThread.run = false;
+		}
 	}
 
 	/**
@@ -325,30 +286,30 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	@Override
 	public void onMapReady(GoogleMap googleMap) {
 		// Setup the map object at this point as it is finally initialized and ready.
-		this.map = googleMap;
+		MapsActivity.map = googleMap;
 
 		// Move the camera to the 'home' position
-		this.map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory
+		MapsActivity.map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory
 				.newLatLngZoom(new com.google.android.gms.maps.model
 						.LatLng(64.8391975, -147.7684709), 11.0f));
 
 		// Add a listener for when the camera has become idle (ie was moving isn't anymore).
-		this.map.setOnCameraIdleListener(new AdjustZoom(this));
+		MapsActivity.map.setOnCameraIdleListener(new AdjustZoom(this));
 
 		// Add a listener for when a stop icon (circle) is clicked.
-		this.map.setOnCircleClickListener(new fnsb.macstransit.Activities.ActivityListeners.StopClicked(this));
+		MapsActivity.map.setOnCircleClickListener(new fnsb.macstransit.Activities.ActivityListeners.StopClicked(this));
 
 		// Add a custom info window adapter, to add support for multiline snippets.
-		this.map.setInfoWindowAdapter(new InfoWindowAdapter(this));
+		MapsActivity.map.setInfoWindowAdapter(new InfoWindowAdapter(this));
 
 		// Set it so that if the info window was closed for a Stop marker, make that marker invisible, so its just the dot.
-		this.map.setOnInfoWindowCloseListener(new fnsb.macstransit.Activities.ActivityListeners.StopDeselected());
+		MapsActivity.map.setOnInfoWindowCloseListener(new fnsb.macstransit.Activities.ActivityListeners.StopDeselected());
 
 		// Set it so that when an info window is clicked on, it launches a popup window
-		this.map.setOnInfoWindowClickListener(new PopupWindow(this));
+		MapsActivity.map.setOnInfoWindowClickListener(new PopupWindow(this));
 
 		// Enable traffic overlay based on settings.
-		this.map.setTrafficEnabled(SettingsPopupWindow.ENABLE_TRAFFIC_VIEW);
+		MapsActivity.map.setTrafficEnabled(SettingsPopupWindow.ENABLE_TRAFFIC_VIEW);
 
 		// Toggle night mode at this time if enabled.
 		this.toggleNightMode(SettingsPopupWindow.DEFAULT_NIGHT_MODE);
@@ -363,35 +324,14 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Create and show the shared stops on the map if there are any (this.sharedStops will have a size greater than 0).
 		if (this.sharedStops.length > 0) {
-			SharedStop.addSharedStop(this.map, this.sharedStops);
+			SharedStop.addSharedStop(MapsActivity.map, this.sharedStops);
 		}
 
 		// Create and show the regular stops.
-		Stop.addStop(this.map, this.selectedRoutes, this.sharedStops);
+		Stop.addStop(MapsActivity.map, this.selectedRoutes, this.sharedStops);
 
 		// Adjust the circle sizes of the stops on the map given the current zoom.
-		AdjustZoom.adjustCircleSize(this.map.getCameraPosition().zoom, this.sharedStops);
-	}
-
-	/**
-	 * TODO Documentation
-	 */
-	public void drawBuses() {
-
-		// Make sure the following is executed on the UI Thread
-		this.runOnUiThread(() -> {
-			/*
-			 What needs to happen is that the buses that we do care about need to either have their positions updated, or they need to be added to the map.
-			 */
-			// Update the array of buses and their positions asynchronously.
-			// This can be achieved by passing an asynchronous method the array of selected routes,
-			// and the current array of buses.
-
-			// Then, iterate through the array of bus markers.
-			// If the markers exist, update their position.
-			// If the marker doesn't exist, create a new marker, and add it to the map.
-			new UpdateBuses(this.map).execute(this.selectedRoutes);
-		});
+		AdjustZoom.adjustCircleSize(MapsActivity.map.getCameraPosition().zoom, this.sharedStops);
 	}
 
 	/**
@@ -400,7 +340,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * @param enabled Whether to toggle the maps night mode
 	 */
 	public void toggleNightMode(boolean enabled) {
-		this.map.setMapStyle(enabled ?
+		MapsActivity.map.setMapStyle(enabled ?
 				MapStyleOptions.loadRawResourceStyle(this, R.raw.nightmode) :
 				MapStyleOptions.loadRawResourceStyle(this, R.raw.standard));
 	}
