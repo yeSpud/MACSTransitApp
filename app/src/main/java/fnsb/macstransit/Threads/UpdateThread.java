@@ -9,7 +9,7 @@ import fnsb.macstransit.RouteMatch.Route;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 2.4
+ * @version 3.0
  * @since Beta 3.
  */
 public class UpdateThread {
@@ -18,10 +18,12 @@ public class UpdateThread {
 	 * Create a boolean that will be used to determine if the update thread should be running or not.
 	 */
 	public boolean run = false;
+
 	/**
 	 * TODO Documentation
 	 */
 	public Route route;
+
 	/**
 	 * How quickly the thread should loop after its completed.
 	 * Keep in mind that the smaller this number is the quicker it loops,

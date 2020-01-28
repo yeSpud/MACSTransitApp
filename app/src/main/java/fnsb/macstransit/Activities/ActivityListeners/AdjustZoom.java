@@ -15,7 +15,7 @@ import fnsb.macstransit.RouteMatch.Stop;
  * <p>
  * This is used to adjust the circle sizes of the stops and shared stops when the zoom level is changed by the user.
  *
- * @version 1.2
+ * @version 1.3
  * @since Beta 7.
  */
 public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCameraIdleListener {

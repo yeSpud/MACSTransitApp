@@ -24,4 +24,5 @@
     <string name="restart_required">Restart required for changes to take effect</string>
     <string name="no_routes">No bus routes are available at this time.\nPlease try again later.</string>
     <string name="load_polylines">Loading polyline coordinates…</string>
+    <string name="view_fares">View bus fares</string>
 </resources>

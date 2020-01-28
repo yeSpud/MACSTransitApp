@@ -9,14 +9,19 @@
         android:orderInCategory="2"
         android:visible="true">
         <item
+            android:id="@+id/fares"
+            android:checkable="false"
+            android:orderInCategory="1"
+            android:title="@string/view_fares"/>
+        <item
             android:id="@+id/night_mode"
             android:checkable="true"
-            android:orderInCategory="1"
+            android:orderInCategory="2"
             android:title="@string/enable_night_mode" />
         <item
             android:id="@+id/settings"
             android:checkable="false"
-            android:orderInCategory="2"
+            android:orderInCategory="3"
             android:title="@string/settings" />
     </group>
 
