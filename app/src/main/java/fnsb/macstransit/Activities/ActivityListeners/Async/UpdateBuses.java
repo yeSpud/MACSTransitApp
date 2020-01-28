@@ -96,7 +96,7 @@ public class UpdateBuses extends android.os.AsyncTask<Void, Void, Bus[]> {
 			boolean found = false;
 			for (Bus preExistingBus : this.route.buses) {
 				if (bus.busID.equals(preExistingBus.busID)) {
-					bus = preExistingBus;
+					bus.setMarker(preExistingBus.getMarker());
 					found = true;
 					break;
 				}

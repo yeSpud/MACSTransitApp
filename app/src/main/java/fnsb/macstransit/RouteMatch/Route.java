@@ -231,6 +231,7 @@ public class Route {
 						com.google.android.gms.maps.model.Marker marker = bus.getMarker();
 						if (marker != null) {
 							marker.remove();
+							bus.setMarker(null);
 						}
 					}
 				} catch (NullPointerException warn) {
