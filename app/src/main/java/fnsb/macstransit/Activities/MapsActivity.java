@@ -151,6 +151,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 						SettingsPopupWindow settingsPopupWindow = new SettingsPopupWindow(this);
 						settingsPopupWindow.showSettingsPopup();
 						break;
+					// Check if the item that was selected was the fares button.
+					case R.id.fares:
+						// TODO
+						break;
 
 					default:
 						// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!
