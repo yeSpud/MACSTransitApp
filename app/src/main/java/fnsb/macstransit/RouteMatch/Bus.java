@@ -2,6 +2,9 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+
 import java.util.ArrayList;
 
 import fnsb.macstransit.Activities.MapsActivity;
@@ -132,8 +135,40 @@ public class Bus extends MarkedObject {
 	 * @return
 	 */
 	public static Bus[] updateCurrentBuses(Bus[] oldBuses, Bus[] newBuses) {
-		// TODO
-		return new Bus[0];
+
+		// Create an arraylift for storing all the matching buses
+		ArrayList<Bus> buses = new ArrayList<>();
+
+		// Iterate through the new buses
+		for (Bus newBus : newBuses) {
+
+			// Compare the new bus to the oldBuses.
+			// If they match, then add it to the arraylist and update its position.
+			for (Bus oldBus : oldBuses) {
+				Log.d("updateCurrentBuses",
+						String.format("Comparing bus %s to bus %s", newBus.busID, oldBus.busID));
+
+				if (newBus.busID.equals(oldBus.busID)) {
+					Log.d("updateCurrentBuses", "Found matching bus " + newBus.busID);
+
+					// Update the buses position, heading, and speed
+					Marker marker = oldBus.getMarker();
+					if (marker != null) {
+						marker.setPosition(new LatLng(newBus.latitude, newBus.longitude));
+						oldBus.setMarker(marker);
+						oldBus.heading = newBus.heading;
+						oldBus.speed = newBus.speed;
+						buses.add(oldBus);
+					} else {
+						Log.w("updateCurrentBuses", "Marker is null for updated bus "
+								+ oldBus.busID);
+					}
+				}
+			}
+		}
+
+
+		return buses.toArray(new Bus[0]);
 	}
 
 	/**
@@ -156,7 +191,8 @@ public class Bus extends MarkedObject {
 			// so add it to the array and map.
 			boolean found = false;
 			for (Bus oldBus : oldBuses) {
-				Log.d("addNewBuses", String.format("Comparning bus %s to bus %s", newBus.busID, oldBus.busID));
+				Log.d("addNewBuses",
+						String.format("Comparing bus %s to bus %s", newBus.busID, oldBus.busID));
 				if (newBus.busID.equals(oldBus.busID)) {
 					Log.d("addNewBuses", "Found matching bus " + newBus.busID);
 					found = true;
