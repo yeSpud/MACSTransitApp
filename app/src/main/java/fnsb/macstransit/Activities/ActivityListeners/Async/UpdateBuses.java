@@ -62,7 +62,7 @@ public class UpdateBuses extends android.os.AsyncTask<Void, Void, Bus[]> {
 			return;
 		}
 
-		// TODO Add new buses if they weren't on the map
+		// Add new buses if they weren't on the map
 		Log.d("onPostExecute", "Adding new buses to map");
 		ArrayList<Bus> buses = new ArrayList<>(Arrays.asList(Bus.addNewBuses(this.route.buses, newBuses)));
 

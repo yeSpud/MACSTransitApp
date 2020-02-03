@@ -4,6 +4,8 @@ import android.util.Log;
 
 import java.util.ArrayList;
 
+import fnsb.macstransit.Activities.MapsActivity;
+
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
@@ -142,7 +144,33 @@ public class Bus extends MarkedObject {
 	 * @return
 	 */
 	public static Bus[] addNewBuses(Bus[] oldBuses, Bus[] newBuses) {
-		// TODO
-		return new Bus[0];
+
+		// Create an arraylist for storing all the new buses.
+		ArrayList<Bus> buses = new ArrayList<>();
+
+		// Iterate through the new buses
+		for (Bus newBus : newBuses) {
+
+			// Compare the new bus to the oldBuses.
+			// If they dont match, then it has not been added to the map yet,
+			// so add it to the array and map.
+			boolean found = false;
+			for (Bus oldBus : oldBuses) {
+				Log.d("addNewBuses", String.format("Comparning bus %s to bus %s", newBus.busID, oldBus.busID));
+				if (newBus.busID.equals(oldBus.busID)) {
+					Log.d("addNewBuses", "Found matching bus " + newBus.busID);
+					found = true;
+					break;
+				}
+			}
+
+			if (!found) {
+				Log.d("addNewBuses", "Adding new bus to map: " + newBus.busID);
+				newBus.setMarker(newBus.addMarker(MapsActivity.map, newBus.latitude, newBus.longitude,
+						newBus.color, "Bus " + newBus.busID));
+				buses.add(newBus);
+			}
+		}
+		return buses.toArray(new Bus[0]);
 	}
 }
