@@ -147,13 +147,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 						break;
 					// Check if the item that was selected was the settings button.
 					case R.id.settings:
-						Log.d("onOptionsItemSelected", "Showing settings dialog...");
-						SettingsPopupWindow settingsPopupWindow = new SettingsPopupWindow(this);
-						settingsPopupWindow.showSettingsPopup();
+						new SettingsPopupWindow(this).showSettingsPopup();
 						break;
 					// Check if the item that was selected was the fares button.
 					case R.id.fares:
-						// TODO
+						new FarePopupWindow(this).showFarePopupWindow();
 						break;
 
 					default:
