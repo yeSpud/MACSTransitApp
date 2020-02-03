@@ -7,6 +7,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.MapStyleOptions;
 
 import fnsb.macstransit.Activities.ActivityListeners.AdjustZoom;
+import fnsb.macstransit.Activities.ActivityListeners.StreetViewListener;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
@@ -312,6 +313,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Enable traffic overlay based on settings.
 		MapsActivity.map.setTrafficEnabled(SettingsPopupWindow.ENABLE_TRAFFIC_VIEW);
+
+		// Enable streetview options based on settings.
+		MapsActivity.map.setOnInfoWindowLongClickListener(SettingsPopupWindow.ENABLE_VR_OPTIONS ?
+				new StreetViewListener(this) : null);
 
 		// Toggle night mode at this time if enabled.
 		this.toggleNightMode(SettingsPopupWindow.DEFAULT_NIGHT_MODE);

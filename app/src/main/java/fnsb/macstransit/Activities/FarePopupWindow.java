@@ -3,8 +3,6 @@ package fnsb.macstransit.Activities;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
-import android.widget.TextView;
 
 import fnsb.macstransit.R;
 
@@ -43,9 +41,9 @@ public class FarePopupWindow extends AlertDialog {
 				.inflate(R.layout.fares_popup, this.findViewById(R.id.content), false);
 
 		// Setup the hyperlink
-		TextView hyperlink = dialogView.findViewById(R.id.link);
-		hyperlink.setOnClickListener((c) -> this.context.startActivity(new Intent(Intent.ACTION_VIEW,
-				Uri.parse("http://fnsb.us/transportation/Pages/Bus-Fares.aspx"))));
+		dialogView.findViewById(R.id.link).setOnClickListener((c) ->
+				this.context.startActivity(new Intent(Intent.ACTION_VIEW,
+						android.net.Uri.parse("http://fnsb.us/transportation/Pages/Bus-Fares.aspx"))));
 
 		// Create the dialog via the alert dialog builder.
 		AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
