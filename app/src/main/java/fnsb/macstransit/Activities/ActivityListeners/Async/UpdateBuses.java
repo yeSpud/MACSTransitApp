@@ -3,8 +3,8 @@ package fnsb.macstransit.Activities.ActivityListeners.Async;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
-import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 
@@ -33,70 +33,65 @@ public class UpdateBuses extends android.os.AsyncTask<Void, Void, Bus[]> {
 		this.route = route;
 	}
 
-	/**
-	 * Override this method to perform a computation on a background thread.
-	 * The specified parameters are the parameters passed to execute(Params...) by the caller of this task.
-	 * This will normally run on a background thread. But to better support testing frameworks,
-	 * it is recommended that this also tolerates direct execution on the foreground thread,
-	 * as part of the execute(Params...) call.
-	 * This method can call publishProgress(Progress...) to publish updates on the UI thread.
-	 * This method may take several seconds to complete,
-	 * so it should only be called from a worker thread.
-	 *
-	 * @param no The parameters of the task. Since its void in our case don't use it.
-	 * @return A result, defined by the subclass of this task.
-	 * In our case it's the same childRoutes as before, just with updated bus positions.
-	 */
 	@Override
 	protected Bus[] doInBackground(Void... no) {
 
 		// Get all the buses used by the selected routes.
-		ArrayList<Bus> buses = new ArrayList<>();
+		Bus[] buses = new Bus[0];
 
 		// First, make sure this wasn't canceled. If it was, simply continue and return the empty array list.
 		if (!this.isCancelled() && this.route != null) {
 			// Then, try to get the buses used by the route.
 			try {
 				// Get the buses used in the selected routes from the RouteMatch server.
-				buses.addAll(java.util.Arrays.asList(Bus.getBuses(this.route)));
+				buses = Bus.getBuses(this.route);
+				Log.d("doInBackground", "Total number of buses for route: " + buses.length);
 			} catch (org.json.JSONException e) {
 				e.printStackTrace();
 			}
 		}
 
-		// Finally, return all the buses that were retrieved from the server
-		return buses.toArray(new Bus[0]);
+		// Finally, return all the buses that were retrieved from the server.
+		return buses;
 	}
 
-	/**
-	 * Runs on the UI thread after doInBackground(Params...).
-	 * The specified result is the value returned by doInBackground(Params...).
-	 * To better support testing frameworks,
-	 * it is recommended that this be written to tolerate direct execution as part of the execute() call.
-	 * The default version does nothing.
-	 * <p>
-	 * This method won't be invoked if the task was cancelled.
-	 * <p>
-	 * <p>
-	 * This method must be called from the Looper#getMainLooper() of your app.
-	 * <p>
-	 * Essentially this should draw the buses to the map once complete.
-	 *
-	 * @param result The result of the operation computed by doInBackground(Params...).
-	 */
 	@Override
-	protected void onPostExecute(Bus[] result) {
+	protected void onPostExecute(Bus[] newBuses) {
 
-		// TODO Check for matching buses!
+		if (isCancelled()) {
+			return;
+		}
+
+		// TODO Add new buses if they weren't on the map
+		Log.d("onPostExecute", "Adding new buses to map");
+		ArrayList<Bus> buses = new ArrayList<>(Arrays.asList(Bus.addNewBuses(this.route.buses, newBuses)));
+
+		// TODO Update the old buses with the new bus locations if IDs and Routes are shared
+		Log.d("onPostExecute", "Updating existing buses on map");
+		buses.addAll(Arrays.asList(Bus.updateCurrentBuses(this.route.buses, newBuses)));
+
+		// TODO Remove the old buses that are no longer applicable
+		Log.d("onPostExecuted", "Removing old buses from map");
+		Bus.removeOldBuses(this.route.buses, newBuses);
+
+		// TODO Reapply the buses
+		Log.d("onPostExecuted", "Applying buses to route");
+		this.route.buses = buses.toArray(new Bus[0]);
+
+		/*
 		// Iterate through each of the resulting buses and execute the following:
-		for (int i = 0; i < result.length; i++) {
-			Bus bus = result[i];
+		for (int i = 0; i < newBuses.length; i++) {
+			Bus bus = newBuses[i];
+
+			// TODO Remove buses that no longer exist for this route.
 
 			// TODO Comments
 			boolean found = false;
 			for (Bus preExistingBus : this.route.buses) {
 				if (bus.busID.equals(preExistingBus.busID)) {
 					bus.setMarker(preExistingBus.getMarker());
+					bus.color = preExistingBus.color;
+					bus.route = preExistingBus.route;
 					found = true;
 					break;
 				}
@@ -125,27 +120,44 @@ public class UpdateBuses extends android.os.AsyncTask<Void, Void, Bus[]> {
 					Log.d("onPostExecute", "Bus marker does not yet exits. Creating marker...");
 					marker = bus.addMarker(MapsActivity.map, bus.latitude, bus.longitude, bus.color,
 							"Bus " + bus.busID);
+
+					// Be sure to set the marker as visible.
+					Log.d("onPostExecute", "Setting marker to visible");
+					marker.setVisible(true);
+
 				}
 			} else {
 				// Since the buses marker does not exist, add it to the map.
 				Log.d("onPostExecute", "Bus marker does not yet exits. Creating marker...");
 				marker = bus.addMarker(MapsActivity.map, bus.latitude, bus.longitude, bus.color,
 						"Bus " + bus.busID);
+
+				// Be sure to set the marker as visible.
+				Log.d("onPostExecute", "Setting marker to visible");
+				marker.setVisible(true);
+
 			}
 
 			// Apply the bus marker.
 			Log.d("onPostExecute", "Applying bus marker");
 			bus.setMarker(marker);
 
-			// Be sure to set the marker as visible.
-			Log.d("onPostExecute", "Setting marker to visible");
-			marker.setVisible(true);
-
 			// Apply the bus to the result.
-			result[i] = bus;
+			newBuses[i] = bus;
 		}
 
 		// Apply the buses to the route
-		this.route.buses = result;
+		this.route.buses = newBuses;
+		 */
+	}
+
+	@Override
+	protected void onCancelled(Bus[] newBuses) {
+		super.onCancelled(newBuses);
+
+		// TODO Remove all buses for the route.
+		Log.d("onCancelled", "Removing buses from route");
+		Bus.removeOldBuses(this.route.buses, newBuses);
+		this.route.buses = new Bus[0];
 	}
 }

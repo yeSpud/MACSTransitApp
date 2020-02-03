@@ -111,4 +111,38 @@ public class Bus extends MarkedObject {
 		// Return the bus array as an array of buses.
 		return buses.toArray(new Bus[0]);
 	}
+
+	/**
+	 * TODO Documentaiton
+	 *
+	 * @param oldBuses
+	 * @param newBuses
+	 */
+	public static void removeOldBuses(Bus[] oldBuses, Bus[] newBuses) {
+		// TODO
+	}
+
+	/**
+	 * TODO Documentaiton
+	 *
+	 * @param oldBuses
+	 * @param newBuses
+	 * @return
+	 */
+	public static Bus[] updateCurrentBuses(Bus[] oldBuses, Bus[] newBuses) {
+		// TODO
+		return new Bus[0];
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param oldBuses
+	 * @param newBuses
+	 * @return
+	 */
+	public static Bus[] addNewBuses(Bus[] oldBuses, Bus[] newBuses) {
+		// TODO
+		return new Bus[0];
+	}
 }

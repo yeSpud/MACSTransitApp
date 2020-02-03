@@ -3,6 +3,7 @@ package fnsb.macstransit.RouteMatch;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -188,6 +189,19 @@ public class Route {
 				route.updateThread.run = true;
 				route.updateThread.thread().start();
 
+				// If there are any preexisting buses in the route, show them.
+				try {
+					for (Bus bus : route.buses) {
+						Marker marker = bus.getMarker();
+						if (marker != null) {
+							marker.setVisible(true);
+							bus.setMarker(marker);
+						}
+					}
+				} catch (NullPointerException warn) {
+					Log.w("enableRoutes", "THere were no preexisting buses!");
+				}
+
 				// Since we only add one parentRoute at a time (as there is only one routeName argument),
 				// break as soon as its added.
 				break;
@@ -230,8 +244,8 @@ public class Route {
 					for (Bus bus : route.buses) {
 						com.google.android.gms.maps.model.Marker marker = bus.getMarker();
 						if (marker != null) {
-							marker.remove();
-							bus.setMarker(null);
+							marker.setVisible(false);
+							bus.setMarker(marker);
 						}
 					}
 				} catch (NullPointerException warn) {
