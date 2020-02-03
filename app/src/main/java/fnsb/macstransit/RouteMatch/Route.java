@@ -252,7 +252,6 @@ public class Route {
 					Log.w("disableRoute", "There weren't any buses to disable");
 				}
 
-
 				// Remove the polyline from the map as well as the parentRoute.
 				Polyline polyline = route.getPolyline();
 				if (polyline != null) {

@@ -124,7 +124,30 @@ public class Bus extends MarkedObject {
 	 * @param newBuses
 	 */
 	public static void removeOldBuses(Bus[] oldBuses, Bus[] newBuses) {
-		// TODO
+		// Iterate through the oldBuses
+		for (Bus oldBus : oldBuses) {
+
+			// Check if the new buses match the old bus.
+			// If it doesnt, then remove it from the map.
+			boolean found = false;
+			for (Bus newBus : newBuses) {
+				if (oldBus.busID.equals(newBus.busID)) {
+					found = true;
+					break;
+				}
+			}
+
+			if (!found) {
+				Log.d("removeOldBuses", String.format("Removing bus %s from map", oldBus.busID));
+				try {
+					oldBus.getMarker().remove();
+				} catch (NullPointerException NPE) {
+					Log.w("removeOldBuses", "Makrer already null!");
+				}
+				oldBus.setMarker(null);
+			}
+
+		}
 	}
 
 	/**
