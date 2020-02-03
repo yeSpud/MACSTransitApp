@@ -27,16 +27,18 @@
     <string name="view_fares">View bus fares</string>
     <string name="bus_fares">Bus Fares</string>
     <string name="fare_category">Fare Category</string>
-    <string name="adults">Adults\n(Age 19 – 59)</string>
-    <string name="reduced">Reduced\nReduced Fare includes:\nyouth age 6 – 18,\nindividuals with Medicare or Medicaid cards,\nactive military and dependents,\nand those with qualifying disabilities</string>
-    <string name="cash_fare">Cash Fare\nMust have exact change.</string>
+    <string name="adults">Adults</string>
+    <string name="reduced">Reduced</string>
+    <string name="cash_fare">Cash Fare</string>
     <string name="dollarfifty">$1.50</string>
     <string name="seventyfivecents">$0.75</string>
-    <string name="day_pass">Day Pass\nGood for unlimited rides on day of use.\nExpires at midnight.</string>
+    <string name="day_pass">Day Pass</string>
     <string name="threedollars">$3.00</string>
     <string name="twodollars">$2.00</string>
-    <string name="monthly_pass">Monthly Pass\nGood for that calendar month.</string>
+    <string name="monthly_pass">Monthly Pass</string>
     <string name="fourtydollars">$40.00</string>
     <string name="twentydollars">$20.00</string>
-    <string name="half_month_pass">Half Month Pass\nAvailable after the 15th of the month</string>
+    <string name="half_month_pass">Half Month Pass</string>
+    <string name="disclaimer">Last updated February 3rd, 2020.\nPrices may be inaccurate.\nPlease refer to the official MACS website for more detail on pricing.</string>
+    <string name="macs_website">MACS Website</string>
 </resources>
