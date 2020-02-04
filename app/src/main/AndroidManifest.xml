@@ -46,7 +46,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activities.ActivityListeners.StreetViewListener" />
+        <activity android:name=".Activities.ActivityListeners.StreetViewActivity" />
     </application>
 
 </manifest>
