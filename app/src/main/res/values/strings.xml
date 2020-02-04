@@ -16,7 +16,7 @@
     <string name="enable_traffic_view">Enable traffic view</string>
     <string name="launch_with_night_mode">Launch with dark theme by default</string>
     <string name="show_polylines">Show polylines for routes</string>
-    <string name="secret_VR">Enable VR Options (Coming soon)</string>
+    <string name="secret_VR">Enable Streetview (Tap and hold on infowindow)</string>
     <string name="cancel">Cancel</string>
     <string name="apply">Apply</string>
     <string name="settings">Settings</string>
@@ -41,4 +41,6 @@
     <string name="half_month_pass">Half Month Pass</string>
     <string name="disclaimer">Last updated February 3rd, 2020.\nPrices may be inaccurate.\nPlease refer to the official MACS website for more detail on pricing.</string>
     <string name="macs_website">MACS Website</string>
+    <string name="warning">Warning</string>
+    <string name="warning_message">Having multiple routes active at a time will cause decreases in performance and an increase in data usage.</string>
 </resources>
