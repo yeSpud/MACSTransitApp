@@ -11,7 +11,7 @@
     <string name="no_schedule">Unable to retrieve schedule!</string>
     <string name="macs_transit_logo">MACS Transit logo</string>
     <string name="retrieving_stop_times">Retrieving stop times…</string>
-    <string name="close">close</string>
+    <string name="close">Close</string>
     <string name="click_to_view_all_the_arrival_and_departure_times">Click to view all the arrival and departure times.</string>
     <string name="enable_traffic_view">Enable traffic view</string>
     <string name="launch_with_night_mode">Launch with dark theme by default</string>

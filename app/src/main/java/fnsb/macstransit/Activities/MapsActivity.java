@@ -7,7 +7,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.MapStyleOptions;
 
 import fnsb.macstransit.Activities.ActivityListeners.AdjustZoom;
-import fnsb.macstransit.Activities.ActivityListeners.StreetViewListener;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
@@ -172,10 +171,17 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				// Then clear the regular stops from the map (as the stops to be displayed will be re-evaluated).
 				Stop.removeStops(this.selectedRoutes);
 
-				// Toggle the parentRoute based on the menu item's title, and its enabled value.
-				this.selectedRoutes = enabled ?
-						Route.enableRoutes(item.getTitle().toString(), this.selectedRoutes) :
-						Route.disableRoute(item.getTitle().toString(), this.selectedRoutes);
+				// Toggle the routes based on the menu item's title, and its enabled value.
+				if (enabled) {
+					this.selectedRoutes = Route.enableRoutes(item.getTitle().toString(), this.selectedRoutes);
+
+					// Display a warning if the number of selected routes gets to 3.
+					if (this.selectedRoutes.length == 3) {
+						new WarningPopup(this).showWarningPopup();
+					}
+				} else {
+					this.selectedRoutes = Route.disableRoute(item.getTitle().toString(), this.selectedRoutes);
+				}
 
 				// If enabled, draw polylines
 				if (SettingsPopupWindow.SHOW_POLYLINES) {
