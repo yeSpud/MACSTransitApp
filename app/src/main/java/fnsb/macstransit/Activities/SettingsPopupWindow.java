@@ -18,7 +18,7 @@ import fnsb.macstransit.R;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.1
+ * @version 1.2
  * @since Beta 8.
  */
 @SuppressWarnings("WeakerAccess")

@@ -15,7 +15,7 @@ import fnsb.macstransit.RouteMatch.Bus;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.0
+ * @version 1.1
  * @since Beta 8.
  */
 public class PopupWindow extends AlertDialog implements

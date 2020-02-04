@@ -14,6 +14,7 @@ import fnsb.macstransit.R;
  * @version 1.0
  * @since Release 1.1.
  */
+@SuppressWarnings("WeakerAccess")
 public class FarePopupWindow extends AlertDialog {
 
 
