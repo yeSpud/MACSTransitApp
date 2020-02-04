@@ -15,6 +15,7 @@ import fnsb.macstransit.Activities.MapsActivity;
  * @version 1.0
  * @since Release 1.1.
  */
+@Deprecated
 public class StreetViewListener implements GoogleMap.OnInfoWindowLongClickListener {
 
 	/**

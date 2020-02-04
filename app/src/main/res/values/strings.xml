@@ -16,7 +16,7 @@
     <string name="enable_traffic_view">Enable traffic view</string>
     <string name="launch_with_night_mode">Launch with dark theme by default</string>
     <string name="show_polylines">Show polylines for routes</string>
-    <string name="secret_VR">Enable Streetview (Tap and hold on infowindow)</string>
+    <string name="secret_VR">Enable Street view\n(Tap and hold on info window)</string>
     <string name="cancel">Cancel</string>
     <string name="apply">Apply</string>
     <string name="settings">Settings</string>
