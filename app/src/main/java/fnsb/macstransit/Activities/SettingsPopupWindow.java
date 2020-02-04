@@ -38,11 +38,6 @@ public class SettingsPopupWindow extends AlertDialog {
 	public static boolean ENABLE_TRAFFIC_VIEW, DEFAULT_NIGHT_MODE, SHOW_POLYLINES, ENABLE_VR_OPTIONS;
 
 	/**
-	 * Context object used to create various elements and widgets.
-	 */
-	private Context context;
-
-	/**
 	 * Variable used to track how many changes are to be applied when writing new settings.
 	 * This is also used to determine whether or not the apply button should be enabled or disabled.
 	 */
@@ -55,7 +50,6 @@ public class SettingsPopupWindow extends AlertDialog {
 	 */
 	public SettingsPopupWindow(Context context) {
 		super(context);
-		this.context = context;
 	}
 
 	/**
@@ -213,15 +207,18 @@ public class SettingsPopupWindow extends AlertDialog {
 		}
 
 		// Then, write that string to the settings file.
-		SettingsPopupWindow.writeToFile(builder.toString(), this.context);
+		SettingsPopupWindow.writeToFile(builder.toString(), this.getContext());
 	}
 
 	/**
 	 * Creates and shows the settings popup dialog.
 	 */
 	public void showSettingsPopup() {
+
+		Context context = this.getContext();
+
 		// Find and inflate the settings view.
-		android.view.View dialogView = android.view.LayoutInflater.from(this.context)
+		android.view.View dialogView = android.view.LayoutInflater.from(context)
 				.inflate(R.layout.settings_popup, this.findViewById(R.id.content), false);
 
 		// Setup the apply button.
@@ -238,7 +235,7 @@ public class SettingsPopupWindow extends AlertDialog {
 				SettingsPopupWindow.ENABLE_VR_OPTIONS, applyButton, SettingsPopupWindow.VR_KEY);
 
 		// Create the dialog via the alert dialog builder.
-		AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
+		AlertDialog.Builder builder = new AlertDialog.Builder(context);
 		builder.setView(dialogView);
 		AlertDialog alertDialog = builder.create();
 
@@ -251,7 +248,7 @@ public class SettingsPopupWindow extends AlertDialog {
 			this.writeSettings(trafficBox, nightBox, polyBox, VRBox);
 
 			// Inform the user that a restart is required in order for changes to take effect.
-			Toast.makeText(this.context, R.string.restart_required, Toast.LENGTH_LONG)
+			Toast.makeText(context, R.string.restart_required, Toast.LENGTH_LONG)
 					.show();
 
 			// Close the alert dialog.

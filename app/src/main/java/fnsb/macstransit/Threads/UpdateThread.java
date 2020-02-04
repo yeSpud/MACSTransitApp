@@ -20,7 +20,7 @@ public class UpdateThread {
 	public boolean run = false;
 
 	/**
-	 * TODO Documentation
+	 * The route that this update thread belongs to.
 	 */
 	public Route route;
 
@@ -38,7 +38,7 @@ public class UpdateThread {
 	/**
 	 * Constructor for the UpdateThread.
 	 *
-	 * @param route TODO
+	 * @param route The route that this update thread belongs to and will update after a given frequency.
 	 */
 	public UpdateThread(Route route) {
 		this.route = route;
@@ -47,10 +47,11 @@ public class UpdateThread {
 	/**
 	 * Constructor for the UpdateThread.
 	 *
-	 * @param route           TODO
+	 * @param route           The route that this update thread belongs to and will update after a given frequency.
 	 * @param updateFrequency How frequency (in milliseconds) the thread should loop.
 	 *                        If this is omitted, it will default to 4000 milliseconds (4 seconds).
 	 */
+	@SuppressWarnings("unused")
 	public UpdateThread(Route route, long updateFrequency) {
 		this(route);
 		this.updateFrequency = updateFrequency;
@@ -72,8 +73,10 @@ public class UpdateThread {
 			// Loop continuously while the run variable is true, and the thread hasn't been interrupted.
 			while (this.run && !Thread.interrupted()) {
 
-				// TODO Comments
+				// Make sure the route isn't null before continuing
 				if (this.route != null) {
+
+					// Update the buses for the route.
 					Log.d("Update thread", "Updating bus positions for route " + this.route.routeName);
 					this.route.asyncBusUpdater = new fnsb.macstransit.Activities.ActivityListeners.Async.UpdateBuses(this.route);
 					this.route.asyncBusUpdater.execute();

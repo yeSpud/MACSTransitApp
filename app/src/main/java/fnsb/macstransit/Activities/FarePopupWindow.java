@@ -19,34 +19,31 @@ public class FarePopupWindow extends AlertDialog {
 
 	/**
 	 * TODO Documentation
-	 */
-	private Context context;
-
-	/**
-	 * TODO Documentation
 	 *
 	 * @param context
 	 */
 	public FarePopupWindow(Context context) {
 		super(context);
-		this.context = context;
 	}
 
 	/**
 	 * TODO Documentation
 	 */
 	public void showFarePopupWindow() {
+
+		Context context = this.getContext();
+
 		// Find and inflate the settings view.
-		android.view.View dialogView = android.view.LayoutInflater.from(this.context)
+		android.view.View dialogView = android.view.LayoutInflater.from(context)
 				.inflate(R.layout.fares_popup, this.findViewById(R.id.content), false);
 
 		// Setup the hyperlink
 		dialogView.findViewById(R.id.link).setOnClickListener((c) ->
-				this.context.startActivity(new Intent(Intent.ACTION_VIEW,
+				context.startActivity(new Intent(Intent.ACTION_VIEW,
 						android.net.Uri.parse("http://fnsb.us/transportation/Pages/Bus-Fares.aspx"))));
 
 		// Create the dialog via the alert dialog builder.
-		AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
+		AlertDialog.Builder builder = new AlertDialog.Builder(context);
 		builder.setView(dialogView);
 		AlertDialog alertDialog = builder.create();
 

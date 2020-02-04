@@ -50,14 +50,14 @@ public class Route {
 	public Stop[] stops;
 
 	/**
-	 * TODO Documentation
+	 * The array of buses that belong to this route.
 	 */
 	public Bus[] buses = new Bus[0];
 
 	/**
-	 * TODO Documentation
+	 * The asynchronous method that updates the buses for this route.
 	 */
-	public UpdateBuses asyncBusUpdater = new UpdateBuses(this); // TODO
+	public UpdateBuses asyncBusUpdater = new UpdateBuses(this);
 
 	/**
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
@@ -66,7 +66,7 @@ public class Route {
 	public LatLng[] polyLineCoordinates = new LatLng[0];
 
 	/**
-	 * TODO Documentation
+	 * The network thread that updates this given route.
 	 */
 	public UpdateThread updateThread;
 

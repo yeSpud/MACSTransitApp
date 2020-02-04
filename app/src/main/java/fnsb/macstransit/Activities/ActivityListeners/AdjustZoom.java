@@ -1,5 +1,7 @@
 package fnsb.macstransit.Activities.ActivityListeners;
 
+import android.util.Log;
+
 import com.google.android.gms.maps.model.Circle;
 
 import fnsb.macstransit.Activities.MapsActivity;
@@ -120,6 +122,10 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 		// Log.d("onCameraIdle", "Zoom level: " + zoom);
 
 		// Adjust the circle size based on zoom level
-		AdjustZoom.adjustCircleSize(zoom, this.activity.sharedStops);
+		try {
+			AdjustZoom.adjustCircleSize(zoom, this.activity.sharedStops);
+		} catch (NullPointerException NPE) {
+			Log.w("onCameraIdle", "Routes are null!");
+		}
 	}
 }

@@ -2,9 +2,6 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-
 import java.util.ArrayList;
 
 import fnsb.macstransit.Activities.MapsActivity;
@@ -14,7 +11,7 @@ import fnsb.macstransit.Activities.MapsActivity;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.4
+ * @version 2.0
  * @since Beta 3.
  */
 public class Bus extends MarkedObject {
@@ -118,10 +115,10 @@ public class Bus extends MarkedObject {
 	}
 
 	/**
-	 * TODO Documentaiton
+	 * Compares two bus arrays and removes any buses that were in the old bus array that are not in the new bus array.
 	 *
-	 * @param oldBuses
-	 * @param newBuses
+	 * @param oldBuses The origional buses.
+	 * @param newBuses The new buses retrieved from the server.
 	 */
 	public static void removeOldBuses(Bus[] oldBuses, Bus[] newBuses) {
 		// Iterate through the oldBuses
@@ -151,11 +148,12 @@ public class Bus extends MarkedObject {
 	}
 
 	/**
-	 * TODO Documentaiton
+	 * Compares two bus arrays and updates the positions, heading,
+	 * and speed of the buses whos IDs match.
 	 *
-	 * @param oldBuses
-	 * @param newBuses
-	 * @return
+	 * @param oldBuses The origional buses.
+	 * @param newBuses The new buses retrieved from the server.
+	 * @return An array of buses which have been updated.
 	 */
 	public static Bus[] updateCurrentBuses(Bus[] oldBuses, Bus[] newBuses) {
 
@@ -175,9 +173,10 @@ public class Bus extends MarkedObject {
 					Log.d("updateCurrentBuses", "Found matching bus " + newBus.busID);
 
 					// Update the buses position, heading, and speed
-					Marker marker = oldBus.getMarker();
+					com.google.android.gms.maps.model.Marker marker = oldBus.getMarker();
 					if (marker != null) {
-						marker.setPosition(new LatLng(newBus.latitude, newBus.longitude));
+						marker.setPosition(new com.google.android.gms.maps.model.LatLng(newBus.latitude,
+								newBus.longitude));
 						oldBus.setMarker(marker);
 						oldBus.heading = newBus.heading;
 						oldBus.speed = newBus.speed;
@@ -195,11 +194,11 @@ public class Bus extends MarkedObject {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Compares two bus arrays and determines which bueses are new.
 	 *
-	 * @param oldBuses
-	 * @param newBuses
-	 * @return
+	 * @param oldBuses The origional buses.
+	 * @param newBuses The new buses retrieved from the server.
+	 * @return An array of all the new buses.
 	 */
 	public static Bus[] addNewBuses(Bus[] oldBuses, Bus[] newBuses) {
 
