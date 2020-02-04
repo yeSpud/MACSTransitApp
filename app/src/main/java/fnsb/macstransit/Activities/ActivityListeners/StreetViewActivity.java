@@ -1,13 +1,5 @@
 package fnsb.macstransit.Activities.ActivityListeners;
 
-import android.os.Bundle;
-
-import androidx.fragment.app.FragmentActivity;
-
-import com.google.android.gms.maps.StreetViewPanorama;
-import com.google.android.gms.maps.model.Marker;
-
-import fnsb.macstransit.R;
 
 /**
  * Created by Spud on 2020-02-03 for the project: MACS Transit.
@@ -18,22 +10,22 @@ import fnsb.macstransit.R;
  * @since Release 1.1.
  */
 @Deprecated
-public class StreetViewActivity extends FragmentActivity implements
+public class StreetViewActivity extends androidx.fragment.app.FragmentActivity implements
 		com.google.android.gms.maps.OnStreetViewPanoramaReadyCallback {
 
 	/**
-	 * TODO Documentation
+	 * The marker that was clicked on.
 	 */
-	public static Marker marker;
+	public static com.google.android.gms.maps.model.Marker marker;
 
 	@Override
-	protected void onCreate(Bundle savedInstance) {
+	protected void onCreate(android.os.Bundle savedInstance) {
 		super.onCreate(savedInstance);
-		this.setContentView(R.layout.streetview);
+		this.setContentView(fnsb.macstransit.R.layout.streetview);
 	}
 
 	@Override
-	public void onStreetViewPanoramaReady(StreetViewPanorama streetViewPanorama) {
+	public void onStreetViewPanoramaReady(com.google.android.gms.maps.StreetViewPanorama streetViewPanorama) {
 		if (StreetViewActivity.marker != null) {
 			streetViewPanorama.setPosition(StreetViewActivity.marker.getPosition());
 		}

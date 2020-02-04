@@ -18,16 +18,16 @@ public class FarePopupWindow extends AlertDialog {
 
 
 	/**
-	 * TODO Documentation
+	 * Creates a popup window that shows the bus fares.
 	 *
-	 * @param context
+	 * @param context The context that is launching this popup window.
 	 */
 	public FarePopupWindow(Context context) {
 		super(context);
 	}
 
 	/**
-	 * TODO Documentation
+	 * Creates and shows the popup window.
 	 */
 	public void showFarePopupWindow() {
 

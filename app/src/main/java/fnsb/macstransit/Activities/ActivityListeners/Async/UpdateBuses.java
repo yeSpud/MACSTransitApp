@@ -19,7 +19,7 @@ import fnsb.macstransit.RouteMatch.Route;
 public class UpdateBuses extends android.os.AsyncTask<Void, Void, Bus[]> {
 
 	/**
-	 * TODO Documentation
+	 * The route that this asynchronous task will update.
 	 */
 	private Route route;
 
@@ -27,7 +27,7 @@ public class UpdateBuses extends android.os.AsyncTask<Void, Void, Bus[]> {
 	 * Constructor for the Async UpdateBuses class.
 	 * All that's needed is the map that will be used once the background processes have finished.
 	 *
-	 * @param route TODO
+	 * @param route The route that corresponds to this task.
 	 */
 	public UpdateBuses(Route route) {
 		this.route = route;
@@ -58,6 +58,7 @@ public class UpdateBuses extends android.os.AsyncTask<Void, Void, Bus[]> {
 	@Override
 	protected void onPostExecute(Bus[] newBuses) {
 
+		// Make sure the task wasn't canceled.
 		if (this.isCancelled()) {
 			return;
 		}

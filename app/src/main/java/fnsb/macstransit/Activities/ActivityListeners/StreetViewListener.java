@@ -1,10 +1,5 @@
 package fnsb.macstransit.Activities.ActivityListeners;
 
-import android.content.Intent;
-
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.Marker;
-
 import fnsb.macstransit.Activities.MapsActivity;
 
 /**
@@ -16,27 +11,28 @@ import fnsb.macstransit.Activities.MapsActivity;
  * @since Release 1.1.
  */
 @Deprecated
-public class StreetViewListener implements GoogleMap.OnInfoWindowLongClickListener {
+public class StreetViewListener implements
+		com.google.android.gms.maps.GoogleMap.OnInfoWindowLongClickListener {
 
 	/**
-	 * TODO Documentation
+	 * The activity that this listener belongs to.
 	 */
 	private MapsActivity activity;
 
 	/**
-	 * TODO Documentation
+	 * Creates a listener to launch the street view activity from the Maps activity.
 	 *
-	 * @param activity
+	 * @param activity The Maps activity.
 	 */
 	public StreetViewListener(MapsActivity activity) {
 		this.activity = activity;
 	}
 
 	@Override
-	public void onInfoWindowLongClick(Marker marker) {
+	public void onInfoWindowLongClick(com.google.android.gms.maps.model.Marker marker) {
 		if (marker != null) {
 			StreetViewActivity.marker = marker;
-			this.activity.startActivity(new Intent(this.activity, StreetViewActivity.class));
+			this.activity.startActivity(new android.content.Intent(this.activity, StreetViewActivity.class));
 		}
 	}
 }

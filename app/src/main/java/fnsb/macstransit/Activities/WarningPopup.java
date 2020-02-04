@@ -16,16 +16,16 @@ import fnsb.macstransit.R;
 public class WarningPopup extends AlertDialog {
 
 	/**
-	 * TODO Documentation
+	 * Creates a popup window that shows a warning message if there are too many routes selected.
 	 *
-	 * @param context
+	 * @param context The context that is launching this popup window.
 	 */
 	public WarningPopup(Context context) {
 		super(context);
 	}
 
 	/**
-	 * TODO Documentation
+	 * Creates and shows the popup window.
 	 */
 	public void showWarningPopup() {
 
