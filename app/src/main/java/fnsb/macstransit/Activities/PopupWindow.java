@@ -15,7 +15,7 @@ import fnsb.macstransit.RouteMatch.Bus;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.0
+ * @version 1.1
  * @since Beta 8.
  */
 public class PopupWindow extends AlertDialog implements
@@ -27,11 +27,6 @@ public class PopupWindow extends AlertDialog implements
 	public static String body;
 
 	/**
-	 * The context of this popup window (or what context created it).
-	 */
-	private Context context;
-
-	/**
 	 * Constructor for PopupWindow. All that's needed for this is the application context.
 	 * This can be achieved by simply passing `this` as the parameter in the activity class.
 	 *
@@ -40,7 +35,6 @@ public class PopupWindow extends AlertDialog implements
 	@SuppressWarnings("WeakerAccess")
 	public PopupWindow(Context context) {
 		super(context);
-		this.context = context;
 	}
 
 	/**
@@ -65,8 +59,10 @@ public class PopupWindow extends AlertDialog implements
 	 */
 	private void showDialog(String title, Marker marker) {
 
+		Context context = this.getContext();
+
 		// First, find the dialog view via the layout inflater, and inflate the info_window_popup layout.
-		android.view.View dialogView = android.view.LayoutInflater.from(this.context)
+		android.view.View dialogView = android.view.LayoutInflater.from(context)
 				.inflate(R.layout.info_window_popup, this.findViewById(android.R.id.content), false);
 
 		// Then, find the title and content textViews in the dialog view.
@@ -92,17 +88,16 @@ public class PopupWindow extends AlertDialog implements
 				builder.append(String.format("Heading: %s\n", lowercaseHeading.substring(0, 1).toUpperCase() + lowercaseHeading.substring(1)));
 			}
 
-			// Append the speed in mph, and the current capacity.
+			// Append the speed in mph.
 			builder.append(String.format(Locale.ENGLISH, "Speed: %d mph\n", bus.speed));
-			builder.append(String.format(Locale.ENGLISH, "Current capacity: %d\n",
-					bus.currentCapacity));
+
 
 			// Then set the text to the determined content.
 			content.setText(builder.toString());
 		}
 
 		// Create the alert dialog based off of the dialog view.
-		AlertDialog.Builder builder = new AlertDialog.Builder(this.context);
+		AlertDialog.Builder builder = new AlertDialog.Builder(context);
 		builder.setView(dialogView);
 		AlertDialog alertDialog = builder.create();
 

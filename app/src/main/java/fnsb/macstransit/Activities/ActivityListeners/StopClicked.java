@@ -21,7 +21,7 @@ import fnsb.macstransit.RouteMatch.Stop;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.2
+ * @version 1.3
  * @since Beta 7.
  */
 public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCircleClickListener {
@@ -205,10 +205,10 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @param time The time string (ie 13:15 for what should be 1:15 PM).
 	 * @return The formatted time string with the AM/PM characters included.
 	 */
-	private static String formatTime(String time) {
+	public static String formatTime(String time) {
 		try {
 			// Try to format the time from 24 hours to 12 hours (including AM and PM).
-			return new SimpleDateFormat("K:mm a", Locale.US)
+			return new SimpleDateFormat("h:mm a", Locale.US)
 					.format(new SimpleDateFormat("H:mm", Locale.US).parse(time));
 		} catch (java.text.ParseException parseException) {
 			// If there was a parsing exception simply return the old time.

@@ -2,14 +2,14 @@ package fnsb.macstransit.Threads;
 
 import android.util.Log;
 
-import fnsb.macstransit.Activities.MapsActivity;
+import fnsb.macstransit.RouteMatch.Route;
 
 /**
  * Created by Spud on 2019-10-13 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 2.3
+ * @version 3.0
  * @since Beta 3.
  */
 public class UpdateThread {
@@ -18,6 +18,11 @@ public class UpdateThread {
 	 * Create a boolean that will be used to determine if the update thread should be running or not.
 	 */
 	public boolean run = false;
+
+	/**
+	 * The route that this update thread belongs to.
+	 */
+	public Route route;
 
 	/**
 	 * How quickly the thread should loop after its completed.
@@ -31,29 +36,24 @@ public class UpdateThread {
 	private long updateFrequency = 4000;
 
 	/**
-	 * The MapsActivity (Main activity).
-	 */
-	private MapsActivity activity;
-
-	/**
 	 * Constructor for the UpdateThread.
 	 *
-	 * @param activity The MapsActivity (this should be the main activity).
+	 * @param route The route that this update thread belongs to and will update after a given frequency.
 	 */
-	@SuppressWarnings("WeakerAccess")
-	public UpdateThread(MapsActivity activity) {
-		this.activity = activity;
+	public UpdateThread(Route route) {
+		this.route = route;
 	}
 
 	/**
 	 * Constructor for the UpdateThread.
 	 *
-	 * @param activity        The MapsActivity (this should be the main activity).
+	 * @param route           The route that this update thread belongs to and will update after a given frequency.
 	 * @param updateFrequency How frequency (in milliseconds) the thread should loop.
 	 *                        If this is omitted, it will default to 4000 milliseconds (4 seconds).
 	 */
-	public UpdateThread(MapsActivity activity, long updateFrequency) {
-		this(activity);
+	@SuppressWarnings("unused")
+	public UpdateThread(Route route, long updateFrequency) {
+		this(route);
 		this.updateFrequency = updateFrequency;
 	}
 
@@ -73,44 +73,34 @@ public class UpdateThread {
 			// Loop continuously while the run variable is true, and the thread hasn't been interrupted.
 			while (this.run && !Thread.interrupted()) {
 
-				// Make a copy of the selected childRoutes array to run iterations on
-				// (to avoid Concurrent Modification Exceptions).
-				fnsb.macstransit.RouteMatch.Route[] routes = this.activity.selectedRoutes;
+				// Make sure the route isn't null before continuing
+				if (this.route != null) {
 
-				/*
-				 * If there are no selected childRoutes,
-				 * loop quickly (every quarter second) rather than the set frequency.
-				 * If there are selected childRoutes (parentRoute length will be greater than 0),
-				 * update the bus positions on the map (and do so on the UI thread).
-				 * Then, sleep for the given update frequency.
-				 */
-				if (routes.length > 0) {
-					this.activity.runOnUiThread(() -> new fnsb.macstransit.Activities
-							.ActivityListeners.Async.UpdateBuses(this.activity.map).execute(routes));
-
-					// Sleep for the given update frequency
-					try {
-						Thread.sleep(this.updateFrequency);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					Thread.yield();
+					// Update the buses for the route.
+					Log.d("Update thread", "Updating bus positions for route " + this.route.routeName);
+					this.route.asyncBusUpdater = new fnsb.macstransit.Activities.ActivityListeners.Async.UpdateBuses(this.route);
+					this.route.asyncBusUpdater.execute();
 				} else {
-					// Quick sleep since there are no childRoutes to track.
-					try {
-						Thread.sleep(250);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					Thread.yield();
+					Log.w("Update thread", "Route is null!");
 				}
+
+				// Sleep for the given update frequency
+				try {
+					Thread.sleep(this.updateFrequency);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				Thread.yield();
 
 				// Notify the developer that the thread is now starting over.
 				Log.d("Update thread", "Looping...");
+
 			}
 
 			// Notify the developer that the thread has exited the while loop and will now stop.
 			Log.w("Update thread", "Shutting down...");
+
+			this.route.asyncBusUpdater.cancel(true);
 		});
 	}
 }

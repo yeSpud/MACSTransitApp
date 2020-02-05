@@ -1,6 +1,9 @@
 package fnsb.macstransit.Activities.ActivityListeners.Async;
 
-import com.google.android.gms.maps.GoogleMap;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
@@ -10,111 +13,85 @@ import fnsb.macstransit.RouteMatch.Route;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.0
+ * @version 2.0
  * @since Beta 8.
  */
-public class UpdateBuses extends android.os.AsyncTask<Route, Void, Route[]> {
+public class UpdateBuses extends android.os.AsyncTask<Void, Void, Bus[]> {
 
 	/**
-	 * The map used later once the background process has finished.
+	 * The route that this asynchronous task will update.
 	 */
-	private GoogleMap map;
+	private Route route;
 
 	/**
 	 * Constructor for the Async UpdateBuses class.
 	 * All that's needed is the map that will be used once the background processes have finished.
 	 *
-	 * @param map The map that will be used to update the bus positions.
+	 * @param route The route that corresponds to this task.
 	 */
-	public UpdateBuses(GoogleMap map) {
-		this.map = map;
+	public UpdateBuses(Route route) {
+		this.route = route;
 	}
 
-	/**
-	 * Override this method to perform a computation on a background thread.
-	 * The specified parameters are the parameters passed to execute(Params...) by the caller of this task.
-	 * This will normally run on a background thread. But to better support testing frameworks,
-	 * it is recommended that this also tolerates direct execution on the foreground thread,
-	 * as part of the execute(Params...) call.
-	 * This method can call publishProgress(Progress...) to publish updates on the UI thread.
-	 * This method may take several seconds to complete,
-	 * so it should only be called from a worker thread.
-	 *
-	 * @param routes The parameters of the task. In our case its the childRoutes for the buses.
-	 * @return A result, defined by the subclass of this task.
-	 * In our case it's the same childRoutes as before, just with updated bus positions.
-	 */
 	@Override
-	protected Route[] doInBackground(Route... routes) {
-		// For each of the childRoutes provided, execute the following:
-		for (Route route : routes) {
+	protected Bus[] doInBackground(Void... no) {
 
-			// First, make sure this wasn't canceled. If it was, simply break from the loop now.
-			if (this.isCancelled()) {
-				break;
-			}
+		// Get all the buses used by the selected routes.
+		Bus[] buses = new Bus[0];
 
+		// First, make sure this wasn't canceled. If it was, simply continue and return the empty array list.
+		if (!this.isCancelled() && this.route != null) {
+			// Then, try to get the buses used by the route.
 			try {
-
-				// Store the old buses from the parentRoute into its own array,
-				// and create another bus array containing the newly queried buses.
-				Bus[] oldBuses = route.buses, newBuses = Bus.getBuses(route);
-
-				// Check to see if the length of the old buses does not match that of the new buses.
-				// If they're different, simply replace the buses in the parentRoute with the new buses.
-				if (oldBuses.length != newBuses.length) {
-					route.buses = newBuses;
-				} else {
-
-					// Since the buses in the parentRoute were the same length, check the individual buses.
-					// Start by iterating through the old buses.
-					for (int index = 0; index < oldBuses.length; index++) {
-
-						// Get an old bus.
-						Bus oldBus = oldBuses[index];
-
-						// Iterate trough the new buses, and check of the new bus ID equals that of the old bus ID.
-						for (Bus newBus : newBuses) {
-
-							// If the IDs match, update the parentRoute color, as well as the coordinates.
-							if (newBus.busID.equals(oldBus.busID)) {
-								oldBus.color = newBus.color;
-								oldBus.latitude = newBus.latitude;
-								oldBus.longitude = newBus.longitude;
-							}
-						}
-
-						// Finally, update the old bus at the current index to that of the newly updated bus.
-						oldBuses[index] = oldBus;
-					}
-				}
+				// Get the buses used in the selected routes from the RouteMatch server.
+				buses = Bus.getBuses(this.route);
+				Log.d("doInBackground", "Total number of buses for route: " + buses.length);
 			} catch (org.json.JSONException e) {
 				e.printStackTrace();
 			}
 		}
 
-		// Finally, return the initial childRoutes, but with the updated buses.
-		return routes;
+		// Finally, return all the buses that were retrieved from the server.
+		return buses;
 	}
 
-	/**
-	 * Runs on the UI thread after doInBackground(Params...).
-	 * The specified result is the value returned by doInBackground(Params...).
-	 * To better support testing frameworks,
-	 * it is recommended that this be written to tolerate direct execution as part of the execute() call.
-	 * The default version does nothing.
-	 * <p>
-	 * This method won't be invoked if the task was cancelled.
-	 * <p>
-	 * <p>
-	 * This method must be called from the Looper#getMainLooper() of your app.
-	 * <p>
-	 * Essentially this should draw the buses to the map once complete.
-	 *
-	 * @param result he result of the operation computed by doInBackground(Params...).
-	 */
 	@Override
-	protected void onPostExecute(Route[] result) {
-		Bus.drawBuses(result, this.map);
+	protected void onPostExecute(Bus[] newBuses) {
+
+		// Make sure the task wasn't canceled.
+		if (this.isCancelled()) {
+			return;
+		}
+
+		// Add new buses if they weren't on the map
+		Log.d("onPostExecute", "Adding new buses to map");
+		ArrayList<Bus> buses = new ArrayList<>(Arrays.asList(Bus.addNewBuses(this.route.buses, newBuses)));
+
+		// Update the old buses with the new bus locations if IDs and Routes are shared
+		Log.d("onPostExecute", "Updating existing buses on map");
+		buses.addAll(Arrays.asList(Bus.updateCurrentBuses(this.route.buses, newBuses)));
+
+		// Remove the old buses that are no longer applicable
+		Log.d("onPostExecuted", "Removing old buses from map");
+		Bus.removeOldBuses(this.route.buses, newBuses);
+
+		// Reapply the buses
+		Log.d("onPostExecuted", "Applying buses to route");
+		this.route.buses = buses.toArray(new Bus[0]);
+
+		// Double check whether or not this was canceled. If it was, then run the canceled method.
+		if (this.isCancelled()) {
+			this.onCancelled(newBuses);
+		}
+	}
+
+	@Override
+	protected void onCancelled() {
+		super.onCancelled();
+
+		// Remove ALL buses for the route.
+		Log.d("onCancelled", "Removing buses from route");
+		Bus.removeOldBuses(this.route.buses, new Bus[0]);
+		this.route.buses = new Bus[0];
 	}
 }

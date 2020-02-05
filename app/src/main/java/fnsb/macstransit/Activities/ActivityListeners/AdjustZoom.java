@@ -15,7 +15,7 @@ import fnsb.macstransit.RouteMatch.Stop;
  * <p>
  * This is used to adjust the circle sizes of the stops and shared stops when the zoom level is changed by the user.
  *
- * @version 1.2
+ * @version 1.3
  * @since Beta 7.
  */
 public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCameraIdleListener {
@@ -47,7 +47,6 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 	public static void adjustCircleSize(float zoomLevel, SharedStop[] sharedStops) {
 		// Get how much it has changed from the default zoom (11).
 		float zoomChange = 11.0f / zoomLevel;
-		Log.d("CameraChange", "Zoom change: " + zoomChange);
 
 		// Iterate through all the routes.
 		for (fnsb.macstransit.RouteMatch.Route route : MapsActivity.allRoutes) {
@@ -87,7 +86,6 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 					double size = (Stop.PARENT_RADIUS * (1d / (index + 2))) * Math.pow(zoomChange, 6);
 
 					// Set the parent circle size.
-					Log.d("adjustCircleSize", "Setting size to: " + size);
 					c.setRadius(size);
 				}
 			}
@@ -105,7 +103,6 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 		double size = Stop.PARENT_RADIUS * (Math.pow(zoomChange, 6));
 
 		// Set the parent circle size.
-		Log.d("adjustParentCircleSize", "Setting size to: " + size);
 		circle.setRadius(size);
 	}
 
@@ -118,10 +115,13 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 	@Override
 	public void onCameraIdle() {
 		// Get the camera's new zoom position
-		float zoom = this.activity.map.getCameraPosition().zoom;
-		Log.d("CameraChange", "Zoom level: " + zoom);
+		float zoom = MapsActivity.map.getCameraPosition().zoom;
 
 		// Adjust the circle size based on zoom level
-		AdjustZoom.adjustCircleSize(zoom, this.activity.sharedStops);
+		try {
+			AdjustZoom.adjustCircleSize(zoom, this.activity.sharedStops);
+		} catch (NullPointerException NPE) {
+			Log.w("onCameraIdle", "Routes are null!");
+		}
 	}
 }

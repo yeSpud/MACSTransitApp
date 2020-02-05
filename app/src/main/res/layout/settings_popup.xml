@@ -39,8 +39,8 @@
         android:id="@+id/VR"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:enabled="false"
         android:textSize="15sp"
+        android:visibility="gone"
         android:text="@string/secret_VR" />
 
     <LinearLayout

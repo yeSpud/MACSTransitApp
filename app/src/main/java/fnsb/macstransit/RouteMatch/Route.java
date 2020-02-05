@@ -3,6 +3,7 @@ package fnsb.macstransit.RouteMatch;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -13,12 +14,15 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import fnsb.macstransit.Activities.ActivityListeners.Async.UpdateBuses;
+import fnsb.macstransit.Threads.UpdateThread;
+
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 2.3
+ * @version 2.4
  * @since Beta 3.
  */
 public class Route {
@@ -46,15 +50,25 @@ public class Route {
 	public Stop[] stops;
 
 	/**
-	 * The array of buses that correspond to this parentRoute.
+	 * The array of buses that belong to this route.
 	 */
-	public Bus[] buses;
+	public Bus[] buses = new Bus[0];
+
+	/**
+	 * The asynchronous method that updates the buses for this route.
+	 */
+	public UpdateBuses asyncBusUpdater = new UpdateBuses(this);
 
 	/**
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
 	 * This should be initialized with an array of length 0.
 	 */
 	public LatLng[] polyLineCoordinates = new LatLng[0];
+
+	/**
+	 * The network thread that updates this given route.
+	 */
+	public UpdateThread updateThread;
 
 	/**
 	 * The polyline that corresponds to this parentRoute. This may be null if not enabled.
@@ -74,6 +88,7 @@ public class Route {
 			throw new Exception("Route name cannot contain white space!");
 		} else {
 			this.routeName = routeName;
+			this.updateThread = new UpdateThread(this);
 		}
 	}
 
@@ -155,7 +170,7 @@ public class Route {
 	 * @return The array of childRoutes that are now being tracked.
 	 */
 	public static Route[] enableRoutes(String routeName, Route[] oldRoutes) {
-		Log.d("enableRoutes", "Enabling parentRoute: " + routeName);
+		Log.d("enableRoutes", "Enabling route: " + routeName);
 
 		// Make a copy of the oldRoutes array, but have it be one sizer bigger.
 		Route[] routes = Arrays.copyOf(oldRoutes, oldRoutes.length + 1);
@@ -164,15 +179,28 @@ public class Route {
 		for (Route route : fnsb.macstransit.Activities.MapsActivity.allRoutes) {
 
 			// If the parentRoute that is able to be tracked is equal to that of the parentRoute
-			// entered as an argument,
-			// add that parentRoute to the selected allRoutes array.
+			// entered as an argument, add that parentRoute to the selected allRoutes array.
 			if (route.routeName.equals(routeName)) {
-				Log.d("enableRoutes", "Found matching parentRoute!");
-
-				// For now, just initialize with a 0 length array.
-				route.buses = new Bus[0];
+				Log.d("enableRoutes", "Found matching route!");
 
 				routes[oldRoutes.length] = route;
+
+				// Enable the routes update thread.
+				route.updateThread.run = true;
+				route.updateThread.thread().start();
+
+				// If there are any preexisting buses in the route, show them.
+				try {
+					for (Bus bus : route.buses) {
+						Marker marker = bus.getMarker();
+						if (marker != null) {
+							marker.setVisible(true);
+							bus.setMarker(marker);
+						}
+					}
+				} catch (NullPointerException warn) {
+					Log.w("enableRoutes", "There were no preexisting buses!");
+				}
 
 				// Since we only add one parentRoute at a time (as there is only one routeName argument),
 				// break as soon as its added.
@@ -195,7 +223,7 @@ public class Route {
 	 * If there are no more childRoutes that are to be enabled, then an array of size 0 will be returned.
 	 */
 	public static Route[] disableRoute(String routeName, Route[] oldRoutes) {
-		Log.d("disableRoute", "Disabling parentRoute: " + routeName);
+		Log.d("disableRoute", "Disabling route: " + routeName);
 
 		// Convert all the old childRoutes to an array list of childRoutes.
 		ArrayList<Route> routes = new ArrayList<>(Arrays.asList(oldRoutes));
@@ -207,14 +235,22 @@ public class Route {
 			// execute the following:
 			if (route.routeName.equals(routeName)) {
 
-				// Remove the buses from the map as well as the parentRoute.
-				for (Bus bus : route.buses) {
-					com.google.android.gms.maps.model.Marker marker = bus.getMarker();
-					if (marker != null) {
-						bus.getMarker().remove();
+				// Disable the update thread for the route.
+				route.updateThread.run = false;
+				route.asyncBusUpdater.cancel(true);
+
+				// Remove the bus icons
+				try {
+					for (Bus bus : route.buses) {
+						Marker marker = bus.getMarker();
+						if (marker != null) {
+							marker.setVisible(false);
+							bus.setMarker(marker);
+						}
 					}
+				} catch (NullPointerException warn) {
+					Log.w("disableRoute", "There weren't any buses to disable");
 				}
-				route.buses = new Bus[0];
 
 				// Remove the polyline from the map as well as the parentRoute.
 				Polyline polyline = route.getPolyline();
@@ -229,7 +265,6 @@ public class Route {
 				break;
 			}
 		}
-
 
 		return routes.toArray(new Route[0]);
 	}

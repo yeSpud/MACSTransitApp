@@ -4,12 +4,14 @@ import android.util.Log;
 
 import java.util.ArrayList;
 
+import fnsb.macstransit.Activities.MapsActivity;
+
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.3
+ * @version 2.0
  * @since Beta 3.
  */
 public class Bus extends MarkedObject {
@@ -48,9 +50,9 @@ public class Bus extends MarkedObject {
 	public String heading = "";
 
 	/**
-	 * Variables to store the current bus capacity, as well as the speed in mph.
+	 * Variables to store the current bus speed in mph.
 	 */
-	public int currentCapacity, speed;
+	public int speed;
 
 	/**
 	 * Construction for the bus.
@@ -98,12 +100,6 @@ public class Bus extends MarkedObject {
 			bus.longitude = object.getDouble("longitude");
 			bus.heading = object.getString("headingName");
 			bus.speed = object.getInt("speed");
-			bus.currentCapacity = object.getInt("currentPassengers");
-
-			// If the buses current capacity is less than 0, just set it to 0.
-			if (bus.currentCapacity < 0) {
-				bus.currentCapacity = 0;
-			}
 
 			// Set the bus color to that of the parentRoute.
 			bus.color = route.color;
@@ -119,41 +115,120 @@ public class Bus extends MarkedObject {
 	}
 
 	/**
-	 * Draws the buses of the provided childRoutes to the provided map.
+	 * Compares two bus arrays and removes any buses that were in the old bus array that are not in the new bus array.
 	 *
-	 * @param routes The childRoutes that the buses correspond to.
-	 * @param map    The map to have the buses drawn on.
+	 * @param oldBuses The origional buses.
+	 * @param newBuses The new buses retrieved from the server.
 	 */
-	public static void drawBuses(Route[] routes, com.google.android.gms.maps.GoogleMap map) {
-		// Iterate through the provided childRoutes and execute the following:
-		for (Route route : routes) {
+	public static void removeOldBuses(Bus[] oldBuses, Bus[] newBuses) {
+		// Iterate through the oldBuses
+		for (Bus oldBus : oldBuses) {
 
-			// Get the buses in the parentRoute
-			Bus[] buses = route.buses;
+			// Check if the new buses match the old bus.
+			// If it doesnt, then remove it from the map.
+			boolean found = false;
+			for (Bus newBus : newBuses) {
+				if (oldBus.busID.equals(newBus.busID)) {
+					found = true;
+					break;
+				}
+			}
 
-			// If the buses are not null execute the following:
-			if (buses != null) {
+			if (!found) {
+				Log.d("removeOldBuses", String.format("Removing bus %s from map", oldBus.busID));
+				try {
+					oldBus.getMarker().remove();
+				} catch (NullPointerException NPE) {
+					Log.w("removeOldBuses", "Makrer already null!");
+				}
+				oldBus.setMarker(null);
+			}
 
-				// Iterate throug the buses in the parentRoute,
-				// and get the marker corresponding to the bus.
-				for (Bus bus : buses) {
-					com.google.android.gms.maps.model.Marker marker = bus.getMarker();
+		}
+	}
 
-					// If the marker already exists (is not null), just update the buses position
+	/**
+	 * Compares two bus arrays and updates the positions, heading,
+	 * and speed of the buses whos IDs match.
+	 *
+	 * @param oldBuses The origional buses.
+	 * @param newBuses The new buses retrieved from the server.
+	 * @return An array of buses which have been updated.
+	 */
+	public static Bus[] updateCurrentBuses(Bus[] oldBuses, Bus[] newBuses) {
+
+		// Create an arraylift for storing all the matching buses
+		ArrayList<Bus> buses = new ArrayList<>();
+
+		// Iterate through the new buses
+		for (Bus newBus : newBuses) {
+
+			// Compare the new bus to the oldBuses.
+			// If they match, then add it to the arraylist and update its position.
+			for (Bus oldBus : oldBuses) {
+				Log.d("updateCurrentBuses",
+						String.format("Comparing bus %s to bus %s", newBus.busID, oldBus.busID));
+
+				if (newBus.busID.equals(oldBus.busID)) {
+					Log.d("updateCurrentBuses", "Found matching bus " + newBus.busID);
+
+					// Update the buses position, heading, and speed
+					com.google.android.gms.maps.model.Marker marker = oldBus.getMarker();
 					if (marker != null) {
-						marker.setPosition(new com.google.android.gms.maps.model.LatLng(bus.latitude,
-								bus.longitude));
+						marker.setPosition(new com.google.android.gms.maps.model.LatLng(newBus.latitude,
+								newBus.longitude));
+						oldBus.setMarker(marker);
+						oldBus.heading = newBus.heading;
+						oldBus.speed = newBus.speed;
+						buses.add(oldBus);
 					} else {
-						// Since the buses marker does not exist, add it to the map.
-						marker = bus.addMarker(map, bus.latitude, bus.longitude, bus.color,
-								"Bus " + bus.busID);
+						Log.w("updateCurrentBuses", "Marker is null for updated bus "
+								+ oldBus.busID);
 					}
-
-					// Set the bus mareker to be visible, and update the bus marker by calling setMarker();
-					marker.setVisible(true);
-					bus.setMarker(marker);
 				}
 			}
 		}
+
+
+		return buses.toArray(new Bus[0]);
+	}
+
+	/**
+	 * Compares two bus arrays and determines which bueses are new.
+	 *
+	 * @param oldBuses The origional buses.
+	 * @param newBuses The new buses retrieved from the server.
+	 * @return An array of all the new buses.
+	 */
+	public static Bus[] addNewBuses(Bus[] oldBuses, Bus[] newBuses) {
+
+		// Create an arraylist for storing all the new buses.
+		ArrayList<Bus> buses = new ArrayList<>();
+
+		// Iterate through the new buses
+		for (Bus newBus : newBuses) {
+
+			// Compare the new bus to the oldBuses.
+			// If they dont match, then it has not been added to the map yet,
+			// so add it to the array and map.
+			boolean found = false;
+			for (Bus oldBus : oldBuses) {
+				Log.d("addNewBuses",
+						String.format("Comparing bus %s to bus %s", newBus.busID, oldBus.busID));
+				if (newBus.busID.equals(oldBus.busID)) {
+					Log.d("addNewBuses", "Found matching bus " + newBus.busID);
+					found = true;
+					break;
+				}
+			}
+
+			if (!found) {
+				Log.d("addNewBuses", "Adding new bus to map: " + newBus.busID);
+				newBus.setMarker(newBus.addMarker(MapsActivity.map, newBus.latitude, newBus.longitude,
+						newBus.color, "Bus " + newBus.busID));
+				buses.add(newBus);
+			}
+		}
+		return buses.toArray(new Bus[0]);
 	}
 }
