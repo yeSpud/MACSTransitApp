@@ -47,7 +47,6 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 	public static void adjustCircleSize(float zoomLevel, SharedStop[] sharedStops) {
 		// Get how much it has changed from the default zoom (11).
 		float zoomChange = 11.0f / zoomLevel;
-		// Log.d("adjustCircleSize", "Zoom change: " + zoomChange);
 
 		// Iterate through all the routes.
 		for (fnsb.macstransit.RouteMatch.Route route : MapsActivity.allRoutes) {
