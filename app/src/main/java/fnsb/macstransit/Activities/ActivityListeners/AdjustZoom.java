@@ -87,7 +87,6 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 					double size = (Stop.PARENT_RADIUS * (1d / (index + 2))) * Math.pow(zoomChange, 6);
 
 					// Set the parent circle size.
-					// Log.d("adjustCircleSize", "Setting size to: " + size);
 					c.setRadius(size);
 				}
 			}
@@ -105,7 +104,6 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 		double size = Stop.PARENT_RADIUS * (Math.pow(zoomChange, 6));
 
 		// Set the parent circle size.
-		// Log.d("adjustParentCircleSize", "Setting size to: " + size);
 		circle.setRadius(size);
 	}
 
@@ -119,7 +117,6 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 	public void onCameraIdle() {
 		// Get the camera's new zoom position
 		float zoom = MapsActivity.map.getCameraPosition().zoom;
-		// Log.d("onCameraIdle", "Zoom level: " + zoom);
 
 		// Adjust the circle size based on zoom level
 		try {

@@ -1,4 +1,4 @@
-package fnsb.macstransit.Activities.ActivityListeners;
+package fnsb.macstransit.Activities;
 
 
 /**

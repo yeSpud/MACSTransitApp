@@ -1,17 +1,26 @@
 # Understanding
 TODO
 
-## SplashActivity.java
-TODO
-
-## MapsActivity.java
-TODO
-
-## SettingsPopupWindow.java
+## FarePopupWindow.java
 TODO
 
 ## InfoWindowAdapter.java
 TODO
 
+## MapsActivity.java
+TODO
+
 ## PopupWindow.java
+TODO
+
+## SettingsPopupWindow.java
+TODO
+
+## SplashActivity.java
+TODO
+
+## StreetViewActivity
+TODO
+
+## WarningPopup
 TODO

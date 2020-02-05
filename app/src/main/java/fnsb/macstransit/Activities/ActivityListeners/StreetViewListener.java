@@ -1,6 +1,7 @@
 package fnsb.macstransit.Activities.ActivityListeners;
 
 import fnsb.macstransit.Activities.MapsActivity;
+import fnsb.macstransit.Activities.StreetViewActivity;
 
 /**
  * Created by Spud on 2020-02-03 for the project: MACS Transit.

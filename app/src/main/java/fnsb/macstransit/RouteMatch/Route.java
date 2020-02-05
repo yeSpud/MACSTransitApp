@@ -199,7 +199,7 @@ public class Route {
 						}
 					}
 				} catch (NullPointerException warn) {
-					Log.w("enableRoutes", "THere were no preexisting buses!");
+					Log.w("enableRoutes", "There were no preexisting buses!");
 				}
 
 				// Since we only add one parentRoute at a time (as there is only one routeName argument),
@@ -242,7 +242,7 @@ public class Route {
 				// Remove the bus icons
 				try {
 					for (Bus bus : route.buses) {
-						com.google.android.gms.maps.model.Marker marker = bus.getMarker();
+						Marker marker = bus.getMarker();
 						if (marker != null) {
 							marker.setVisible(false);
 							bus.setMarker(marker);
