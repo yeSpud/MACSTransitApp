@@ -256,9 +256,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	@Override
 	protected void onPause() {
 		super.onPause();
-		for (Route route : this.selectedRoutes) {
-			route.updateThread.run = false;
-		}
+		this.stopUpdateThreads();
 	}
 
 	/**
@@ -280,9 +278,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		for (Route route : this.selectedRoutes) {
-			route.updateThread.run = false;
-		}
+		this.stopUpdateThreads();
 	}
 
 	/**
@@ -349,6 +345,19 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Adjust the circle sizes of the stops on the map given the current zoom.
 		AdjustZoom.adjustCircleSize(MapsActivity.map.getCameraPosition().zoom, this.sharedStops);
+	}
+
+	/**
+	 * Iterates through each update thread in the selected routes, and cancels them.
+	 * This is meant to save on data when the app is not running.
+	 */
+	public void stopUpdateThreads() {
+		Log.w("stopUpdateThreads", "Suspending update threads");
+		for (Route route : this.selectedRoutes) {
+			route.updateThread.run = false;
+			route.asyncBusUpdater.cancel(true);
+			route.updateThread.thread().interrupt();
+		}
 	}
 
 	/**
