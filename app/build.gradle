@@ -6,9 +6,9 @@ android {
     defaultConfig {
         applicationId "fnsb.macstransit"
         minSdkVersion 19
-        targetSdkVersion 28
-        versionCode 11
-        versionName 'Release 1.1.1'
+        targetSdkVersion 29
+        versionCode 12
+        versionName 'Release 1.2'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
