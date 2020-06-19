@@ -18,7 +18,7 @@ import fnsb.macstransit.R;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.2
+ * @version 1.3
  * @since Beta 8.
  */
 @SuppressWarnings("WeakerAccess")
@@ -30,12 +30,17 @@ public class SettingsPopupWindow extends AlertDialog {
 	 */
 	private static final String TRAFFIC_KEY = "Enable Traffic View",
 			NIGHT_MODE_KEY = "Enable Dark Theme", POLYLINES_KEY = "Show Polylines",
-			VR_KEY = "Show VR Options", FILENAME = "settings.txt";
+			VR_KEY = "Show VR Options", FILENAME = "settings.txt", MAP_TYPE="Map Type";
 
 	/**
 	 * Booleans used by the application to determine what settings should be enabled during initialization.
 	 */
 	public static boolean ENABLE_TRAFFIC_VIEW, DEFAULT_NIGHT_MODE, SHOW_POLYLINES, ENABLE_VR_OPTIONS;
+
+	/**
+	 * TODO Documentation
+	 */
+	public static int DEFAULT_MAP_TYPE;
 
 	/**
 	 * Variable used to track how many changes are to be applied when writing new settings.
@@ -123,7 +128,8 @@ public class SettingsPopupWindow extends AlertDialog {
 		String outputString = SettingsPopupWindow.TRAFFIC_KEY + ":true\n"
 				+ SettingsPopupWindow.NIGHT_MODE_KEY + ":false\n"
 				+ SettingsPopupWindow.POLYLINES_KEY + ":false\n"
-				+ SettingsPopupWindow.VR_KEY + ":false";
+				+ SettingsPopupWindow.VR_KEY + ":false\n"
+				+ SettingsPopupWindow.MAP_TYPE + ":1";
 
 		// Write that string to the settings file
 		SettingsPopupWindow.writeToFile(outputString, context);
@@ -208,6 +214,13 @@ public class SettingsPopupWindow extends AlertDialog {
 
 		// Then, write that string to the settings file.
 		SettingsPopupWindow.writeToFile(builder.toString(), this.getContext());
+	}
+
+	/**
+	 * TODO Documentation
+	 */
+	private void writeSettings() {
+		// TODO
 	}
 
 	/**

@@ -316,6 +316,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Enable traffic overlay based on settings.
 		MapsActivity.map.setTrafficEnabled(SettingsPopupWindow.ENABLE_TRAFFIC_VIEW);
 
+		// TODO
+		// Set the the type of map based on settings.
+		// MapsActivity.map.setMapType(SettingsPopupWindow.DEFAULT_MAP_TYPE);
+
 		// Enable street-view options based on settings.
 		/* - DEPRECATED -
 		if (SettingsPopupWindow.ENABLE_VR_OPTIONS) {
