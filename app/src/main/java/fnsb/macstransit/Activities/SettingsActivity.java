@@ -2,10 +2,14 @@ package fnsb.macstransit.Activities;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,11 +22,10 @@ import fnsb.macstransit.R;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.3
+ * @version 2.0
  * @since Beta 8.
  */
-@SuppressWarnings("WeakerAccess")
-public class SettingsPopupWindow extends AlertDialog {
+public class SettingsActivity extends AppCompatActivity {
 
 	/**
 	 * Various string constants used by this class,
@@ -49,12 +52,18 @@ public class SettingsPopupWindow extends AlertDialog {
 	private int changedSum = 0;
 
 	/**
-	 * Constructor for the Settings popup window.
+	 * TODO Documentation
 	 *
-	 * @param context The context this class is being called from (the activity).
+	 * @param savedInstanceState
 	 */
-	public SettingsPopupWindow(Context context) {
-		super(context);
+	@Override
+	protected void onCreate(@Nullable Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		// TODO
+		this.setContentView(R.layout.settings);
+
+		// TODO
 	}
 
 	/**
@@ -65,7 +74,7 @@ public class SettingsPopupWindow extends AlertDialog {
 	 */
 	public static void loadSettings(Context context) {
 		// First get the settings file
-		File file = new File(context.getFilesDir(), SettingsPopupWindow.FILENAME);
+		File file = new File(context.getFilesDir(), SettingsActivity.FILENAME);
 		Log.d("loadSettings", "Supposed file location: " + file.getAbsolutePath());
 
 		// Then be sure to check if the file exists
@@ -73,7 +82,7 @@ public class SettingsPopupWindow extends AlertDialog {
 		if (file.exists()) {
 			// Get the file content
 			Log.d("loadSettings", "Reading content of settings");
-			String[] content = SettingsPopupWindow.readFile(context);
+			String[] content = SettingsActivity.readFile(context);
 
 			if (content != null) {
 				// Parse the settings into the static global variables above.
@@ -81,21 +90,21 @@ public class SettingsPopupWindow extends AlertDialog {
 					String[] line = string.split(":");
 					// Check what the first line is (to see if its an important key).
 					switch (line[0]) {
-						case SettingsPopupWindow.TRAFFIC_KEY:
+						case SettingsActivity.TRAFFIC_KEY:
 							Log.d("loadSettings", "Updating traffic view setting");
-							SettingsPopupWindow.ENABLE_TRAFFIC_VIEW = Boolean.parseBoolean(line[1]);
+							SettingsActivity.ENABLE_TRAFFIC_VIEW = Boolean.parseBoolean(line[1]);
 							break;
-						case SettingsPopupWindow.NIGHT_MODE_KEY:
+						case SettingsActivity.NIGHT_MODE_KEY:
 							Log.d("loadSettings", "Updating dark mode setting");
-							SettingsPopupWindow.DEFAULT_NIGHT_MODE = Boolean.parseBoolean(line[1]);
+							SettingsActivity.DEFAULT_NIGHT_MODE = Boolean.parseBoolean(line[1]);
 							break;
-						case SettingsPopupWindow.POLYLINES_KEY:
+						case SettingsActivity.POLYLINES_KEY:
 							Log.d("loadSettings", "Updating polyline setting");
-							SettingsPopupWindow.SHOW_POLYLINES = Boolean.parseBoolean(line[1]);
+							SettingsActivity.SHOW_POLYLINES = Boolean.parseBoolean(line[1]);
 							break;
-						case SettingsPopupWindow.VR_KEY:
+						case SettingsActivity.VR_KEY:
 							Log.d("loadSettings", "Updating VR setting");
-							SettingsPopupWindow.ENABLE_VR_OPTIONS = Boolean.parseBoolean(line[1]);
+							SettingsActivity.ENABLE_VR_OPTIONS = Boolean.parseBoolean(line[1]);
 							break;
 						default:
 							Log.w("loadSettings", "Line unaccounted for!\n" + string);
@@ -105,14 +114,14 @@ public class SettingsPopupWindow extends AlertDialog {
 			} else {
 				// Since we were unable to load the content of the file, recreate it and rerun.
 				Log.w("loadSettings", "Unable to parse content!");
-				SettingsPopupWindow.createSettingsFile(context);
-				SettingsPopupWindow.loadSettings(context);
+				SettingsActivity.createSettingsFile(context);
+				SettingsActivity.loadSettings(context);
 			}
 		} else {
 			// Since the file doesn't exist, create a new one and return
 			Log.w("loadSettings", "File does not exist! Creating new one...");
-			SettingsPopupWindow.createSettingsFile(context);
-			SettingsPopupWindow.loadSettings(context);
+			SettingsActivity.createSettingsFile(context);
+			SettingsActivity.loadSettings(context);
 		}
 	}
 
@@ -125,14 +134,14 @@ public class SettingsPopupWindow extends AlertDialog {
 		Log.d("createSettingsFile", "Creating new settings file");
 
 		// Create the string to write to the file for the first time.
-		String outputString = SettingsPopupWindow.TRAFFIC_KEY + ":true\n"
-				+ SettingsPopupWindow.NIGHT_MODE_KEY + ":false\n"
-				+ SettingsPopupWindow.POLYLINES_KEY + ":false\n"
-				+ SettingsPopupWindow.VR_KEY + ":false\n"
-				+ SettingsPopupWindow.MAP_TYPE + ":1";
+		String outputString = SettingsActivity.TRAFFIC_KEY + ":true\n"
+				+ SettingsActivity.NIGHT_MODE_KEY + ":false\n"
+				+ SettingsActivity.POLYLINES_KEY + ":false\n"
+				+ SettingsActivity.VR_KEY + ":false\n"
+				+ SettingsActivity.MAP_TYPE + ":1";
 
 		// Write that string to the settings file
-		SettingsPopupWindow.writeToFile(outputString, context);
+		SettingsActivity.writeToFile(outputString, context);
 	}
 
 	/**
@@ -148,7 +157,7 @@ public class SettingsPopupWindow extends AlertDialog {
 		// Try to create a file input stream in order to read the data from the file.
 		java.io.FileInputStream fis = null;
 		try {
-			fis = context.openFileInput(SettingsPopupWindow.FILENAME);
+			fis = context.openFileInput(SettingsActivity.FILENAME);
 		} catch (java.io.FileNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -185,7 +194,7 @@ public class SettingsPopupWindow extends AlertDialog {
 	 * @param context The context of the application (the activity that this is being called from).
 	 */
 	private static void writeToFile(String string, Context context) {
-		try (java.io.FileOutputStream fos = context.openFileOutput(SettingsPopupWindow.FILENAME, Context.MODE_PRIVATE)) {
+		try (java.io.FileOutputStream fos = context.openFileOutput(SettingsActivity.FILENAME, Context.MODE_PRIVATE)) {
 			fos.write(string.getBytes());
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -213,7 +222,7 @@ public class SettingsPopupWindow extends AlertDialog {
 		}
 
 		// Then, write that string to the settings file.
-		SettingsPopupWindow.writeToFile(builder.toString(), this.getContext());
+		SettingsActivity.writeToFile(builder.toString(), this);
 	}
 
 	/**
@@ -226,26 +235,27 @@ public class SettingsPopupWindow extends AlertDialog {
 	/**
 	 * Creates and shows the settings popup dialog.
 	 */
+	@Deprecated
 	public void showSettingsPopup() {
 
-		Context context = this.getContext();
+		Context context = this;
 
 		// Find and inflate the settings view.
 		android.view.View dialogView = android.view.LayoutInflater.from(context)
-				.inflate(R.layout.settings_popup, this.findViewById(R.id.content), false);
+				.inflate(R.layout.settings, this.findViewById(R.id.content), false);
 
 		// Setup the apply button.
 		final Button applyButton = dialogView.findViewById(R.id.apply);
 
 		// Create the checkboxes in the settings popup menu.
 		final CheckBox trafficBox = this.createCheckbox(dialogView, R.id.traffic,
-				SettingsPopupWindow.ENABLE_TRAFFIC_VIEW, applyButton, SettingsPopupWindow.TRAFFIC_KEY),
+				SettingsActivity.ENABLE_TRAFFIC_VIEW, applyButton, SettingsActivity.TRAFFIC_KEY),
 				nightBox = this.createCheckbox(dialogView, R.id.nightMode,
-						SettingsPopupWindow.DEFAULT_NIGHT_MODE, applyButton,
-						SettingsPopupWindow.NIGHT_MODE_KEY), polyBox = this.createCheckbox(dialogView,
-				R.id.polylines, SettingsPopupWindow.SHOW_POLYLINES, applyButton,
-				SettingsPopupWindow.POLYLINES_KEY), VRBox = this.createCheckbox(dialogView, R.id.VR,
-				SettingsPopupWindow.ENABLE_VR_OPTIONS, applyButton, SettingsPopupWindow.VR_KEY);
+						SettingsActivity.DEFAULT_NIGHT_MODE, applyButton,
+						SettingsActivity.NIGHT_MODE_KEY), polyBox = this.createCheckbox(dialogView,
+				R.id.polylines, SettingsActivity.SHOW_POLYLINES, applyButton,
+				SettingsActivity.POLYLINES_KEY), VRBox = this.createCheckbox(dialogView, R.id.VR,
+				SettingsActivity.ENABLE_VR_OPTIONS, applyButton, SettingsActivity.VR_KEY);
 
 		// Create the dialog via the alert dialog builder.
 		AlertDialog.Builder builder = new AlertDialog.Builder(context);

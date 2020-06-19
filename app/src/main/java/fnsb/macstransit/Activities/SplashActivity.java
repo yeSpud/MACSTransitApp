@@ -129,7 +129,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			}
 
 			// Then load the settings from the settings file
-			SettingsPopupWindow.loadSettings(this);
+			SettingsActivity.loadSettings(this);
 
 			// If the activity has made it this far then proceed to load the data from the RouteMatch object.
 			this.loadData().start();
@@ -269,7 +269,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				if (this.routes.length != 0) {
 
 					// Determine whether or not to show polylines.
-					if (SettingsPopupWindow.SHOW_POLYLINES) {
+					if (SettingsActivity.SHOW_POLYLINES) {
 						// Load the polylines and then the stops if polylines are enabled.
 						this.loadPolylines(1d, 3d);
 						this.loadStops(2d, 3d);

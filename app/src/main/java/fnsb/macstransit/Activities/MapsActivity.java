@@ -1,7 +1,10 @@
 package fnsb.macstransit.Activities;
 
+import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
+
+import androidx.annotation.Nullable;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.MapStyleOptions;
@@ -61,7 +64,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		// Check if the menu has not yet been created.
-		if (!menuCreated) {
+		if (!this.menuCreated) {
 
 			// Iterate through all the childRoutes that can be tracked.
 			try {
@@ -109,7 +112,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.menuCreated = false;
 
 		// Check if night mode should be enabled by default, and set the checkbox to that value
-		menu.findItem(R.id.night_mode).setChecked(SettingsPopupWindow.DEFAULT_NIGHT_MODE);
+		menu.findItem(R.id.night_mode).setChecked(SettingsActivity.DEFAULT_NIGHT_MODE);
 
 		// Return true, otherwise the menu wont be displayed.
 		return true;
@@ -147,7 +150,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 						break;
 					// Check if the item that was selected was the settings button.
 					case R.id.settings:
-						new SettingsPopupWindow(this).showSettingsPopup();
+
+						// Launch the settings activity
+						this.startActivity(new Intent(this, SettingsActivity.class));
 						break;
 					// Check if the item that was selected was the fares button.
 					case R.id.fares:
@@ -184,7 +189,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				}
 
 				// If enabled, draw polylines
-				if (SettingsPopupWindow.SHOW_POLYLINES) {
+				if (SettingsActivity.SHOW_POLYLINES) {
 					for (Route route : this.selectedRoutes) {
 						if (route.getPolyline() == null) {
 							route.createPolyline(MapsActivity.map);
@@ -218,7 +223,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 *                           in the event that there was an issue and the activity had to be destroyed.
 	 */
 	@Override
-	protected void onCreate(android.os.Bundle savedInstanceState) {
+	protected void onCreate(@Nullable android.os.Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.setContentView(R.layout.activity_maps);
 
@@ -238,6 +243,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	@Override
 	protected void onResume() {
 		super.onResume();
+
+		// TODO Reload changes from settings
+
 		for (Route route : this.selectedRoutes) {
 			route.updateThread.run = true;
 			route.updateThread.thread().start();
@@ -314,7 +322,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		MapsActivity.map.setOnInfoWindowClickListener(new PopupWindow(this));
 
 		// Enable traffic overlay based on settings.
-		MapsActivity.map.setTrafficEnabled(SettingsPopupWindow.ENABLE_TRAFFIC_VIEW);
+		MapsActivity.map.setTrafficEnabled(SettingsActivity.ENABLE_TRAFFIC_VIEW);
 
 		// TODO
 		// Set the the type of map based on settings.
@@ -329,7 +337,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		 */
 
 		// Toggle night mode at this time if enabled.
-		this.toggleNightMode(SettingsPopupWindow.DEFAULT_NIGHT_MODE);
+		this.toggleNightMode(SettingsActivity.DEFAULT_NIGHT_MODE);
 	}
 
 	/**
