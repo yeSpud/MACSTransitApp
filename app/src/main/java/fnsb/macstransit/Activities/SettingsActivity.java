@@ -250,7 +250,7 @@ public class SettingsActivity extends AppCompatActivity {
 		// Create the checkboxes in the settings popup menu.
 		final CheckBox trafficBox = this.createCheckbox(dialogView, R.id.traffic,
 				SettingsActivity.ENABLE_TRAFFIC_VIEW, applyButton, SettingsActivity.TRAFFIC_KEY),
-				nightBox = this.createCheckbox(dialogView, R.id.nightMode,
+				nightBox = this.createCheckbox(dialogView, R.id.night_mode,
 						SettingsActivity.DEFAULT_NIGHT_MODE, applyButton,
 						SettingsActivity.NIGHT_MODE_KEY), polyBox = this.createCheckbox(dialogView,
 				R.id.polylines, SettingsActivity.SHOW_POLYLINES, applyButton,
