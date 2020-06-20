@@ -14,10 +14,9 @@ import fnsb.macstransit.Threads.Network;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 3.2
+ * @version 3.3
  * @since Beta 1.
  */
-@SuppressWarnings("WeakerAccess")
 public class RouteMatch {
 
 	/**
@@ -47,7 +46,7 @@ public class RouteMatch {
 	 * @param object The JSONObject to parse.
 	 * @return The JSONArray, or an empty JSONArray if no data section was found.
 	 */
-	public static JSONArray parseData(JSONObject object) {
+	public static JSONArray parseData(JSONObject object) { // TODO Add unit test
 		try {
 			return object.getJSONArray("data");
 		} catch (org.json.JSONException e) {
