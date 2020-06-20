@@ -31,6 +31,7 @@ public class SettingsActivity extends AppCompatActivity {
 	 * Various string constants used by this class,
 	 * such as the key names for various settings, or the file name for the settings file.
 	 */
+	@Deprecated
 	private static final String TRAFFIC_KEY = "Enable Traffic View",
 			NIGHT_MODE_KEY = "Enable Dark Theme", POLYLINES_KEY = "Show Polylines",
 			VR_KEY = "Show VR Options", FILENAME = "settings.txt", MAP_TYPE="Map Type";
@@ -38,6 +39,7 @@ public class SettingsActivity extends AppCompatActivity {
 	/**
 	 * Booleans used by the application to determine what settings should be enabled during initialization.
 	 */
+	@Deprecated
 	public static boolean ENABLE_TRAFFIC_VIEW, DEFAULT_NIGHT_MODE, SHOW_POLYLINES, ENABLE_VR_OPTIONS;
 
 	/**
@@ -63,7 +65,25 @@ public class SettingsActivity extends AppCompatActivity {
 		// TODO
 		this.setContentView(R.layout.settings);
 
-		// TODO
+		// TODO Load in and parse settings
+
+		// TODO Update traffic view setting
+
+		// TODO Update dark theme default setting
+
+		// TODO Update polyline routes setting
+
+		// TODO Update default map type setting
+
+		// TODO Update current selected favorite routes setting
+
+		// TODO Update current unselected favorite routes setting
+
+		// Setup the cancel button
+		this.findViewById(R.id.cancel).setOnClickListener((v) -> this.finish());
+
+		// TODO Setup apply button action
+
 	}
 
 	/**
@@ -72,6 +92,7 @@ public class SettingsActivity extends AppCompatActivity {
 	 *
 	 * @param context The context of the application (the activity that this is being called from).
 	 */
+	@Deprecated
 	public static void loadSettings(Context context) {
 		// First get the settings file
 		File file = new File(context.getFilesDir(), SettingsActivity.FILENAME);
@@ -130,6 +151,7 @@ public class SettingsActivity extends AppCompatActivity {
 	 *
 	 * @param context The context of the application (the activity that this is being called from).
 	 */
+	@Deprecated
 	private static void createSettingsFile(Context context) {
 		Log.d("createSettingsFile", "Creating new settings file");
 
@@ -153,6 +175,7 @@ public class SettingsActivity extends AppCompatActivity {
 	 * @param context The context of the application (the activity that this is being called from).
 	 * @return The content of the settings file as a string array. Each new line is a new string.
 	 */
+	@Deprecated
 	private static String[] readFile(Context context) {
 		// Try to create a file input stream in order to read the data from the file.
 		java.io.FileInputStream fis = null;
@@ -193,6 +216,7 @@ public class SettingsActivity extends AppCompatActivity {
 	 * @param string  The string to write to the file.
 	 * @param context The context of the application (the activity that this is being called from).
 	 */
+	@Deprecated
 	private static void writeToFile(String string, Context context) {
 		try (java.io.FileOutputStream fos = context.openFileOutput(SettingsActivity.FILENAME, Context.MODE_PRIVATE)) {
 			fos.write(string.getBytes());
