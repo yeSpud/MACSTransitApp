@@ -66,7 +66,7 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 	@Override
 	protected JSONObject doInBackground(Stop... stops) {
 		Log.d("doInBackground", "Retrieving stop data...");
-		return fnsb.macstransit.Activities.MapsActivity.routeMatch.getStop(stops[0]);
+		return fnsb.macstransit.Activities.MapsActivity.routeMatch.getDeparturesByStop(stops[0]);
 	}
 
 	/**

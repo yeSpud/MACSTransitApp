@@ -83,7 +83,7 @@ public class RouteMatch {
 	 * @param stop The stop to get the data for.
 	 * @return The data as a JSONObject for the pertaining stop.
 	 */
-	public JSONObject getStop(Stop stop) {
+	public JSONObject getDeparturesByStop(Stop stop) {
 		try {
 			return Network.getJsonFromUrl(this.url + "departures/byStop/" +
 					java.net.URLEncoder.encode(stop.stopID, "UTF-8")
@@ -100,17 +100,32 @@ public class RouteMatch {
 	 * @param route The specific parentRoute to be fetched.
 	 * @return The JSONObject pertaining to that specific parentRoute's data.
 	 */
+	@Deprecated
 	public JSONObject getBuses(Route route) {
 		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + route.routeName, false);
 	}
 
 	/**
-	 * Gets the land parentRoute
-	 * (the parentRoute the buses will take) of a particular parentRoute from the RouteMatch server.
+	 * TODO Documentation
+	 * TODO Test
+	 * @param routes
+	 * @return
+	 */
+	public JSONObject getVehiclesByRoutes(Route... routes) {
+		StringBuilder routesString = new StringBuilder();
+		for (Route route : routes) {
+			routesString.append(route.routeName).append("%2C");
+		}
+		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + routesString, false);
+	}
+
+	/**
+	 * Gets the land route
+	 * (the route the buses will take) of a particular route from the RouteMatch server.
 	 *
-	 * @param route The parentRoute to be fetched.
+	 * @param route The route to be fetched.
 	 * @return The JSONObject pertaining to the specific parentRoute's parentRoute
-	 * (what parentRoute it will take as a series of latitude and longitude coordinates).
+	 * (what route it will take as a series of latitude and longitude coordinates).
 	 */
 	public JSONObject getLandRoute(Route route) {
 		return Network.getJsonFromUrl(this.url + "landRoute/byRoute/" + route.routeName, true);
