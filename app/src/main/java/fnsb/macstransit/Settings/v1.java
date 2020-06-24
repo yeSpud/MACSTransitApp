@@ -2,6 +2,8 @@ package fnsb.macstransit.Settings;
 
 import android.util.Log;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 
 /**
@@ -25,17 +27,13 @@ public class v1 {
 	 */
 	private static final String TRAFFIC_KEY = "Enable Traffic View",
 			NIGHT_MODE_KEY = "Enable Dark Theme", POLYLINES_KEY = "Show Polylines",
-			VR_KEY = "Show VR Options", MAP_TYPE = "Map Type";    // TODO Check if map type is part of v1.
+			VR_KEY = "Show VR Options";
 
 	/**
 	 * Booleans used by the application to determine what settings should be enabled during initialization.
 	 */
 	public static boolean ENABLE_TRAFFIC_VIEW, DEFAULT_NIGHT_MODE, SHOW_POLYLINES, ENABLE_VR_OPTIONS;
 
-	/**
-	 * TODO Documentation (Check if map type is part of v1 first).
-	 */
-	public static int DEFAULT_MAP_TYPE;
 
 	/**
 	 * Reads a string array from the settings file.
@@ -65,8 +63,9 @@ public class v1 {
 	 * @param context The context to get the settings file by.
 	 * @return The string array read from the settings file.
 	 */
-	public String[] readFromSettingsFile(android.content.Context context) {
+	public String[] readFromSettingsFile(@NotNull android.content.Context context) {
 		// First get the settings file.
+		@SuppressWarnings("deprecation")
 		File file = new File(context.getFilesDir(), v1.FILENAME);
 		Log.i("readFromSettingsFile", "Supposed file location: " + file.getAbsolutePath());
 
@@ -80,7 +79,7 @@ public class v1 {
 	 * @param strings The string array containing the various key:value pairs read from the settings file.
 	 */
 	@SuppressWarnings("deprecation")
-	public void parseSettings(String[] strings) {
+	public void parseSettings(@NotNull String[] strings) {
 		// Parse the settings into the static global variables above.
 		for (String string : strings) {
 			String[] line = string.split(":");

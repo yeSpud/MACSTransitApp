@@ -45,4 +45,7 @@
     <string name="warning_message">Having multiple routes active at a time will cause decreases in performance and an increase in data usage.</string>
     <string name="default_map_type">Default map type:</string>
     <string name="favorited_routes">Favorited routes:</string>
+    <string name="normal_map">Normal (Default)</string>
+    <string name="satellite_map">Satellite</string>
+    <string name="terrain_map">Terrain</string>
 </resources>

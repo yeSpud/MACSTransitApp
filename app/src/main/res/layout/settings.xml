@@ -44,10 +44,7 @@
                 android:buttonTint="@color/white"
                 android:text="@string/enable_traffic_view"
                 android:textColor="@color/white"
-                android:textSize="15sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/settings_header" />
+                android:textSize="15sp" />
 
             <CheckBox
                 android:id="@+id/night_mode"
@@ -56,10 +53,7 @@
                 android:buttonTint="@color/white"
                 android:text="@string/launch_with_night_mode"
                 android:textColor="@color/white"
-                android:textSize="15sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/traffic" />
+                android:textSize="15sp" />
 
             <CheckBox
                 android:id="@+id/polylines"
@@ -68,33 +62,7 @@
                 android:buttonTint="@color/white"
                 android:text="@string/show_polylines"
                 android:textColor="@color/white"
-                android:textSize="15sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/night_mode" />
-
-            <LinearLayout
-                android:id="@+id/traffic_view_container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:orientation="horizontal"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/polylines">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/default_map_type"
-                    android:textColor="@color/white"
-                    android:textSize="15sp" />
-
-                <Spinner
-                    android:id="@+id/traffic_type"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
+                android:textSize="15sp" />
 
             <CheckBox
                 android:id="@+id/VR"
@@ -102,12 +70,65 @@
                 android:layout_height="wrap_content"
                 android:buttonTint="@color/white"
                 android:text="@string/secret_VR"
+                android:enabled="false"
                 android:textColor="@color/white"
                 android:textSize="15sp"
-                android:visibility="gone"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/traffic_view_container" />
+                android:visibility="gone" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/default_map_type"
+                android:textColor="@color/white"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="25dp"
+                android:textSize="20sp" />
+
+            <LinearLayout
+                android:id="@+id/traffic_view_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="10dp"
+                android:orientation="vertical">
+
+                <RadioGroup
+                    android:id="@+id/map_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <RadioButton
+                        android:id="@+id/normal_map"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/normal_map"
+                        android:textSize="15sp"
+                        android:textColor="@color/white"
+                        android:buttonTint="@color/white"/>
+
+                    <RadioButton
+                        android:id="@+id/satellite_map"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/satellite_map"
+                        android:textSize="15sp"
+                        android:textColor="@color/white"
+                        android:buttonTint="@color/white"/>
+
+                    <RadioButton
+                        android:id="@+id/terrain_map"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/terrain_map"
+                        android:textSize="15sp"
+                        android:textColor="@color/white"
+                        android:buttonTint="@color/white"/>
+
+                </RadioGroup>
+
+            </LinearLayout>
+
 
             <TextView
                 android:id="@+id/favorite_route_header"
@@ -126,10 +147,7 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="5dp"
                 android:layout_marginEnd="10dp"
-                android:orientation="vertical"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/favorite_route_header">
+                android:orientation="vertical">
 
             </LinearLayout>
 
@@ -156,9 +174,9 @@
 
         <Button
             android:id="@+id/apply"
+            style="@style/TextAppearance.AppCompat.Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:enabled="false"
             android:text="@string/apply" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
