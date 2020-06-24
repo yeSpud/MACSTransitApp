@@ -23,6 +23,11 @@ public class v1 {
 	public static final String FILENAME = "settings.txt";
 
 	/**
+	 * The version of the settings format.
+	 */
+	public static final int VERSION = 1;
+
+	/**
 	 * Strings used to parse the key:value pairs in the old settings file
 	 */
 	private static final String TRAFFIC_KEY = "Enable Traffic View",

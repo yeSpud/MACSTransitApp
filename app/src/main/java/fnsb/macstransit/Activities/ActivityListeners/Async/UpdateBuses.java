@@ -16,6 +16,7 @@ import fnsb.macstransit.RouteMatch.Route;
  * @version 2.0
  * @since Beta 8.
  */
+@Deprecated
 public class UpdateBuses extends android.os.AsyncTask<Void, Void, Bus[]> {
 
 	/**

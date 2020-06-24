@@ -142,6 +142,7 @@ public class v2 {
 		// Try opening the settings file.
 		try (java.io.FileOutputStream outputStream = context.openFileOutput(v2.FILENAME, Context.MODE_PRIVATE)) {
 			// Write the string to the file.
+			Log.d("writeStringToFile", "Writing string: " + string);
 			outputStream.write(string.getBytes());
 			outputStream.flush();
 		} catch (java.io.IOException e) {
@@ -157,6 +158,7 @@ public class v2 {
 	 * @param context The app context used to determine the file location.
 	 */
 	public void createSettingsFile(Context context) {
+		Log.v("createSettingsFile", "Creating new settings file");
 		try {
 			// Create a new JSON object with all the default settings.
 			JSONObject json = CurrentSettings.settings.formatSettingsToJsonString(false,

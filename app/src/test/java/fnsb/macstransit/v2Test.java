@@ -94,10 +94,4 @@ public class v2Test {
 		assertFalse(this.settings.getStreetview());
 		assertSame(GoogleMap.MAP_TYPE_SATELLITE, this.settings.getMaptype());
 	}
-
-	@Test
-	public void testConvert() {
-		// TODO
-	}
-
 }
