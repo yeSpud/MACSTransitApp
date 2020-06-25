@@ -74,11 +74,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// In the debug build you can click on the logo to launch right into the maps activity.
 		// This is mainly for a bypass on Sundays. :D
 		if (fnsb.macstransit.BuildConfig.DEBUG) {
-			this.findViewById(R.id.logo).setOnClickListener((click) -> {
-				// Start the MapsActivity, and close this splash activity.
-				this.startActivity(new Intent(this, MapsActivity.class));
-				this.finish();
-			});
+			this.findViewById(R.id.logo).setOnClickListener((click) -> this.launchMapsActivity());
 		}
 
 		// Set the button widget to have no current onClickListener, and set it to be invisible for now.
@@ -115,84 +111,97 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 		this.button.setVisibility(View.INVISIBLE);
 
-		int maxProgress = 6;
+		// Run the initialization on a new thread as to not hang the app.
+		this.initializeApp().start();
+	}
 
-		this.textView.setText("Checking internet connection");
 
-		// First, make sure the user has internet.
-		if (this.hasInternet()) {
+	/**
+	 * TODO Documentation
+	 * @return
+	 */
+	private Thread initializeApp() {
+		// TODO Comments
+		Thread thread = new Thread(() -> {
+			int maxProgress = 6;
 
-			this.setProgress(1/maxProgress);
+			this.setMessage("Checking internet connection");
 
-			// Then create the routematch object.
-			this.textView.setText("Creating bus schedule");
-			try {
-				MapsActivity.routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/");
-				this.setProgress(2/maxProgress);
-			} catch (java.net.MalformedURLException e) {
-				// If the parentRoute match url is malformed (hence an error was thrown) simply log it,
-				// and then return early. Don't start loading data.
-				Log.e("onResume", "The RouteMatch URL is malformed!");
-				return;
+			// First, make sure the user has internet.
+			if (this.hasInternet()) {
+
+				this.setProgress(1/maxProgress);
+
+				// Then create the routematch object.
+				this.setMessage("Creating bus schedule");
+				try {
+					MapsActivity.routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/");
+					this.setProgress(2/maxProgress);
+				} catch (java.net.MalformedURLException e) {
+					// If the parentRoute match url is malformed (hence an error was thrown) simply log it,
+					// and then return early. Don't start loading data.
+					Log.e("onResume", "The RouteMatch URL is malformed!");
+					return;
+				}
+
+				// Then retrieve the routes that are being used.
+				this.setMessage("Finding bus routes");
+				Log.v("onResume", "Loading routes from master schedule");
+				JSONObject masterSchedule = MapsActivity.routeMatch.getMasterSchedule();
+				this.setProgress(3/maxProgress);
+
+				// Check if there is no schedule for the day.
+				if (masterSchedule.length() == 0) {
+					Log.v("onResume", "Schedule is empty");
+					this.setMessage("There are no buses scheduled to run at this time");
+
+					// Also add a chance for the user to retry
+					this.showRetryButton();
+					return;
+				}
+
+				// Using the schedule load in all the routes.
+				this.setMessage("Mapping bus routes");
+				Route[] routes = Route.generateRoutes(masterSchedule);
+				this.setProgress(4/maxProgress);
+
+				// Using the routes generate the stops and polylines.
+				this.setMessage("Mapping bus stops");
+				for (Route route : routes) {
+					// TODO Progress
+					route.stops = route.loadStops(MapsActivity.routeMatch);
+					route.polyLineCoordinates = route.loadPolyLineCoordinates(MapsActivity.routeMatch);
+				}
+
+				MapsActivity.allRoutes = routes;
+
+				this.launchMapsActivity();
+
+			} else {
+				// Since the user doesn't have internet, let them know, and add an option to open internet settings via clicking the button.
+				// First, hide the progress bar.
+				this.progressBar.setVisibility(View.INVISIBLE);
+
+				// Then, set the message of the text view to notify the user that there is no internet connection.
+				this.setMessage("Cannot connect to the internet");
+
+				// Then setup the button to open the internet settings when clicked on, and make it visible.
+				this.setMessage("Open network settings");
+				this.button.setOnClickListener((click) -> {
+					this.startActivityForResult(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS), 0);
+					// Also, close this application when clicked
+					this.finish();
+				});
+				this.button.setVisibility(View.VISIBLE);
+
+				// Since technically everything (which is nothing) has been loaded, set the variable as so
+				SplashActivity.loaded = true;
 			}
+		});
 
-			// Then retrieve the routes that are being used.
-			this.textView.setText("Finding bus routes");
-			Log.v("onResume", "Loading routes from master schedule");
-			JSONObject masterSchedule = MapsActivity.routeMatch.getMasterSchedule();
-			this.setProgress(3/maxProgress);
+		thread.setName("Initialization thread");
 
-			// Check if there is no schedule for the day.
-			if (masterSchedule.length() == 0) {
-				Log.v("onResume", "Schedule is empty");
-				this.textView.setText("There are no buses scheduled to run at this time");
-
-				// Also add a chance for the user to retry
-				this.showRetryButton();
-				return;
-			}
-
-			// Using the schedule load in all the routes.
-			this.textView.setText("Mapping bus routes");
-			Route[] routes = Route.generateRoutes(masterSchedule);
-			this.setProgress(4/maxProgress);
-
-			// Using the routes generate the stops and polylines.
-			this.textView.setText("Mapping bus stops");
-			for (Route route : routes) {
-				route.stops = route.loadStops(MapsActivity.routeMatch);
-				route.polyLineCoordinates = route.loadPolyLineCoordinates(MapsActivity.routeMatch);
-			}
-
-			MapsActivity.allRoutes = routes;
-
-			SplashActivity.loaded = true;
-
-			// Start the MapsActivity, and close this splash activity.
-			this.startActivity(new Intent(this, MapsActivity.class));
-			this.finish();
-
-		} else {
-			// Since the user doesn't have internet, let them know, and add an option to open internet settings via clicking the button.
-			// First, hide the progress bar.
-			this.progressBar.setVisibility(View.INVISIBLE);
-
-			// Then, set the message of the text view to notify the user that there is no internet connection.
-			this.textView.setText("Cannot connect to the internet");
-
-			// Then setup the button to open the internet settings when clicked on, and make it visible.
-			this.button.setText("Open network settings");
-			this.button.setOnClickListener((click) -> {
-				this.startActivityForResult(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS), 0);
-				// Also, close this application when clicked
-				this.finish();
-			});
-			this.button.setVisibility(View.VISIBLE);
-
-			// Since technically everything (which is nothing) has been loaded, set the variable as so
-			SplashActivity.loaded = true;
-		}
-
+		return thread;
 	}
 
 	/**
@@ -252,6 +261,25 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	}
 
 	/**
+	 * TODO Documentation
+	 */
+	private void launchMapsActivity() {
+		SplashActivity.loaded = true;
+
+		// Start the MapsActivity, and close this splash activity.
+		this.startActivity(new Intent(this, MapsActivity.class));
+		this.finish();
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param message
+	 */
+	private void setMessage(String message) {
+		this.runOnUiThread(() -> this.textView.setText(message));
+	}
+
+	/**
 	 * Sets the percent progress on the progress bar from a scale of 0 to 1 (as a double).
 	 * If the progress is larger than 1, it will be converted to 1. If the progress is less than 0,
 	 * it will be converted to 0.
@@ -259,11 +287,12 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * @param progress The progress to be set on the progress bar as a percent (between 0 and 1).
 	 */
 	private void setProgress(double progress) {
+		this.runOnUiThread(() -> {
 			// Convert the progress to be an int out of 100.
 			int p = (int) Math.round(progress * 100);
 
 			// Validate that that the progress is between 0 and 100.
-			p = (p > 100) ? 100 : (Math.max(p, 0));
+			p = (p > 100) ? 100 : Math.max(p, 0);
 			Log.d("setProgress", "Progress: " + p);
 
 			// Apply the progress to the progress bar, and animate it if its supported in the SDK.
@@ -272,6 +301,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			} else {
 				this.progressBar.setProgress(p);
 			}
+		});
 	}
 
 	/**

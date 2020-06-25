@@ -127,7 +127,6 @@ public class Network {
 		try {
 			connection = new java.net.URL(url).openConnection();
 		} catch (java.net.MalformedURLException e) {
-
 			// If the url provided was malformed, simply print a stacktrace, and return a null string.
 			e.printStackTrace();
 			return null;
@@ -146,7 +145,7 @@ public class Network {
 		}
 
 		// Get the input stream from the connection
-		java.io.InputStream inputStream = connection.getInputStream();
+		java.io.InputStream inputStream = connection.getInputStream(); // TODO Fix scary error
 
 		// Create a buffered reader for the input stream
 		BufferedReader bufferedReader = new BufferedReader(new java.io.InputStreamReader(inputStream,

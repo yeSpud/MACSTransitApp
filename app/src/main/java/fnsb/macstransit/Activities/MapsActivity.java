@@ -237,10 +237,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// TODO Comments
 		this.setContentView(R.layout.activity_maps);
 
-		JSONObject settings = CurrentSettings.settings.readFromSettingsFile(this);
-
 		try {
-			CurrentSettings.settings.parseSettings(settings);
+			CurrentSettings.loadSettings(this);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
