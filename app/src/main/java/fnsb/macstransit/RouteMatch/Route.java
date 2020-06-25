@@ -109,12 +109,12 @@ public class Route {
 	}
 
 	/**
-	 * Dynamically generates the childRoutes that are used by parsing the master schedule.
-	 * This may return an empty parentRoute array if there was an issue parsing the data,
-	 * or if there were no childRoutes to parse based off the master schedule.
+	 * Dynamically generates the routes that are used by parsing the master schedule.
+	 * This may return an empty route array if there was an issue parsing the data,
+	 * or if there were no routes to parse based off the master schedule.
 	 *
 	 * @param masterSchedule The master schedule JSONObject from the RouteMatch server.
-	 * @return An array of childRoutes that <b><i>can be</i></b> tracked.
+	 * @return An array of routes that <b><i>can be</i></b> tracked.
 	 */
 	public static Route[] generateRoutes(JSONObject masterSchedule) {
 
@@ -130,7 +130,7 @@ public class Route {
 			try {
 
 				// Get the current progress for parsing the childRoutes
-				Log.d("generateRoutes", String.format("Parsing parentRoute %d/%d", index + 1,
+				Log.d("generateRoutes", String.format("Parsing route %d/%d", index + 1,
 						count));
 
 				// Get the routeData that we are currently parsing as its own JSONObject variable.

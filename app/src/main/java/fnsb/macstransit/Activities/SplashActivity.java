@@ -1,9 +1,12 @@
 package fnsb.macstransit.Activities;
 
 import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.os.Build;
 import android.util.Log;
 import android.view.View;
+
+import org.json.JSONObject;
 
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
@@ -14,7 +17,7 @@ import fnsb.macstransit.RouteMatch.RouteMatch;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.2
+ * @version 2.0
  * @since Beta 7.
  */
 public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
@@ -40,16 +43,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * The Button widget in the activity.
 	 */
 	private android.widget.Button button;
-
-	/**
-	 * The RouteMatch object to be loaded in the splash screen.
-	 */
-	private RouteMatch routeMatch;
-
-	/**
-	 * The childRoutes from the RouteMatch object to be loaded in the splash screen.
-	 */
-	private Route[] routes;
 
 	/**
 	 * Called when the activity is starting.
@@ -81,7 +74,11 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// In the debug build you can click on the logo to launch right into the maps activity.
 		// This is mainly for a bypass on Sundays. :D
 		if (fnsb.macstransit.BuildConfig.DEBUG) {
-			this.findViewById(R.id.logo).setOnClickListener((click) -> this.dataLoaded());
+			this.findViewById(R.id.logo).setOnClickListener((click) -> {
+				// Start the MapsActivity, and close this splash activity.
+				this.startActivity(new Intent(this, MapsActivity.class));
+				this.finish();
+			});
 		}
 
 		// Set the button widget to have no current onClickListener, and set it to be invisible for now.
@@ -111,28 +108,69 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+
 		this.progressBar.setVisibility(View.VISIBLE);
 		this.setProgress(0);
+
+
 		this.button.setVisibility(View.INVISIBLE);
 
-		// First, check if the user has internet
+		int maxProgress = 6;
+
+		this.textView.setText("Checking internet connection");
+
+		// First, make sure the user has internet.
 		if (this.hasInternet()) {
 
-			// Then create the routematch object
+			this.setProgress(1/maxProgress);
+
+			// Then create the routematch object.
+			this.textView.setText("Creating bus schedule");
 			try {
-				this.routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/");
+				MapsActivity.routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/");
+				this.setProgress(2/maxProgress);
 			} catch (java.net.MalformedURLException e) {
-				// If the parentRoute match url is malformed (hence an error was thrown) simply log it, and then return early.
-				// Don't start loading data.
+				// If the parentRoute match url is malformed (hence an error was thrown) simply log it,
+				// and then return early. Don't start loading data.
 				Log.e("onResume", "The RouteMatch URL is malformed!");
 				return;
 			}
 
-			// Then load the settings from the settings file
-			SettingsActivity.loadSettings(this);
+			// Then retrieve the routes that are being used.
+			this.textView.setText("Finding bus routes");
+			Log.v("onResume", "Loading routes from master schedule");
+			JSONObject masterSchedule = MapsActivity.routeMatch.getMasterSchedule();
+			this.setProgress(3/maxProgress);
 
-			// If the activity has made it this far then proceed to load the data from the RouteMatch object.
-			this.loadData().start();
+			// Check if there is no schedule for the day.
+			if (masterSchedule.length() == 0) {
+				Log.v("onResume", "Schedule is empty");
+				this.textView.setText("There are no buses scheduled to run at this time");
+
+				// Also add a chance for the user to retry
+				this.showRetryButton();
+				return;
+			}
+
+			// Using the schedule load in all the routes.
+			this.textView.setText("Mapping bus routes");
+			Route[] routes = Route.generateRoutes(masterSchedule);
+			this.setProgress(4/maxProgress);
+
+			// Using the routes generate the stops and polylines.
+			this.textView.setText("Mapping bus stops");
+			for (Route route : routes) {
+				route.stops = route.loadStops(MapsActivity.routeMatch);
+				route.polyLineCoordinates = route.loadPolyLineCoordinates(MapsActivity.routeMatch);
+			}
+
+			MapsActivity.allRoutes = routes;
+
+			SplashActivity.loaded = true;
+
+			// Start the MapsActivity, and close this splash activity.
+			this.startActivity(new Intent(this, MapsActivity.class));
+			this.finish();
 
 		} else {
 			// Since the user doesn't have internet, let them know, and add an option to open internet settings via clicking the button.
@@ -140,10 +178,10 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.progressBar.setVisibility(View.INVISIBLE);
 
 			// Then, set the message of the text view to notify the user that there is no internet connection.
-			this.setMessage(R.string.no_internet);
+			this.textView.setText("Cannot connect to the internet");
 
 			// Then setup the button to open the internet settings when clicked on, and make it visible.
-			this.button.setText(R.string.open_internet_settings);
+			this.button.setText("Open network settings");
 			this.button.setOnClickListener((click) -> {
 				this.startActivityForResult(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS), 0);
 				// Also, close this application when clicked
@@ -202,9 +240,15 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * @return Whether or not the device has an internet connection.
 	 */
 	private boolean hasInternet() {
-		android.net.NetworkInfo activeNetwork = ((android.net.ConnectivityManager) this.getApplicationContext()
-				.getSystemService(android.content.Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
-		return activeNetwork != null && activeNetwork.isConnected();
+		// TODO Comments
+		ConnectivityManager connectivityManager = (ConnectivityManager) this.getApplicationContext()
+				.getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
+		if (connectivityManager != null) {
+			android.net.NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
+			return activeNetwork != null && activeNetwork.isConnected();
+		} else {
+			return false;
+		}
 	}
 
 	/**
@@ -215,12 +259,11 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * @param progress The progress to be set on the progress bar as a percent (between 0 and 1).
 	 */
 	private void setProgress(double progress) {
-		this.runOnUiThread(() -> {
 			// Convert the progress to be an int out of 100.
 			int p = (int) Math.round(progress * 100);
 
 			// Validate that that the progress is between 0 and 100.
-			p = (p > 100) ? 100 : ((p < 0) ? 0 : p);
+			p = (p > 100) ? 100 : (Math.max(p, 0));
 			Log.d("setProgress", "Progress: " + p);
 
 			// Apply the progress to the progress bar, and animate it if its supported in the SDK.
@@ -229,99 +272,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			} else {
 				this.progressBar.setProgress(p);
 			}
-		});
-	}
-
-	/**
-	 * Sets the text of this activity's TextView to the provided message.
-	 * This is executed on the UI Thread.
-	 *
-	 * @param message The message to be set (as a string ID).
-	 */
-	private void setMessage(int message) {
-		this.runOnUiThread(() -> this.textView.setText(message));
-	}
-
-	/**
-	 * Creates the thread that will be used to parse the routematch object,
-	 * load the childRoutes from the routematch object, load the childRoutes polylines (if enabled),
-	 * and load the stops from the childRoutes.
-	 *
-	 * @return The thread created. Note that this has not been started at this point,
-	 * so start() needs to be called in order for this to run.
-	 */
-	private Thread loadData() {
-		// Create a thread that will be used to load the data.
-		Thread t = new Thread(() -> {
-
-			// Inform the user that the childRoutes are being loaded
-			Log.d("loadData", "Loading childRoutes from master schedule");
-			this.setMessage(R.string.load_routes);
-
-			// Get the master schedule from the RouteMatch server
-			org.json.JSONObject masterSchedule = this.routeMatch.getMasterSchedule();
-			if (masterSchedule.length() != 0) {
-
-				// Load the childRoutes from the RouteMatch object
-				this.routes = Route.generateRoutes(masterSchedule);
-
-				// If there are childRoutes that were loaded, execute the following:
-				if (this.routes.length != 0) {
-
-					// Determine whether or not to show polylines.
-					if (SettingsActivity.SHOW_POLYLINES) {
-						// Load the polylines and then the stops if polylines are enabled.
-						this.loadPolylines(1d, 3d);
-						this.loadStops(2d, 3d);
-					} else {
-						// Since polylines are disabled just load the stops.
-						this.loadStops(1d, 2d);
-					}
-
-					// Once all the childRoutes and stops have been loaded,
-					// call the dataLoaded function to mark that we are done and ready to load the maps activity.
-					this.dataLoaded();
-				} else {
-					// No childRoutes were loaded from the master schedule.
-					// This is most likely because its Sunday, and the buses don't run on Sundays.
-					Log.w("loadData", "No childRoutes at this time");
-					this.setMessage(R.string.no_routes);
-
-					// Also add a chance for the user to retry
-					this.showRetryButton();
-				}
-			} else {
-				// Since there were no childRoutes to be loaded, inform the user.
-				Log.w("loadData", "Unable to load childRoutes!");
-				this.setMessage(R.string.no_schedule);
-
-				// Also add a chance to restart the activity to retry...
-				this.showRetryButton();
-			}
-		});
-
-		// Set the name of the thread, and return it.
-		t.setName("Splash-Network");
-		return t;
-	}
-
-	/**
-	 * Starts the MapsActivity, and closes this activity.
-	 * This should be called last once everything has been loaded from this activity.
-	 */
-	private void dataLoaded() {
-		// Set the routeMatch object in the MapsActivity to that of this routeMatch object.
-		MapsActivity.routeMatch = this.routeMatch;
-
-		// Set the childRoutes in the MapsActivity to the childRoutes that were loaded in tis activity.
-		MapsActivity.allRoutes = this.routes;
-
-		// Set the value of loaded to be true at this point.
-		SplashActivity.loaded = true;
-
-		// Start the MapsActivity, and close this splash activity.
-		this.startActivity(new Intent(this, MapsActivity.class));
-		this.finish();
 	}
 
 	/**
@@ -340,72 +290,4 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		});
 	}
 
-	/**
-	 * Loads the polylines for all the routes, and updates the progress bar.
-	 *
-	 * @param currentProgress The current progress numerator (ie 1/x or 2/x).
-	 * @param maxProgress     The denominator value for the progress
-	 *                        (at what value must the numerator be for the resulting value to equal 1).
-	 */
-	@SuppressWarnings("SameParameterValue")
-	private void loadPolylines(double currentProgress, double maxProgress) {
-		// Get the starting progress based off of the arguments. Use this to set the initial progress.
-		double startingProgress = currentProgress / maxProgress;
-		Log.d("loadPolylines", String.format("Setting starting progress to: %.2f", startingProgress));
-		this.setProgress(startingProgress);
-
-		// Display the loading message.
-		Log.d("loadPolylines", "Loading polylines");
-		this.setMessage(R.string.load_polylines);
-
-		// Load the polyline coordinates into each parentRoute
-		for (int i = 0; i < this.routes.length; i++) {
-			// Get the route at index i.
-			Route route = this.routes[i];
-
-			// Load the polylineCoordinates into the selected route.
-			route.polyLineCoordinates = route.loadPolyLineCoordinates(this.routeMatch);
-
-			// Get the current progress of the for loop.
-			double forLoopProgress = (i + 1d) / this.routes.length;
-			Log.d("loadPolylines", String.format("Current for loop progress: %.2f", forLoopProgress));
-
-			// Set the updated progress to that of the starting progress plus the for loop progress.
-			this.setProgress(startingProgress + (forLoopProgress / maxProgress));
-		}
-	}
-
-	/**
-	 * Loads the stops for all the routes, and updates the progress bar.
-	 *
-	 * @param currentProgress The current progress numerator (ie 1/x or 2/x).
-	 * @param maxProgress     The denominator value for the progress
-	 *                        (at what value must the numerator be for the resulting value to equal 1).
-	 */
-	private void loadStops(double currentProgress, double maxProgress) {
-		// Get the starting progress based off of the arguments. Use this to set the initial progress.
-		double startingProgress = currentProgress / maxProgress;
-		Log.d("loadStops", String.format("Setting starting progress to: %.2f", startingProgress));
-		this.setProgress(startingProgress);
-
-		// Display the loading message.
-		Log.d("loadStops", "Loading stops in the childRoutes");
-		this.setMessage(R.string.load_stops);
-
-		// Load the stops in each parentRoute.
-		for (int i = 0; i < this.routes.length; i++) {
-			// Get the route at the current index (i) from all the routes that were loaded.
-			Route route = this.routes[i];
-
-			// Load all the stops in the given route.
-			route.stops = route.loadStops(this.routeMatch);
-
-			// Get the current progress of the for loop.
-			double forLoopProgress = (i + 1d) / this.routes.length;
-			Log.d("loadStops", String.format("Current for loop progress: %.2f", forLoopProgress));
-
-			// Set the updated progress to that of the starting progress plus the for loop progress.
-			this.setProgress(startingProgress + (forLoopProgress / maxProgress));
-		}
-	}
 }

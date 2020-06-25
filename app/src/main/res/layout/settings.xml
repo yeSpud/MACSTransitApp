@@ -69,7 +69,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:buttonTint="@color/white"
-                android:text="@string/secret_VR"
+                android:text="@string/enable_street_view"
                 android:enabled="false"
                 android:textColor="@color/white"
                 android:textSize="15sp"
