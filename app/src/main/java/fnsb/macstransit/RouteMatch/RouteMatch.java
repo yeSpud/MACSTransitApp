@@ -47,7 +47,7 @@ public class RouteMatch {
 	 * @param object The JSONObject to parse.
 	 * @return The JSONArray, or an empty JSONArray if no data section was found.
 	 */
-	public static JSONArray parseData(JSONObject object) { // TODO Add unit test
+	public static JSONArray parseData(JSONObject object) {
 		try {
 			return object.getJSONArray("data");
 		} catch (org.json.JSONException e) {

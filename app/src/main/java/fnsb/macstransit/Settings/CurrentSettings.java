@@ -153,7 +153,7 @@ public class CurrentSettings {
 	 * @param file
 	 * @return
 	 */
-	static String readFile(File file) {
+	public static String readFile(File file) {
 		// Try to create a file input stream in order to read the data from the file.
 		java.io.FileInputStream input = null;
 		try {
