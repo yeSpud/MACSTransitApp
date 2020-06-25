@@ -71,9 +71,9 @@ public class SettingsActivity extends AppCompatActivity {
 			case GoogleMap.MAP_TYPE_SATELLITE:
 				this.mapType.check(R.id.satellite_map);
 				break;
-				case GoogleMap.MAP_TYPE_TERRAIN:
-					this.mapType.check(R.id.terrain_map);
-					break;
+			case GoogleMap.MAP_TYPE_TERRAIN:
+				this.mapType.check(R.id.terrain_map);
+				break;
 			default:
 				this.mapType.check(R.id.normal_map);
 				break;

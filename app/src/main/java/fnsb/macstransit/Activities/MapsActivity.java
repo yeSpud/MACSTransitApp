@@ -3,23 +3,30 @@ package fnsb.macstransit.Activities;
 import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.MapStyleOptions;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import fnsb.macstransit.Activities.ActivityListeners.AdjustZoom;
+import fnsb.macstransit.Activities.ActivityListeners.StreetViewListener;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
+import fnsb.macstransit.Settings.CurrentSettings;
 
 public class MapsActivity extends androidx.fragment.app.FragmentActivity implements
 		com.google.android.gms.maps.OnMapReadyCallback {
 
 	/**
-	 * Create an array of all the childRoutes that are used by the transit system.
+	 * Create an array of all the routes that are used by the transit system.
 	 * For now leave it uninitialized, as it will be dynamically generated in the onCreate method.
 	 */
 	public static Route[] allRoutes = new Route[0];
@@ -71,6 +78,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				for (Route route : MapsActivity.allRoutes) {
 					// Add the parentRoute to the childRoutes menu group, and make sure its checkable.
 					menu.add(R.id.routes, Menu.NONE, Menu.NONE, route.routeName).setCheckable(true);
+					// TODO Check favorited routes
 				}
 			} catch (NullPointerException ignore) {
 			}
@@ -112,7 +120,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.menuCreated = false;
 
 		// Check if night mode should be enabled by default, and set the checkbox to that value
-		menu.findItem(R.id.night_mode).setChecked(SettingsActivity.DEFAULT_NIGHT_MODE);
+		menu.findItem(R.id.night_mode).setChecked(CurrentSettings.settings.getDarktheme());
 
 		// Return true, otherwise the menu wont be displayed.
 		return true;
@@ -189,7 +197,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				}
 
 				// If enabled, draw polylines
-				if (SettingsActivity.SHOW_POLYLINES) {
+				if (CurrentSettings.settings.getPolylines()) {
 					for (Route route : this.selectedRoutes) {
 						if (route.getPolyline() == null) {
 							route.createPolyline(MapsActivity.map);
@@ -225,12 +233,27 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	@Override
 	protected void onCreate(@Nullable android.os.Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		// TODO Comments
 		this.setContentView(R.layout.activity_maps);
 
+		JSONObject settings = CurrentSettings.settings.readFromSettingsFile(this);
+
+		try {
+			CurrentSettings.settings.parseSettings(settings);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
 		// Obtain the SupportMapFragment and get notified when the map is ready to be used.
-		((com.google.android.gms.maps.SupportMapFragment) java.util.Objects
-				.requireNonNull(this.getSupportFragmentManager().findFragmentById(R.id.map)))
-				.getMapAsync(this);
+		SupportMapFragment mapFragment = (SupportMapFragment) this.getSupportFragmentManager()
+				.findFragmentById(R.id.map);
+
+		if (mapFragment != null) {
+			mapFragment.getMapAsync(this);
+		} else {
+			Toast.makeText(this, "Cannot find map!", Toast.LENGTH_LONG).show();
+		}
 	}
 
 	/**
@@ -244,7 +267,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	protected void onResume() {
 		super.onResume();
 
-		// TODO Reload changes from settings
+		// TODO Comments
+
+		this.updateMapSettings();
 
 		for (Route route : this.selectedRoutes) {
 			route.updateThread.run = true;
@@ -291,13 +316,15 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 	/**
 	 * Manipulates the map once available. This callback is triggered when the map is ready to be used.
-	 * This is where we can add markers or lines, add listeners or move the camera. In this case,
-	 * we just add a marker near Sydney, Australia. If Google Play services is not installed on the device,
+	 * This is where we can add markers or lines, add listeners or move the camera.
+	 * If Google Play services is not installed on the device,
 	 * the user will be prompted to install it inside the SupportMapFragment.
 	 * This method will only be triggered once the user has installed Google Play services and returned to the app.
 	 */
 	@Override
 	public void onMapReady(GoogleMap googleMap) {
+		Log.v("onMapReady", "onMapReady has been called!");
+
 		// Setup the map object at this point as it is finally initialized and ready.
 		MapsActivity.map = googleMap;
 
@@ -321,23 +348,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Set it so that when an info window is clicked on, it launches a popup window
 		MapsActivity.map.setOnInfoWindowClickListener(new PopupWindow(this));
 
-		// Enable traffic overlay based on settings.
-		MapsActivity.map.setTrafficEnabled(SettingsActivity.ENABLE_TRAFFIC_VIEW);
+		// TODO Comments
 
-		// TODO
-		// Set the the type of map based on settings.
-		// MapsActivity.map.setMapType(SettingsPopupWindow.DEFAULT_MAP_TYPE);
+		this.updateMapSettings();
 
-		// Enable street-view options based on settings.
-		/* - DEPRECATED -
-		if (SettingsPopupWindow.ENABLE_VR_OPTIONS) {
-			StreetViewListener streetViewListener = new StreetViewListener(this);
-			MapsActivity.map.setOnInfoWindowLongClickListener(streetViewListener);
-		}
-		 */
-
-		// Toggle night mode at this time if enabled.
-		this.toggleNightMode(SettingsActivity.DEFAULT_NIGHT_MODE);
 	}
 
 	/**
@@ -369,6 +383,33 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			route.updateThread.run = false;
 			route.asyncBusUpdater.cancel(true);
 			route.updateThread.thread().interrupt();
+		}
+	}
+
+	/**
+	 * TODO Documentation
+	 */
+	public void updateMapSettings() {
+		if (MapsActivity.map != null) {
+
+			// Enable traffic overlay based on settings.
+			MapsActivity.map.setTrafficEnabled(CurrentSettings.settings.getTraffic());
+
+			// Set the the type of map based on settings.
+			MapsActivity.map.setMapType(CurrentSettings.settings.getMaptype());
+
+			// Toggle night mode at this time if enabled.
+			this.toggleNightMode(CurrentSettings.settings.getDarktheme());
+
+			// Enable street-view options based on settings.
+			/* - DEPRECATED -
+			if (CurrentSettings.settings.getStreetview()) {
+				StreetViewListener streetViewListener = new StreetViewListener(this);
+				MapsActivity.map.setOnInfoWindowLongClickListener(streetViewListener);
+			}
+			 */
+		} else {
+			Log.w("updateMapSettings", "Map is not yet ready!");
 		}
 	}
 
