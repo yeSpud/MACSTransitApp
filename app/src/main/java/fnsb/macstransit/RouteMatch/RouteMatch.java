@@ -32,6 +32,7 @@ public class RouteMatch {
 	 * @throws MalformedURLException Thrown if the url entered is not in a valid url format.
 	 */
 	public RouteMatch(String url) throws MalformedURLException {
+		// Make sure the provided url matches a specific pattern.
 		if (url.matches("^https?://\\S+/$")) {
 			this.url = url;
 		} else {
