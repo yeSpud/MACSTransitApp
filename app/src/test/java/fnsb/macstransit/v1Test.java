@@ -27,8 +27,6 @@ public class v1Test {
 
 	private v1 settings = new v1();
 
-	private final File oldFile = new File("src/test/java/fnsb/macstransit/testfiles/old settings.txt");
-
 	@Test
 	public void testName() {
 		assertEquals("settings.txt", v1.FILENAME);

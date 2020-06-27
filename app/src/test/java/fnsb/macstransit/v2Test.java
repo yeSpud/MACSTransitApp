@@ -25,8 +25,6 @@ public class v2Test {
 
 	public v2 settings = new v2();
 
-	private final File settingsFile = new File("src/test/java/fnsb/macstransit/testfiles/settings.json");
-
 	@Test
 	public void testRead() {
 		// First, verify the old settings file exists.

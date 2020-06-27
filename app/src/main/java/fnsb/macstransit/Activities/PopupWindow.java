@@ -15,7 +15,7 @@ import fnsb.macstransit.RouteMatch.Bus;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.1
+ * @version 1.2
  * @since Beta 8.
  */
 public class PopupWindow extends AlertDialog implements
@@ -78,19 +78,22 @@ public class PopupWindow extends AlertDialog implements
 				instanceof fnsb.macstransit.RouteMatch.SharedStop) {
 			content.setText(PopupWindow.body);
 		} else if (marker.getTag() instanceof Bus) {
-			// Since the instance is that of a bus, set the content to the heading, speed, and current capacity.
+			// Since the instance is that of a bus, set the content to the heading, speed,
+			// and current capacity.
 			Bus bus = (Bus) marker.getTag();
 			StringBuilder builder = new StringBuilder();
 
-			// Make sure to set the heading if it exists, and format it to be all lower case, except the first character.
-			if (!bus.heading.equals("")) {
+			// Make sure to set the heading if it exists, and format it to be all lower case,
+			// except the first character.
+			if (bus.heading != null && !bus.heading.equals("")) {
 				String lowercaseHeading = bus.heading.toLowerCase();
 				builder.append(String.format("Heading: %s\n", lowercaseHeading.substring(0, 1).toUpperCase() + lowercaseHeading.substring(1)));
 			}
 
-			// Append the speed in mph.
-			builder.append(String.format(Locale.ENGLISH, "Speed: %d mph\n", bus.speed));
-
+			// Append the speed in mph if its not 0.
+			if (bus.speed != 0) {
+				builder.append(String.format(Locale.ENGLISH, "Speed: %d mph\n", bus.speed));
+			}
 
 			// Then set the text to the determined content.
 			content.setText(builder.toString());

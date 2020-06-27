@@ -2,7 +2,12 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.Locale;
 
 import fnsb.macstransit.Activities.MapsActivity;
 
@@ -21,7 +26,7 @@ public class Bus extends MarkedObject {
 	 * As such, it should just be stored as a string.
 	 * If this needs to be a number try parsing it from the string.
 	 */
-	public String busID;
+	public String vehicleId;
 
 	/**
 	 * The latitude and longitude of the bus. Essentially making up its respective coordinates.
@@ -47,7 +52,7 @@ public class Bus extends MarkedObject {
 	 * String used to store the buses current heading.
 	 * This is optional, and may just be an empty string as a result.
 	 */
-	public String heading = "";
+	public String heading;
 
 	/**
 	 * Variables to store the current bus speed in mph.
@@ -55,63 +60,128 @@ public class Bus extends MarkedObject {
 	public int speed;
 
 	/**
-	 * Construction for the bus.
-	 * Only the bus's ID and its corresponding parentRoute are required.
-	 *
-	 * @param busID The ID belonging to the bus.
-	 * @param route The bus's parentRoute.
+	 * TODO Documentation
+	 * @param vehicleId
+	 * @param route
+	 * @param latitude
+	 * @param longitude
 	 */
-	public Bus(String busID, Route route) {
-		this.busID = busID;
+	public Bus(String vehicleId, Route route, double latitude, double longitude) {
+		this.vehicleId = vehicleId;
 		this.route = route;
+		this.color = route.color;
+		this.latitude = latitude;
+		this.longitude = longitude;
 	}
 
 	/**
-	 * Gets the buses from the provided parentRoute.
-	 *
-	 * @param route The parentRoute to get the buses from.
-	 * @return The array of buses that coorespond to the provided parentRoute.
-	 * @throws Thrown if there is an exception when parsing the JSON corresponding to the bus.
+	 * TODO Documentation
+	 * TODO Comments
+	 * @param vehiclesJson
+	 * @return
+	 * @throws Route.RouteException
 	 */
-	public static Bus[] getBuses(Route route) throws org.json.JSONException {
-		// Get the bus array for the provided rotue.
-		org.json.JSONArray busArray = RouteMatch.parseData(fnsb.macstransit.Activities.
-				MapsActivity.routeMatch.getBuses(route));
-
-		// Create an arraylist to store the buses.
-		ArrayList<Bus> buses = new ArrayList<>();
-
-		// Get the count of buses based off the length of the JSONArray.
-		int count = busArray.length();
-
-		// Iterate through the bus array and execute the following:
-		for (int i = 0; i < count; i++) {
-			Log.d("getBuses", String.format("Parsing bus %d/%d", i + 1, count));
-
-			// Get the JSONObject corresonding to the bus.
-			org.json.JSONObject object = busArray.getJSONObject(i);
-
-			// Create the bus by getting the bus ID from the JSONObject,
-			// as well as the provided parentRoute.
-			Bus bus = new Bus(object.getString("vehicleId"), route);
-
-			// Get the lattitude, longitude, heading, speed, and current capacity from the JSONObject.
-			bus.latitude = object.getDouble("latitude");
-			bus.longitude = object.getDouble("longitude");
-			bus.heading = object.getString("headingName");
-			bus.speed = object.getInt("speed");
-
-			// Set the bus color to that of the parentRoute.
-			bus.color = route.color;
-
-			// Add the bus to the bus array.
-			buses.add(bus);
-			Log.d("getBuses", "Adding bus to array");
+	public static Bus[] getBuses(JSONArray vehiclesJson) throws Route.RouteException {
+		// Make sure all the routes have been loaded before continuing.
+		if (MapsActivity.allRoutes.length == 0) {
+			throw new Route.RouteException("There are no loaded routes!");
 		}
-		Log.d("getBuses", "Returning array of size " + buses.size());
+
+		// Create an array to store all the buses that are in the json array.
+		Bus[] buses = new Bus[vehiclesJson.length()];
+
+		// Loop throgh the json array and get the json object corresponding to the bus.
+		for (int i = 0; i < vehiclesJson.length(); i++) {
+
+			// Try to get the json object corresonding to the bus. If unsuccessful,
+			// continue on the loop without executing any of the lower checks.
+			JSONObject busObject = null;
+			try {
+				busObject = vehiclesJson.getJSONObject(i);
+			} catch (JSONException e) {
+				Log.e("getBuses", "Could not get individual bus object from loop", e);
+				continue;
+			}
+
+			// Try to get the necessary value (the vehicle id) for creating a new bus object.
+			// If unsuccessful continue on the loop without executing any of the lower checks.
+			String vehicleId = null;
+			try {
+				vehicleId = busObject.getString("vehicleId");
+			} catch (JSONException e) {
+				Log.e("getBuses", "Could not get bus id from bus json object", e);
+				continue;
+			}
+
+			// Try to get the necessary value (the route name) for creating a new bus object.
+			// If unsuccessful continue on the loop without executing any of the lower checks.
+			String routeName = null;
+			try {
+				routeName = busObject.getString("masterRouteId");
+			} catch (JSONException e) {
+				Log.e("getBuses", "Could not get route name from bus json object", e);
+				continue;
+			}
+
+			// Try to get the necessary value (the latitude) for creating a new bus object.
+			// If unsuccessful continue on the loop without executing any of the lower checks.
+			double latitude = 0.0d;
+			try {
+				latitude = busObject.getDouble("latitude");
+			} catch (JSONException e) {
+				Log.e("getBuses", "Could not get latitude from bus json object", e);
+				continue;
+			}
+
+			// Try to get the necessary value (the longitude) for creating a new bus object.
+			// If unsuccessful continue on the loop without executing any of the lower checks.
+			double longitud = 0.0d;
+			try {
+				longitud = busObject.getDouble("longitude");
+			} catch (JSONException e) {
+				Log.e("getBuses", "Could not get longitude from bus json object", e);
+				continue;
+			}
+
+			// Try to get any extra values (the heading) for creating a new bus object.
+			// These valeus arent necessary, but are nice to have.
+			String heading = "";
+			try {
+				heading = busObject.getString("headingName");
+			} catch (JSONException e) {
+				Log.w("getBuses", "Could not get bus heading from json object");
+			}
+
+			// Try to get any extra values (the speed) for creating a new bus object.
+			// These valeus arent necessary, but are nice to have.
+			int speed = 0;
+			try {
+				speed = busObject.getInt("speed");
+			} catch (JSONException e) {
+				Log.w("getBuses", "Could not get bus speed from json object");
+			}
+
+			// Iterate through all the routes.
+			for (Route route : MapsActivity.allRoutes) {
+
+				// If the route name maches the bus route name create a new bus belonging to that route,
+				// and add it to the bus array.
+				if (route.routeName.equals(routeName)) {
+					Bus bus = new Bus(vehicleId, route, latitude, longitud);
+					bus.heading = heading;
+					bus.speed = speed;
+
+					// Add the bus to the buses array
+					Log.d("getBuses", String.format(Locale.US,
+							"Adding bus %s belonging to the %s route to the bus array",
+							bus.vehicleId, route.routeName));
+					buses[i] = bus;
+				}
+			}
+		}
 
 		// Return the bus array as an array of buses.
-		return buses.toArray(new Bus[0]);
+		return buses;
 	}
 
 	/**
@@ -128,14 +198,14 @@ public class Bus extends MarkedObject {
 			// If it doesnt, then remove it from the map.
 			boolean found = false;
 			for (Bus newBus : newBuses) {
-				if (oldBus.busID.equals(newBus.busID)) {
+				if (oldBus.vehicleId.equals(newBus.vehicleId)) {
 					found = true;
 					break;
 				}
 			}
 
 			if (!found) {
-				Log.d("removeOldBuses", String.format("Removing bus %s from map", oldBus.busID));
+				Log.d("removeOldBuses", String.format("Removing bus %s from map", oldBus.vehicleId));
 				try {
 					oldBus.getMarker().remove();
 				} catch (NullPointerException NPE) {
@@ -156,7 +226,6 @@ public class Bus extends MarkedObject {
 	 * @return An array of buses which have been updated.
 	 */
 	public static Bus[] updateCurrentBuses(Bus[] oldBuses, Bus[] newBuses) {
-
 		// Create an arraylift for storing all the matching buses
 		ArrayList<Bus> buses = new ArrayList<>();
 
@@ -167,10 +236,10 @@ public class Bus extends MarkedObject {
 			// If they match, then add it to the arraylist and update its position.
 			for (Bus oldBus : oldBuses) {
 				Log.d("updateCurrentBuses",
-						String.format("Comparing bus %s to bus %s", newBus.busID, oldBus.busID));
+						String.format("Comparing bus %s to bus %s", newBus.vehicleId, oldBus.vehicleId));
 
-				if (newBus.busID.equals(oldBus.busID)) {
-					Log.d("updateCurrentBuses", "Found matching bus " + newBus.busID);
+				if (newBus.vehicleId.equals(oldBus.vehicleId)) {
+					Log.d("updateCurrentBuses", "Found matching bus " + newBus.vehicleId);
 
 					// Update the buses position, heading, and speed
 					com.google.android.gms.maps.model.Marker marker = oldBus.getMarker();
@@ -183,12 +252,11 @@ public class Bus extends MarkedObject {
 						buses.add(oldBus);
 					} else {
 						Log.w("updateCurrentBuses", "Marker is null for updated bus "
-								+ oldBus.busID);
+								+ oldBus.vehicleId);
 					}
 				}
 			}
 		}
-
 
 		return buses.toArray(new Bus[0]);
 	}
@@ -201,7 +269,6 @@ public class Bus extends MarkedObject {
 	 * @return An array of all the new buses.
 	 */
 	public static Bus[] addNewBuses(Bus[] oldBuses, Bus[] newBuses) {
-
 		// Create an arraylist for storing all the new buses.
 		ArrayList<Bus> buses = new ArrayList<>();
 
@@ -214,18 +281,18 @@ public class Bus extends MarkedObject {
 			boolean found = false;
 			for (Bus oldBus : oldBuses) {
 				Log.d("addNewBuses",
-						String.format("Comparing bus %s to bus %s", newBus.busID, oldBus.busID));
-				if (newBus.busID.equals(oldBus.busID)) {
-					Log.d("addNewBuses", "Found matching bus " + newBus.busID);
+						String.format("Comparing bus %s to bus %s", newBus.vehicleId, oldBus.vehicleId));
+				if (newBus.vehicleId.equals(oldBus.vehicleId)) {
+					Log.d("addNewBuses", "Found matching bus " + newBus.vehicleId);
 					found = true;
 					break;
 				}
 			}
 
 			if (!found) {
-				Log.d("addNewBuses", "Adding new bus to map: " + newBus.busID);
+				Log.d("addNewBuses", "Adding new bus to map: " + newBus.vehicleId);
 				newBus.setMarker(newBus.addMarker(MapsActivity.map, newBus.latitude, newBus.longitude,
-						newBus.color, "Bus " + newBus.busID));
+						newBus.color, "Bus " + newBus.vehicleId));
 				buses.add(newBus);
 			}
 		}

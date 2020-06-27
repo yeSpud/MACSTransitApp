@@ -12,15 +12,15 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.MapStyleOptions;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import fnsb.macstransit.Activities.ActivityListeners.AdjustZoom;
-import fnsb.macstransit.Activities.ActivityListeners.StreetViewListener;
 import fnsb.macstransit.R;
+import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 import fnsb.macstransit.Settings.CurrentSettings;
+import fnsb.macstransit.Threads.UpdateThread;
 
 public class MapsActivity extends androidx.fragment.app.FragmentActivity implements
 		com.google.android.gms.maps.OnMapReadyCallback {
@@ -29,7 +29,14 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * Create an array of all the routes that are used by the transit system.
 	 * For now leave it uninitialized, as it will be dynamically generated in the onCreate method.
 	 */
-	public static Route[] allRoutes = new Route[0];
+	public static Route[] allRoutes = new Route[0]; // TODO Check for concurrent exception!
+
+	/**
+	 * Create an array list to determine which childRoutes have been selected from the menu to track.
+	 */
+	public static Route[] selectedRoutes = new Route[0];
+
+	public static Bus[] buses = new Bus[0];
 
 	/**
 	 * Create an instance of the parentRoute match object that will be used for this app.
@@ -42,11 +49,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	public static GoogleMap map;
 
 	/**
-	 * Create an array list to determine which childRoutes have been selected from the menu to track.
-	 */
-	public Route[] selectedRoutes = new Route[0];
-
-	/**
 	 * Create an array of all the Shared Stops (stops that share a location).
 	 */
 	public SharedStop[] sharedStops = new SharedStop[0];
@@ -56,6 +58,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * This is used to prevent making multiple duplicate menu items in {@code onPrepareOptionsMenu(Menu menu)}.
 	 */
 	private boolean menuCreated;
+
+	private UpdateThread updateThread = new UpdateThread();
 
 	/**
 	 * Prepare the Screen's standard parentCircleOptions menu to be displayed.
@@ -270,8 +274,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.updateMapSettings();
 
 		for (Route route : this.selectedRoutes) {
-			route.updateThread.run = true;
-			route.updateThread.thread().start();
+
 		}
 	}
 
@@ -287,7 +290,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	@Override
 	protected void onPause() {
 		super.onPause();
-		this.stopUpdateThreads();
+		this.updateThread.run = false;
 	}
 
 	/**
@@ -309,7 +312,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		this.stopUpdateThreads();
+		this.updateThread.run = false;
 	}
 
 	/**
@@ -372,19 +375,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * Iterates through each update thread in the selected routes, and cancels them.
-	 * This is meant to save on data when the app is not running.
-	 */
-	public void stopUpdateThreads() {
-		Log.w("stopUpdateThreads", "Suspending update threads");
-		for (Route route : this.selectedRoutes) {
-			route.updateThread.run = false;
-			route.asyncBusUpdater.cancel(true);
-			route.updateThread.thread().interrupt();
-		}
-	}
-
-	/**
 	 * TODO Documentation
 	 */
 	public void updateMapSettings() {
@@ -406,6 +396,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				MapsActivity.map.setOnInfoWindowLongClickListener(streetViewListener);
 			}
 			 */
+
+			this.updateThread.run = true;
+			if (!this.updateThread.thread().isAlive()) {
+				this.updateThread.thread().start();
+			}
 		} else {
 			Log.w("updateMapSettings", "Map is not yet ready!");
 		}

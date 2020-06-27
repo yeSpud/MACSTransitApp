@@ -8,6 +8,7 @@ import org.junit.Test;
 import java.io.File;
 import java.net.MalformedURLException;
 
+import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
 import fnsb.macstransit.Settings.CurrentSettings;
 
@@ -42,7 +43,6 @@ public class RouteMatchTest {
 	@Test
 	public void parseDataTest() {
 		// Load some test data
-		File testFile = new File("src/test/java/fnsb/macstransit/testfiles/masterRoute.json");
 		assertTrue(testFile.exists());
 		assertTrue(testFile.canRead());
 		String data = CurrentSettings.readFile(testFile);
@@ -62,7 +62,6 @@ public class RouteMatchTest {
 		assertEquals(8, array.length());
 
 		// Load in empty test data
-		testFile = new File("src/test/java/fnsb/macstransit/testfiles/all vehicles empty.json");
 		assertTrue(testFile.exists());
 		assertTrue(testFile.canRead());
 		data = CurrentSettings.readFile(testFile);
@@ -78,6 +77,25 @@ public class RouteMatchTest {
 		array = RouteMatch.parseData(testData);
 		assertNotNull(array);
 		assertEquals(0, array.length());
+
+		// Load in empty test data
+		assertTrue(testFile.exists());
+		assertTrue(testFile.canRead());
+		data = CurrentSettings.readFile(testFile);
+		assertNotNull(data);
+		try {
+			testData = new JSONObject(data);
+		} catch (JSONException e) {
+			fail();
+			return;
+		}
+
+		// Run even MORE tests
+		array = RouteMatch.parseData(testData);
+		assertNotNull(array);
+		assertEquals(3, array.length());
+
+
 	}
 
 }

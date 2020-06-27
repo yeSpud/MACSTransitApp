@@ -5,6 +5,7 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 
@@ -45,9 +46,9 @@ public class UpdateBuses extends android.os.AsyncTask<Void, Void, Bus[]> {
 			// Then, try to get the buses used by the route.
 			try {
 				// Get the buses used in the selected routes from the RouteMatch server.
-				buses = Bus.getBuses(this.route);
+				buses = Bus.getBuses(null);
 				Log.d("doInBackground", "Total number of buses for route: " + buses.length);
-			} catch (org.json.JSONException e) {
+			} catch (Route.RouteException e) {
 				e.printStackTrace();
 			}
 		}
@@ -66,19 +67,19 @@ public class UpdateBuses extends android.os.AsyncTask<Void, Void, Bus[]> {
 
 		// Add new buses if they weren't on the map
 		Log.d("onPostExecute", "Adding new buses to map");
-		ArrayList<Bus> buses = new ArrayList<>(Arrays.asList(Bus.addNewBuses(this.route.buses, newBuses)));
+		ArrayList<Bus> buses = new ArrayList<>(Arrays.asList(Bus.addNewBuses(MapsActivity.buses, newBuses)));
 
 		// Update the old buses with the new bus locations if IDs and Routes are shared
 		Log.d("onPostExecute", "Updating existing buses on map");
-		buses.addAll(Arrays.asList(Bus.updateCurrentBuses(this.route.buses, newBuses)));
+		buses.addAll(Arrays.asList(Bus.updateCurrentBuses(MapsActivity.buses, newBuses)));
 
 		// Remove the old buses that are no longer applicable
 		Log.d("onPostExecuted", "Removing old buses from map");
-		Bus.removeOldBuses(this.route.buses, newBuses);
+		Bus.removeOldBuses(MapsActivity.buses, newBuses);
 
 		// Reapply the buses
 		Log.d("onPostExecuted", "Applying buses to route");
-		this.route.buses = buses.toArray(new Bus[0]);
+		MapsActivity.buses = buses.toArray(new Bus[0]);
 
 		// Double check whether or not this was canceled. If it was, then run the canceled method.
 		if (this.isCancelled()) {
@@ -92,7 +93,7 @@ public class UpdateBuses extends android.os.AsyncTask<Void, Void, Bus[]> {
 
 		// Remove ALL buses for the route.
 		Log.d("onCancelled", "Removing buses from route");
-		Bus.removeOldBuses(this.route.buses, new Bus[0]);
-		this.route.buses = new Bus[0];
+		Bus.removeOldBuses(MapsActivity.buses, new Bus[0]);
+		MapsActivity.buses = new Bus[0];
 	}
 }

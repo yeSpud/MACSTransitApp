@@ -14,15 +14,14 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import fnsb.macstransit.Activities.ActivityListeners.Async.UpdateBuses;
-import fnsb.macstransit.Threads.UpdateThread;
+import fnsb.macstransit.Activities.MapsActivity;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 2.4
+ * @version 2.5.
  * @since Beta 3.
  */
 public class Route {
@@ -50,25 +49,10 @@ public class Route {
 	public Stop[] stops;
 
 	/**
-	 * The array of buses that belong to this route.
-	 */
-	public Bus[] buses = new Bus[0];
-
-	/**
-	 * The asynchronous method that updates the buses for this route.
-	 */
-	public UpdateBuses asyncBusUpdater = new UpdateBuses(this);
-
-	/**
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
 	 * This should be initialized with an array of length 0.
 	 */
 	public LatLng[] polyLineCoordinates = new LatLng[0];
-
-	/**
-	 * The network thread that updates this given route.
-	 */
-	public UpdateThread updateThread;
 
 	/**
 	 * The polyline that corresponds to this parentRoute. This may be null if not enabled.
@@ -81,14 +65,13 @@ public class Route {
 	 *
 	 * @param routeName The name of the parentRoute. Be sure this does <b>NOT</b>
 	 *                  contain any whitespace characters!
-	 * @throws Exception Thrown if the parentRoute name contains white space characters.
+	 * @throws RouteException Thrown if the parentRoute name contains white space characters.
 	 */
-	public Route(String routeName) throws Exception {
+	public Route(String routeName) throws RouteException { // TODO Add unit test
 		if (routeName.contains(" ") || routeName.contains("\n") || routeName.contains("\t")) {
-			throw new Exception("Route name cannot contain white space!");
+			throw new RouteException("Route name cannot contain white space!");
 		} else {
 			this.routeName = routeName;
-			this.updateThread = new UpdateThread(this);
 		}
 	}
 
@@ -128,16 +111,14 @@ public class Route {
 		int count = data.length();
 		for (int index = 0; index < count; index++) {
 			try {
-
 				// Get the current progress for parsing the childRoutes
-				Log.d("generateRoutes", String.format("Parsing route %d/%d", index + 1,
-						count));
+				Log.d("generateRoutes", String.format("Parsing route %d/%d", index + 1, count));
 
 				// Get the routeData that we are currently parsing as its own JSONObject variable.
 				org.json.JSONObject routeData = data.getJSONObject(index);
 
 				// First, parse the name.
-				String name = routeData.getString("shortName");
+				String name = routeData.getString("routeId");
 
 				// Now try to parse the color.
 				try {
@@ -169,7 +150,7 @@ public class Route {
 	 *                  If there were no previously enabled childRoutes then this must be an array of size 0.
 	 * @return The array of childRoutes that are now being tracked.
 	 */
-	public static Route[] enableRoutes(String routeName, Route[] oldRoutes) {
+	public static Route[] enableRoutes(String routeName, Route[] oldRoutes) { // FIXME
 		Log.d("enableRoutes", "Enabling route: " + routeName);
 
 		// Make a copy of the oldRoutes array, but have it be one sizer bigger.
@@ -185,13 +166,11 @@ public class Route {
 
 				routes[oldRoutes.length] = route;
 
-				// Enable the routes update thread.
-				route.updateThread.run = true;
-				route.updateThread.thread().start();
+				// TODO Show markers
 
 				// If there are any preexisting buses in the route, show them.
 				try {
-					for (Bus bus : route.buses) {
+					for (Bus bus : MapsActivity.buses) {
 						Marker marker = bus.getMarker();
 						if (marker != null) {
 							marker.setVisible(true);
@@ -222,7 +201,7 @@ public class Route {
 	 * with the omission of the parentRoute that was to be removed.
 	 * If there are no more childRoutes that are to be enabled, then an array of size 0 will be returned.
 	 */
-	public static Route[] disableRoute(String routeName, Route[] oldRoutes) {
+	public static Route[] disableRoute(String routeName, Route[] oldRoutes) { // FIXME
 		Log.d("disableRoute", "Disabling route: " + routeName);
 
 		// Convert all the old childRoutes to an array list of childRoutes.
@@ -234,14 +213,10 @@ public class Route {
 			// If the parentRoute name of the current parentRoute matches that of the parentRoute to be disabled,
 			// execute the following:
 			if (route.routeName.equals(routeName)) {
-
-				// Disable the update thread for the route.
-				route.updateThread.run = false;
-				route.asyncBusUpdater.cancel(true);
-
+				// TODO Hide markers
 				// Remove the bus icons
 				try {
-					for (Bus bus : route.buses) {
+					for (Bus bus : MapsActivity.buses) {
 						Marker marker = bus.getMarker();
 						if (marker != null) {
 							marker.setVisible(false);
@@ -405,5 +380,37 @@ public class Route {
 
 		// Add the polyline to the map, and return it.
 		this.polyline = map.addPolyline(options);
+	}
+
+	/**
+	 * TODO Documentation
+	 */
+	public static class RouteException extends Exception {
+
+		/**
+		 * TODO Documentation
+		 * @param message
+		 */
+		public RouteException(String message) {
+			super(message);
+		}
+
+		/**
+		 * TODO Documentation
+		 * @param message
+		 * @param cause
+		 */
+		public RouteException(String message, Throwable cause) {
+			super(message, cause);
+		}
+
+		/**
+		 * TODO Documentation
+		 * @param cause
+		 */
+		public RouteException(Throwable cause) {
+			super(cause);
+		}
+
 	}
 }
