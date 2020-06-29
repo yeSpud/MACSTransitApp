@@ -38,7 +38,7 @@ class Helper {
 	 */
 	static String getText(File file) {
 		// Try to create a file input stream in order to read the data from the file.
-		FileInputStream input = null;
+		FileInputStream input;
 		try {
 			input = new FileInputStream(file);
 		} catch (java.io.FileNotFoundException e) {

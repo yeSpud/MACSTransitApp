@@ -43,9 +43,9 @@ public class RouteMatchTest {
 	@Test
 	public void parseDataTest() {
 		// Load some test data
-		assertTrue(testFile.exists());
-		assertTrue(testFile.canRead());
-		String data = CurrentSettings.readFile(testFile);
+		assertTrue(Helper.MASTERROUTE_JSON.exists());
+		assertTrue(Helper.MASTERROUTE_JSON.canRead());
+		String data = Helper.getText(Helper.MASTERROUTE_JSON);
 		assertNotNull(data);
 		JSONObject testData;
 		try {
@@ -62,9 +62,9 @@ public class RouteMatchTest {
 		assertEquals(8, array.length());
 
 		// Load in empty test data
-		assertTrue(testFile.exists());
-		assertTrue(testFile.canRead());
-		data = CurrentSettings.readFile(testFile);
+		assertTrue(Helper.ALL_VEHICLES_EMPTY_JSON.exists());
+		assertTrue(Helper.ALL_VEHICLES_EMPTY_JSON.canRead());
+		data = Helper.getText(Helper.ALL_VEHICLES_EMPTY_JSON);
 		assertNotNull(data);
 		try {
 			testData = new JSONObject(data);
@@ -79,9 +79,9 @@ public class RouteMatchTest {
 		assertEquals(0, array.length());
 
 		// Load in empty test data
-		assertTrue(testFile.exists());
-		assertTrue(testFile.canRead());
-		data = CurrentSettings.readFile(testFile);
+		assertTrue(Helper.ALL_VEHICLES_JSON.exists());
+		assertTrue(Helper.ALL_VEHICLES_JSON.canRead());
+		data = Helper.getText(Helper.ALL_VEHICLES_JSON);
 		assertNotNull(data);
 		try {
 			testData = new JSONObject(data);

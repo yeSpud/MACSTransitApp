@@ -27,13 +27,12 @@ public class v2Test {
 
 	@Test
 	public void testRead() {
-		// First, verify the old settings file exists.
-		System.out.println(this.settingsFile.getAbsolutePath());
-		assertTrue(this.settingsFile.exists());
-		assertTrue(this.settingsFile.canRead());
+		// First, verify the new settings file exists.
+		assertTrue(Helper.SETTINGS_JSON.exists());
+		assertTrue(Helper.SETTINGS_JSON.canRead());
 
 		// Now test the read function.
-		JSONObject out = settings.readFromSettingsFile(this.settingsFile);
+		JSONObject out = settings.readFromSettingsFile(Helper.SETTINGS_JSON);
 		assertNotNull(out);
 		assertEquals("{\"enable dark theme\":true," + "\"enable polylines\":true," +
 				"\"favorited routes\":[],\"enable traffic view\":false,\"map type\":2," +
@@ -69,13 +68,13 @@ public class v2Test {
 
 	@Test
 	public void testParse() {
-		// First, verify the old settings file exists.
-		System.out.println(this.settingsFile.getAbsolutePath());
-		assertTrue(this.settingsFile.exists());
-		assertTrue(this.settingsFile.canRead());
+		// First, verify the new settings file exists.
+		System.out.println(Helper.SETTINGS_JSON.getAbsolutePath());
+		assertTrue(Helper.SETTINGS_JSON.exists());
+		assertTrue(Helper.SETTINGS_JSON.canRead());
 
 		// Now test the read function.
-		JSONObject out = settings.readFromSettingsFile(this.settingsFile);
+		JSONObject out = settings.readFromSettingsFile(Helper.SETTINGS_JSON);
 		assertNotNull(out);
 
 		// Parse the output of the read function.

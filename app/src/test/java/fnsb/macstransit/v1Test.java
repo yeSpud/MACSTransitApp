@@ -36,12 +36,12 @@ public class v1Test {
 	@Test
 	public void testRead() {
 		// First, verify the old settings file exists
-		System.out.println(this.oldFile.getAbsolutePath());
-		assertTrue(this.oldFile.exists());
-		assertTrue(this.oldFile.canRead());
+		System.out.println(Helper.OLD_SETTINGS_TXT.getAbsolutePath());
+		assertTrue(Helper.OLD_SETTINGS_TXT.exists());
+		assertTrue(Helper.OLD_SETTINGS_TXT.canRead());
 
 		// Now test the read function
-		String[] out = settings.readFromSettingsFile(this.oldFile);
+		String[] out = settings.readFromSettingsFile(Helper.OLD_SETTINGS_TXT);
 		assertNotNull(out);
 		assertArrayEquals(new String[]{"Enable Traffic View:true", "Enable Dark Theme:false",
 				"Show Polylines:false", "Show VR Options:false"}, out);
@@ -53,12 +53,12 @@ public class v1Test {
 	@Test
 	public void testParse() {
 		// First, verify the old settings file exists
-		System.out.println(this.oldFile.getAbsolutePath());
-		assertTrue(this.oldFile.exists());
-		assertTrue(this.oldFile.canRead());
+		System.out.println(Helper.OLD_SETTINGS_TXT.getAbsolutePath());
+		assertTrue(Helper.OLD_SETTINGS_TXT.exists());
+		assertTrue(Helper.OLD_SETTINGS_TXT.canRead());
 
 		// Not test the parse
-		settings.parseSettings(settings.readFromSettingsFile(this.oldFile));
+		settings.parseSettings(settings.readFromSettingsFile(Helper.OLD_SETTINGS_TXT));
 		assertTrue(v1.ENABLE_TRAFFIC_VIEW);
 		assertFalse(v1.DEFAULT_NIGHT_MODE);
 		assertFalse(v1.SHOW_POLYLINES);

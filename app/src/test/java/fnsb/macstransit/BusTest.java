@@ -31,8 +31,8 @@ public class BusTest {
 	@Test
 	public void getBusesTest() {
 		assertTrue(Helper.ALL_VEHICLES_JSON.exists());
-		assertTrue(this.testFile.canRead());
-		String data = CurrentSettings.readFile(this.testFile);
+		assertTrue(Helper.ALL_VEHICLES_JSON.canRead());
+		String data = Helper.getText(Helper.ALL_VEHICLES_JSON);
 		assertNotNull(data);
 		JSONObject testData;
 		try {

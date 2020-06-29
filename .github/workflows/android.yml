@@ -5,6 +5,9 @@ on:
     branches: 
     - master
     - release/*
+  push:
+    - dev
+    - master
 
 jobs:
   build:
