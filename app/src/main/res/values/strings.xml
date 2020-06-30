@@ -40,4 +40,5 @@
     <string name="normal_map">Normal (Default)</string>
     <string name="satellite_map">Satellite</string>
     <string name="terrain_map">Terrain</string>
+    <string name="open_network_settings">Open network settings</string>
 </resources>
