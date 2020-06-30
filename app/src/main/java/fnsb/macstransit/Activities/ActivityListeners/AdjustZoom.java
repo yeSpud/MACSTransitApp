@@ -5,6 +5,7 @@ import android.util.Log;
 import com.google.android.gms.maps.model.Circle;
 
 import fnsb.macstransit.Activities.MapsActivity;
+import fnsb.macstransit.RouteMatch.BasicStop;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 
@@ -15,16 +16,21 @@ import fnsb.macstransit.RouteMatch.Stop;
  * <p>
  * This is used to adjust the circle sizes of the stops and shared stops when the zoom level is changed by the user.
  *
- * @version 1.3
+ * @version 1.4
  * @since Beta 7.
  */
 public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCameraIdleListener {
 
 	/**
+	 * Constant used for calculating new circle sizes.
+	 */
+	private static final float zoomConstant = 11.0f;
+
+	/**
 	 * The MapsActivity that this listener will apply to.
 	 * This is used to get access to all the public variables within the class.
 	 */
-	private MapsActivity activity;
+	private final MapsActivity activity;
 
 	/**
 	 * Constructor for the listener.
@@ -46,7 +52,7 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 	 */
 	public static void adjustCircleSize(float zoomLevel, SharedStop[] sharedStops) {
 		// Get how much it has changed from the default zoom (11).
-		float zoomChange = 11.0f / zoomLevel;
+		float zoomChange = AdjustZoom.zoomConstant / zoomLevel;
 
 		// Iterate through all the routes.
 		for (fnsb.macstransit.RouteMatch.Route route : MapsActivity.allRoutes) {
@@ -80,13 +86,13 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 
 			// Iterate through all the circles and adjust their sizes.
 			for (int index = 0; index < sharedStop.childRoutes.length; index++) {
-				Circle c = circles[index];
-				if (c != null) {
+				Circle circle = circles[index];
+				if (circle != null) {
 					// Calculate the new size of the parent circle.
-					double size = (Stop.PARENT_RADIUS * (1d / (index + 2))) * Math.pow(zoomChange, 6);
+					double size = (BasicStop.PARENT_RADIUS * (1d / (index + 2))) * Math.pow(zoomChange, 6);
 
 					// Set the parent circle size.
-					c.setRadius(size);
+					circle.setRadius(size);
 				}
 			}
 		}
@@ -100,7 +106,7 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 	 */
 	private static void adjustParentCircleSize(float zoomChange, Circle circle) {
 		// Calculate the new size of the parent circle.
-		double size = Stop.PARENT_RADIUS * (Math.pow(zoomChange, 6));
+		double size = BasicStop.PARENT_RADIUS * (Math.pow(zoomChange, 6));
 
 		// Set the parent circle size.
 		circle.setRadius(size);
@@ -120,7 +126,7 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 		// Adjust the circle size based on zoom level
 		try {
 			AdjustZoom.adjustCircleSize(zoom, this.activity.sharedStops);
-		} catch (NullPointerException NPE) {
+		} catch (NullPointerException e) {
 			Log.w("onCameraIdle", "Routes are null!");
 		}
 	}
