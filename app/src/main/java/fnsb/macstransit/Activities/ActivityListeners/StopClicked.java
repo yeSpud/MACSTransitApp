@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -21,7 +22,7 @@ import fnsb.macstransit.RouteMatch.Stop;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.3
+ * @version 1.4
  * @since Beta 7.
  */
 public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCircleClickListener {
@@ -29,7 +30,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	/**
 	 * The maps activity that this listener corresponds to.
 	 */
-	private MapsActivity activity;
+	private final MapsActivity activity;
 
 	/**
 	 * Constructor the the StopClicked listener.
@@ -52,7 +53,6 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * or the overflowString if there is too much data.
 	 */
 	public static String postStopTimes(Object stop, org.json.JSONObject json, Context context) {
-
 		// Get the stop data from the retrieved json.
 		org.json.JSONArray stopData = fnsb.macstransit.RouteMatch.RouteMatch.parseData(json);
 		int count = stopData.length();
@@ -83,7 +83,8 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 				// Since the stop is just a stop, just go straight into generating the time string,
 				// without the route name.
 				string = StopClicked.generateTimeString(stopData, count, context,
-						new Route[]{((Stop) stop).parentRoute}, false);
+						new Route[]{((fnsb.macstransit.RouteMatch.BasicStop) stop).parentRoute},
+						false);
 			} else {
 				// If the instance of the stop was undetermined, warn the developer.
 				Log.w("postStopTimes", "Object unaccounted for!");
@@ -96,9 +97,8 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// Check to see how many new lines there are in the display.
 			// If there are more than the maximum lines allowed bu the info window adapter,
 			// display "Click to view all the arrival and departure times.".
-			return StopClicked.getCharacterOccurrence('\n', string) <=
-					fnsb.macstransit.Activities.InfoWindowAdapter.MAX_LINES ? string :
-					context.getString(R.string.click_to_view_all_the_arrival_and_departure_times);
+			return StopClicked.getNewlineOccurrence(string) <= fnsb.macstransit.Activities.InfoWindowAdapter.MAX_LINES
+					? string : context.getString(R.string.click_to_view_all_the_arrival_and_departure_times);
 
 		} catch (JSONException e) {
 			// If there was an error, just print a stack trace, and return an empty string.
@@ -120,10 +120,11 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @return The string containing all the departure and arrival times for the particular stop.
 	 * @throws JSONException Thrown if there is a JSONException while parsing the data for the stop.
 	 */
+	@NotNull
 	private static String generateTimeString(org.json.JSONArray stopArray, int count, Context context,
 	                                         Route[] routes, boolean includeRouteName) throws JSONException {
 
-		StringBuilder snippetText = new StringBuilder();
+		StringBuilder snippetText = new StringBuilder(count);
 
 		// Iterate through the stops in the json object to get the time for.
 		for (int index = 0; index < count; index++) {
@@ -183,20 +184,25 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @param tag  The specific tag to search for within the JSONObject.
 	 * @return The time found within the JSONObject.
 	 */
-	private static String getTime(JSONObject json, String tag) {
+	public static String getTime(@NotNull JSONObject json, String tag) { // TODO Unit test
+		String timeString;
 		try {
-			// Get a matcher object from the time regex (example: 00:00), and have it match the tag.
-			java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\\d\\d:\\d\\d")
-					.matcher(json.getString(tag));
-
-			// If the match was found, return it, if not return null.
-			return matcher.find() ? matcher.group(0) : null;
-
-		} catch (JSONException jsonException) {
-			// If there was an error, print a stack trace, and return null.
-			jsonException.printStackTrace();
-			return null;
+			// Try to get the time string from the json object based on the tag.
+			timeString = json.getString(tag);
+		} catch (JSONException e) {
+			// Log any errors and return an empty string if unsuccessful.
+			Log.e("getTime", "Unable to get stop times.", e);
+			return "";
 		}
+
+		// Get a matcher object from the time regex (example: 00:00), and have it match the tag.
+		java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\\d\\d:\\d\\d")
+				.matcher(timeString);
+
+		// If the match was found, return it, if not return null.
+		return matcher.find() ? matcher.group(0) : "";
+
+
 	}
 
 	/**
@@ -206,32 +212,49 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @return The formatted time string with the AM/PM characters included.
 	 */
 	public static String formatTime(String time) {
+		// Create a date format for parsing 24 hour time.
+		SimpleDateFormat fullTime = new SimpleDateFormat("H:mm", Locale.US);
+
+		// Create another date format for formatting 12 hour time.
+		SimpleDateFormat halfTime = new SimpleDateFormat("h:mm a", Locale.US);
+
+		java.util.Date fullTimeDate;
 		try {
-			// Try to format the time from 24 hours to 12 hours (including AM and PM).
-			return new SimpleDateFormat("h:mm a", Locale.US)
-					.format(new SimpleDateFormat("H:mm", Locale.US).parse(time));
-		} catch (java.text.ParseException parseException) {
+			// Try to get the 24 hour time as a date.
+			fullTimeDate = fullTime.parse(time);
+		} catch (java.text.ParseException e) {
 			// If there was a parsing exception simply return the old time.
-			parseException.printStackTrace();
+			Log.e("formatTime", "Could not parse full 24 hour time", e);
 			return time;
 		}
+
+		// Check if the 24 hour time date is null.
+		if (fullTimeDate == null) {
+			// Since the 24 hour time date is null return the old time.
+			Log.e("formatTime", "24 hour time date is null");
+			return time;
+		}
+
+		// Format the 24 hour time date into 12 hour time and return it.
+		String formattedTime = halfTime.format(fullTimeDate);
+		Log.d("formatTime", "Formatted time: " + formattedTime);
+		return formattedTime;
 	}
 
 	/**
 	 * Function that finds the number of times a character occurs within a given string.
 	 *
-	 * @param character The character to find the within the string.
-	 * @param string    The string to search.
+	 * @param string The string to search.
 	 * @return The number of times the character occurs within the string.
 	 */
-	@SuppressWarnings("SameParameterValue")
-	private static int getCharacterOccurrence(char character, String string) {
+	public static int getNewlineOccurrence(CharSequence string) { // TODO Unit test
 		// Create a variable to store the occurrence.
 		int count = 0;
+
 		// Iterate through the string.
 		for (int i = 0; i < string.length(); i++) {
 			// If the character at the current index matches our character, increase the count.
-			if (string.charAt(i) == character) {
+			if (string.charAt(i) == '\n') {
 				count++;
 			}
 		}
@@ -247,7 +270,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @param circle The circle that is clicked.
 	 */
 	@Override
-	public void onCircleClick(com.google.android.gms.maps.model.Circle circle) {
+	public void onCircleClick(@NotNull com.google.android.gms.maps.model.Circle circle) {
 		// Check if the circle is a stop or a shared stop.
 		if (circle.getTag() instanceof Stop) {
 			Log.d("onCircleClick", "Showing stop info window");
@@ -257,7 +280,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			this.showStop(stop, stop.getMarker(), stop.stopID);
 		} else {
 			// If it was neither a stop or a shared stop, warn that there was an unaccounted for object.
-			Log.w("onCircleClick", String.format("Circle object (%s) unaccounted for!", java.util.Objects.requireNonNull(circle.getTag()).toString()));
+			Log.w("onCircleClick", String.format("Circle object (%s) unaccounted for!", circle.getTag()));
 		}
 	}
 

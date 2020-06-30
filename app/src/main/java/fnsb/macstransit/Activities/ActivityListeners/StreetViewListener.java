@@ -8,7 +8,7 @@ import fnsb.macstransit.Activities.StreetViewActivity;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.0
+ * @version 1.1
  * @since Release 1.1.
  */
 @Deprecated
@@ -18,7 +18,7 @@ public class StreetViewListener implements
 	/**
 	 * The activity that this listener belongs to.
 	 */
-	private MapsActivity activity;
+	private final MapsActivity activity;
 
 	/**
 	 * Creates a listener to launch the street view activity from the Maps activity.
