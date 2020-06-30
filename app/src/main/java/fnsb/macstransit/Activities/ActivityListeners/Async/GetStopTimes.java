@@ -16,7 +16,7 @@ import fnsb.macstransit.RouteMatch.Stop;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.1
+ * @version 1.2.
  * @since Beta 8.
  */
 public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
@@ -26,7 +26,7 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 	 * <br>
 	 * <i>It's the the info window of the marker that is going to be updated if you want to be more technical.</i>
 	 */
-	private Marker marker;
+	private final Marker marker;
 
 	/**
 	 * A weak reference for the context object.
@@ -34,7 +34,7 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 	 * <p>
 	 * https://stackoverflow.com/questions/45653121/passing-context-from-service-to-asynctask-without-leaking-it
 	 */
-	private WeakReference<Context> context;
+	private final WeakReference<Context> context;
 
 	/**
 	 * Constructor for the Asynchronous method.
@@ -65,7 +65,7 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 	 */
 	@Override
 	protected JSONObject doInBackground(Stop... stops) {
-		Log.d("doInBackground", "Retrieving stop data...");
+		Log.v("doInBackground", "Retrieving stop data...");
 		return fnsb.macstransit.Activities.MapsActivity.routeMatch.getDeparturesByStop(stops[0]);
 	}
 
@@ -78,7 +78,6 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 	 * <p>
 	 * This method won't be invoked if the task was cancelled.
 	 * <p>
-	 * <p>
 	 * This method must be called from the Looper#getMainLooper() of your app.
 	 *
 	 * @param result The result of the operation computed by doInBackground(Params...).
@@ -89,12 +88,12 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 		if (this.marker != null) {
 
 			// Update the snippet text of the marker's info window
-			Log.d("onPostExecute", "Updating snippet");
+			Log.v("onPostExecute", "Updating snippet");
 			this.marker.setSnippet(fnsb.macstransit.Activities.ActivityListeners.StopClicked
 					.postStopTimes(marker.getTag(), result, this.context.get()));
 
 			// Refresh the info window by calling showInfoWindow().
-			Log.d("onPostExecute", "Refreshing info window");
+			Log.v("onPostExecute", "Refreshing info window");
 			this.marker.showInfoWindow();
 		}
 	}
