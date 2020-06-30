@@ -13,7 +13,7 @@ import fnsb.macstransit.R;
  * @version 1.0
  * @since Release 1.1.
  */
-@SuppressWarnings("WeakerAccess")
+@Deprecated
 public class WarningPopup extends AlertDialog {
 
 	/**

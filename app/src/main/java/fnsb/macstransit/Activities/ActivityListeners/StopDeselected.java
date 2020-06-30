@@ -7,7 +7,7 @@ import android.util.Log;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.1
+ * @version 1.2
  * @since Beta 7.
  */
 public class StopDeselected implements com.google.android.gms.maps.GoogleMap.OnInfoWindowCloseListener {
@@ -20,11 +20,11 @@ public class StopDeselected implements com.google.android.gms.maps.GoogleMap.OnI
 	 * @param marker The marker of the info window that was closed.
 	 */
 	@Override
-	public void onInfoWindowClose(com.google.android.gms.maps.model.Marker marker) {
+	public void onInfoWindowClose(@org.jetbrains.annotations.NotNull com.google.android.gms.maps.model.Marker marker) {
 		// Check if it was a stop info window that was closed.
 		if (marker.getTag() instanceof fnsb.macstransit.RouteMatch.Stop ||
 				marker.getTag() instanceof fnsb.macstransit.RouteMatch.SharedStop) {
-			Log.d("onInfoWindowClose", "Closing stop window");
+			Log.v("onInfoWindowClose", "Closing stop window");
 			marker.setVisible(false);
 		} else {
 			// Log that the info window that was closed was neither a Stop nor a SharedStop.
