@@ -31,7 +31,7 @@ public class Stop extends BasicStop {
 		// This is really just setting up the coordinates, and the initial radius of the stop.
 		CircleOptions circleOptions = new CircleOptions()
 				.center(new com.google.android.gms.maps.model.LatLng(this.latitude, this.longitude))
-				.radius(Stop.PARENT_RADIUS);
+				.radius(BasicStop.PARENT_RADIUS);
 
 		// If the parentRoute color isn't null, set the stop color to the same color as the parentRoute color.
 		if (this.parentRoute.color != 0) {

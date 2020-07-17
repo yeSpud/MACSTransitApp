@@ -90,10 +90,10 @@ public class Bus extends MarkedObject {
 		// Create an array to store all the buses that are in the json array.
 		Bus[] buses = new Bus[vehiclesJson.length()];
 
-		// Loop throgh the json array and get the json object corresponding to the bus.
+		// Loop through the json array and get the json object corresponding to the bus.
 		for (int i = 0; i < vehiclesJson.length(); i++) {
 
-			// Try to get the json object corresonding to the bus. If unsuccessful,
+			// Try to get the json object corresponding to the bus. If unsuccessful,
 			// continue on the loop without executing any of the lower checks.
 			JSONObject busObject = null;
 			try {

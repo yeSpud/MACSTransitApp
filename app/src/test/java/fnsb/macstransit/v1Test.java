@@ -25,7 +25,7 @@ import static org.junit.Assert.assertTrue;
 @SuppressWarnings("deprecation")
 public class v1Test {
 
-	private v1 settings = new v1();
+	private final v1 settings = new v1();
 
 	@Test
 	public void testName() {

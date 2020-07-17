@@ -7,6 +7,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -58,6 +59,11 @@ public class Route {
 	 * The polyline that corresponds to this parentRoute. This may be null if not enabled.
 	 */
 	private Polyline polyline;
+
+	/**
+	 * TODO Documentation
+	 */
+	public boolean enabled = false;
 
 	/**
 	 * Constructor for the parentRoute. The name of the parentRoute is the only thing that is required.
@@ -349,6 +355,28 @@ public class Route {
 			// Since the points were null, just return a LatLng array of size 0.
 			return new LatLng[0];
 		}
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param allRoutes
+	 * @param favoritedRoutes
+	 */
+	public static void enableFavoriteRoutes(@NotNull Route[] allRoutes, Route[] favoritedRoutes) {
+		// Iterate through all the routes that will be used in the activity.
+		for (Route allRoute : allRoutes) {
+
+			// Iterate though the favorite routes
+			for (Route favoritedRoute : favoritedRoutes) {
+
+				// If the route name matches the favorited route name, enable it.
+				if (allRoute.routeName.equals(favoritedRoute.routeName)) {
+					allRoute.enabled = true;
+					break;
+				}
+			}
+		}
+
 	}
 
 	/**

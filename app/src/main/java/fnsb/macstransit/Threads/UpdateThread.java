@@ -37,21 +37,30 @@ public class UpdateThread {
 	 * This number is stored as a long, as it is the time in <i>milliseconds</i>,
 	 * with the default being 4000 (4 seconds).
 	 */
-	private long updateFrequency = 4000;
+	private final long updateFrequency;
 
 	/**
-	 * TODO Documents
+	 * TODO Documentation
 	 */
-	public UpdateThread() {
+	private final MapsActivity context;
+
+	/**
+	 * TODO Documentation
+	 * @param context
+	 */
+	public UpdateThread(MapsActivity context) {
+		this(context, 4000);
 	}
 
 	/**
 	 * Constructor for the UpdateThread.
 	 * TODO Documentation
+	 * @param context
 	 * @param updateFrequency How frequency (in milliseconds) the thread should loop.
 	 *                        If this is omitted, it will default to 4000 milliseconds (4 seconds).
 	 */
-	public UpdateThread(long updateFrequency) {
+	public UpdateThread(MapsActivity context, long updateFrequency) {
+		this.context = context;
 		this.updateFrequency = updateFrequency;
 	}
 
@@ -75,20 +84,30 @@ public class UpdateThread {
 				JSONObject returnedVehicles = MapsActivity.routeMatch.getVehiclesByRoutes(MapsActivity.allRoutes);
 				JSONArray vehiclesJson = RouteMatch.parseData(returnedVehicles);
 
-				Bus[] newBuses;
+				Bus[] potentialNewBuses;
 				try {
-					newBuses = Bus.getBuses(vehiclesJson);
+					potentialNewBuses = Bus.getBuses(vehiclesJson);
 				} catch (Route.RouteException e) {
 					Log.e("UpdateThread", "MapsActivity.allRoutes is empty!", e);
 					this.run = false;
 					break;
 				}
 
-				ArrayList<Bus> buses = new ArrayList<>(Arrays.asList(Bus.addNewBuses(MapsActivity.buses, newBuses)));
-				buses.addAll(Arrays.asList(Bus.updateCurrentBuses(MapsActivity.buses, newBuses)));
-				Bus.removeOldBuses(MapsActivity.buses, newBuses);
+				final ArrayList<Bus> buses = new ArrayList<>();
 
-				MapsActivity.buses = buses.toArray(new Bus[0]);
+				this.context.runOnUiThread(() -> {
+					Bus[] newBuses = Bus.addNewBuses(MapsActivity.buses, potentialNewBuses);
+
+					buses.addAll(Arrays.asList(newBuses));
+
+					Bus[] currentBuses = Bus.updateCurrentBuses(MapsActivity.buses, potentialNewBuses);
+
+					buses.addAll(Arrays.asList(currentBuses));
+
+					Bus.removeOldBuses(MapsActivity.buses, potentialNewBuses);
+
+					MapsActivity.buses = buses.toArray(new Bus[0]);
+				});
 
 				// Sleep for the given update frequency
 				try {

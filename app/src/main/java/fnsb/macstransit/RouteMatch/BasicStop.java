@@ -16,7 +16,6 @@ import java.util.ArrayList;
  * @version 1.2
  * @since Beta 7.
  */
-@SuppressWarnings("WeakerAccess")
 public class BasicStop extends MarkedObject {
 
 	/**
@@ -113,7 +112,7 @@ public class BasicStop extends MarkedObject {
 		Circle circle = map.addCircle(options);
 
 		// Set the tag of the circle.
-		Log.d("addCircle", "Setting circle tag to: " + this);
+		Log.d("addCircle", "Setting circle tag to: " + this.getClass().getName());
 		circle.setTag(this);
 
 		// Set it to be clickable or not (depending on the boolean value of clickable).

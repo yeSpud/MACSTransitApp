@@ -12,7 +12,7 @@ import com.google.android.gms.maps.model.Marker;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.1
+ * @version 1.2
  * @since Beta 7.
  */
 public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.InfoWindowAdapter {
@@ -25,14 +25,13 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 	/**
 	 * The maps activity that this adapter corresponds to.
 	 */
-	private MapsActivity activity;
+	private final MapsActivity activity;
 
 	/**
 	 * Constructor for the info window adapter.
 	 *
 	 * @param activity The maps activity that this info window adapter corresponds to.
 	 */
-	@SuppressWarnings("WeakerAccess")
 	public InfoWindowAdapter(MapsActivity activity) {
 		this.activity = activity;
 	}
@@ -48,6 +47,7 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 	 * @return A custom info window for marker, or null to use the default info window frame with custom contents.
 	 * (In this case its always going to be null, sorry).
 	 */
+	@org.jetbrains.annotations.Nullable
 	@Override
 	public View getInfoWindow(Marker marker) {
 		return null;
@@ -74,7 +74,7 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 	 * or null to use the default content rendering instead.
 	 */
 	@Override
-	public View getInfoContents(Marker marker) {
+	public View getInfoContents(@org.jetbrains.annotations.NotNull Marker marker) {
 		// Create the info section of the info window, and make sure its orientation is set to vertical
 		LinearLayout info = new LinearLayout(this.activity);
 		info.setOrientation(LinearLayout.VERTICAL);

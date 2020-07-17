@@ -15,7 +15,7 @@ import fnsb.macstransit.RouteMatch.Bus;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.2
+ * @version 1.3
  * @since Beta 8.
  */
 public class PopupWindow extends AlertDialog implements
@@ -32,7 +32,6 @@ public class PopupWindow extends AlertDialog implements
 	 *
 	 * @param context The application context.
 	 */
-	@SuppressWarnings("WeakerAccess")
 	public PopupWindow(Context context) {
 		super(context);
 	}
@@ -57,7 +56,7 @@ public class PopupWindow extends AlertDialog implements
 	 * @param marker The marker this popup dialog belongs to.
 	 * @param title  The title of the popup.
 	 */
-	private void showDialog(String title, Marker marker) {
+	private void showDialog(CharSequence title, Marker marker) {
 
 		Context context = this.getContext();
 
@@ -81,11 +80,11 @@ public class PopupWindow extends AlertDialog implements
 			// Since the instance is that of a bus, set the content to the heading, speed,
 			// and current capacity.
 			Bus bus = (Bus) marker.getTag();
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new StringBuilder(bus.speed);
 
 			// Make sure to set the heading if it exists, and format it to be all lower case,
 			// except the first character.
-			if (bus.heading != null && !bus.heading.equals("")) {
+			if (bus.heading != null && !"".equals(bus.heading)) {
 				String lowercaseHeading = bus.heading.toLowerCase();
 				builder.append(String.format("Heading: %s\n", lowercaseHeading.substring(0, 1).toUpperCase() + lowercaseHeading.substring(1)));
 			}

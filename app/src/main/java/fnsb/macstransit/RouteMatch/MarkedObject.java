@@ -5,6 +5,8 @@ import android.util.Log;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by Spud on 2019-11-20 for the project: MACS Transit.
  * <p>
@@ -28,6 +30,7 @@ public class MarkedObject {
 	 * @return The resulting BitmapDescriptor. This will almost certainly not be the exact color,
 	 * but rather will be something close to it.
 	 */
+	@NotNull
 	private static com.google.android.gms.maps.model.BitmapDescriptor getMarkerIcon(int color) {
 		float[] hsv = new float[3];
 		android.graphics.Color.colorToHSV(color, hsv);
@@ -62,8 +65,7 @@ public class MarkedObject {
 	 * @param title     The marker's title.
 	 * @return The newly created marker that has also been added to the map.
 	 */
-	@SuppressWarnings("WeakerAccess")
-	public Marker addMarker(com.google.android.gms.maps.GoogleMap map, double latitude,
+	public Marker addMarker(@NotNull com.google.android.gms.maps.GoogleMap map, double latitude,
 	                        double longitude, int color, String title) {
 		// Create a new maker options object
 		MarkerOptions options = new MarkerOptions();
@@ -85,7 +87,7 @@ public class MarkedObject {
 		marker.setTitle(title);
 
 		// Set the marker's tag.
-		Log.d("addMarker", "Setting the markers tag to: " + this);
+		Log.d("addMarker", "Setting the markers tag to: " + this.getClass());
 		marker.setTag(this);
 
 		// Return the generated marker.
