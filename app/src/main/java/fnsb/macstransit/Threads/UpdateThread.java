@@ -93,7 +93,7 @@ public class UpdateThread {
 					break;
 				}
 
-				final ArrayList<Bus> buses = new ArrayList<>();
+				final ArrayList<Bus> buses = new ArrayList<>(0);
 
 				this.context.runOnUiThread(() -> {
 					Bus[] newBuses = Bus.addNewBuses(MapsActivity.buses, potentialNewBuses);

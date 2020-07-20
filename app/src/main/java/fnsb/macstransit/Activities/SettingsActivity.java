@@ -1,5 +1,6 @@
 package fnsb.macstransit.Activities;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
@@ -98,6 +99,12 @@ public class SettingsActivity extends AppCompatActivity {
 			checkBox.setText(route.routeName);
 			checkBox.setTextSize(15);
 			checkBox.setTextColor(this.getResources().getColor(R.color.white));
+
+			// Add button tint if the sdk supports it.
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+				checkBox.setButtonTintList(this.getResources().getColorStateList(R.color.white));
+			}
+
 			checkBox.setTag(route);
 
 			// Determine if the box should be checked

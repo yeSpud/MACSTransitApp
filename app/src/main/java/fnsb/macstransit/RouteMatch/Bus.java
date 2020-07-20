@@ -2,6 +2,9 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
+import com.google.android.gms.maps.model.Marker;
+
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -61,6 +64,7 @@ public class Bus extends MarkedObject {
 
 	/**
 	 * TODO Documentation
+	 *
 	 * @param vehicleId
 	 * @param route
 	 * @param latitude
@@ -77,13 +81,15 @@ public class Bus extends MarkedObject {
 	/**
 	 * TODO Documentation
 	 * TODO Comments
+	 *
 	 * @param vehiclesJson
 	 * @return
 	 * @throws Route.RouteException
 	 */
+	@NotNull
 	public static Bus[] getBuses(JSONArray vehiclesJson) throws Route.RouteException {
 		// Make sure all the routes have been loaded before continuing.
-		if (MapsActivity.allRoutes.length == 0) {
+		if (MapsActivity.allRoutes == null || MapsActivity.allRoutes.length == 0) {
 			throw new Route.RouteException("There are no loaded routes!");
 		}
 
@@ -187,29 +193,23 @@ public class Bus extends MarkedObject {
 	/**
 	 * Compares two bus arrays and removes any buses that were in the old bus array that are not in the new bus array.
 	 *
-	 * @param oldBuses The origional buses.
+	 * @param oldBuses The original buses.
 	 * @param newBuses The new buses retrieved from the server.
 	 */
-	public static void removeOldBuses(Bus[] oldBuses, Bus[] newBuses) {
+	public static void removeOldBuses(@NotNull Bus[] oldBuses, Bus[] newBuses) {
 		// Iterate through the oldBuses
 		for (Bus oldBus : oldBuses) {
 
 			// Check if the new buses match the old bus.
-			// If it doesnt, then remove it from the map.
-			boolean found = false;
-			for (Bus newBus : newBuses) {
-				if (oldBus.vehicleId.equals(newBus.vehicleId)) {
-					found = true;
-					break;
-				}
-			}
+			// If it doesn't, then remove it from the map.
+			boolean notFound = Bus.noBusMatch(oldBus, newBuses);
 
-			if (!found) {
+			if (notFound) {
 				Log.d("removeOldBuses", String.format("Removing bus %s from map", oldBus.vehicleId));
 				try {
 					oldBus.getMarker().remove();
-				} catch (NullPointerException NPE) {
-					Log.w("removeOldBuses", "Makrer already null!");
+				} catch (NullPointerException e) {
+					Log.w("removeOldBuses", "Marker already null!");
 				}
 				oldBus.setMarker(null);
 			}
@@ -219,21 +219,22 @@ public class Bus extends MarkedObject {
 
 	/**
 	 * Compares two bus arrays and updates the positions, heading,
-	 * and speed of the buses whos IDs match.
+	 * and speed of the buses with matching IDs.
 	 *
-	 * @param oldBuses The origional buses.
+	 * @param oldBuses The original buses.
 	 * @param newBuses The new buses retrieved from the server.
 	 * @return An array of buses which have been updated.
 	 */
-	public static Bus[] updateCurrentBuses(Bus[] oldBuses, Bus[] newBuses) {
-		// Create an arraylift for storing all the matching buses
-		ArrayList<Bus> buses = new ArrayList<>();
+	@NotNull
+	public static Bus[] updateCurrentBuses(Bus[] oldBuses, @NotNull Bus[] newBuses) {
+		// Create an array list for storing all the matching buses
+		ArrayList<Bus> buses = new ArrayList<>(0);
 
 		// Iterate through the new buses
 		for (Bus newBus : newBuses) {
 
 			// Compare the new bus to the oldBuses.
-			// If they match, then add it to the arraylist and update its position.
+			// If they match, then add it to the array list and update its position.
 			for (Bus oldBus : oldBuses) {
 				Log.d("updateCurrentBuses",
 						String.format("Comparing bus %s to bus %s", newBus.vehicleId, oldBus.vehicleId));
@@ -242,7 +243,7 @@ public class Bus extends MarkedObject {
 					Log.d("updateCurrentBuses", "Found matching bus " + newBus.vehicleId);
 
 					// Update the buses position, heading, and speed
-					com.google.android.gms.maps.model.Marker marker = oldBus.getMarker();
+					Marker marker = oldBus.getMarker();
 					if (marker != null) {
 						marker.setPosition(new com.google.android.gms.maps.model.LatLng(newBus.latitude,
 								newBus.longitude));
@@ -258,44 +259,74 @@ public class Bus extends MarkedObject {
 			}
 		}
 
-		return buses.toArray(new Bus[0]);
+		// Turn the array list into an array, and return it.
+		Bus[] returnBuses = new Bus[buses.size()];
+		returnBuses = buses.toArray(returnBuses);
+		return returnBuses;
 	}
 
 	/**
-	 * Compares two bus arrays and determines which bueses are new.
+	 * Compares two bus arrays and determines which buses are new.
 	 *
-	 * @param oldBuses The origional buses.
+	 * @param oldBuses The original buses.
 	 * @param newBuses The new buses retrieved from the server.
 	 * @return An array of all the new buses.
 	 */
-	public static Bus[] addNewBuses(Bus[] oldBuses, Bus[] newBuses) {
-		// Create an arraylist for storing all the new buses.
-		ArrayList<Bus> buses = new ArrayList<>();
+	@NotNull
+	public static Bus[] addNewBuses(Bus[] oldBuses, @NotNull Bus[] newBuses) {
+		// Create an array list for storing all the new buses.
+		ArrayList<Bus> buses = new ArrayList<>(0);
 
 		// Iterate through the new buses
 		for (Bus newBus : newBuses) {
 
 			// Compare the new bus to the oldBuses.
-			// If they dont match, then it has not been added to the map yet,
+			// If they don't match, then it has not been added to the map yet,
 			// so add it to the array and map.
-			boolean found = false;
-			for (Bus oldBus : oldBuses) {
-				Log.d("addNewBuses",
-						String.format("Comparing bus %s to bus %s", newBus.vehicleId, oldBus.vehicleId));
-				if (newBus.vehicleId.equals(oldBus.vehicleId)) {
-					Log.d("addNewBuses", "Found matching bus " + newBus.vehicleId);
-					found = true;
-					break;
-				}
-			}
+			boolean notFound = Bus.noBusMatch(newBus, oldBuses);
 
-			if (!found) {
+			if (notFound) {
 				Log.d("addNewBuses", "Adding new bus to map: " + newBus.vehicleId);
-				newBus.setMarker(newBus.addMarker(MapsActivity.map, newBus.latitude, newBus.longitude,
-						newBus.color, "Bus " + newBus.vehicleId));
+
+				// Create the bus marker
+				Marker busMarker = newBus.addMarker(MapsActivity.map, newBus.latitude, newBus.longitude,
+						newBus.color, "Bus " + newBus.vehicleId);
+
+				// Determine whether or not to show the bus marker.
+				busMarker.setVisible(newBus.route.enabled);
+
+				newBus.setMarker(busMarker);
 				buses.add(newBus);
 			}
 		}
-		return buses.toArray(new Bus[0]);
+
+		// Turn the array list into an array, and return it.
+		Bus[] returnBuses = new Bus[buses.size()];
+		returnBuses = buses.toArray(returnBuses);
+		return returnBuses;
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param busObject
+	 * @param busObjects
+	 * @return
+	 */
+	public static boolean noBusMatch(Bus busObject, @NotNull Bus[] busObjects) {
+		for (Bus bus : busObjects) {
+			Log.d("noBusMatch", String.format("Comparing %s to %s", busObject.vehicleId, bus.vehicleId));
+
+			if (busObject.vehicleId.equals(bus.vehicleId)) {
+				Log.d("noBusMatch", "Vehicle IDs match");
+				if (busObject.route.routeName.equals(bus.route.routeName)) {
+					Log.d("noBusMatch", "Objects match!");
+					return false;
+				}
+			}
+		}
+
+		Log.d("noBusMatch", "No objects match");
+		return true;
 	}
 }

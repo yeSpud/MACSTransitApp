@@ -110,17 +110,17 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * Initialize the contents of the Activity's standard options menu.
 	 * You should place your menu items in to menu.
-	 *
+	 * <p>
 	 * This is only called once, the first time the options menu is displayed.
 	 * To update the menu every time it is displayed, see onPrepareOptionsMenu(Menu).
-	 *
+	 * <p>
 	 * The default implementation populates the menu with standard system menu items.
 	 * These are placed in the Menu#CATEGORY_SYSTEM group so that they will be correctly ordered with application-defined menu items.
 	 * Deriving classes should always call through to the base implementation.
-	 *
+	 * <p>
 	 * You can safely hold on to menu (and any items created from it),
 	 * making modifications to it as desired, until the next time onCreateOptionsMenu() is called.
-	 *
+	 * <p>
 	 * When you add items to the menu,
 	 * you can implement the Activity's onOptionsItemSelected(MenuItem) method to handle them there.
 	 *
@@ -162,92 +162,123 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * The default implementation simply returns false to have the normal processing happen
 	 * (calling the item's Runnable or sending a message to its Handler as appropriate).
 	 * You can use this method for any items for which you would like to do processing without those other facilities.
-	 *
+	 * <p>
 	 * Derived classes should call through to the base class for it to perform the default menu handling.
-	 * @param item he menu item that was selected. This value cannot be null.
+	 *
+	 * @param item The menu item that was selected. This value cannot be null.
 	 * @return Return false to allow normal menu processing to proceed, true to consume it here.
 	 */
 	@Override
 	public boolean onOptionsItemSelected(@NotNull MenuItem item) {
+		Log.v("onOptionsItemSelected", "onOptionsItemSelected has been called!");
+
+		// Identify which method to call based on the item ID.
+		// Use a switch statement instead of multiple else ifs for this (as it's just slightly faster).
 		switch (item.getGroupId()) {
+
 			// Check if the item that was selected belongs to the other group
 			case R.id.other:
-				switch (item.getItemId()) {
-					// Check if the item that was selected was the night mode toggle.
-					case R.id.night_mode:
-						Log.d("onOptionsItemSelected", "Toggling night mode...");
-
-						// Create a boolean to store the resulting value of the menu item
-						boolean enabled = !item.isChecked();
-
-						// Toggle night mode
-						this.toggleNightMode(enabled);
-
-						// Set the menu item's checked value to that of the enabled value
-						item.setChecked(enabled);
-						break;
-					// Check if the item that was selected was the settings button.
-					case R.id.settings:
-
-						// Launch the settings activity
-						this.startActivity(new Intent(this, SettingsActivity.class));
-						break;
-					// Check if the item that was selected was the fares button.
-					case R.id.fares:
-						new FarePopupWindow(this).showFarePopupWindow();
-						break;
-
-					default:
-						// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!
-						Log.w("onOptionsItemSelected", "Unaccounted menu item in the other group was checked!");
-						break;
-				}
+				this.onOtherOptionsItemSelected(item);
 				break;
-			// Check if the item that was selected belongs to the childRoutes group.
+
+			// Check if the item that was selected belongs to the routes group.
 			case R.id.routes:
-				// Create a boolean to store the resulting value of the menu item.
-				boolean enabled = !item.isChecked();
-
-				// Then clear the shared stops since they will be recreated.
-				this.sharedStops = SharedStop.clearSharedStops(this.sharedStops);
-
-				// Then clear the regular stops from the map (as the stops to be displayed will be re-evaluated).
-				Stop.removeStops(this.selectedRoutes);
-
-				// Toggle the routes based on the menu item's title, and its enabled value.
-				if (enabled) {
-					this.selectedRoutes = Route.enableRoutes(item.getTitle().toString(), this.selectedRoutes);
-
-					// Display a warning if the number of selected routes gets to 3.
-					if (this.selectedRoutes.length == 3) {
-						new WarningPopup(this).showWarningPopup();
-					}
-				} else {
-					this.selectedRoutes = Route.disableRoute(item.getTitle().toString(), this.selectedRoutes);
-				}
-
-				// If enabled, draw polylines
-				if (CurrentSettings.settings.getPolylines()) {
-					for (Route route : this.selectedRoutes) {
-						if (route.getPolyline() == null) {
-							route.createPolyline(MapsActivity.map);
-						}
-					}
-				}
-
-				// (Re) draw the stops onto the map
-				this.drawStops();
-
-				// Set the menu item's checked value to that of the enabled value
-				item.setChecked(enabled);
+				this.onRouteItemSelected(item);
 				break;
 			default:
-				// Since the item's ID and group was not part of anything accounted for (uh oh), log it as a warning!
+
+				// Since the item's ID and group was not part of anything accounted for (uh oh),
+				// log it as a warning!
 				Log.w("onOptionsItemSelected", "Unaccounted menu item was checked!");
 				break;
 		}
 
 		return super.onOptionsItemSelected(item);
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param item The menu item that was selected. This value cannot be null.
+	 */
+	private void onOtherOptionsItemSelected(@NotNull MenuItem item) {
+		Log.v("onOtherOptionSelected", "onOtherOptionsItemSelected has been called!");
+
+		// Identify what action to execute based on the item ID.
+		// Use a switch statement instead of multiple else ifs for this (as it's just slightly faster).
+		switch (item.getItemId()) {
+			// Check if the item that was selected was the night mode toggle.
+			case R.id.night_mode:
+				Log.d("onOptionsItemSelected", "Toggling night mode...");
+
+				// Create a boolean to store the resulting value of the menu item
+				boolean enabled = !item.isChecked();
+
+				// Toggle night mode
+				this.toggleNightMode(enabled);
+
+				// Set the menu item's checked value to that of the enabled value
+				item.setChecked(enabled);
+				break;
+			// Check if the item that was selected was the settings button.
+			case R.id.settings:
+
+				// Launch the settings activity
+				this.startActivity(new Intent(this, SettingsActivity.class));
+				break;
+			// Check if the item that was selected was the fares button.
+			case R.id.fares:
+				new FarePopupWindow(this).showFarePopupWindow();
+				break;
+
+			default:
+				// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!
+				Log.w("onOptionsItemSelected", "Unaccounted menu item in the other group was checked!");
+				break;
+		}
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param item
+	 */
+	private void onRouteItemSelected(@NotNull MenuItem item) {
+		Log.v("onRouteItemSelected", "onRouteItemSelected bas been called!");
+
+		// Create a boolean to store the resulting value of the menu item.
+		boolean enabled = !item.isChecked();
+
+		// Then clear the shared stops since they will be recreated.
+		this.sharedStops = SharedStop.clearSharedStops(this.sharedStops);
+
+		// Then clear the regular stops from the map (as the stops to be displayed will be re-evaluated).
+		Stop.removeStops(this.selectedRoutes);
+
+		// Toggle the routes based on the menu item's title, and its enabled value.
+		if (enabled) {
+			this.selectedRoutes = Route.enableRoutes(item.getTitle().toString(), this.selectedRoutes);
+
+			// Display a warning if the number of selected routes gets to 3.
+			if (this.selectedRoutes.length == 3) {
+				new WarningPopup(this).showWarningPopup();
+			}
+		} else {
+			this.selectedRoutes = Route.disableRoute(item.getTitle().toString(), this.selectedRoutes);
+		}
+
+		// If enabled, draw polylines
+		if (CurrentSettings.settings.getPolylines()) {
+			for (Route route : this.selectedRoutes) {
+				if (route.getPolyline() == null) {
+					route.createPolyline(MapsActivity.map);
+				}
+			}
+		}
+
+		// (Re) draw the stops onto the map
+		this.drawStops();
+
+		// Set the menu item's checked value to that of the enabled value
+		item.setChecked(enabled);
 	}
 
 
@@ -382,6 +413,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				MapsActivity.map.setOnInfoWindowLongClickListener(streetViewListener);
 			}
 			 */
+
+			// TODO Find out which buses to show
 
 			this.updateThread.run = true;
 			if (!this.updateThread.thread().isAlive()) {

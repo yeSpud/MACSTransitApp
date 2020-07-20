@@ -1,4 +1,6 @@
 # MACS Transit Android App
+![Developer Build Status](https://github.com/yeSpud/MACSTransitApp/workflows/Android%20CI/badge.svg?branch=dev)
+
 This is the source code for the dedicated [bus tracker app](https://play.google.com/store/apps/details?id=fnsb.macstransit) for android devices for the [MACS Transit system](http://www.co.fairbanks.ak.us/transportation/Pages/MACS.aspx) in Fairbanks, Alaska. 
 This project was originally intended as an entry for the [AK Dev alliance](https://akdevalliance.com) Hackathon in 2019, but development has continued after the event finalized. 
 
