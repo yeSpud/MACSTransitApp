@@ -92,9 +92,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			return;
 		}
 
-		// Enable all the routes that were favorited.
-		Route.enableFavoriteRoutes(MapsActivity.allRoutes, CurrentSettings.settings.getRoutes());
-
 		// Obtain the SupportMapFragment and get notified when the map is ready to be used.
 		SupportMapFragment mapFragment = (SupportMapFragment) this.getSupportFragmentManager()
 				.findFragmentById(R.id.map);
@@ -183,7 +180,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 			// Check if the item that was selected belongs to the routes group.
 			case R.id.routes:
-				this.onRouteItemSelected(item);
+				try {
+					this.onRouteItemSelected(item);
+				} catch (Route.RouteException e) {
+					Toast.makeText(this, "An error occurred while selecting that route",
+							Toast.LENGTH_LONG).show();
+					e.printStackTrace();
+				}
 				break;
 			default:
 
@@ -241,14 +244,33 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * TODO Documentation
 	 * @param item
 	 */
-	private void onRouteItemSelected(@NotNull MenuItem item) {
+	private void onRouteItemSelected(@NotNull MenuItem item) throws Route.RouteException {
 		Log.v("onRouteItemSelected", "onRouteItemSelected bas been called!");
 
 		// Create a boolean to store the resulting value of the menu item.
 		boolean enabled = !item.isChecked();
 
+		// TODO Determine which route from all the routes was just selected.
+		Route selectedRoute = null;
+		for (Route route : MapsActivity.allRoutes) {
+			if (route.routeName.equals(item.getTitle().toString())) {
+				selectedRoute = route;
+				break;
+			}
+		}
+
+		// Make sure the selected route was found.
+		if (selectedRoute == null) {
+			throw new Route.RouteException("Unable to determine selected route!");
+		}
+
+		// Updated the selected route's boolean
+		selectedRoute.enabled = enabled;
+
+		/*
 		// Then clear the shared stops since they will be recreated.
 		this.sharedStops = SharedStop.clearSharedStops(this.sharedStops);
+
 
 		// Then clear the regular stops from the map (as the stops to be displayed will be re-evaluated).
 		Stop.removeStops(this.selectedRoutes);
@@ -273,9 +295,18 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				}
 			}
 		}
+		*/
 
-		// (Re) draw the stops onto the map
+		// (Re) draw the buses onto the map.
+		MapsActivity.drawBuses();
+
+		// (Re) draw the stops onto the map.
 		this.drawStops();
+
+		// (Re) draw the routes onto the map (if enabled).
+		if (CurrentSettings.settings.getPolylines()) {
+			MapsActivity.drawRoutes();
+		}
 
 		// Set the menu item's checked value to that of the enabled value
 		item.setChecked(enabled);
@@ -376,7 +407,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * Draws the stops and shared stops onto the map, and adjusts the stop sizes based on the zoom level.
 	 */
 	public void drawStops() {
+		// TODO Draw the stops (and shared stops) based on if their respective routes are enabled or not.
 		// Check and load all the shared stops.
+		/*
 		this.sharedStops = SharedStop.findSharedStops(this.selectedRoutes, this.sharedStops);
 
 		// Create and show the shared stops on the map if there are any (this.sharedStops will have a size greater than 0).
@@ -389,6 +422,39 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Adjust the circle sizes of the stops on the map given the current zoom.
 		AdjustZoom.adjustCircleSize(MapsActivity.map.getCameraPosition().zoom, this.sharedStops);
+		 */
+	}
+
+	/**
+	 * TODO Documentation
+	 */
+	private static void drawRoutes() {
+		// Draw the route polylines based on if they are enabled or not.
+		for (Route route : MapsActivity.allRoutes) {
+			try {
+				if (route.getPolyline() == null) {
+					route.createPolyline(MapsActivity.map);
+				}
+				route.getPolyline().setVisible(route.enabled);
+			} catch (NullPointerException e) {
+				Log.w("drawRoutes", String.format("Route %s doesn't have polyline!", route.routeName));
+			}
+		}
+	}
+
+	/**
+	 * TODO Documentation
+	 */
+	private static void drawBuses() {
+		// Force redraw the buses based on if their routes are enabled or not.
+		// Otherwise this is taken care of in the update thread.
+		for (Bus bus : MapsActivity.buses) {
+			try {
+				bus.getMarker().setVisible(bus.route.enabled);
+			} catch (NullPointerException e) {
+				Log.w("drawBuses", "Bus doesn't have a marker!");
+			}
+		}
 	}
 
 	/**
@@ -414,7 +480,19 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			}
 			 */
 
-			// TODO Find out which buses to show
+			// Enable all the routes that were favorited.
+			Route.enableFavoriteRoutes(MapsActivity.allRoutes, CurrentSettings.settings.getRoutes());
+
+			// Redraw the buses.
+			MapsActivity.drawBuses();
+
+			// Draw the stops.
+			this.drawStops();
+
+			// Draw the routes.
+			if (CurrentSettings.settings.getPolylines()) {
+				MapsActivity.drawRoutes();
+			}
 
 			this.updateThread.run = true;
 			if (!this.updateThread.thread().isAlive()) {

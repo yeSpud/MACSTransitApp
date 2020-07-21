@@ -5,6 +5,7 @@ import org.junit.Test;
 import fnsb.macstransit.RouteMatch.Route;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -37,6 +38,16 @@ public class RouteTest {
 			e.printStackTrace();
 			fail();
 		}
+	}
+
+	@SuppressWarnings("ResultOfObjectAllocationIgnored")
+	@Test
+	public void routeTest() {
+		// Constructor test!
+		// Basically make sure it errors when its supposed to.
+		assertThrows(Route.RouteException.class, () -> new Route("f o p"));
+		assertThrows(Route.RouteException.class, () -> new Route("multiline\nroute"));
+		assertThrows(Route.RouteException.class, () -> new Route("t a   b   s"));
 	}
 
 	@Test

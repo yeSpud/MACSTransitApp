@@ -20,7 +20,7 @@ import fnsb.macstransit.Activities.MapsActivity;
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
- * For the license, view the file titled LICENSE at the root of the project
+ * For the license, view the file titled LICENSE at the root of the project.
  *
  * @version 2.5.
  * @since Beta 3.
@@ -28,14 +28,14 @@ import fnsb.macstransit.Activities.MapsActivity;
 public class Route {
 
 	/**
-	 * The name of the parentRoute.
+	 * The name of the route.
 	 * Note: This cannot contain whitespace characters (ie spaces, tabs, or new lines),
 	 * as its used in a url.
 	 */
 	public String routeName;
 
 	/**
-	 * The color of the parentRoute.
+	 * The color of the route.
 	 * This is optional, as there is a high chance that the parentRoute does not have one.
 	 * <p>
 	 * This is an int instead of a Color object because for whatever reason android stores its colors as ints.
@@ -43,22 +43,15 @@ public class Route {
 	public int color;
 
 	/**
-	 * The array of stops for this parentRoute.
-	 * This may be empty / null if the parentRoute has not been initialized,
-	 * and the stops haven't been loaded.
+	 * The array of stops for this route.
+	 * This may be empty / null if the route has not been initialized, and the stops haven't been loaded.
 	 */
 	public Stop[] stops;
 
 	/**
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
-	 * This should be initialized with an array of length 0.
 	 */
-	public LatLng[] polyLineCoordinates = new LatLng[0];
-
-	/**
-	 * The polyline that corresponds to this parentRoute. This may be null if not enabled.
-	 */
-	private Polyline polyline;
+	public LatLng[] polyLineCoordinates;
 
 	/**
 	 * TODO Documentation
@@ -66,14 +59,19 @@ public class Route {
 	public boolean enabled = false;
 
 	/**
-	 * Constructor for the parentRoute. The name of the parentRoute is the only thing that is required.
-	 * Be sure that the provided parentRoute name does <b>NOT</b> contain any whitespace characters!
-	 *
-	 * @param routeName The name of the parentRoute. Be sure this does <b>NOT</b>
-	 *                  contain any whitespace characters!
-	 * @throws RouteException Thrown if the parentRoute name contains white space characters.
+	 * The polyline that corresponds to this route.
 	 */
-	public Route(String routeName) throws RouteException { // TODO Add unit test
+	private Polyline polyline;
+
+	/**
+	 * Constructor for the route. The name of the route is the only thing that is required.
+	 * Be sure that the provided route name does <b>NOT</b> contain any whitespace characters!
+	 *
+	 * @param routeName The name of the route. Be sure this does <b>NOT</b>
+	 *                  contain any whitespace characters!
+	 * @throws RouteException Thrown if the route name contains white space characters.
+	 */
+	public Route(@NotNull String routeName) throws RouteException {
 		if (routeName.contains(" ") || routeName.contains("\n") || routeName.contains("\t")) {
 			throw new RouteException("Route name cannot contain white space!");
 		} else {
@@ -82,17 +80,17 @@ public class Route {
 	}
 
 	/**
-	 * Constructor for the parentRoute. The name of the parentRoute is the only thing that is required.
-	 * Be sure that the provided parentRoute name does <b>NOT</b> contain any whitespace characters!
+	 * Constructor for the route. The name of the route is the only thing that is required.
+	 * Be sure that the provided route name does <b>NOT</b> contain any whitespace characters!
 	 *
-	 * @param routeName The name of the parentRoute. e sure this does <b>NOT</b>
+	 * @param routeName The name of the route. e sure this does <b>NOT</b>
 	 *                  contain any whitespace characters!
-	 * @param color     The parentRoute's color. This is optional,
+	 * @param color     The route's color. This is optional,
 	 *                  and of the color is non-existent simply use the
 	 *                  {@code Route(String routeName)} constructor.
-	 * @throws Exception Thrown if the parentRoute name contains white space characters.
+	 * @throws RouteException Thrown if the route name contains white space characters.
 	 */
-	public Route(String routeName, int color) throws Exception {
+	public Route(String routeName, int color) throws RouteException {
 		this(routeName);
 		this.color = color;
 	}
@@ -105,10 +103,10 @@ public class Route {
 	 * @param masterSchedule The master schedule JSONObject from the RouteMatch server.
 	 * @return An array of routes that <b><i>can be</i></b> tracked.
 	 */
+	@NotNull
 	public static Route[] generateRoutes(JSONObject masterSchedule) {
-
-		// Create an array to store all the generated childRoutes. This will be returned in the end.
-		ArrayList<Route> routes = new ArrayList<>();
+		// Create an array to store all the generated routes.
+		ArrayList<Route> routes = new ArrayList<>(0);
 
 		// Get the data from the master schedule, and store it in a JSONArray.
 		JSONArray data = RouteMatch.parseData(masterSchedule);
@@ -116,46 +114,80 @@ public class Route {
 		// Iterate through the data array to begin parsing the childRoutes
 		int count = data.length();
 		for (int index = 0; index < count; index++) {
+			// Get the current progress for parsing the routes
+			Log.d("generateRoutes", String.format("Parsing route %d/%d", index + 1, count));
+
+			// Try to get the route data from the array.
+			// If there's an issue parsing the data, simply go to the next iteration of the loop (continue).
+			JSONObject routeData;
 			try {
-				// Get the current progress for parsing the childRoutes
-				Log.d("generateRoutes", String.format("Parsing route %d/%d", index + 1, count));
+				routeData = data.getJSONObject(index);
+			} catch (JSONException e) {
+				Log.w("generateRoutes", "Issue retrieving the route data");
+				continue;
+			}
 
-				// Get the routeData that we are currently parsing as its own JSONObject variable.
-				org.json.JSONObject routeData = data.getJSONObject(index);
-
-				// First, parse the name.
-				String name = routeData.getString("routeId");
-
-				// Now try to parse the color.
-				try {
-					int color = android.graphics.Color.parseColor(routeData.getString("routeColor"));
-					routes.add(new Route(name, color));
-				} catch (IllegalArgumentException | JSONException colorError) {
-					Log.w("generateRoutes", "Unable to determine parentRoute color");
-					// Just return the parentRoute with the name
-					routes.add(new Route(name));
-				}
-
-			} catch (Exception e) {
-				// If there was an exception, simply print the stacktrace, and break from the for loop.
-				e.printStackTrace();
-				break;
+			// Try to create the route using the route data obtained above.
+			// If there was a route exception thrown, simply go to the next iteration of the loop (continue).
+			try {
+				Route route = Route.generateRoute(routeData);
+				routes.add(route);
+			} catch (RouteException e) {
+				Log.w("generateRoutes", "Issue creating route from route data");
+				// Since this is the end of the loop, there isn't a need for a continue statement.
 			}
 		}
 
 		// Return the parentRoute array list as a new array of childRoutes. Yes, they are different.
-		return routes.toArray(new Route[0]);
+		Route[] returnRoutes = new Route[routes.size()];
+		routes.toArray(returnRoutes);
+		return returnRoutes;
 	}
 
 	/**
-	 * Enabled a parentRoute by parentRoute name,
+	 * TODO Documentation
+	 * @param jsonObject
+	 * @return
+	 * @throws RouteException
+	 */
+	@NotNull
+	private static Route generateRoute(@NotNull JSONObject jsonObject) throws RouteException {
+		String name;
+
+		try {
+			// First, parse the name.
+			name = jsonObject.getString("routeId");
+		} catch (JSONException e) {
+			throw new RouteException("Unable to get route name from JSON");
+		}
+
+		Route route;
+
+		try {
+			// Now try to parse the color.
+			String colorName = jsonObject.getString("routeColor");
+			int color = android.graphics.Color.parseColor(colorName);
+
+			route = new Route(name, color);
+
+		} catch (JSONException e) {
+			// TODO
+			route = new Route(name);
+		}
+
+		return route;
+	}
+
+	/**
+	 * Enabled a route by route name,
 	 * and returns a new array of enabled childRoutes including the previously enabled childRoutes.
 	 *
-	 * @param routeName The new parentRoute to enable (by parentRoute name).
-	 * @param oldRoutes The array of old childRoutes that were previously enabled.
-	 *                  If there were no previously enabled childRoutes then this must be an array of size 0.
-	 * @return The array of childRoutes that are now being tracked.
+	 * @param routeName The new route to enable (by route name).
+	 * @param oldRoutes The array of old routes that were previously enabled.
+	 *                  If there were no previously enabled routes then this must be an array of size 0.
+	 * @return The array of routes that are now being tracked.
 	 */
+	@Deprecated
 	public static Route[] enableRoutes(String routeName, Route[] oldRoutes) { // FIXME
 		Log.d("enableRoutes", "Enabling route: " + routeName);
 
@@ -207,6 +239,7 @@ public class Route {
 	 * with the omission of the parentRoute that was to be removed.
 	 * If there are no more childRoutes that are to be enabled, then an array of size 0 will be returned.
 	 */
+	@Deprecated
 	public static Route[] disableRoute(String routeName, Route[] oldRoutes) { // FIXME
 		Log.d("disableRoute", "Disabling route: " + routeName);
 
@@ -251,6 +284,39 @@ public class Route {
 	}
 
 	/**
+	 * TODO Documentation
+	 *
+	 * @param allRoutes
+	 * @param favoritedRoutes
+	 */
+	public static void enableFavoriteRoutes(@NotNull Route[] allRoutes, Route[] favoritedRoutes) {
+		// Iterate through all the routes that will be used in the activity.
+		for (Route allRoute : allRoutes) {
+
+			// Iterate though the favorite routes
+			for (Route favoritedRoute : favoritedRoutes) {
+
+				// If the route name matches the favorited route name, enable it.
+				if (allRoute.routeName.equals(favoritedRoute.routeName)) {
+					allRoute.enabled = true;
+					break;
+				}
+			}
+		}
+
+	}
+
+	public void enableRoute() {
+		// TODO
+		// Show polylines, show stops
+	}
+
+	public void disableRoute() {
+		// TODO
+		// Hide polylines, hide stops
+	}
+
+	/**
 	 * Loads the stops from the provided url.
 	 * If there was an error parsing the JSON data for the stop object,
 	 * then this will return what stops it had parsed successfully up until that point.
@@ -259,7 +325,7 @@ public class Route {
 	 * @param routeMatch The parentRoute match instance (for pulling from the RouteMatch server).
 	 * @return The array of stops that were loaded.
 	 */
-	public Stop[] loadStops(RouteMatch routeMatch) {
+	public Stop[] loadStops(@NotNull RouteMatch routeMatch) {
 
 		// Create an array that will store the parsed stop objects
 		ArrayList<Stop> returnArray = new ArrayList<>();
@@ -314,7 +380,7 @@ public class Route {
 	 * @param routeMatch The RouteMatch object.
 	 * @return The initialized array of LatLng coordinates.
 	 */
-	public LatLng[] loadPolyLineCoordinates(RouteMatch routeMatch) {
+	public LatLng[] loadPolyLineCoordinates(@NotNull RouteMatch routeMatch) {
 
 		// Get the JSONArray of points for this parentRoute from the RouteMatch server.
 		JSONArray points = null;
@@ -358,31 +424,9 @@ public class Route {
 	}
 
 	/**
-	 * TODO Documentation
-	 * @param allRoutes
-	 * @param favoritedRoutes
-	 */
-	public static void enableFavoriteRoutes(@NotNull Route[] allRoutes, Route[] favoritedRoutes) {
-		// Iterate through all the routes that will be used in the activity.
-		for (Route allRoute : allRoutes) {
-
-			// Iterate though the favorite routes
-			for (Route favoritedRoute : favoritedRoutes) {
-
-				// If the route name matches the favorited route name, enable it.
-				if (allRoute.routeName.equals(favoritedRoute.routeName)) {
-					allRoute.enabled = true;
-					break;
-				}
-			}
-		}
-
-	}
-
-	/**
-	 * Returns the polyline that corresponds to the parentRoute.
+	 * Returns the polyline that corresponds to the route.
 	 *
-	 * @return The polyline that corresponds to the parentRoute.
+	 * @return The polyline that corresponds to the route.
 	 */
 	public Polyline getPolyline() {
 		return this.polyline;
@@ -393,7 +437,8 @@ public class Route {
 	 *
 	 * @param map The map to add the polyline to.
 	 */
-	public void createPolyline(com.google.android.gms.maps.GoogleMap map) {
+	public void createPolyline(@NotNull com.google.android.gms.maps.GoogleMap map) {
+		Log.v("createPolyline", "Creating route polyline");
 		// Add the polyline based off the polyline coordinates within the parentRoute.
 		PolylineOptions options = new PolylineOptions().add(this.polyLineCoordinates);
 
@@ -403,8 +448,8 @@ public class Route {
 		// Set the color of the polylines based on the parentRoute color.
 		options.color(this.color);
 
-		// Make sure the polyline is visible.
-		options.visible(true);
+		// Make sure the polyline starts out invisible.
+		options.visible(false);
 
 		// Add the polyline to the map, and return it.
 		this.polyline = map.addPolyline(options);
@@ -417,6 +462,7 @@ public class Route {
 
 		/**
 		 * TODO Documentation
+		 *
 		 * @param message
 		 */
 		public RouteException(String message) {
@@ -425,6 +471,7 @@ public class Route {
 
 		/**
 		 * TODO Documentation
+		 *
 		 * @param message
 		 * @param cause
 		 */
@@ -434,6 +481,7 @@ public class Route {
 
 		/**
 		 * TODO Documentation
+		 *
 		 * @param cause
 		 */
 		public RouteException(Throwable cause) {
