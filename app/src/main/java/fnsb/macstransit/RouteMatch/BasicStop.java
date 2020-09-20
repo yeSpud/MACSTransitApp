@@ -16,6 +16,7 @@ import java.util.ArrayList;
  * @version 1.2
  * @since Beta 7.
  */
+@Deprecated
 public class BasicStop extends MarkedObject {
 
 	/**

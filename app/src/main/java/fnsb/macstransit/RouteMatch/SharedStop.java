@@ -16,7 +16,6 @@ import java.util.ArrayList;
  * @version 2.0
  * @since Beta 7.
  */
-@SuppressWarnings("WeakerAccess")
 public class SharedStop extends Stop {
 
 	/**

@@ -62,6 +62,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * Create an array of all the Shared Stops (stops that share a location).
 	 */
+	@Deprecated
 	public SharedStop[] sharedStops = new SharedStop[0];
 
 	/**

@@ -6,6 +6,7 @@ import android.os.Build;
 import android.util.Log;
 import android.view.View;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
@@ -25,8 +26,17 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 	/**
 	 * The max progress for the progress bar.
+	 * The progress is determined the following checks:
+	 *  * Internet check (1)
+	 *  * Creating a routematch object (1)
+	 *  * Downloading the master schedule (1)
+	 *  * Load bus routes (Route) (8)
+	 *  * Map the bus routes (polylines) (8)
+	 *  * Map the bus stops (8)
+	 *  * Map the shared stops (8)
 	 */
-	private static final double maxProgress = 6.0d;
+	@SuppressWarnings("PointlessArithmeticExpression")
+	private static final double maxProgress = (1 * 3) + (8 * 4);
 
 	/**
 	 * Create a variable to check if the map activity has already been loaded
@@ -123,56 +133,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	}
 
 	/**
-	 * Creates a thread that will run the initialization methods.
-	 * The reason why this needs to be run on a new thread is if it was run on the UI thread
-	 * it would cause the app to hang until all the methods are completed.
-	 *
-	 * @return The thread that will run all the necessary initialization methods.
-	 */
-	@org.jetbrains.annotations.NotNull
-	private Thread initializeApp() {
-		Thread thread = new Thread(() -> {
-			// Check if the user has internet before continuing
-			this.setMessage("Checking internet connection");
-			if (this.isMissingInternet()) {
-				this.noInternet();
-				return;
-			}
-			this.setProgressBar(1 / SplashActivity.maxProgress);
-
-			// Try to get the bus routes.
-			JSONObject busRoutes;
-			try {
-				busRoutes = this.getBusRoutes();
-			} catch (MalformedURLException e) {
-				Log.e("initializeApp", "", e);
-				this.setMessage("An incorrect URL has been provided for the RouteMatch server");
-				this.progressBar.setVisibility(View.INVISIBLE);
-				return;
-			}
-
-			// Check if there are no routes for the day.
-			if (busRoutes.length() == 0) {
-				this.setMessage("There are no buses scheduled to run at this time");
-
-				// Also add a chance for the user to retry
-				this.showRetryButton();
-				return;
-			}
-
-			// Map the routes, stops, and polylines.
-			this.mapRoutes(busRoutes);
-
-			// Finally, launch the maps activity.
-			this.launchMapsActivity();
-		});
-
-		// Set hte name of the thread, and finally return it.
-		thread.setName("Initialization thread");
-		return thread;
-	}
-
-	/**
 	 * Called as part of the activity lifecycle when the user no longer actively interacts with the activity,
 	 * but it is still visible on screen. The counterpart to onResume().
 	 * <p>
@@ -212,6 +172,80 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	}
 
 	/**
+	 * Creates a thread that will run the initialization methods.
+	 * The reason why this needs to be run on a new thread is if it was run on the UI thread
+	 * it would cause the app to hang until all the methods are completed.
+	 *
+	 * @return The thread that will run all the necessary initialization methods.
+	 */
+	@org.jetbrains.annotations.NotNull
+	private Thread initializeApp() {
+		Thread thread = new Thread(() -> {
+			// Check if the user has internet before continuing.
+			this.setMessage("Checking internet connection");
+			if (this.isMissingInternet()) {
+				this.noInternet();
+				return;
+			}
+			this.setProgressBar(1);
+
+			// Create the routematch object.
+			this.setMessage("Creating RouteMatch object");
+			try {
+				MapsActivity.routeMatch = new fnsb.macstransit.RouteMatch.
+						RouteMatch("https://fnsb.routematch.com/feed/");
+			} catch (MalformedURLException e) {
+				Log.e("initializeApp", "", e);
+				this.setMessage("An incorrect URL has been provided for the RouteMatch server");
+				this.progressBar.setVisibility(View.INVISIBLE);
+				return;
+			}
+			this.setProgressBar(2);
+
+			// Get the master schedule from the routematch server
+			this.setMessage("Downloading master schedule");
+			JSONObject masterSchedule = MapsActivity.routeMatch.getMasterSchedule();
+			this.setProgressBar(3);
+
+			// Check if there are no routes for the day.
+			if (masterSchedule.length() == 0) {
+				this.setMessage("There are no buses scheduled to run at this time");
+
+				// Also add a chance for the user to retry.
+				this.showRetryButton();
+				return;
+			}
+
+			// Load the bus routes from the master schedule.
+			this.setMessage("Loading bus routes");
+			MapsActivity.allRoutes = Route.generateRoutes(masterSchedule);
+			this.setProgressBar(3 + 8);
+
+			// Map bus routes (map polyline coordinates).
+			this.setMessage("Mapping bus routes");
+			this.mapBusRoutes();
+			this.setProgressBar(3 + (8*2));
+
+			// Map bus stops.
+			this.setMessage("Mapping bus stops");
+			this.mapBusStops();
+			this.setProgressBar(3 + (8*3));
+
+			// Map shared stops.
+			this.setMessage("Mapping shared bus stops");
+			this.mapSharedStops();
+			this.setProgressBar(3 + (8*4));
+
+			// Finally, launch the maps activity.
+			this.launchMapsActivity();
+		});
+
+		// Set the name of the thread, and finally return it.
+		thread.setName("Initialization thread");
+		return thread;
+	}
+
+	/**
 	 * Changes the splash screen display when there is no internet. Such as hiding the progress bar,
 	 * and setting the button to launch the wireless settings.
 	 */
@@ -240,61 +274,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	}
 
 	/**
-	 * Gets the bus routes from the master schedule.
-	 * This may return a blank json object if there is an error with the routematch object.
-	 *
-	 * @return The json object containing the master schedule.
-	 * @throws MalformedURLException Thrown if an invalid format is provided to the RouteMatch object.
-	 */
-	private JSONObject getBusRoutes() throws MalformedURLException {
-		// Create the routematch object.
-		this.setMessage("Creating bus schedule");
-		MapsActivity.routeMatch = new fnsb.macstransit.RouteMatch.RouteMatch("https://fnsb.routematch.com/feed/");
-		this.setProgressBar(2 / SplashActivity.maxProgress);
-
-		// Then retrieve the routes that are being used.
-		this.setMessage("Finding bus routes");
-		JSONObject masterSchedule = MapsActivity.routeMatch.getMasterSchedule();
-		this.setProgressBar(3 / SplashActivity.maxProgress);
-
-		// Return the loaded master schedule.
-		return masterSchedule;
-	}
-
-	/**
-	 * Loads the stops and the polylines for each route.
-	 *
-	 * @param masterSchedule The master schedule json used to determine the routes from.
-	 */
-	private void mapRoutes(JSONObject masterSchedule) {
-		// Using the schedule load in all the routes.
-		this.setMessage("Mapping bus routes");
-		Route[] routes = Route.generateRoutes(masterSchedule);
-		this.setProgressBar(4 / maxProgress);
-
-		// Using the routes generate the bus stops and polylines.
-		this.setMessage("Mapping bus stops");
-		double routesProgress = 1.0d;
-
-		// Iterate through the routes
-		for (Route route : routes) {
-			// Load the stops in the route.
-			route.stops = route.loadStops(MapsActivity.routeMatch);
-			this.setProgressBar((4 + (routesProgress / (routes.length * 2))) / SplashActivity.maxProgress);
-
-			// Load the polylines in the route.
-			route.polyLineCoordinates = route.loadPolyLineCoordinates(MapsActivity.routeMatch);
-			this.setProgressBar((4 + ((routesProgress + 1) / (routes.length * 2))) / SplashActivity.maxProgress);
-
-			// Update the route progress.
-			routesProgress += 2;
-		}
-
-		// Apply the routes to the maps activity
-		MapsActivity.allRoutes = routes;
-	}
-
-	/**
 	 * Checks if the device has a current internet connection.
 	 *
 	 * @return Whether or not the device has an internet connection.
@@ -313,6 +292,49 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			// Since the connectivity manager is null return true.
 			return true;
 		}
+	}
+
+	/**
+	 * TODO Documentation
+	 */
+	private void mapBusRoutes() {
+		// TODO
+		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = (3.0d + 8.0d);
+
+		// Iterate though each route, and load the polyline in each of them.
+		for (Route route : MapsActivity.allRoutes) {
+			try {
+				route.loadPolyLineCoordinates();
+			} catch (JSONException e) {
+				Log.e("mapBusRoutes", "Unable to map route " + route.routeName, e);
+			}
+
+			// TODO
+			currentProgress += step;
+			this.setProgressBar(currentProgress);
+		}
+	}
+
+	/**
+	 * TODO Documentation
+	 */
+	private void mapBusStops() {
+		// TODO
+		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = (3.0d + (8.0d*2.0d));
+
+		// TODO Documentation
+		for (Route route : MapsActivity.allRoutes) {
+			route.stops = route.loadStops(MapsActivity.routeMatch);
+
+			currentProgress += step;
+			this.setProgressBar(currentProgress);
+		}
+	}
+
+	private void mapSharedStops() {
+		// TODO
+		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = (3.0d + (8.0d*3.0d));
+
 	}
 
 	/**
@@ -345,20 +367,17 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	}
 
 	/**
-	 * Sets the percent progress on the progress bar from a scale of 0 to 1 (as a double).
-	 * If the progress is larger than 1, it will be converted to 1. If the progress is less than 0,
-	 * it will be converted to 0.
-	 *
-	 * @param progress The progress to be set on the progress bar as a percent (between 0 and 1).
+	 * TODO Documentation
+	 * @param progress
 	 */
 	private void setProgressBar(double progress) {
 		this.runOnUiThread(() -> {
 			// Convert the progress to be an int out of 100.
-			int p = (int) Math.round(progress * 100);
+			int p = (int) Math.round((progress / SplashActivity.maxProgress) * 100);
 
 			// Validate that that the progress is between 0 and 100.
 			p = (p > 100) ? 100 : Math.max(p, 0);
-			Log.d("setProgress", "Progress: " + p);
+			Log.d("setProgressBar", "Progress: " + p);
 
 			// Make sure the progress bar is not null
 			if (this.progressBar!=null) {

@@ -105,6 +105,7 @@ public class Stop extends BasicStop {
 	 *
 	 * @param routes The childRoutes to have the stops cleared from.
 	 */
+	@Deprecated
 	public static void removeStops(Route[] routes) {
 		Log.d("removeStops", "Clearing all stops");
 

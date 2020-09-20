@@ -14,6 +14,8 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 import fnsb.macstransit.Activities.MapsActivity;
 
@@ -47,6 +49,11 @@ public class Route {
 	 * This may be empty / null if the route has not been initialized, and the stops haven't been loaded.
 	 */
 	public Stop[] stops;
+
+	/**
+	 * TODO Documentation
+	 */
+	public SharedStop[] sharedStops;
 
 	/**
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
@@ -106,7 +113,7 @@ public class Route {
 	@NotNull
 	public static Route[] generateRoutes(JSONObject masterSchedule) {
 		// Create an array to store all the generated routes.
-		ArrayList<Route> routes = new ArrayList<>(0);
+		Collection<Route> routes = new ArrayList<>(0);
 
 		// Get the data from the master schedule, and store it in a JSONArray.
 		JSONArray data = RouteMatch.parseData(masterSchedule);
@@ -146,6 +153,7 @@ public class Route {
 
 	/**
 	 * TODO Documentation
+	 *
 	 * @param jsonObject
 	 * @return
 	 * @throws RouteException
@@ -239,6 +247,7 @@ public class Route {
 	 * with the omission of the parentRoute that was to be removed.
 	 * If there are no more childRoutes that are to be enabled, then an array of size 0 will be returned.
 	 */
+	@NotNull
 	@Deprecated
 	public static Route[] disableRoute(String routeName, Route[] oldRoutes) { // FIXME
 		Log.d("disableRoute", "Disabling route: " + routeName);
@@ -267,7 +276,7 @@ public class Route {
 				}
 
 				// Remove the polyline from the map as well as the parentRoute.
-				Polyline polyline = route.getPolyline();
+				Polyline polyline = route.polyline;
 				if (polyline != null) {
 					polyline.remove();
 					route.polyline = null;
@@ -306,32 +315,14 @@ public class Route {
 
 	}
 
-	public void enableRoute() {
-		// TODO
-		// Show polylines, show stops
-	}
-
-	public void disableRoute() {
-		// TODO
-		// Hide polylines, hide stops
-	}
-
 	/**
-	 * Loads the stops from the provided url.
-	 * If there was an error parsing the JSON data for the stop object,
-	 * then this will return what stops it had parsed successfully up until that point.
-	 * As a result, the Stop array returned may be smaller than expected, or have a length of 0.
-	 *
-	 * @param routeMatch The parentRoute match instance (for pulling from the RouteMatch server).
-	 * @return The array of stops that were loaded.
+	 * TODO Documentation
 	 */
-	public Stop[] loadStops(@NotNull RouteMatch routeMatch) {
-
-		// Create an array that will store the parsed stop objects
-		ArrayList<Stop> returnArray = new ArrayList<>();
+	public void loadStops() {
+		JSONObject allStopsObject = MapsActivity.routeMatch.getAllStops(this);
 
 		// Get the data from all the stops and store it in a JSONArray.
-		JSONArray data = RouteMatch.parseData(routeMatch.getAllStops(this));
+		JSONArray data = RouteMatch.parseData(allStopsObject);
 
 		// Iterate through the data in the JSONArray
 		int count = data.length();
@@ -375,52 +366,50 @@ public class Route {
 	}
 
 	/**
-	 * Declares and initializes an array of LatLng coordinates to be used by the childRoutes polyline.
-	 *
-	 * @param routeMatch The RouteMatch object.
-	 * @return The initialized array of LatLng coordinates.
+	 * TODO Documentation
 	 */
-	public LatLng[] loadPolyLineCoordinates(@NotNull RouteMatch routeMatch) {
-
-		// Get the JSONArray of points for this parentRoute from the RouteMatch server.
-		JSONArray points = null;
-		try {
-			points = RouteMatch.parseData(routeMatch.getLandRoute(this)).getJSONObject(0)
-					.getJSONArray("points");
-		} catch (JSONException e) {
-			e.printStackTrace();
+	public void loadPolyLineCoordinates() throws JSONException {
+		// Make sure the RouteMatch object exists.
+		if (MapsActivity.routeMatch == null) {
+			return;
 		}
 
-		// If the points are not null execute the following:
-		if (points != null) {
-			// Get the number of points in the array.
-			int count = points.length();
+		// Get the land route json object from the RouteMatch server.
+		JSONObject landRouteObject = MapsActivity.routeMatch.getLandRoute(this);
 
-			// Create a new array of LatLng coordinates with the size being that of the number
-			// of points in the array.
-			LatLng[] coordinates = new LatLng[count];
+		// Get the land route data array from the land route object.
+		JSONArray landRouteData = RouteMatch.parseData(landRouteObject);
 
-			// Initialize the array fo coordinates by iterating through the JSONArray.
-			for (int index = 0; index < count; index++) {
-				Log.d("loadPolyLineCoordinates", String.format("Parsing coordinate %d/%d",
-						index + 1, count));
-				try {
-					// Get the JSONObject at the current index of the array.
-					JSONObject object = points.getJSONObject(index);
+		// Get the land route points object from the land route data array.
+		JSONObject landRoutePoints = landRouteData.getJSONObject(0);
 
-					// Set the LatLng object to the latitude and longitude data from the JSONObject.
-					LatLng latLng = new LatLng(object.getDouble("latitude"),
-							object.getDouble("longitude"));
-					coordinates[index] = latLng;
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
-			}
-			return coordinates;
-		} else {
-			// Since the points were null, just return a LatLng array of size 0.
-			return new LatLng[0];
+		// Get the land route points array from the land route points object.
+		JSONArray landRoutePointsArray = landRoutePoints.getJSONArray("points");
+
+		// Get the number of points in the array.
+		int count = landRoutePointsArray.length();
+
+		// Create a new LatLng array to store all the coordinates.
+		LatLng[] coordinates = new LatLng[count];
+
+		// Initialize the array of coordinates by iterating through the land route points array.
+		for (int i = 0; i < count; i++) {
+			// Get the land route point object from the land route points array.
+			JSONObject landRoutePoint = landRoutePointsArray.getJSONObject(i);
+
+			// Get the latitude and longitude from the land route point.
+			double latitude = landRoutePoint.getDouble("latitude"),
+					longitude = landRoutePoint.getDouble("longitude");
+
+			// Create a new LatLng object using the latitude and longitude.
+			LatLng latLng = new LatLng(latitude, longitude);
+
+			// Add the newly created LatLng object to the LatLng array.
+			coordinates[i] = latLng;
 		}
+
+		// Set the polyline coordinates array to the finished LatLng array.
+		this.polyLineCoordinates = coordinates;
 	}
 
 	/**
