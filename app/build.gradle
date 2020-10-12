@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    compileSdkVersion 30
+    buildToolsVersion '30.0.2'
     defaultConfig {
         applicationId "fnsb.macstransit"
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 30
         versionCode 12
         versionName 'Release 1.2'
@@ -28,9 +28,10 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
     implementation 'org.jetbrains:annotations:15.0'
-    testImplementation 'junit:junit:4.13'
+    implementation 'org.jetbrains:annotations:15.0'
+    testImplementation 'junit:junit:4.13.1'
     testImplementation 'org.json:json:20200518'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.2'
 }
