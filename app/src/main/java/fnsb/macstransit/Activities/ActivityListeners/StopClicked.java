@@ -61,24 +61,11 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// Get the times for the stop.
 			// Since the method arguments are slightly different for a shared stop compared to a regular stop,
 			// check if the marker is an instance of a Stop or SharedStop.
-			String string;
+			String string=  "";
 
 			// If the stop is a shared stop, execute the following:
 			if (stop instanceof SharedStop) {
-				// Cast the stop to a shared stop.
-				SharedStop sharedStop = ((SharedStop) stop);
-
-				// Create an array of routes that will contain all the child routes plus the parent route.
-				Route[] routes = new Route[sharedStop.childRoutes.length + 1];
-
-				// Copy the parent and child route into the array.
-				routes[0] = sharedStop.parentRoute;
-				System.arraycopy(sharedStop.childRoutes, 0, routes, 1,
-						sharedStop.childRoutes.length);
-
-				// Then generate the time string, with the route name included.
-				string = StopClicked.generateTimeString(stopData, count, context, routes,
-						true);
+				// FIXME
 			} else if (stop instanceof Stop) {
 				// Since the stop is just a stop, just go straight into generating the time string,
 				// without the route name.
@@ -277,7 +264,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 			// Get the stop, and show its marker.
 			Stop stop = (Stop) circle.getTag();
-			this.showStop(stop, stop.getMarker(), stop.stopID);
+			this.showStop(stop, stop.getMarker(), stop.stopName);
 		} else {
 			// If it was neither a stop or a shared stop, warn that there was an unaccounted for object.
 			Log.w("onCircleClick", String.format("Circle object (%s) unaccounted for!", circle.getTag()));

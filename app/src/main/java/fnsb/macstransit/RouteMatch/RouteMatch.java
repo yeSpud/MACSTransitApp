@@ -96,7 +96,7 @@ public class RouteMatch {
 
 			// Create the url that will be used to retrieve the stop data.
 			String url = this.url + "departures/byStop/" +
-					pattern.matcher(java.net.URLEncoder.encode(stop.stopID, "UTF-8"))
+					pattern.matcher(java.net.URLEncoder.encode(stop.stopName, "UTF-8"))
 							.replaceAll("%20");
 			Log.d("getDeparturesByStop", "URL: " + url);
 

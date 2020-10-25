@@ -96,7 +96,7 @@ public class SharedStop extends Stop {
 				for (Stop s : r.stops) {
 					// If the stop matches our ID, then add that route to an array,
 					// so that we can add it to a newly created shared stop.
-					if (s.stopID.equals(basicStop.stopID)) {
+					if (s.stopName.equals(basicStop.stopID)) {
 						sharedRoutes.add(r);
 						// Since we are only checking the 1 route,
 						// break from this stop for loop to check another stop.
@@ -112,7 +112,7 @@ public class SharedStop extends Stop {
 				boolean found = false;
 				for (SharedStop s : currentSharedStops) {
 					// If a shared stop has this basic stop's id, mark it as found and break
-					if (s.stopID.equals(basicStop.stopID)) {
+					if (s.stopName.equals(basicStop.stopID)) {
 						found = true;
 						break;
 					}
@@ -137,36 +137,7 @@ public class SharedStop extends Stop {
 	 * @param sharedStops The array of shared stops to be added to the map.
 	 */
 	public static void addSharedStop(com.google.android.gms.maps.GoogleMap map, SharedStop[] sharedStops) {
-		// Iterate through all the shared stops provided and execute the following:
-		for (SharedStop sharedStop : sharedStops) {
-			Log.d("addSharedStop", String.format("Adding stop %s to the map", sharedStop.stopID));
-
-			// Set the parent circle for the shared stop, and make sure its clickable.
-			sharedStop.setCircle(map, true);
-
-			// Create a new Circles array based on the number of childRoutes.
-			Circle[] circles = new Circle[sharedStop.childRoutes.length];
-
-			// Create and add the childCircles to the map.
-			for (int index = 0; index < circles.length; index++) {
-				Circle circle = sharedStop.addCircle(map, sharedStop.childCircleOptions[index],
-						false);
-
-				// If this is the first circle (will have an index of 0), add a marker to the stop.
-				if (index == 0) {
-					Marker marker = sharedStop.addMarker(map, sharedStop.latitude, sharedStop.longitude,
-							sharedStop.parentRoute.color, sharedStop.stopID);
-					marker.setVisible(false);
-					sharedStop.setMarker(marker);
-				}
-
-				// Apply the circle to the circle array.
-				circles[index] = circle;
-			}
-
-			// Now apply the Circles to the SharedStop object
-			sharedStop.setCircles(circles);
-		}
+		// FIXME
 	}
 
 	/**
@@ -188,7 +159,7 @@ public class SharedStop extends Stop {
 			}
 
 			// Get the parent circle from the shared stop, and remove it if its not null.
-			Circle parentCircle = sharedStop.getCircle();
+			Circle parentCircle = sharedStop.circle;
 			if (parentCircle != null) {
 				parentCircle.remove();
 			}
@@ -238,25 +209,7 @@ public class SharedStop extends Stop {
 
 		// Iterate though the childCircles and circle parentCircleOptions and initialize them.
 		for (int index = 0; index < count; index++) {
-
-			double size = Stop.PARENT_RADIUS * (1d / (index + 2));
-			Log.d("createCircleOptions", "Size: " + size);
-
-			// Make the circle parentCircleOptions for the first one the biggest,
-			// and the only one that is clickable.
-			CircleOptions circleOption = new CircleOptions()
-					.center(new com.google.android.gms.maps.model.LatLng(this.latitude, this.longitude))
-					.radius(size);
-
-			// Set the color to the index of the parentRoute.
-			int color = this.childRoutes[index].color;
-			if (color != 0) {
-				circleOption.strokeColor(color);
-				circleOption.fillColor(color);
-			}
-
-			// Finally apply that generated CirCleOption to the CircleOptions array.
-			circleOptions[index] = circleOption;
+			// FIXME
 		}
 
 		// Return the array of CircleOptions.

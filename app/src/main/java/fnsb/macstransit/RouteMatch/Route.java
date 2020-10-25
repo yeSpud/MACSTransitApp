@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import fnsb.macstransit.Activities.MapsActivity;
 
@@ -40,7 +41,7 @@ public class Route {
 	 * The color of the route.
 	 * This is optional, as there is a high chance that the parentRoute does not have one.
 	 * <p>
-	 * This is an int instead of a Color object because for whatever reason android stores its colors as ints.
+	 * This is an int instead of a Color object as android stores its colors as an integer.
 	 */
 	public int color;
 
@@ -49,11 +50,6 @@ public class Route {
 	 * This may be empty / null if the route has not been initialized, and the stops haven't been loaded.
 	 */
 	public Stop[] stops;
-
-	/**
-	 * TODO Documentation
-	 */
-	public SharedStop[] sharedStops;
 
 	/**
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
@@ -79,7 +75,10 @@ public class Route {
 	 * @throws RouteException Thrown if the route name contains white space characters.
 	 */
 	public Route(@NotNull String routeName) throws RouteException {
-		if (routeName.contains(" ") || routeName.contains("\n") || routeName.contains("\t")) {
+
+		Pattern whitespace = Pattern.compile("\\s");
+
+		if (whitespace.matcher(routeName).find()) {
 			throw new RouteException("Route name cannot contain white space!");
 		} else {
 			this.routeName = routeName;
@@ -103,23 +102,17 @@ public class Route {
 	}
 
 	/**
-	 * Dynamically generates the routes that are used by parsing the master schedule.
-	 * This may return an empty route array if there was an issue parsing the data,
-	 * or if there were no routes to parse based off the master schedule.
-	 *
-	 * @param masterSchedule The master schedule JSONObject from the RouteMatch server.
-	 * @return An array of routes that <b><i>can be</i></b> tracked.
+	 * TODO Documentation
+	 * @param masterSchedule
+	 * @return
 	 */
 	@NotNull
-	public static Route[] generateRoutes(JSONObject masterSchedule) {
+	public static Route[] generateRoutes(JSONArray masterSchedule) {
 		// Create an array to store all the generated routes.
 		Collection<Route> routes = new ArrayList<>(0);
 
-		// Get the data from the master schedule, and store it in a JSONArray.
-		JSONArray data = RouteMatch.parseData(masterSchedule);
-
 		// Iterate through the data array to begin parsing the childRoutes
-		int count = data.length();
+		int count = masterSchedule.length();
 		for (int index = 0; index < count; index++) {
 			// Get the current progress for parsing the routes
 			Log.d("generateRoutes", String.format("Parsing route %d/%d", index + 1, count));
@@ -128,7 +121,7 @@ public class Route {
 			// If there's an issue parsing the data, simply go to the next iteration of the loop (continue).
 			JSONObject routeData;
 			try {
-				routeData = data.getJSONObject(index);
+				routeData = masterSchedule.getJSONObject(index);
 			} catch (JSONException e) {
 				Log.w("generateRoutes", "Issue retrieving the route data");
 				continue;
@@ -298,9 +291,9 @@ public class Route {
 	 * @param allRoutes
 	 * @param favoritedRoutes
 	 */
-	public static void enableFavoriteRoutes(@NotNull Route[] allRoutes, Route[] favoritedRoutes) {
+	public static void enableFavoriteRoutes(Route[] favoritedRoutes) {
 		// Iterate through all the routes that will be used in the activity.
-		for (Route allRoute : allRoutes) {
+		for (Route allRoute : MapsActivity.allRoutes) {
 
 			// Iterate though the favorite routes
 			for (Route favoritedRoute : favoritedRoutes) {
@@ -318,18 +311,22 @@ public class Route {
 	/**
 	 * TODO Documentation
 	 */
-	public void loadStops() {
+	public Stop[] loadStops() {
+
+		// Get all the stops for the route from the RouteMatch object.
 		JSONObject allStopsObject = MapsActivity.routeMatch.getAllStops(this);
 
 		// Get the data from all the stops and store it in a JSONArray.
 		JSONArray data = RouteMatch.parseData(allStopsObject);
 
-		// Iterate through the data in the JSONArray
-		int count = data.length();
-		for (int index = 0; index < count; index++) {
+		// Create a large array that will store all the potential stops.
+		// This array will be trimmed down to fit only the valid stops when we are ready to return.
+		int count = data.length(),
+		validStops = 0;
+		Stop[] potentialStops = new Stop[count];
 
-			// Output the current index for debugging reasons
-			Log.d("loadStops", String.format("Parsing stop %d/%d", index + 1, count));
+		// Iterate through the data in the JSONArray.
+		for (int index = 0; index < count; index++) {
 
 			Stop stop;
 			try {
@@ -344,25 +341,19 @@ public class Route {
 			}
 
 			// Iterate through the return array and check if the created stop is a duplicate.
-			boolean found = false;
-			for (Stop s : returnArray) {
-				// If the stop is a duplicate (matches latitude, longitude, and parentRoute),
-				// set the found boolean to true, abd break form the for loop
-				if (stop.latitude == s.latitude && s.longitude == s.longitude && stop.parentRoute.equals(s.parentRoute)) {
-					found = true;
-					break;
-				}
+			if (Stop.isDuplicate(stop, potentialStops)) {
+				continue;
 			}
 
-			// If the stop was never found, add it to the return array.
-			if (!found) {
-				Log.d("loadStops", "Adding stop: " + stop.stopID + " to the array");
-				returnArray.add(stop);
-			}
+
+			potentialStops[validStops] = stop;
+			validStops++;
 		}
 
 		// Return the array list that contains all the stops as a new Stop array.
-		return returnArray.toArray(new Stop[0]);
+		Stop[] returnArray = new Stop[validStops];
+		System.arraycopy(potentialStops, 0, returnArray, 0, validStops);
+		return returnArray;
 	}
 
 	/**

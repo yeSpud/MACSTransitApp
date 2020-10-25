@@ -2,9 +2,12 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
-import com.google.android.gms.maps.model.Marker;
+
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
 
 /**
  * Created by Spud on 2019-10-18 for the project: MACS Transit.
@@ -14,120 +17,169 @@ import com.google.android.gms.maps.model.Marker;
  * @version 1.3
  * @since Beta 6.
  */
-public class Stop extends BasicStop {
+public class Stop extends MarkedObject {
 
 	/**
-	 * Creates a stop object.
-	 *
-	 * @param stopID    The ID of the stop. This is usually the stop name.
-	 * @param latitude  The latitude of the stop.
-	 * @param longitude The longitude of the stop.
-	 * @param route     The parentRoute this stop corresponds to.
+	 * The starting radius size of the circle for the stop on the map (in meters).
 	 */
-	public Stop(String stopID, double latitude, double longitude, Route route) {
-		super(stopID, latitude, longitude, route);
-
-		// Setup the parentCircleOptions that will be used on the stop icon.
-		// This is really just setting up the coordinates, and the initial radius of the stop.
-		CircleOptions circleOptions = new CircleOptions()
-				.center(new com.google.android.gms.maps.model.LatLng(this.latitude, this.longitude))
-				.radius(BasicStop.PARENT_RADIUS);
-
-		// If the parentRoute color isn't null, set the stop color to the same color as the parentRoute color.
-		if (this.parentRoute.color != 0) {
-			circleOptions.fillColor(this.parentRoute.color);
-			circleOptions.strokeColor(this.parentRoute.color);
-		}
-
-		// Set the icon parentCircleOptions to the newly created parentCircleOptions,
-		// though don't apply the parentCircleOptions to the icon just yet.
-		this.parentCircleOptions = circleOptions;
-	}
+	private static final double STARTING_RADIUS = 50.0d;
 
 	/**
-	 * Loads the stop from the provided JSON.
+	 * This is the route that the stop corresponds to.
+	 */
+	public Route route;
+
+	/**
+	 * The name (or ID) of the stop.
+	 */
+	public String stopName;
+
+	/**
+	 * The circle marking the bus stop on the map
+	 * (be sure to check if this exists first as it may be null).
+	 */
+	public Circle circle;
+
+	/**
+	 * The options that apply to the circle representing the stop.
+	 * These options include:
+	 * <ul>
+	 * <li>The coordinates of the stop
+	 * <li>The current size of the circle
+	 * <li>The color of the circle
+	 * <li>Whether the circle is clickable or not
+	 * </ul><p>
+	 * ... and more!
+	 */
+	public CircleOptions circleOptions;
+
+	/**
+	 * Creates a new Stop object using the name, coordinates on the map, and the route.
 	 * <p>
-	 * This simply parses the JSON to the constructor.
+	 * Important note: While this sets up the circle options and the name and route,
+	 * it does not create the actual circle object as that requires the map object to be loaded.
+	 * <p>
+	 * The circle for the stop is created when its called to be shown on the map.
 	 *
-	 * @param json  The JSON to be parsed for the stop.
-	 * @param route The parentRoute this stop belongs to. This will also be passed to the constructor.
-	 * @throws org.json.JSONException Thrown if there is an exception in parsing the JSON (ie missing a queried field).
+	 * @param stopName  The name (or ID) of the stop.
+	 * @param latitude  The latitude position of the stop on the map.
+	 * @param longitude The longitude position of the stop on the map.
+	 * @param route     The route that the stop corresponds to.
 	 */
-	public Stop(org.json.JSONObject json, Route route) throws org.json.JSONException {
-		this(json.getString("stopId"), json.getDouble("latitude"), json.getDouble("longitude"), route);
-	}
+	public Stop(String stopName, double latitude, double longitude, Route route) {
 
-	/**
-	 * Adds a stop to the map based on the childRoutes.
-	 * This will not add the stop to the map if it is a shared stop.
-	 * Because of this check, this should be called after the sharedStops have been found and created.
-	 *
-	 * @param map         The map to add the stops to.
-	 * @param routes      The childRoutes to add the stops to.
-	 * @param sharedStops The array of shared stops to check if the stops have already been added.
-	 */
-	public static void addStop(com.google.android.gms.maps.GoogleMap map, Route[] routes,
-	                           SharedStop[] sharedStops) {
-		for (Route route : routes) {
+		// Set our stop name and route.
+		this.route = route;
+		this.stopName = stopName;
 
-			// Iterate through the stops in the parentRoute and execute the following:
-			for (Stop stop : route.stops) {
+		// Setup the circle options for our stop.
+		// This will later be applied to the actual circle object.
+		this.circleOptions = new CircleOptions()
+				.center(new com.google.android.gms.maps.model.LatLng(latitude, longitude))
+				.radius(Stop.STARTING_RADIUS);
 
-				// Create a boolean that will be used to verify if a stop has been found or not
-				boolean found = false;
-
-				// Iterate through the shared stops and check if the stop we are using
-				// to iterate is also within the shared stop array (by stop id only).
-				for (SharedStop sharedStop : sharedStops) {
-					if (sharedStop.stopID.equals(stop.stopID)) {
-						// If the stop was indeed found (by id), set the found boolean to true,
-						// and break from the shared stop for loop.
-						found = true;
-						break;
-					}
-				}
-
-				// If the stop was never found (was never in the shared stop array),
-				// add it to the map, but set it to invisible.
-				if (!found) {
-					stop.setCircle(map, true);
-					Marker marker = stop.addMarker(map, stop.latitude, stop.longitude,
-							stop.parentRoute.color, stop.stopID);
-					marker.setVisible(false);
-					stop.setMarker(marker);
-				}
-			}
+		// Add the route color if it has one.
+		if (this.route.color != 0) {
+			this.circleOptions.fillColor(this.route.color);
+			this.circleOptions.strokeColor(this.route.color);
 		}
 	}
 
 	/**
-	 * Clears all the stops in the provided childRoutes.
+	 * Lazy creation of a new Stop object using the provided JSON and the route.
 	 *
-	 * @param routes The childRoutes to have the stops cleared from.
+	 * @param json  The JSONObject containing the bus stop data.
+	 * @param route The route this newly created Stop object will apply to.
+	 * @throws JSONException Thrown if there is any issue in parsing the data from the provided JSONObject.
 	 */
-	@Deprecated
-	public static void removeStops(Route[] routes) {
-		Log.d("removeStops", "Clearing all stops");
+	public Stop(@NotNull org.json.JSONObject json, Route route) throws JSONException {
+		// TODO Look into getting the route from the JSON data?
+		this(json.getString("stopId"), json.getDouble("latitude"),
+				json.getDouble("longitude"), route);
+	}
 
-		// Iterate through all the stops in the selected childRoutes and execute the following:
-		for (Route route : routes) {
-			Log.d("removeStops", "Clearing stops for parentRoute: " + route.routeName);
+	/**
+	 * Shows the stops for the given route.
+	 * If the stops weren't previously added to the map then this method will also see fit to add them to the map.
+	 *
+	 * @param map The google maps object that the stops will be drawn onto.
+	 *            Be sure this object has been initialized first.
+	 */
+	public void showStop(GoogleMap map) {
+		// Check if the circle for the stop needs to be created,
+		// or just set to visible if it already exists.
+		if (this.circle == null) {
 
-			// Iterate through all the stops in the parentRoute and execute the following:
-			for (Stop stop : route.stops) {
+			// Create a new circle object.
+			Log.d("showStop", "Creating new stop for " + this.stopName);
+			this.circle = Stop.createStopCircle(map, this.circleOptions);
+		} else {
 
-				// Get the marker from the stop, and remove it if its not null.
-				Marker marker = stop.getMarker();
-				if (marker != null) {
-					marker.remove();
-				}
+			// Since the circle already exists simply set it to visible.
+			Log.d("showStop", "Showing stop " + this.stopName);
+			this.circle.setClickable(true);
+			this.circle.setVisible(true);
+		}
+	}
 
-				// Get the circle from the stop, and remove it of its not null.
-				Circle circle = stop.getCircle();
-				if (circle != null) {
-					circle.remove();
-				}
+	/**
+	 * Hides the objects on the map.
+	 * This doesn't dispose of the circle object, but rather sets it to invisible
+	 * (and also sets it to not be clickable in an attempt to disable its hitbox from overriding other circles).
+	 */
+	public void hideStop() {
+		// If the circle is null this will simply return.
+		if (this.circle != null) {
+
+			// Since it exists, hide the circle.
+			Log.d("hideStop", "Hiding stop " + this.stopName);
+			this.circle.setClickable(false);
+			this.circle.setVisible(false);
+		}
+	}
+
+	/**
+	 * Creates a new circle object for new Stops.
+	 * This method does not set the circle itself, but rather returns the newly created circle.
+	 *
+	 * @param map     The google maps object that this newly created circle will be added to.
+	 * @param options The options to apply to the circle.
+	 * @return The newly created circle.
+	 */
+	private static @NotNull Circle createStopCircle(@NotNull GoogleMap map, CircleOptions options) {
+		// Add the circle to the map.
+		Circle circle = map.addCircle(options);
+
+		// Set the tag of the circle to Stop so that it can differentiate between this class and other stop-like classes (such as shared stops).
+		circle.setTag(Stop.class);
+
+		// Set the stop to be visible and clickable.
+		circle.setClickable(true);
+		circle.setVisible(true);
+
+		// Return the newly created circle.
+		return circle;
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param stop
+	 * @param stopArray
+	 * @return
+	 */
+	public static boolean isDuplicate(Stop stop, Stop @NotNull [] stopArray) {
+		// TODO Unit test
+		for (Stop stopArrayItem : stopArray) {
+			boolean nameMatch = stop.stopName.equals(stopArrayItem.stopName),
+					routeMatch = stop.route.routeName.equals(stopArrayItem.route.routeName),
+					latitudeMatch = stop.circleOptions.getCenter().latitude == stopArrayItem.circleOptions.getCenter().latitude,
+					longitudeMatch = stop.circleOptions.getCenter().longitude == stopArrayItem.circleOptions.getCenter().longitude;
+
+			if (nameMatch && routeMatch && latitudeMatch && longitudeMatch) {
+				return true;
 			}
 		}
+
+		return false;
 	}
 }

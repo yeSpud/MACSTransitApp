@@ -1,10 +1,15 @@
 package fnsb.macstransit;
 
+import android.graphics.Color;
+
 import org.junit.Test;
 
 import fnsb.macstransit.RouteMatch.Route;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -48,6 +53,17 @@ public class RouteTest {
 		assertThrows(Route.RouteException.class, () -> new Route("f o p"));
 		assertThrows(Route.RouteException.class, () -> new Route("multiline\nroute"));
 		assertThrows(Route.RouteException.class, () -> new Route("t a   b   s"));
+
+		try {
+			Route fineRoute = new Route("fine"), blue = new Route("Blue", Color.BLUE);
+			assertEquals("fine", fineRoute.routeName);
+			assertEquals("Blue", blue.routeName);
+			assertEquals(Color.BLUE, blue.color);
+			assertNotEquals(Color.GRAY, blue.color);
+		} catch (Route.RouteException e) {
+			e.printStackTrace();
+			fail();
+		}
 	}
 
 	@Test

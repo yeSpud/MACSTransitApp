@@ -482,7 +482,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			 */
 
 			// Enable all the routes that were favorited.
-			Route.enableFavoriteRoutes(MapsActivity.allRoutes, CurrentSettings.settings.getRoutes());
+			Route.enableFavoriteRoutes(CurrentSettings.settings.getRoutes());
 
 			// Redraw the buses.
 			MapsActivity.drawBuses();

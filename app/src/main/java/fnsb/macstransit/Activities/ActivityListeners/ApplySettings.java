@@ -40,7 +40,7 @@ public class ApplySettings implements View.OnClickListener {
 
 	@Override
 	public void onClick(View v) {
-		// Get the favorited routes from the activity.
+		// Get the favorite routes from the activity.
 		Route[] favoritedRoutes = this.getFavoritedRoutes();
 
 		// Determine the map type

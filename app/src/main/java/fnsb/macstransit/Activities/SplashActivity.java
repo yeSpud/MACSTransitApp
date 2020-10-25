@@ -6,6 +6,7 @@ import android.os.Build;
 import android.util.Log;
 import android.view.View;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -13,6 +14,7 @@ import java.net.MalformedURLException;
 
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
+import fnsb.macstransit.RouteMatch.RouteMatch;
 
 /**
  * Created by Spud on 2019-11-04 for the project: MACS Transit.
@@ -27,13 +29,13 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	/**
 	 * The max progress for the progress bar.
 	 * The progress is determined the following checks:
-	 *  * Internet check (1)
-	 *  * Creating a routematch object (1)
-	 *  * Downloading the master schedule (1)
-	 *  * Load bus routes (Route) (8)
-	 *  * Map the bus routes (polylines) (8)
-	 *  * Map the bus stops (8)
-	 *  * Map the shared stops (8)
+	 * * Internet check (1)
+	 * * Creating a routematch object (1)
+	 * * Downloading the master schedule (1)
+	 * * Load bus routes (Route) (8)
+	 * * Map the bus routes (polylines) (8)
+	 * * Map the bus stops (8)
+	 * * Map the shared stops (8)
 	 */
 	@SuppressWarnings("PointlessArithmeticExpression")
 	private static final double maxProgress = (1 * 3) + (8 * 4);
@@ -130,6 +132,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 		// Run the initialization on a new thread as to not hang the app.
 		this.initializeApp().start();
+		
 	}
 
 	/**
@@ -189,7 +192,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			}
 			this.setProgressBar(1);
 
-			// Create the routematch object.
+			// Create the RouteMatch object.
 			this.setMessage("Creating RouteMatch object");
 			try {
 				MapsActivity.routeMatch = new fnsb.macstransit.RouteMatch.
@@ -202,39 +205,41 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			}
 			this.setProgressBar(2);
 
-			// Get the master schedule from the routematch server
+			// Get the master schedule from the RouteMatch server
 			this.setMessage("Downloading master schedule");
 			JSONObject masterSchedule = MapsActivity.routeMatch.getMasterSchedule();
 			this.setProgressBar(3);
 
+			// Load the bus routes from the master schedule.
+			this.setMessage("Loading bus routes");
+			JSONArray routes = RouteMatch.parseData(masterSchedule);
+
 			// Check if there are no routes for the day.
-			if (masterSchedule.length() == 0) {
+			if (routes.length() == 0) {
 				this.setMessage("There are no buses scheduled to run at this time");
 
 				// Also add a chance for the user to retry.
 				this.showRetryButton();
+				SplashActivity.loaded = true;
 				return;
 			}
-
-			// Load the bus routes from the master schedule.
-			this.setMessage("Loading bus routes");
-			MapsActivity.allRoutes = Route.generateRoutes(masterSchedule);
+			MapsActivity.allRoutes = Route.generateRoutes(routes);
 			this.setProgressBar(3 + 8);
 
 			// Map bus routes (map polyline coordinates).
 			this.setMessage("Mapping bus routes");
 			this.mapBusRoutes();
-			this.setProgressBar(3 + (8*2));
+			this.setProgressBar(3 + (8 * 2));
 
 			// Map bus stops.
 			this.setMessage("Mapping bus stops");
 			this.mapBusStops();
-			this.setProgressBar(3 + (8*3));
+			this.setProgressBar(3 + (8 * 3));
 
 			// Map shared stops.
-			this.setMessage("Mapping shared bus stops");
+			this.setMessage("Checking for shared bus stops");
 			this.mapSharedStops();
-			this.setProgressBar(3 + (8*4));
+			this.setProgressBar(3 + (8 * 4));
 
 			// Finally, launch the maps activity.
 			this.launchMapsActivity();
@@ -246,12 +251,12 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	}
 
 	/**
-	 * Changes the splash screen display when there is no internet. Such as hiding the progress bar,
+	 * Changes the splash screen display when there is no internet.
+	 * This method involves making the progress bar invisible,
 	 * and setting the button to launch the wireless settings.
+	 * It will also close the application when the button is clicked (as to force a restart of the app).
 	 */
 	private void noInternet() {
-		// Since the user doesn't have internet, let them know,
-		// and add an option to open internet settings via clicking the button.
 		// First, hide the progress bar.
 		this.progressBar.setVisibility(View.INVISIBLE);
 
@@ -320,20 +325,23 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 */
 	private void mapBusStops() {
 		// TODO
-		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = (3.0d + (8.0d*2.0d));
+		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = (3.0d + (8.0d * 2.0d));
 
 		// TODO Documentation
 		for (Route route : MapsActivity.allRoutes) {
-			route.stops = route.loadStops(MapsActivity.routeMatch);
+			route.stops = route.loadStops();
 
 			currentProgress += step;
 			this.setProgressBar(currentProgress);
 		}
 	}
 
+	/**
+	 * TODO Documentation
+	 */
 	private void mapSharedStops() {
 		// TODO
-		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = (3.0d + (8.0d*3.0d));
+		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = (3.0d + (8.0d * 3.0d));
 
 	}
 
@@ -358,16 +366,17 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		this.runOnUiThread(() -> {
 			// Make sure the text view is not null.
 			if (this.textView != null) {
-				// Set the textview text to that of the message.
+				// Set the TextView text to that of the message.
 				this.textView.setText(message);
 			} else {
-				Log.w("setMessage", "Textview has not been initialized yet");
+				Log.w("setMessage", "TextView has not been initialized yet");
 			}
 		});
 	}
 
 	/**
 	 * TODO Documentation
+	 *
 	 * @param progress
 	 */
 	private void setProgressBar(double progress) {
@@ -377,10 +386,9 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 			// Validate that that the progress is between 0 and 100.
 			p = (p > 100) ? 100 : Math.max(p, 0);
-			Log.d("setProgressBar", "Progress: " + p);
 
 			// Make sure the progress bar is not null
-			if (this.progressBar!=null) {
+			if (this.progressBar != null) {
 				// Apply the progress to the progress bar, and animate it if its supported in the SDK.
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
 					this.progressBar.setProgress(p, true);
