@@ -30,10 +30,10 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * The max progress for the progress bar.
 	 * The progress is determined the following checks:
 	 * * Internet check (1)
-	 * * Creating a routematch object (1)
+	 * * Creating a RouteMatch object (1)
 	 * * Downloading the master schedule (1)
 	 * * Load bus routes (Route) (8)
-	 * * Map the bus routes (polylines) (8)
+	 * * Map the bus routes (Polyline) (8)
 	 * * Map the bus stops (8)
 	 * * Map the shared stops (8)
 	 */
@@ -181,9 +181,10 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 *
 	 * @return The thread that will run all the necessary initialization methods.
 	 */
+	@SuppressWarnings("OverlyLongMethod")
 	@org.jetbrains.annotations.NotNull
 	private Thread initializeApp() {
-		Thread thread = new Thread(() -> {
+		@SuppressWarnings("OverlyLongLambda") Thread thread = new Thread(() -> {
 			// Check if the user has internet before continuing.
 			this.setMessage("Checking internet connection");
 			if (this.isMissingInternet()) {
@@ -358,7 +359,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	}
 
 	/**
-	 * Sets the text of the textview to be that of the provided message argument.
+	 * Sets the text of the TextView to be that of the provided message argument.
 	 *
 	 * @param message The message to be displayed in the text area.
 	 */

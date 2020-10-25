@@ -27,12 +27,12 @@ public class Stop extends MarkedObject {
 	/**
 	 * This is the route that the stop corresponds to.
 	 */
-	public Route route;
+	public final Route route;
 
 	/**
 	 * The name (or ID) of the stop.
 	 */
-	public String stopName;
+	public final String stopName;
 
 	/**
 	 * The circle marking the bus stop on the map
@@ -51,7 +51,7 @@ public class Stop extends MarkedObject {
 	 * </ul><p>
 	 * ... and more!
 	 */
-	public CircleOptions circleOptions;
+	public final CircleOptions circleOptions;
 
 	/**
 	 * Creates a new Stop object using the name, coordinates on the map, and the route.
@@ -125,7 +125,7 @@ public class Stop extends MarkedObject {
 	/**
 	 * Hides the objects on the map.
 	 * This doesn't dispose of the circle object, but rather sets it to invisible
-	 * (and also sets it to not be clickable in an attempt to disable its hitbox from overriding other circles).
+	 * (and also sets it to not be clickable in an attempt to disable its hit box from overriding other circles).
 	 */
 	public void hideStop() {
 		// If the circle is null this will simply return.
@@ -162,24 +162,29 @@ public class Stop extends MarkedObject {
 	}
 
 	/**
-	 * TODO Documentation
-	 * @param stop
-	 * @param stopArray
-	 * @return
+	 * Checks the provided stop against an array of stops to check if its already contained in the array
+	 * (and is therefor a would-be duplicate).
+	 *
+	 * @param stop The Stop object to check for.
+	 * @param stopArray The stop array to compare the Stop object against.
+	 * @return Returns true if the Stop object was found within the array - otherwise it returns false.
 	 */
 	public static boolean isDuplicate(Stop stop, Stop @NotNull [] stopArray) {
 		// TODO Unit test
 		for (Stop stopArrayItem : stopArray) {
+			// Check if the following match.
 			boolean nameMatch = stop.stopName.equals(stopArrayItem.stopName),
 					routeMatch = stop.route.routeName.equals(stopArrayItem.route.routeName),
 					latitudeMatch = stop.circleOptions.getCenter().latitude == stopArrayItem.circleOptions.getCenter().latitude,
 					longitudeMatch = stop.circleOptions.getCenter().longitude == stopArrayItem.circleOptions.getCenter().longitude;
 
+			// If all of the following match, return true.
 			if (nameMatch && routeMatch && latitudeMatch && longitudeMatch) {
 				return true;
 			}
 		}
 
+		// Since nothing matched, return false.
 		return false;
 	}
 }

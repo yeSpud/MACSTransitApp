@@ -52,6 +52,11 @@ public class Route {
 	public Stop[] stops;
 
 	/**
+	 * TODO Documentation
+	 */
+	public SharedStop[] sharedStops;
+
+	/**
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
 	 */
 	public LatLng[] polyLineCoordinates;
@@ -180,112 +185,6 @@ public class Route {
 	}
 
 	/**
-	 * Enabled a route by route name,
-	 * and returns a new array of enabled childRoutes including the previously enabled childRoutes.
-	 *
-	 * @param routeName The new route to enable (by route name).
-	 * @param oldRoutes The array of old routes that were previously enabled.
-	 *                  If there were no previously enabled routes then this must be an array of size 0.
-	 * @return The array of routes that are now being tracked.
-	 */
-	@Deprecated
-	public static Route[] enableRoutes(String routeName, Route[] oldRoutes) { // FIXME
-		Log.d("enableRoutes", "Enabling route: " + routeName);
-
-		// Make a copy of the oldRoutes array, but have it be one sizer bigger.
-		Route[] routes = Arrays.copyOf(oldRoutes, oldRoutes.length + 1);
-
-		// If the parentRoute is to be enabled, iterate through all the allRoutes that are able to be tracked.
-		for (Route route : fnsb.macstransit.Activities.MapsActivity.allRoutes) {
-
-			// If the parentRoute that is able to be tracked is equal to that of the parentRoute
-			// entered as an argument, add that parentRoute to the selected allRoutes array.
-			if (route.routeName.equals(routeName)) {
-				Log.d("enableRoutes", "Found matching route!");
-
-				routes[oldRoutes.length] = route;
-
-				// TODO Show markers
-
-				// If there are any preexisting buses in the route, show them.
-				try {
-					for (Bus bus : MapsActivity.buses) {
-						Marker marker = bus.getMarker();
-						if (marker != null) {
-							marker.setVisible(true);
-							bus.setMarker(marker);
-						}
-					}
-				} catch (NullPointerException warn) {
-					Log.w("enableRoutes", "There were no preexisting buses!");
-				}
-
-				// Since we only add one parentRoute at a time (as there is only one routeName argument),
-				// break as soon as its added.
-				break;
-			}
-		}
-
-		// Return the newly enabled childRoutes as an array.
-		return routes;
-	}
-
-	/**
-	 * Disables a parentRoute by name, and removes all elements of that parentRoute from the map
-	 * (except stops).
-	 *
-	 * @param routeName The parentRoute the be disabled by name.
-	 * @param oldRoutes The array of old, though currently enabled childRoutes.
-	 * @return The array of childRoutes still to be tracked,
-	 * with the omission of the parentRoute that was to be removed.
-	 * If there are no more childRoutes that are to be enabled, then an array of size 0 will be returned.
-	 */
-	@NotNull
-	@Deprecated
-	public static Route[] disableRoute(String routeName, Route[] oldRoutes) { // FIXME
-		Log.d("disableRoute", "Disabling route: " + routeName);
-
-		// Convert all the old childRoutes to an array list of childRoutes.
-		ArrayList<Route> routes = new ArrayList<>(Arrays.asList(oldRoutes));
-
-		// Iterate through the currently enabled childRoutes.
-		for (Route route : routes) {
-
-			// If the parentRoute name of the current parentRoute matches that of the parentRoute to be disabled,
-			// execute the following:
-			if (route.routeName.equals(routeName)) {
-				// TODO Hide markers
-				// Remove the bus icons
-				try {
-					for (Bus bus : MapsActivity.buses) {
-						Marker marker = bus.getMarker();
-						if (marker != null) {
-							marker.setVisible(false);
-							bus.setMarker(marker);
-						}
-					}
-				} catch (NullPointerException warn) {
-					Log.w("disableRoute", "There weren't any buses to disable");
-				}
-
-				// Remove the polyline from the map as well as the parentRoute.
-				Polyline polyline = route.polyline;
-				if (polyline != null) {
-					polyline.remove();
-					route.polyline = null;
-				}
-
-				// Finally remove the parentRoute from the array of enabled childRoutes,
-				// and break since we are only removing one parentRoute per call.
-				routes.remove(route);
-				break;
-			}
-		}
-
-		return routes.toArray(new Route[0]);
-	}
-
-	/**
 	 * TODO Documentation
 	 *
 	 * @param allRoutes
@@ -294,7 +193,7 @@ public class Route {
 	public static void enableFavoriteRoutes(Route[] allRoutes, Route[] favoritedRoutes) {
 
 		// Make sure there are routes to iterate over.
-		if (allRoutes == null) {
+		if (allRoutes == null || favoritedRoutes == null) {
 			return;
 		}
 

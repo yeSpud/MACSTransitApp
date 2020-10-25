@@ -70,8 +70,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 				// Since the stop is just a stop, just go straight into generating the time string,
 				// without the route name.
 				string = StopClicked.generateTimeString(stopData, count, context,
-						new Route[]{((fnsb.macstransit.RouteMatch.BasicStop) stop).parentRoute},
-						false);
+						new Route[]{((Stop) stop).route}, false);
 			} else {
 				// If the instance of the stop was undetermined, warn the developer.
 				Log.w("postStopTimes", "Object unaccounted for!");

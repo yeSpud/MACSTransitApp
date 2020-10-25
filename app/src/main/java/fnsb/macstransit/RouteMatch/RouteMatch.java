@@ -109,18 +109,6 @@ public class RouteMatch {
 	}
 
 	/**
-	 * Gets the parentRoute data from the RouteMatch server.
-	 *
-	 * @param route The specific parentRoute to be fetched.
-	 * @return The JSONObject pertaining to that specific parentRoute's data.
-	 * @deprecated Use getVehiclesByRoutes(...)
-	 */
-	@Deprecated
-	public JSONObject getBuses(Route route) {
-		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + route.routeName, false);
-	}
-
-	/**
 	 * Gets all the vehicles by an array of routes.
 	 *
 	 * @param routes The routes of the vehicles to be queried from the RouteMatch server.

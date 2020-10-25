@@ -1,12 +1,11 @@
 package fnsb.macstransit.RouteMatch;
 
-import android.util.Log;
-
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
-import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.LatLng;
 
-import java.util.ArrayList;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.
@@ -16,203 +15,69 @@ import java.util.ArrayList;
  * @version 2.0
  * @since Beta 7.
  */
-public class SharedStop extends Stop {
+public class SharedStop extends MarkedObject {
 
 	/**
-	 * The array of childRoutes that this stop is shared with.
+	 * TODO Documentation
 	 */
-	public Route[] childRoutes;
+	private static final double STARTING_RADIUS = 60.0d;
 
 	/**
-	 * The array of parentCircleOptions that will be applied to the childCircles that correspond to this Stop.
+	 * TODO Documentation
 	 */
-	public CircleOptions[] childCircleOptions;
+	public Route[] routes;
 
 	/**
-	 * The childCircles that correspond to this stop.
+	 * TODO Documentation
 	 */
-	private Circle[] childCircles;
+	String stopName;
 
 	/**
-	 * Constructor for the Shared Stop.
-	 *
-	 * @param stopID    The Stop ID. This is typically the name of the stop.
-	 * @param latitude  The latitude of the Stop.
-	 * @param longitude The longitude of the Stop.
-	 * @param routes    The childRoutes that this Stop corresponds to.
+	 * TODO Documentation
 	 */
-	private SharedStop(String stopID, double latitude, double longitude, Route[] routes) {
-		super(stopID, latitude, longitude, routes[0]);
-
-		// Copy all of the provided routes into the childRoutes array.
-		this.childRoutes = new Route[routes.length - 1];
-		System.arraycopy(routes, 1, this.childRoutes, 0, this.childRoutes.length);
-
-		// Be sure to create the circle options for the childCircles at this point.
-		this.childCircleOptions = this.createCircleOptions();
-	}
+	public CircleOptions[] circleOptions;
 
 	/**
-	 * Simpler constructor the the Shared Stop.
-	 *
-	 * @param basicStop The basic stop that will be changed into a Shared Stop.
-	 * @param routes    The routes that this Stop corresponds to.
+	 * TODO Documentation
 	 */
-	private SharedStop(BasicStop basicStop, Route[] routes) {
-		this(basicStop.stopID, basicStop.latitude, basicStop.longitude, routes);
-	}
+	public Circle[] circles;
 
 	/**
-	 * Finds stops that are shared by different routes, as well as current shared stops.
-	 *
-	 * @param routes             The routes to check for shared stops.
-	 * @param currentSharedStops Previous shared stops.
-	 * @return An array of Shared Stops that were found.
+	 * TODO Documentation
 	 */
-	public static SharedStop[] findSharedStops(Route[] routes, SharedStop[] currentSharedStops) {
-		// Check if there is only 1 or less routes being tracked. If there is,
-		// then there will be no shared stops, so just return.
-		if (routes.length <= 1) {
-			return new SharedStop[0];
-		}
+	public LatLng location;
 
-		ArrayList<SharedStop> sharedStops = new ArrayList<>();
+	public SharedStop(LatLng latLng, String stopName, Route @NotNull [] routes) {
 
-		// Put all the stops into an array
-		BasicStop[] allStops = BasicStop.loadAllStops(routes);
+		this.location = latLng;
+		this.stopName = stopName;
+		this.routes = routes;
 
-		// Iterate through all the stops
-		for (BasicStop basicStop : allStops) {
+		this.circleOptions = new CircleOptions[routes.length];
+		for (int i = 0; i < routes.length; i++) {
+			this.circleOptions[i] = new CircleOptions().center(this.location)
+					.radius(SharedStop.STARTING_RADIUS - (10*i));
 
-			// Create an ArrayList of routes to store all the childRoutes that share this basic stop.
-			ArrayList<Route> sharedRoutes = new ArrayList<>();
-
-			// Find which childRoutes share the current basicStop (by ID).
-			// Start by iterating though the childRoutes.
-			for (Route r : routes) {
-				Log.d("findSharedStops", "Checking parentRoute: " + r.routeName);
-				// For each route,
-				// check the stops to see if their stop ID matches the stop ID we are checking.
-				for (Stop s : r.stops) {
-					// If the stop matches our ID, then add that route to an array,
-					// so that we can add it to a newly created shared stop.
-					if (s.stopName.equals(basicStop.stopID)) {
-						sharedRoutes.add(r);
-						// Since we are only checking the 1 route,
-						// break from this stop for loop to check another stop.
-						break;
-					}
-				}
-			}
-
-			// Check the sharedRoute array. If its greater than size 1,
-			// then it found an additional parentRoute that had a stop in common (so it shares a stop).
-			if (sharedRoutes.size() > 1) {
-				// Make sure this shared stop isn't already accounted for (will have the same id)!
-				boolean found = false;
-				for (SharedStop s : currentSharedStops) {
-					// If a shared stop has this basic stop's id, mark it as found and break
-					if (s.stopName.equals(basicStop.stopID)) {
-						found = true;
-						break;
-					}
-				}
-
-				// If the stop was never found, add it to the sharedStops array.
-				if (!found) {
-					// Convert this basic stop to a shared stop.
-					Log.d("findSharedStops", String.format("Found %d shared stop for stop %s",
-							sharedRoutes.size(), basicStop.stopID));
-					sharedStops.add(new SharedStop(basicStop, sharedRoutes.toArray(new Route[0])));
-				}
+			Route route = routes[i];
+			if (route.color != 0) {
+				this.circleOptions[i].fillColor(route.color);
+				this.circleOptions[i].strokeColor(route.color);
 			}
 		}
-		return sharedStops.toArray(new SharedStop[0]);
 	}
 
 	/**
-	 * Adds the shared stops to the map.
-	 *
-	 * @param map         The map to add the shared stops to.
-	 * @param sharedStops The array of shared stops to be added to the map.
+	 * TODO Documentation
+	 * @param map
 	 */
-	public static void addSharedStop(com.google.android.gms.maps.GoogleMap map, SharedStop[] sharedStops) {
-		// FIXME
+	public void showSharedStop(GoogleMap map) {
+		// TODO
 	}
 
 	/**
-	 * Clears all the elements from the shared stop (as in removes the markers and circles from the map).
-	 *
-	 * @param sharedStops The array of shared stops to remove from the map.
-	 * @return An array of shared stops with the size of 0.
+	 * TODO Documentation
 	 */
-	public static SharedStop[] clearSharedStops(SharedStop[] sharedStops) {
-		Log.d("clearSharedStops", "Clearing all sharedStops");
-
-		// Iterate through all the shared stops and execute the following.
-		for (SharedStop sharedStop : sharedStops) {
-
-			// Get the shared stops marker, and if it's not null remove it.
-			Marker marker = sharedStop.getMarker();
-			if (marker != null) {
-				marker.remove();
-			}
-
-			// Get the parent circle from the shared stop, and remove it if its not null.
-			Circle parentCircle = sharedStop.circle;
-			if (parentCircle != null) {
-				parentCircle.remove();
-			}
-
-			// Get the childCircles from the shared shared stop, and if its not null remove them.
-			for (Circle c : sharedStop.getCircles()) {
-				if (c != null) {
-					c.remove();
-				}
-			}
-		}
-
-		// Finally clear the shared stop array.
-		return new SharedStop[0];
-	}
-
-	/**
-	 * Gets the circles that belong to this Shared Stop.
-	 * Note: This will only return the child circles, not the parent circle.
-	 *
-	 * @return The array of childCircles that belong to this Stop.
-	 */
-	public Circle[] getCircles() {
-		return this.childCircles;
-	}
-
-	/**
-	 * Sets the (child) circles corresponding to the Shared Stop.
-	 *
-	 * @param circles The childCircles that apply to the Shared Stop.
-	 */
-	public void setCircles(Circle[] circles) {
-		this.childCircles = circles;
-	}
-
-	/**
-	 * Creates the array of circle options used by the child circles.
-	 *
-	 * @return The array circle opinions.
-	 */
-	private CircleOptions[] createCircleOptions() {
-
-		int count = this.childRoutes.length;
-		Log.d("createCircleOptions", String.format("Adding %d new circle option(s)", count));
-
-		CircleOptions[] circleOptions = new CircleOptions[count];
-
-		// Iterate though the childCircles and circle parentCircleOptions and initialize them.
-		for (int index = 0; index < count; index++) {
-			// FIXME
-		}
-
-		// Return the array of CircleOptions.
-		return circleOptions;
+	public void hideStop() {
+		// TODO
 	}
 }

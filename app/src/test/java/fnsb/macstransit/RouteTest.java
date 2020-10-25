@@ -78,6 +78,7 @@ public class RouteTest {
 
 		try {
 			Route.enableFavoriteRoutes(null, null);
+			Route.enableFavoriteRoutes(this.allRoutes, null);
 		} catch (NullPointerException e) {
 			e.printStackTrace();
 			fail();
