@@ -132,20 +132,23 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Setup the inflater
 		this.getMenuInflater().inflate(R.menu.menu, menu);
 
-		// Iterate through all the routes that can be tracked.
-		for (int i = 0; i < MapsActivity.allRoutes.length; i++) {
 
-			// Get the route object that we will be using from all the routes.
-			Route route = MapsActivity.allRoutes[i];
+		// Iterate through all the routes that can be tracked (if allRoutes isn't null).
+		if (MapsActivity.allRoutes != null) {
+			for (int i = 0; i < MapsActivity.allRoutes.length; i++) {
 
-			// Create the menu item that corresponds to the route object.
-			MenuItem menuItem = menu.add(R.id.routes, Menu.NONE, 0, route.routeName);
+				// Get the route object that we will be using from all the routes.
+				Route route = MapsActivity.allRoutes[i];
 
-			// Make sure the item is checkable.
-			menuItem.setCheckable(true);
+				// Create the menu item that corresponds to the route object.
+				MenuItem menuItem = menu.add(R.id.routes, Menu.NONE, 0, route.routeName);
 
-			// Determine whether or not the menu item should be checked before hand.
-			menuItem.setChecked(route.enabled);
+				// Make sure the item is checkable.
+				menuItem.setCheckable(true);
+
+				// Determine whether or not the menu item should be checked before hand.
+				menuItem.setChecked(route.enabled);
+			}
 		}
 
 		// Check if night mode should be enabled by default, and set the checkbox to that value.
@@ -482,7 +485,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			 */
 
 			// Enable all the routes that were favorited.
-			Route.enableFavoriteRoutes(CurrentSettings.settings.getRoutes());
+			Route.enableFavoriteRoutes(MapsActivity.allRoutes, CurrentSettings.settings.getRoutes());
 
 			// Redraw the buses.
 			MapsActivity.drawBuses();

@@ -75,6 +75,13 @@ public class RouteTest {
 		assertTrue(this.allRoutes[0].enabled);
 		assertFalse(this.allRoutes[1].enabled);
 		assertFalse(this.allRoutes[2].enabled);
+
+		try {
+			Route.enableFavoriteRoutes(null, null);
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+			fail();
+		}
 	}
 
 }

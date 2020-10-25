@@ -93,30 +93,32 @@ public class SettingsActivity extends AppCompatActivity {
 	 * TODO Documentation
 	 */
 	private void addToFavoritesContainer() {
-		// Iterate through all the routes
-		for (Route route : MapsActivity.allRoutes) {
-			CheckBox checkBox = new CheckBox(this);
-			checkBox.setText(route.routeName);
-			checkBox.setTextSize(15);
-			checkBox.setTextColor(this.getResources().getColor(R.color.white));
+		// Iterate through all the routes (if there are any).
+		if (MapsActivity.allRoutes != null) {
+			for (Route route : MapsActivity.allRoutes) {
+				CheckBox checkBox = new CheckBox(this);
+				checkBox.setText(route.routeName);
+				checkBox.setTextSize(15);
+				checkBox.setTextColor(this.getResources().getColor(R.color.white));
 
-			// Add button tint if the sdk supports it.
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-				checkBox.setButtonTintList(this.getResources().getColorStateList(R.color.white));
-			}
-
-			checkBox.setTag(route);
-
-			// Determine if the box should be checked
-			for (Route savedRoute : CurrentSettings.settings.getRoutes()) {
-				if (savedRoute.routeName.equals(route.routeName)) {
-					checkBox.setChecked(true);
-					break;
+				// Add button tint if the sdk supports it.
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+					checkBox.setButtonTintList(this.getResources().getColorStateList(R.color.white));
 				}
-			}
 
-			// Add the box to the favorites container
-			this.favoriteContainer.addView(checkBox);
+				checkBox.setTag(route);
+
+				// Determine if the box should be checked
+				for (Route savedRoute : CurrentSettings.settings.getRoutes()) {
+					if (savedRoute.routeName.equals(route.routeName)) {
+						checkBox.setChecked(true);
+						break;
+					}
+				}
+
+				// Add the box to the favorites container
+				this.favoriteContainer.addView(checkBox);
+			}
 		}
 	}
 }

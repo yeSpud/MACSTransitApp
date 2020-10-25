@@ -291,9 +291,15 @@ public class Route {
 	 * @param allRoutes
 	 * @param favoritedRoutes
 	 */
-	public static void enableFavoriteRoutes(Route[] favoritedRoutes) {
+	public static void enableFavoriteRoutes(Route[] allRoutes, Route[] favoritedRoutes) {
+
+		// Make sure there are routes to iterate over.
+		if (allRoutes == null) {
+			return;
+		}
+
 		// Iterate through all the routes that will be used in the activity.
-		for (Route allRoute : MapsActivity.allRoutes) {
+		for (Route allRoute : allRoutes) {
 
 			// Iterate though the favorite routes
 			for (Route favoritedRoute : favoritedRoutes) {

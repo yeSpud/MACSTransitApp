@@ -77,6 +77,9 @@ public class UpdateThread {
 			// For debugging purposes, let the poor developer know when the thread has started.
 			Log.i("Update thread", "Starting up...");
 
+			// Check to make sure allRoutes isn't null. If it is, just set run to false.
+			this.run = (MapsActivity.allRoutes != null);
+
 			// Loop continuously while the run variable is true, and the thread hasn't been interrupted.
 			while (this.run && !Thread.interrupted()) {
 
