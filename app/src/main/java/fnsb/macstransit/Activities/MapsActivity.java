@@ -379,22 +379,32 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// TODO Draw the stops (and shared stops) based on if their respective routes are enabled or not.
 		// Check and load all the shared stops
 
+		// FIXME
+
 		if (MapsActivity.allRoutes != null) {
 			for (Route route : MapsActivity.allRoutes) {
 
 				if (route.enabled) {
-					if (!route.stops[0].circle.isVisible()) {
+					if (route.stops[0].circle == null) {
 						for (Stop stop : route.stops) {
 							stop.showStop(MapsActivity.map);
+						}
+					} else {
+						if (!route.stops[0].circle.isVisible()) {
+							for (Stop stop : route.stops) {
+								stop.showStop(MapsActivity.map);
+							}
 						}
 					}
 
 					// TODO Show shared stop
 				} else {
 
-					if (route.stops[0].circle.isVisible()) {
-						for (Stop stop : route.stops) {
-							stop.hideStop();
+					if (route.stops[0].circle != null) {
+						if (route.stops[0].circle.isVisible()) {
+							for (Stop stop : route.stops) {
+								stop.hideStop();
+							}
 						}
 					}
 

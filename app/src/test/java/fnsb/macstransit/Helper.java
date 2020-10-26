@@ -2,6 +2,9 @@ package fnsb.macstransit;
 
 import android.util.Log;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -25,18 +28,26 @@ class Helper {
 	/**
 	 * TODO Documentation
 	 */
-	static final File ALL_VEHICLES_JSON = new File("src/test/java/fnsb/macstransit/testfiles/all vehicles.json"),
-			ALL_VEHICLES_EMPTY_JSON = new File("src/test/java/fnsb/macstransit/testfiles/all vehicles empty.json"),
-			MASTERROUTE_JSON = new File("src/test/java/fnsb/macstransit/testfiles/masterRoute.json"),
-			OLD_SETTINGS_TXT = new File("src/test/java/fnsb/macstransit/testfiles/old settings.txt"),
-			SETTINGS_JSON = new File("src/test/java/fnsb/macstransit/testfiles/settings.json");
+	private static final String ROOT = "src/test/java/fnsb/macstransit/testfiles/";
+
+	/**
+	 * TODO Documentation
+	 */
+	static final File ALL_VEHICLES_JSON = new File(Helper.ROOT + "all vehicles.json"),
+			ALL_VEHICLES_EMPTY_JSON = new File(Helper.ROOT + "all vehicles empty.json"),
+			MASTERROUTE_JSON = new File(Helper.ROOT + "masterRoute.json"),
+			OLD_SETTINGS_TXT = new File(Helper.ROOT + "old settings.txt"),
+			SETTINGS_JSON = new File(Helper.ROOT + "settings.json"),
+			BLUE_STOPS = new File(Helper.ROOT + "stops/Blue.json"),
+			RED_STOPS = new File(Helper.ROOT + "stops/Red.json"),
+			YELLOW_STOPS = new File(Helper.ROOT + "stops/Yellow.json");
 
 	/**
 	 * TODO Documentation and comments
 	 * @param file
 	 * @return
 	 */
-	static String getText(File file) {
+	static @Nullable String getText(File file) {
 		// Try to create a file input stream in order to read the data from the file.
 		FileInputStream input;
 		try {
@@ -67,7 +78,7 @@ class Helper {
 	 * @return
 	 * @throws JSONException
 	 */
-	static JSONObject getJSON(File file) throws JSONException{
+	static @NotNull JSONObject getJSON(File file) throws JSONException{
 		String text = Helper.getText(file);
 
 		if (text == null) {

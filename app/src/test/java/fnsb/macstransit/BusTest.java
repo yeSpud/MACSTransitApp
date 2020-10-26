@@ -1,9 +1,13 @@
 package fnsb.macstransit;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
+
+import java.util.ArrayList;
 
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
@@ -87,6 +91,103 @@ public class BusTest {
 		assertTrue(Bus.noBusMatch(bus2Blue, testBusArray));
 		assertFalse(Bus.noBusMatch(bus0OG, testBusArray));
 
+	}
+
+	public static Bus[] ArrayListTest(JSONArray vehicles) throws Route.RouteException {
+		long startTime = System.nanoTime();
+
+		ArrayList<Bus> buses = new ArrayList<>();
+
+		for (int i = 0; i < vehicles.length(); i++) {
+			try {
+				Bus bus = BusTest.createBus(vehicles, i);
+				buses.add(bus);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+
+		long endTime = System.nanoTime();
+		System.out.println("Arraylist time: " + (endTime - startTime));
+
+		return buses.toArray(new Bus[0]);
+
+	}
+
+	public static Bus[] StandardArraysTest(JSONArray vehicles) throws Route.RouteException {
+		long startTime = System.nanoTime();
+
+		Bus[] potentialBuses = new Bus[vehicles.length()];
+
+		for (int i = 0; i < vehicles.length(); i++) {
+			try {
+				Bus bus = BusTest.createBus(vehicles, i);
+				potentialBuses[i] = bus;
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+
+		long endTime =  System.nanoTime();
+
+		System.out.println("StdArray time: " + (endTime - startTime));
+
+		return potentialBuses;
+	}
+
+	@Test // Proof of concept
+	public void ArrayTests() {
+		JSONObject testData = null;
+		try {
+			testData = Helper.getJSON(Helper.ALL_VEHICLES_JSON);
+		} catch (JSONException e) {
+			e.printStackTrace();
+			fail();
+		}
+
+		JSONArray array = RouteMatch.parseData(testData);
+
+		try {
+			Bus[] b1 = BusTest.ArrayListTest(array);
+			Bus[] b2 = BusTest.StandardArraysTest(array);
+		} catch (Route.RouteException e) {
+			fail();
+		}
+
+
+	}
+
+	private static Bus createBus(JSONArray vehicles, int i) throws Route.RouteException, JSONException {
+		JSONObject busObject = vehicles.getJSONObject(i);
+
+		// Try to get the necessary value (the vehicle id) for creating a new bus object.
+		// If unsuccessful continue on the loop without executing any of the lower checks.
+		String vehicleId = busObject.getString("vehicleId");
+
+		// Try to get the necessary value (the route name) for creating a new bus object.
+		// If unsuccessful continue on the loop without executing any of the lower checks.
+		String routeName = busObject.getString("masterRouteId");
+
+		// Try to get the necessary value (the latitude) for creating a new bus object.
+		// If unsuccessful continue on the loop without executing any of the lower checks.
+		double latitude =  busObject.getDouble("latitude");
+
+		// Try to get the necessary value (the longitude) for creating a new bus object.
+		// If unsuccessful continue on the loop without executing any of the lower checks.
+		double longitud = busObject.getDouble("longitude");
+
+		// Try to get any extra values (the heading) for creating a new bus object.
+		// These valeus arent necessary, but are nice to have.
+		String heading = busObject.getString("headingName");
+
+		// Try to get any extra values (the speed) for creating a new bus object.
+		// These valeus arent necessary, but are nice to have.
+		int speed = busObject.getInt("speed");
+
+		Bus bus = new Bus(vehicleId, new Route("test"), latitude, longitud);
+		bus.heading = heading;
+		bus.speed = speed;
+		return bus;
 	}
 
 }

@@ -93,7 +93,6 @@ public class Stop extends MarkedObject {
 	 * @throws JSONException Thrown if there is any issue in parsing the data from the provided JSONObject.
 	 */
 	public Stop(@NotNull org.json.JSONObject json, Route route) throws JSONException {
-		// TODO Look into getting the route from the JSON data?
 		this(json.getString("stopId"), json.getDouble("latitude"),
 				json.getDouble("longitude"), route);
 	}
@@ -172,6 +171,12 @@ public class Stop extends MarkedObject {
 	public static boolean isDuplicate(Stop stop, Stop @NotNull [] stopArray) {
 		// TODO Unit test
 		for (Stop stopArrayItem : stopArray) {
+
+			// If the array item is null at this point return false since we are at the technical end
+			if (stopArrayItem == null) {
+				return false;
+			}
+
 			// Check if the following match.
 			boolean nameMatch = stop.stopName.equals(stopArrayItem.stopName),
 					routeMatch = stop.route.routeName.equals(stopArrayItem.route.routeName),
