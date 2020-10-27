@@ -2,6 +2,7 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +48,7 @@ public class Bus extends MarkedObject {
 	public int color;
 
 	/**
-	 * The bus's corresponding parentRoute.
+	 * The bus's corresponding route.
 	 */
 	public Route route;
 
@@ -252,8 +253,8 @@ public class Bus extends MarkedObject {
 						oldBus.speed = newBus.speed;
 						buses.add(oldBus);
 					} else {
-						Log.w("updateCurrentBuses", "Marker is null for updated bus "
-								+ oldBus.vehicleId);
+						Log.w("updateCurrentBuses", "Marker is null for updated bus " +
+								oldBus.vehicleId);
 					}
 				}
 			}
@@ -289,7 +290,7 @@ public class Bus extends MarkedObject {
 				Log.d("addNewBuses", "Adding new bus to map: " + newBus.vehicleId);
 
 				// Create the bus marker
-				Marker busMarker = newBus.addMarker(MapsActivity.map, newBus.latitude, newBus.longitude,
+				Marker busMarker = newBus.addMarker(MapsActivity.map, new LatLng(newBus.latitude, newBus.longitude),
 						newBus.color, "Bus " + newBus.vehicleId);
 
 				// Determine whether or not to show the bus marker.

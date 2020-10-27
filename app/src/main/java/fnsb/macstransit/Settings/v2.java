@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.util.ArrayList;
 
+import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.Route;
 
 /**
@@ -192,12 +193,13 @@ public class v2 {
 		// Iterate through the JSON array and try to match the names of the routes.
 		for (int i = 0; i < favoritedRoutes.length(); i++) {
 			String routeName = favoritedRoutes.getString(i);
-			for (Route route : fnsb.macstransit.Activities.MapsActivity.allRoutes) {
-
-				// If the route names match, add it to the list of routes.
-				if (routeName.equals(route.routeName)) {
-					routes.add(route);
-					break;
+			if (MapsActivity.allRoutes != null) {
+				for (Route route : MapsActivity.allRoutes) {
+					// If the route names match, add it to the list of routes.
+					if (routeName.equals(route.routeName)) {
+						routes.add(route);
+						break;
+					}
 				}
 			}
 		}

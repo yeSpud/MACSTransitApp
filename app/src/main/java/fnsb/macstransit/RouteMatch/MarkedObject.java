@@ -2,6 +2,9 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -56,23 +59,19 @@ public class MarkedObject {
 	}
 
 	/**
-	 * Creates and adds a marker to the provided map.
-	 *
-	 * @param map       The map to add the marker to.
-	 * @param latitude  The latitude of the marker.
-	 * @param longitude The longitude of the marker.
-	 * @param color     The desired color of the marker.
-	 * @param title     The marker's title.
-	 * @return The newly created marker that has also been added to the map.
+	 * TODO Documentation
+	 * @param map
+	 * @param coordinates
+	 * @param color
+	 * @param title
+	 * @return
 	 */
-	public Marker addMarker(@NotNull com.google.android.gms.maps.GoogleMap map, double latitude,
-	                        double longitude, int color, String title) {
+	public Marker addMarker(@NotNull GoogleMap map, LatLng coordinates, int color, String title) {
 		// Create a new maker options object
 		MarkerOptions options = new MarkerOptions();
 
 		// Set the position of the marker via the latitude and longitude.
-		Log.d("addMarker", String.format("Setting marker position to %f, %f", latitude, longitude));
-		options.position(new com.google.android.gms.maps.model.LatLng(latitude, longitude));
+		options.position(coordinates);
 
 		// Set the color of the marker.
 		Log.d("addMarker", "Applying marker color");

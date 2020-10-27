@@ -400,10 +400,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 					// TODO Show shared stop
 				} else {
 
-					if (route.stops[0].circle != null) {
-						if (route.stops[0].circle.isVisible()) {
-							for (Stop stop : route.stops) {
-								stop.hideStop();
+					if (route.stops != null || route.stops.length != 0) {
+						if (route.stops[0].circle != null) {
+							if (route.stops[0].circle.isVisible()) {
+								for (Stop stop : route.stops) {
+									stop.hideStop();
+								}
 							}
 						}
 					}
@@ -414,7 +416,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		}
 
 		// Adjust the circle sizes of the stops on the map given the current zoom.
-		AdjustZoom.adjustCircleSize(MapsActivity.map.getCameraPosition().zoom);
+		AdjustZoom.resizeStops();
 	}
 
 	/**

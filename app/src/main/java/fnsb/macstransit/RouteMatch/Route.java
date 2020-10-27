@@ -80,21 +80,14 @@ public class Route {
 	 * @throws RouteException Thrown if the route name contains white space characters.
 	 */
 	public Route(@NotNull String routeName) throws RouteException {
-
-		Pattern whitespace = Pattern.compile("\\s");
-
-		if (whitespace.matcher(routeName).find()) {
-			throw new RouteException("Route name cannot contain white space!");
-		} else {
-			this.routeName = routeName;
-		}
+		this(routeName, 0);
 	}
 
 	/**
 	 * Constructor for the route. The name of the route is the only thing that is required.
 	 * Be sure that the provided route name does <b>NOT</b> contain any whitespace characters!
 	 *
-	 * @param routeName The name of the route. e sure this does <b>NOT</b>
+	 * @param routeName The name of the route. Be sure this does <b>NOT</b>
 	 *                  contain any whitespace characters!
 	 * @param color     The route's color. This is optional,
 	 *                  and of the color is non-existent simply use the
@@ -102,7 +95,12 @@ public class Route {
 	 * @throws RouteException Thrown if the route name contains white space characters.
 	 */
 	public Route(String routeName, int color) throws RouteException {
-		this(routeName);
+		Pattern whitespace = Pattern.compile("\\s");
+		if (whitespace.matcher(routeName).find()) {
+			throw new RouteException("Route name cannot contain white space!");
+		} else {
+			this.routeName = routeName;
+		}
 		this.color = color;
 	}
 
@@ -224,41 +222,9 @@ public class Route {
 		// Get the data from all the stops and store it in a JSONArray.
 		JSONArray data = RouteMatch.parseData(allStopsObject);
 
-		// Create a large array that will store all the potential stops.
-		// This array will be trimmed down to fit only the valid stops when we are ready to return.
-		int count = data.length(),
-		validStops = 0;
-		Stop[] potentialStops = new Stop[count];
+		Stop[] potentialStops = Stop.generateStops(data, this);
 
-		// Iterate through the data in the JSONArray.
-		for (int index = 0; index < count; index++) {
-
-			Stop stop;
-			try {
-				// Using the data from the stop array, try to create a new stop object.
-				stop = new Stop(data.getJSONObject(index), this);
-			} catch (JSONException e) {
-				// If a JSONException was thrown, that means that there was an issue parsing the stop data.
-				// Just print a warning message, and then break from the for loop.
-				// This will cause the function to return whatever was in the return array.
-				Log.w("loadStops", "An issue occurred while attempting to parse the JSON data");
-				break;
-			}
-
-			// Iterate through the return array and check if the created stop is a duplicate.
-			if (Stop.isDuplicate(stop, potentialStops)) {
-				continue;
-			}
-
-
-			potentialStops[validStops] = stop;
-			validStops++;
-		}
-
-		// Return the array list that contains all the stops as a new Stop array.
-		Stop[] returnArray = new Stop[validStops];
-		System.arraycopy(potentialStops, 0, returnArray, 0, validStops);
-		return returnArray;
+		return Stop.validateGeneratedStops(potentialStops);
 	}
 
 	/**

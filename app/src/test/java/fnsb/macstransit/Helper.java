@@ -88,4 +88,39 @@ class Helper {
 		return new JSONObject(text);
 	}
 
+	/**
+	 * TODO Documentation
+	 * @param startTime
+	 * @param endTime
+	 */
+	static void printTime(long startTime, long endTime) {
+		long total = endTime - startTime;
+		double microseconds = 0, milliseconds = 0, seconds = 0;
+
+		if ((total / 1000) >= 1) {
+			microseconds = (total / 1000d);
+		}
+
+		if ((microseconds / 1000 >= 1)) {
+			milliseconds = ((total /1000d) / 1000d);
+			microseconds = 0;
+		}
+
+		if ((milliseconds / 1000) >= 1) {
+			seconds = (((total /1000d) / 1000d) / 1000d);
+			microseconds = 0;
+		}
+
+		System.out.print("Time taken to execute: ");
+		if (seconds != 0) {
+			System.out.println(seconds + " seconds");
+		} else if (milliseconds != 0) {
+			System.out.println(milliseconds + " milliseconds");
+		} else if (microseconds != 0) {
+			System.out.println(microseconds + " microseconds");
+		} else {
+			System.out.println(total + " nanoseconds");
+		}
+	}
+
 }

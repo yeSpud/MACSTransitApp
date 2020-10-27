@@ -7,6 +7,7 @@ import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
 import org.json.JSONException;
 
 /**
@@ -79,9 +80,11 @@ public class Stop extends MarkedObject {
 				.radius(Stop.STARTING_RADIUS);
 
 		// Add the route color if it has one.
-		if (this.route.color != 0) {
-			this.circleOptions.fillColor(this.route.color);
-			this.circleOptions.strokeColor(this.route.color);
+		if (this.route != null) {
+			if (this.route.color != 0) {
+				this.circleOptions.fillColor(this.route.color);
+				this.circleOptions.strokeColor(this.route.color);
+			}
 		}
 	}
 
@@ -111,7 +114,7 @@ public class Stop extends MarkedObject {
 
 			// Create a new circle object.
 			Log.d("showStop", "Creating new stop for " + this.stopName);
-			this.circle = Stop.createStopCircle(map, this.circleOptions);
+			this.circle = Stop.createStopCircle(map, this.circleOptions, this);
 		} else {
 
 			// Since the circle already exists simply set it to visible.
@@ -143,14 +146,15 @@ public class Stop extends MarkedObject {
 	 *
 	 * @param map     The google maps object that this newly created circle will be added to.
 	 * @param options The options to apply to the circle.
+	 * @param stop
 	 * @return The newly created circle.
 	 */
-	private static @NotNull Circle createStopCircle(@NotNull GoogleMap map, CircleOptions options) {
+	private static @NotNull Circle createStopCircle(@NotNull GoogleMap map, CircleOptions options, Stop stop) {
 		// Add the circle to the map.
 		Circle circle = map.addCircle(options);
 
 		// Set the tag of the circle to Stop so that it can differentiate between this class and other stop-like classes (such as shared stops).
-		circle.setTag(Stop.class);
+		circle.setTag(stop);
 
 		// Set the stop to be visible and clickable.
 		circle.setClickable(true);
@@ -161,6 +165,51 @@ public class Stop extends MarkedObject {
 	}
 
 	/**
+	 * TODO Documentation
+	 * @param array
+	 * @param route
+	 * @return
+	 */
+	public static @NotNull Stop[] generateStops(@NotNull JSONArray array, Route route) {
+		int count = array.length();
+		Stop[] uncheckedStops = new Stop[count];
+
+		for (int i = 0; i < count; i++) {
+			Stop stop;
+			try {
+				stop = new Stop(array.getJSONObject(i), route);
+			} catch (JSONException e) {
+				Log.e("generateStops", "Exception occurred while creating stop!", e);
+				continue;
+			}
+			uncheckedStops[i] = stop;
+		}
+
+		return uncheckedStops;
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param potentialStops
+	 * @return
+	 */
+	public static @NotNull Stop[] validateGeneratedStops(@NotNull Stop[] potentialStops) {
+		int validatedSize = 0;
+		Stop[] validatedStops = new Stop[potentialStops.length];
+
+		for (Stop stop : potentialStops) {
+			if (!isDuplicate(stop, validatedStops)) {
+				validatedStops[validatedSize] = stop;
+				validatedSize++;
+			}
+		}
+
+		Stop[] actualStops = new Stop[validatedSize];
+		System.arraycopy(validatedStops, 0, actualStops, 0, actualStops.length);
+		return actualStops;
+	}
+
+	/**
 	 * Checks the provided stop against an array of stops to check if its already contained in the array
 	 * (and is therefor a would-be duplicate).
 	 *
@@ -168,8 +217,11 @@ public class Stop extends MarkedObject {
 	 * @param stopArray The stop array to compare the Stop object against.
 	 * @return Returns true if the Stop object was found within the array - otherwise it returns false.
 	 */
-	public static boolean isDuplicate(Stop stop, Stop @NotNull [] stopArray) {
-		// TODO Unit test
+	public static boolean isDuplicate(Stop stop, Stop[] stopArray) {
+		if (stopArray == null) {
+			return false;
+		}
+
 		for (Stop stopArrayItem : stopArray) {
 
 			// If the array item is null at this point return false since we are at the technical end
