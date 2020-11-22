@@ -153,7 +153,8 @@ public class Stop extends MarkedObject {
 		// Add the circle to the map.
 		Circle circle = map.addCircle(options);
 
-		// Set the tag of the circle to Stop so that it can differentiate between this class and other stop-like classes (such as shared stops).
+		// Set the tag of the circle to Stop so that it can differentiate between this class
+		// and other stop-like classes (such as shared stops).
 		circle.setTag(stop);
 
 		// Set the stop to be visible and clickable.
@@ -189,22 +190,42 @@ public class Stop extends MarkedObject {
 	}
 
 	/**
-	 * TODO Documentation
-	 * @param potentialStops
-	 * @return
+	 * Validates the provided array of potential stops and returned the actual stops in the route,
+	 * removing any duplicate or invalid stops.
+	 * @param potentialStops The potential stops that may contain duplicate or invalid stops.
+	 * @return The validated stops array (or an empty stop array if the provided potential stops is null).
 	 */
-	public static @NotNull Stop[] validateGeneratedStops(@NotNull Stop[] potentialStops) {
+	public static @NotNull Stop[] validateGeneratedStops(Stop[] potentialStops) {
+		// If the supplied potential stops is null simply return a stop array of size 0.
+		if (potentialStops == null) {
+			//noinspection ZeroLengthArrayAllocation
+			return new Stop[0];
+		}
+
+		// Create a variable to store the true size of the stops that have been validated.
 		int validatedSize = 0;
+
+		// Create an array to store the validated stops.
+		// While we don't know the specific size of this array until done, we do know the maximum size,
+		// so use that for setting the array size.
 		Stop[] validatedStops = new Stop[potentialStops.length];
 
+		// Iterate through each stop in our array of potential stops.
 		for (Stop stop : potentialStops) {
+
+			// Check to see if the stop is in our array of validated stops. If its not,
+			// add it to the array and add 1 to the true index size of stops that have been validated.
 			if (!isDuplicate(stop, validatedStops)) {
 				validatedStops[validatedSize] = stop;
 				validatedSize++;
 			}
 		}
 
+		// Create an array for our actual stops.
+		// Since we now know the number of validated stops we can use that as its size.
 		Stop[] actualStops = new Stop[validatedSize];
+
+		// Copy our validated stops into our smaller actual stops array, and return it.
 		System.arraycopy(validatedStops, 0, actualStops, 0, actualStops.length);
 		return actualStops;
 	}
@@ -224,7 +245,7 @@ public class Stop extends MarkedObject {
 
 		for (Stop stopArrayItem : stopArray) {
 
-			// If the array item is null at this point return false since we are at the technical end
+			// If the array item is null at this point return false since we are at the technical end.
 			if (stopArrayItem == null) {
 				return false;
 			}
@@ -243,5 +264,19 @@ public class Stop extends MarkedObject {
 
 		// Since nothing matched, return false.
 		return false;
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param stop1
+	 * @param stop2
+	 * @return
+	 */
+	public static boolean stopMatches(@NotNull Stop stop1, @NotNull Stop stop2) throws NullPointerException {
+		boolean latMatch = stop1.circleOptions.getCenter().latitude == stop2.circleOptions.getCenter().latitude,
+		longMatch = stop1.circleOptions.getCenter().longitude == stop2.circleOptions.getCenter().longitude,
+		nameMatch = stop1.stopName.equals(stop2.stopName);
+
+		return latMatch && longMatch && nameMatch;
 	}
 }

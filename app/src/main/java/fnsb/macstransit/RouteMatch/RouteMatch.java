@@ -114,13 +114,12 @@ public class RouteMatch {
 	 * @param routes The routes of the vehicles to be queried from the RouteMatch server.
 	 * @return The json object containing the data for all the vehicles that were retrieved by their respective routes.
 	 */
-	public JSONObject getVehiclesByRoutes(@NotNull Route... routes) { // TODO Test
+	public JSONObject getVehiclesByRoutes(@NotNull Route... routes) {
 		final String separator = "%2C";
 		StringBuilder routesString = new StringBuilder(separator.length());
 		for (Route route : routes) {
 			routesString.append(route.routeName).append(separator);
 		}
-		// TODO Experiment with templates
 		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + routesString, false);
 	}
 

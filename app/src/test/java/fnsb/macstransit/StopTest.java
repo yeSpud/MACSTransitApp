@@ -5,6 +5,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.StringWriter;
+
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
 import fnsb.macstransit.RouteMatch.Stop;
@@ -72,6 +75,28 @@ public class StopTest {
 		assertFalse(Stop.isDuplicate(null, new Stop[0]));
 		assertFalse(Stop.isDuplicate(null, new Stop[]{null}));
 
+	}
+
+	@Test
+	public void averageStops() {
+		File[] files = new File[]{Helper.BLUE_STOPS, Helper.BROWN_STOPS, Helper.GOLD_STOPS,
+				Helper.GREEN_STOPS, Helper.PURPLE_STOPS, Helper.RED_STOPS, Helper.YELLOW_STOPS};
+		int count = 0;
+		for (File file : files) {
+			try {
+				JSONObject jsonObject = Helper.getJSON(file);
+
+				JSONArray jsonArray = RouteMatch.parseData(jsonObject);
+
+				Stop[] pStops = Stop.generateStops(jsonArray, new Route("Foo"));
+				Stop[] vStops = Stop.validateGeneratedStops(pStops);
+				count += vStops.length;
+			} catch (Exception e) {
+				e.printStackTrace();
+				fail();
+			}
+		}
+		System.out.println(count/files.length);
 	}
 
 }

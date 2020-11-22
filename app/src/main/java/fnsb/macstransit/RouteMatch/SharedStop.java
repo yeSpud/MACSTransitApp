@@ -1,11 +1,15 @@
 package fnsb.macstransit.RouteMatch;
 
+import android.util.Log;
+
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.jetbrains.annotations.NotNull;
+
+import fnsb.macstransit.Activities.MapsActivity;
 
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.
@@ -68,16 +72,119 @@ public class SharedStop extends MarkedObject {
 
 	/**
 	 * TODO Documentation
+	 * @param route
+	 * @param routeIndex
+	 * @param stop
+	 * @return
+	 */
+	public static @NotNull Route[] getSharedRoutes(Route route, int routeIndex, Stop stop) {
+
+		if (MapsActivity.allRoutes == null) {
+			return new Route[]{route};
+		}
+
+		// Create an array of potential routes that could share a same stop
+		// (the stop that we are iterating over).
+		// Set the array size to that of all the routes minus the current index as to make
+		// it decrease every iteration.
+		Route[] potentialRoutes = new Route[MapsActivity.allRoutes.length - routeIndex];
+
+		// Add the current route to the potential routes, and update the potential route index.
+		potentialRoutes[0] = route;
+		int potentialRouteIndex = 1;
+
+		for (int route2Index = routeIndex + 1; route2Index < MapsActivity.allRoutes.length; route2Index++) {
+			Route route2 = MapsActivity.allRoutes[route2Index];
+			if (route == route2) {
+				continue;
+			}
+			for (Stop stop2 : route2.stops) {
+				try {
+					if (Stop.stopMatches(stop, stop2)) {
+						potentialRoutes[potentialRouteIndex] = route2;
+						potentialRouteIndex++;
+					}
+				} catch (NullPointerException e) {
+					Log.e("mapSharedStops", "Stop doesn't have a circle!", e);
+				}
+			}
+		}
+
+		Route[] actualRoutes = new Route[potentialRouteIndex];
+		System.arraycopy(potentialRoutes, 0, actualRoutes, 0, potentialRouteIndex);
+		return actualRoutes;
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param stops
+	 * @param sharedStops
+	 * @return
+	 */
+	public static @NotNull Stop[] recreateStops(Stop[] stops, SharedStop[] sharedStops) { // TODO Check me
+
+		if (stops == null || sharedStops == null) {
+			Log.w("recreateStops", "Arguments are null!");
+			return stops;
+		}
+
+		Stop[] finalStops = new Stop[stops.length - sharedStops.length];
+		int finalIndex = 0;
+		for (Stop stop : stops) {
+
+			boolean match = false;
+			for (SharedStop sharedStop : sharedStops) {
+				if (SharedStop.areEqual(sharedStop, stop)) {
+					match = true;
+					break;
+				}
+			}
+
+			if (!match) {
+				finalStops[finalIndex] = stop;
+				finalIndex++;
+			}
+		}
+
+		if (finalIndex != finalStops.length) {
+			Log.w("recreateStops", "The finalStops array wasn't filled all the way!");
+		}
+
+		return finalStops;
+	}
+
+	public static boolean areEqual(@NotNull SharedStop sharedStop, @NotNull Stop stop) {
+		boolean nameMatch = sharedStop.stopName.equals(stop.stopName),
+		latitudeMatch = sharedStop.circleOptions[0].getCenter().latitude == stop.circleOptions.getCenter().latitude,
+		longitudeMatch = sharedStop.circleOptions[0].getCenter().longitude == stop.circleOptions.getCenter().longitude;
+
+		return nameMatch && latitudeMatch && longitudeMatch;
+	}
+
+	/**
+	 * TODO Documentation
 	 * @param map
 	 */
 	public void showSharedStop(GoogleMap map) {
 		// TODO
+
 	}
 
 	/**
 	 * TODO Documentation
 	 */
 	public void hideStop() {
-		// TODO
+		for (Route route : this.routes) {
+			if (route.enabled) {
+				return;
+			}
+		}
+
+		if (this.circles != null) {
+			for (Circle circle : this.circles) {
+				circle.setClickable(false);
+				circle.setVisible(false);
+			}
+		}
 	}
 }

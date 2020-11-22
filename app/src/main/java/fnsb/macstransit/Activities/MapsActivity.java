@@ -28,16 +28,18 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		com.google.android.gms.maps.OnMapReadyCallback {
 
 	/**
-	 * Create an array of all the routes that are used by the transit system.
-	 * For now leave it uninitialized, as it will be populated from the Splash Activity,
-	 * and initialized in the onCreate method.
+	 * TODO Documentation
+	 * TODO Check for concurrent exceptions
+	 * TODO Check for potential null uses
 	 */
-	public static Route[] allRoutes; // TODO Check for concurrent exception && Not Null!
+	@Nullable
+	public static Route[] allRoutes;
 
 	/**
 	 * TODO Documentation
+	 * TODO Check for concurrent exception!
 	 */
-	public static Bus[] buses = new Bus[0]; // TODO Check for concurrent exception!
+	public static Bus[] buses = new Bus[0];
 
 	/**
 	 * Create an instance of the RouteMatch object that will be used for this app.
@@ -52,13 +54,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * TODO Documentation
 	 */
-	private final UpdateThread updateThread = new UpdateThread(this);
+	private static FarePopupWindow farePopupWindow;
 
 	/**
-	 * Create an array of all the Shared Stops (stops that share a location).
+	 * TODO Documentation
 	 */
-	@Deprecated
-	public SharedStop[] sharedStops = new SharedStop[0];
+	private final UpdateThread updateThread = new UpdateThread(this);
 
 	/**
 	 * This is where the activity is initialized. Most importantly,
@@ -98,6 +99,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		} else {
 			Toast.makeText(this, "Cannot find map!", Toast.LENGTH_LONG).show();
 		}
+
+		// Setup the fare info window
+		MapsActivity.farePopupWindow = new FarePopupWindow(this);
 	}
 
 	/**
@@ -168,29 +172,23 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		Log.v("onOptionsItemSelected", "onOptionsItemSelected has been called!");
 
 		// Identify which method to call based on the item ID.
-		// Use a switch statement instead of multiple else ifs for this (as it's just slightly faster).
-		switch (item.getGroupId()) {
-
-			// Check if the item that was selected belongs to the other group
-			case R.id.other:
-				this.onOtherOptionsItemSelected(item);
-				break;
-
-			// Check if the item that was selected belongs to the routes group.
-			case R.id.routes:
-				try {
-					this.onRouteItemToggled(item);
-				} catch (Route.RouteException e) {
-					Toast.makeText(this, "An error occurred while toggling that route",
-							Toast.LENGTH_LONG).show();
-					e.printStackTrace();
-				}
-				break;
-			default:
-				// Since the item's ID and group was not part of anything accounted for (uh oh),
-				// log it as a warning!
-				Log.w("onOptionsItemSelected", "Unaccounted menu item was checked!");
-				break;
+		// Because resource IDs will be non-final in Android Gradle Plugin version 5.0,
+		// we cant use a switch case statement :(   Back to if else if else stuff.
+		// Check if the item that was selected belongs to the other group
+		if (item.getGroupId() == R.id.other) {
+			this.onOtherOptionsItemSelected(item);
+		} else if (item.getGroupId() == R.id.routes) { // Check if the item that was selected belongs to the routes group.
+			try {
+				this.onRouteItemToggled(item);
+			} catch (Route.RouteException e) {
+				Toast.makeText(this, "An error occurred while toggling that route",
+						Toast.LENGTH_LONG).show();
+				e.printStackTrace();
+			}
+		} else {
+			// Since the item's ID and group was not part of anything accounted for (uh oh),
+			// log it as a warning!
+			Log.w("onOptionsItemSelected", "Unaccounted menu item was checked!");
 		}
 
 		return super.onOptionsItemSelected(item);
@@ -205,36 +203,27 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		Log.v("onOtherOptionSelected", "onOtherOptionsItemSelected has been called!");
 
 		// Identify what action to execute based on the item ID.
-		// Use a switch statement instead of multiple else ifs for this (as it's just slightly faster).
-		switch (item.getItemId()) {
-			// Check if the item that was selected was the night mode toggle.
-			case R.id.night_mode:
-				Log.d("onOptionsItemSelected", "Toggling night mode...");
+		// Because resource IDs will be non-final in Android Gradle Plugin version 5.0,
+		// we cant use a switch case statement :(   Back to if else if else stuff.
+		if (item.getItemId() == R.id.night_mode) { // Check if the item that was selected was the night mode toggle.
+			Log.d("onOptionsItemSelected", "Toggling night mode...");
 
-				// Create a boolean to store the resulting value of the menu item
-				boolean enabled = !item.isChecked();
+			// Create a boolean to store the resulting value of the menu item
+			boolean enabled = !item.isChecked();
 
-				// Toggle night mode
-				this.toggleNightMode(enabled);
+			// Toggle night mode
+			this.toggleNightMode(enabled);
 
-				// Set the menu item's checked value to that of the enabled value
-				item.setChecked(enabled);
-				break;
-			// Check if the item that was selected was the settings button.
-			case R.id.settings:
-
-				// Launch the settings activity
-				this.startActivity(new Intent(this, SettingsActivity.class));
-				break;
-			// Check if the item that was selected was the fares button.
-			case R.id.fares:
-				new FarePopupWindow(this).showFarePopupWindow();
-				break;
-
-			default:
-				// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!
-				Log.w("onOptionsItemSelected", "Unaccounted menu item in the other group was checked!");
-				break;
+			// Set the menu item's checked value to that of the enabled value
+			item.setChecked(enabled);
+		} else if (item.getItemId() == R.id.settings) { // Check if the item that was selected was the settings button.
+			// Launch the settings activity
+			this.startActivity(new Intent(this, SettingsActivity.class));
+		} else if (item.getItemId() == R.id.fares) { // Check if the item that was selected was the fares button.
+			MapsActivity.farePopupWindow.showFarePopupWindow();
+		} else {
+			// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!
+			Log.w("onOptionsItemSelected", "Unaccounted menu item in the other group was checked!");
 		}
 	}
 
@@ -376,18 +365,26 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * Draws the stops and shared stops onto the map, and adjusts the stop sizes based on the zoom level.
 	 */
 	public void drawStops() {
+
+		// First, make sure that allRoutes isn't null. If it is, return early.
+		if (MapsActivity.allRoutes == null) {
+			Log.w("drawStops", "allRoutes is null!");
+			return;
+		}
+
 		// TODO Draw the stops (and shared stops) based on if their respective routes are enabled or not.
 		// Check and load all the shared stops
 
 		// FIXME
+		for (Route route : MapsActivity.allRoutes) {
 
-		if (MapsActivity.allRoutes != null) {
-			for (Route route : MapsActivity.allRoutes) {
-
-				if (route.enabled) {
+			if (route.enabled) {
+				if (route.stops[0] != null) {
 					if (route.stops[0].circle == null) {
 						for (Stop stop : route.stops) {
-							stop.showStop(MapsActivity.map);
+							if (stop != null) {
+								stop.showStop(MapsActivity.map);
+							}
 						}
 					} else {
 						if (!route.stops[0].circle.isVisible()) {
@@ -396,11 +393,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 							}
 						}
 					}
+				}
 
-					// TODO Show shared stop
-				} else {
+				// TODO Show shared stop
+			} else {
 
-					if (route.stops != null || route.stops.length != 0) {
+				if (route.stops != null || route.stops.length != 0) {
+					if (route.stops[0] != null) {
 						if (route.stops[0].circle != null) {
 							if (route.stops[0].circle.isVisible()) {
 								for (Stop stop : route.stops) {
@@ -409,8 +408,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 							}
 						}
 					}
+				}
 
-					// TODO Hide shared stop
+				if (route.sharedStops != null) {
+					for (SharedStop sharedStop : route.sharedStops) {
+						sharedStop.hideStop();
+					}
 				}
 			}
 		}
@@ -428,7 +431,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			for (Route route : MapsActivity.allRoutes) {
 				try {
 					if (route.getPolyline() == null) {
-						route.createPolyline(MapsActivity.map);
+						route.createPolyline();
 					}
 					route.getPolyline().setVisible(route.enabled);
 				} catch (NullPointerException e) {

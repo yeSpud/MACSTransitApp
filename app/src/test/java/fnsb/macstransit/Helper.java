@@ -39,6 +39,10 @@ class Helper {
 			OLD_SETTINGS_TXT = new File(Helper.ROOT + "old settings.txt"),
 			SETTINGS_JSON = new File(Helper.ROOT + "settings.json"),
 			BLUE_STOPS = new File(Helper.ROOT + "stops/Blue.json"),
+			BROWN_STOPS = new File(Helper.ROOT + "stops/Brown.json"),
+			GOLD_STOPS = new File(Helper.ROOT + "stops/Gold.json"),
+			GREEN_STOPS = new File(Helper.ROOT + "stops/Green.json"),
+			PURPLE_STOPS = new File(Helper.ROOT + "stops/Purple.json"),
 			RED_STOPS = new File(Helper.ROOT + "stops/Red.json"),
 			YELLOW_STOPS = new File(Helper.ROOT + "stops/Yellow.json");
 

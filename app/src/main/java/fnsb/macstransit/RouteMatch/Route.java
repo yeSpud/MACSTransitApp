@@ -110,7 +110,7 @@ public class Route {
 	 * @return
 	 */
 	@NotNull
-	public static Route[] generateRoutes(JSONArray masterSchedule) {
+	public static Route[] generateRoutes(@NotNull JSONArray masterSchedule) {
 		// Create an array to store all the generated routes.
 		Collection<Route> routes = new ArrayList<>(0);
 
@@ -212,7 +212,9 @@ public class Route {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Retrieves and parses the stops for the given route.
+	 * This function does not apply the stops the route.
+	 * @return The array stops corresponding the route.
 	 */
 	public Stop[] loadStops() {
 
@@ -222,8 +224,13 @@ public class Route {
 		// Get the data from all the stops and store it in a JSONArray.
 		JSONArray data = RouteMatch.parseData(allStopsObject);
 
+		// Load in all the potential stops for the route.
+		// The reason why this is considered potential stops is because at this stage duplicate
+		// stops have not yet been handled.
 		Stop[] potentialStops = Stop.generateStops(data, this);
 
+		// Return the validated version of the generated stops.
+		// At this point duplicate stops have now been handled and removed.
 		return Stop.validateGeneratedStops(potentialStops);
 	}
 
@@ -284,11 +291,9 @@ public class Route {
 	}
 
 	/**
-	 * Creates the polyline that correspond to this route's path by utilizing the polyLineCoordinates.
-	 *
-	 * @param map The map to add the polyline to.
+	 * TODO Documentation
 	 */
-	public void createPolyline(@NotNull com.google.android.gms.maps.GoogleMap map) {
+	public void createPolyline() {
 		Log.v("createPolyline", "Creating route polyline");
 		// Add the polyline based off the polyline coordinates within the parentRoute.
 		PolylineOptions options = new PolylineOptions().add(this.polyLineCoordinates);
@@ -303,7 +308,25 @@ public class Route {
 		options.visible(false);
 
 		// Add the polyline to the map, and return it.
-		this.polyline = map.addPolyline(options);
+		this.polyline = MapsActivity.map.addPolyline(options);
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param sharedStop
+	 */
+	public void addSharedStop(SharedStop sharedStop) {
+		SharedStop[] newSharedStops;
+
+		if (this.sharedStops == null) {
+			newSharedStops = new SharedStop[]{sharedStop};
+		} else {
+			newSharedStops = new SharedStop[this.sharedStops.length+1];
+			newSharedStops[0] = sharedStop;
+			System.arraycopy(this.sharedStops, 0, newSharedStops, 1, this.sharedStops.length);
+		}
+
+		this.sharedStops = newSharedStops;
 	}
 
 	/**
