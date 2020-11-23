@@ -58,6 +58,7 @@ public class SharedStop extends MarkedObject {
 		this.routes = routes;
 
 		this.circleOptions = new CircleOptions[routes.length];
+		this.circles = new Circle[routes.length];
 		for (int i = 0; i < routes.length; i++) {
 			this.circleOptions[i] = new CircleOptions().center(this.location)
 					.radius(SharedStop.STARTING_RADIUS - (10*i));
@@ -128,28 +129,37 @@ public class SharedStop extends MarkedObject {
 			return stops;
 		}
 
-		Stop[] finalStops = new Stop[stops.length - sharedStops.length];
+		Stop[] potentialStops = new Stop[stops.length];
 		int finalIndex = 0;
 		for (Stop stop : stops) {
 
-			boolean match = false;
+			boolean noMatch = true;
 			for (SharedStop sharedStop : sharedStops) {
 				if (SharedStop.areEqual(sharedStop, stop)) {
-					match = true;
+					noMatch = false;
 					break;
 				}
 			}
 
-			if (!match) {
-				finalStops[finalIndex] = stop;
-				finalIndex++;
+			if (noMatch) {
+				try {
+					potentialStops[finalIndex] = stop;
+					finalIndex++;
+				} catch (ArrayIndexOutOfBoundsException e) {
+					Log.w("recreateStops", String.format("Failed to add stop: %s for route %s",
+							stop.stopName, stop.route.routeName));
+					Log.e("recreateStops", "Final stops array is too small!", e);
+				}
 			}
 		}
 
-		if (finalIndex != finalStops.length) {
-			Log.w("recreateStops", "The finalStops array wasn't filled all the way!");
+		if (finalIndex != (stops.length - sharedStops.length)) {
+			Log.w("recreateStops", String.format("Final index differs from standard number! (%d vs %d)",
+					stops.length - sharedStops.length, finalIndex));
 		}
 
+		final Stop[] finalStops = new Stop[finalIndex];
+		System.arraycopy(potentialStops, 0, finalStops, 0, finalIndex);
 		return finalStops;
 	}
 
@@ -167,7 +177,16 @@ public class SharedStop extends MarkedObject {
 	 */
 	public void showSharedStop(GoogleMap map) {
 		// TODO
-
+		for (int i = 0; i < circles.length; i++) {
+			Circle circle = this.circles[i];
+			if (circle == null) {
+				// TODO
+				this.circles[i] = SharedStop.createSharedStopCircle(map, this.circleOptions[i], this, i == 0);
+			} else {
+				circle.setClickable(i == 0);
+				circle.setVisible(true);
+			}
+		}
 	}
 
 	/**
@@ -180,11 +199,19 @@ public class SharedStop extends MarkedObject {
 			}
 		}
 
-		if (this.circles != null) {
-			for (Circle circle : this.circles) {
+		for (Circle circle : this.circles) {
+			if (circle != null) {
 				circle.setClickable(false);
 				circle.setVisible(false);
 			}
 		}
+	}
+
+	private static Circle createSharedStopCircle(GoogleMap map, CircleOptions options, SharedStop sharedStop, boolean clickable) {
+		Circle circle = map.addCircle(options);
+		circle.setTag(sharedStop);
+		circle.setClickable(clickable);
+		circle.setVisible(true);
+		return circle;
 	}
 }

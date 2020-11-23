@@ -90,12 +90,8 @@ public class Network {
 		}
 
 		try {
-			// Try to create a new Json object using the string builder.
-			JSONObject result = new JSONObject(jsonString.toString());
-			Log.d("getJsonFromUrl", "Returned JSON:\n" + result.toString(4));
-
-			// Return the resulting Json object
-			return result;
+			// Try to create a new Json object using the string builder, and return the resulting Json object.
+			return new JSONObject(jsonString.toString());
 		} catch (org.json.JSONException e) {
 			// Log if the Json object couldn't be created, and return an empty object.
 			Log.e("getJsonFromUrl", "Couldn't convert string to JSON", e);

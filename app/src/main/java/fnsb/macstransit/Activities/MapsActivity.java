@@ -396,6 +396,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				}
 
 				// TODO Show shared stop
+				if (route.sharedStops != null) {
+					for (SharedStop sharedStop : route.sharedStops) {
+						sharedStop.showSharedStop(MapsActivity.map);
+					}
+				}
 			} else {
 
 				if (route.stops != null || route.stops.length != 0) {
