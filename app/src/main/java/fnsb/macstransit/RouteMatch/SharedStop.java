@@ -34,7 +34,7 @@ public class SharedStop extends MarkedObject {
 	/**
 	 * TODO Documentation
 	 */
-	String stopName;
+	public String stopName;
 
 	/**
 	 * TODO Documentation

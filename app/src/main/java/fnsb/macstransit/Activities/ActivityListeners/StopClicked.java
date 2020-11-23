@@ -15,6 +15,7 @@ import java.util.Locale;
 
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.R;
+import fnsb.macstransit.RouteMatch.MarkedObject;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
@@ -236,7 +237,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @param string The string to search.
 	 * @return The number of times the character occurs within the string.
 	 */
-	public static int getNewlineOccurrence(CharSequence string) { // TODO Unit test
+	public static int getNewlineOccurrence(@NotNull CharSequence string) { // TODO Unit test
 		// Create a variable to store the occurrence.
 		int count = 0;
 
@@ -260,42 +261,72 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 */
 	@Override
 	public void onCircleClick(@NotNull com.google.android.gms.maps.model.Circle circle) {
-		// Check if the circle is a stop or a shared stop.
-		if (circle.getTag() instanceof Stop) {
+
+		MarkedObject potentialStop = (MarkedObject) circle.getTag();
+
+		if (potentialStop instanceof Stop) {
 			Log.d("onCircleClick", "Showing stop info window");
 
 			// Get the stop, and show its marker.
-			Stop stop = (Stop) circle.getTag();
-			this.showStop(stop);
+			Stop stop = (Stop) potentialStop;
+
+			if (stop.getMarker() == null) {
+				try {
+					Marker marker = stop.addMarker(MapsActivity.map, stop.circleOptions.getCenter(), stop.route.color, stop.stopName);
+					stop.setMarker(marker);
+				} catch (Exception e) {
+					e.printStackTrace();
+					// If the stop doesn't have a marker, just use toast to display the stop ID.
+
+					Toast.makeText(this.activity, stop.stopName, Toast.LENGTH_SHORT).show();
+					Log.w("showStop", String.format("Stop %s has no marker!", stop.stopName));
+				}
+			}
+
+			//this.showMarker(stop.getMarker());
+		} else if (potentialStop instanceof SharedStop) {
+			Log.d("onCircleClick", "Showing shared stop info window");
+
+			SharedStop sharedStop = (SharedStop) potentialStop;
+
+			if (sharedStop.getMarker() == null) {
+				try {
+					for (int i = 0; i < sharedStop.routes.length; i++) {
+						Route route = sharedStop.routes[i];
+						if (route.enabled) {
+							Marker marker = sharedStop.addMarker(MapsActivity.map, sharedStop.circleOptions[i].getCenter(), route.color, sharedStop.stopName);
+							sharedStop.setMarker(marker);
+							break;
+						}
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+					// If the stop doesn't have a marker, just use toast to display the stop ID.
+					Toast.makeText(this.activity, sharedStop.stopName, Toast.LENGTH_SHORT).show();
+					Log.w("showStop", String.format("Stop %s has no marker!", sharedStop.stopName));
+				}
+			}
 		} else {
 			// If it was neither a stop or a shared stop, warn that there was an unaccounted for object.
 			Log.w("onCircleClick", String.format("Circle object (%s) unaccounted for!", circle.getTag()));
+			return;
 		}
+
+		this.showMarker(potentialStop.getMarker());
 	}
 
 
-	private void showStop(Stop stop) {
-		if (stop.getMarker() == null) {
-
-			try {
-				Marker m = stop.addMarker(MapsActivity.map, stop.circleOptions.getCenter(), stop.route.color, stop.stopName);
-				stop.setMarker(m);
-			} catch (Exception e) {
-				e.printStackTrace();
-				// If the stop doesn't have a marker, just use toast to display the stop ID.
-				Toast.makeText(this.activity, stop.stopName, Toast.LENGTH_SHORT).show();
-				Log.w("showStop", String.format("Stop %s has no marker!", stop.stopName));
-			}
-
-		}
-		Marker marker = stop.getMarker();
-
+	/**
+	 * TODO Documentation
+	 * @param marker
+	 */
+	private void showMarker(@NotNull Marker marker) {
 		// Since the marker is not null, show it the marker,
 		// and set the snippet to the times when the bus is expected to arrive / depart.
 		marker.setVisible(true);
 		marker.setSnippet(this.activity.getString(fnsb.macstransit.R.string.retrieving_stop_times));
-		new fnsb.macstransit.Activities.ActivityListeners.Async.GetStopTimes(marker, this.activity)
-				.execute(stop);
+		// FIXME
+		// new fnsb.macstransit.Activities.ActivityListeners.Async.GetStopTimes(marker, this.activity).execute(marker);
 		marker.showInfoWindow();
 	}
 }

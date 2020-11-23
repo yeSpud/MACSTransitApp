@@ -39,11 +39,11 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * <li>Load bus routes (Route) (8) - average number of routes</li>
 	 * <li>Map the bus routes (Polyline) (8)</li>
 	 * <li>Map the bus stops (8)</li>
-	 * <li>Map the shared stops (8) + (52 * 8) - average number of stops per route</li>
+	 * <li>Map the shared stops (8)</li>
 	 * <li>Validate the stops (8)</li>
 	 * </ul>
 	 */
-	private static final double maxProgress = 1 + 1 + 1 + 8 + 8 + 8 + 8 + (52 * 8) + 8;
+	private static final double maxProgress = 1 + 1 + 1 + 8 + 8 + 8 + 8 + 8;
 
 	/**
 	 * Create a variable to check if the map activity has already been loaded
@@ -186,13 +186,12 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 *
 	 * @return The thread that will run all the necessary initialization methods.
 	 */
-	@SuppressWarnings("OverlyLongMethod")
 	@org.jetbrains.annotations.NotNull
 	private Thread initializeApp() {
-		@SuppressWarnings("OverlyLongLambda") Thread thread = new Thread(() -> {
+		Thread thread = new Thread(() -> {
 
 			// Check if the user has internet before continuing.
-			this.setMessage("Checking internet connection");
+			this.setMessage(R.string.internet_check);
 			if (this.isMissingInternet()) {
 				this.noInternet();
 				return;
@@ -200,30 +199,30 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.setProgressBar(1);
 
 			// Create the RouteMatch object.
-			this.setMessage("Creating RouteMatch object");
+			this.setMessage(R.string.routematch_creation);
 			try {
 				MapsActivity.routeMatch = new fnsb.macstransit.RouteMatch.
 						RouteMatch("https://fnsb.routematch.com/feed/");
 			} catch (MalformedURLException e) {
 				Log.e("initializeApp", "", e);
-				this.setMessage("An incorrect URL has been provided for the RouteMatch server");
+				this.setMessage(R.string.routematch_creation_fail);
 				this.progressBar.setVisibility(View.INVISIBLE);
 				return;
 			}
-			this.setProgressBar(2);
+			this.setProgressBar(1 + 1);
 
 			// Get the master schedule from the RouteMatch server
-			this.setMessage("Downloading master schedule");
+			this.setMessage(R.string.downloading_master_schedule);
 			JSONObject masterSchedule = MapsActivity.routeMatch.getMasterSchedule();
-			this.setProgressBar(3);
+			this.setProgressBar(1 + 1 + 1);
 
 			// Load the bus routes from the master schedule.
-			this.setMessage("Loading bus routes");
+			this.setMessage(R.string.loading_bus_routes);
 			JSONArray routes = RouteMatch.parseData(masterSchedule);
 
 			// Check if there are no routes for the day.
 			if (routes.length() == 0) {
-				this.setMessage("There are no buses scheduled to run at this time");
+				this.setMessage(R.string.its_sunday);
 
 				// Also add a chance for the user to retry.
 				this.showRetryButton();
@@ -231,28 +230,19 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				return;
 			}
 			MapsActivity.allRoutes = Route.generateRoutes(routes);
-			this.setProgressBar(3 + 8);
+			this.setProgressBar(1 + 1 + 1 + 8);
 
 			// Map bus routes (map polyline coordinates).
-			this.setMessage("Mapping bus routes");
 			this.mapBusRoutes();
-			this.setProgressBar(3 + (8 * 2));
 
 			// Map bus stops.
-			this.setMessage("Mapping bus stops");
 			this.mapBusStops();
-			this.setProgressBar(3 + (8 * 3));
 
 			// Map shared stops.
-			this.setMessage("Checking for shared bus stops");
 			this.mapSharedStops();
-			this.setProgressBar(1 + 1 + 1 + 8 + 8 + 8 + 8 + (52 * 8));
 
 			// Validate stops.
-			this.setMessage("Validating stops");
 			this.validateStops();
-			this.setProgressBar(1 + 1 + 1 + 8 + 8 + 8 + 8 + (52 * 8) + 8);
-
 
 			// Finally, launch the maps activity.
 			this.launchMapsActivity();
@@ -303,10 +293,12 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 		// Check if the connectivity manager is null.
 		if (connectivityManager != null) {
+
 			// Get the network info
 			android.net.NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
 			return activeNetwork == null || !activeNetwork.isConnected();
 		} else {
+
 			// Since the connectivity manager is null return true.
 			return true;
 		}
@@ -316,6 +308,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * Loads the polylines for each route. Also known as mapping the bus routes to the map.
 	 */
 	private void mapBusRoutes() {
+		// Display that we are mapping bus routes to the user.
+		this.setMessage(R.string.mapping_bus_routes);
 
 		// Verify that allRoutes is not null. If it is then log and return early.
 		if (MapsActivity.allRoutes == null) {
@@ -324,7 +318,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Determine the progress step.
-		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = (3.0d + 8.0d);
+		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 1 + 1 + 8;
 
 		// Iterate though each route, and try to load the polyline in each of them.
 		for (Route route : MapsActivity.allRoutes) {
@@ -340,6 +334,9 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			currentProgress += step;
 			this.setProgressBar(currentProgress);
 		}
+
+		// Update the progress bar one final time for this method.
+		this.setProgressBar(1 + 1 + 1 + 8 + 8);
 	}
 
 	/**
@@ -347,6 +344,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * so stops for separate routes will overlap.
 	 */
 	private void mapBusStops() {
+		// Update the user that we are now mapping (calculating) bus stops.
+		this.setMessage(R.string.mapping_bus_stops);
 
 		// Verify that allRoutes is not null. If it is then log and return early.
 		if (MapsActivity.allRoutes == null) {
@@ -355,7 +354,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Determine the progress step.
-		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = (3.0d + (8.0d * 2.0d));
+		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 1 + 1 + 8 + 8;
 
 		// Iterate thorough all the routes to load each stop.
 		for (Route route : MapsActivity.allRoutes) {
@@ -365,12 +364,17 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			currentProgress += step;
 			this.setProgressBar(currentProgress);
 		}
+
+		// Update the progress one last time for this method.
+		this.setProgressBar(1 + 1 + 1 + 8 + 8 + 8);
 	}
 
 	/**
 	 * TODO Documentation
 	 */
 	private void mapSharedStops() {
+
+		this.setMessage("Checking for shared bus stops");
 
 		// Verify that allRoutes is not null. If it is then log and return early.
 		if (MapsActivity.allRoutes == null) {
@@ -379,16 +383,13 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// TODO
-		double routeStep = 8.0d / MapsActivity.allRoutes.length, currentProgress = (3.0d + (8.0d * 3.0d));
+		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 1 + 1 + 8 + 8 + 8 + 8;
 
 		// Iterate though all the routes.
 		for (int routeIndex = 0; routeIndex < MapsActivity.allRoutes.length; routeIndex++) {
 
 			// Get a first comparison route.
 			Route route = MapsActivity.allRoutes[routeIndex];
-
-			// Get the stop for each stop (52 is the average number of stops per route).
-			double stopStep = 52.0d / route.stops.length;
 
 			// Iterate through all the stops in our first comparison route.
 			for (Stop stop : route.stops) {
@@ -403,21 +404,21 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 						sharedRoute.addSharedStop(sharedStop);
 					}
 				}
-
-				currentProgress += stopStep;
-				this.setProgressBar(currentProgress);
 			}
 
-			currentProgress += routeStep;
+			currentProgress += step;
 			this.setProgressBar(currentProgress);
 		}
 
+		this.setProgressBar(1 + 1 + 1 + 8 + 8 + 8 + 8);
 	}
 
 	/**
 	 * TODO Documentation
 	 */
 	private void validateStops() {
+
+		this.setMessage("Validating stops");
 
 		// Verify that allRoutes is not null. If it is then log and return early.
 		if (MapsActivity.allRoutes == null) {
@@ -426,7 +427,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Determine the progress step.
-		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 1 + 1 + 8 + 8 + 8 + 8 + (52 * 8);
+		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 1 + 1 + 8 + 8 + 8 + 8;
 
 		for (Route route : MapsActivity.allRoutes) {
 			final Stop[] finalStops = SharedStop.recreateStops(route.stops, route.sharedStops);
@@ -437,6 +438,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.setProgressBar(currentProgress);
 		}
 
+		this.setProgressBar(1 + 1 + 1 + 8 + 8 + 8 + 8 + 8);
 	}
 
 	/**
@@ -456,6 +458,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 *
 	 * @param message The message to be displayed in the text area.
 	 */
+	@Deprecated
 	private void setMessage(CharSequence message) {
 
 		// Since we are changing a TextView element, the following needs to be run on the UI thread.
@@ -472,6 +475,14 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				Log.w("setMessage", "TextView has not been initialized yet");
 			}
 		});
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param resID
+	 */
+	private void setMessage(int resID) {
+		this.setMessage(this.getResources().getString(resID));
 	}
 
 	/**
@@ -506,6 +517,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * and by setting the click action of the button to launch the onResume() method once again.
 	 */
 	private void showRetryButton() {
+
 		// Since we are updating UI elements, run the following on the UI thread.
 		this.runOnUiThread(() -> {
 
@@ -518,5 +530,4 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.button.setVisibility(View.VISIBLE);
 		});
 	}
-
 }

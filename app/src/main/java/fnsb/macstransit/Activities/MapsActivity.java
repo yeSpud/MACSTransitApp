@@ -217,11 +217,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			// Set the menu item's checked value to that of the enabled value
 			item.setChecked(enabled);
 		} else if (item.getItemId() == R.id.settings) { // Check if the item that was selected was the settings button.
+
 			// Launch the settings activity
 			this.startActivity(new Intent(this, SettingsActivity.class));
 		} else if (item.getItemId() == R.id.fares) { // Check if the item that was selected was the fares button.
 			MapsActivity.farePopupWindow.showFarePopupWindow();
 		} else {
+
 			// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!
 			Log.w("onOptionsItemSelected", "Unaccounted menu item in the other group was checked!");
 		}
@@ -234,6 +236,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	private void onRouteItemToggled(@NotNull MenuItem item) throws Route.RouteException {
 		Log.v("onRouteItemSelected", "onRouteItemSelected bas been called!");
+
+		if (MapsActivity.allRoutes == null) {
+			return;
+		}
 
 		// Create a boolean to store the resulting value of the menu item.
 		boolean enabled = !item.isChecked();
@@ -364,18 +370,14 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * Draws the stops and shared stops onto the map, and adjusts the stop sizes based on the zoom level.
 	 */
-	public void drawStops() {
-
+	public void drawStops() { // FIXME
 		// First, make sure that allRoutes isn't null. If it is, return early.
 		if (MapsActivity.allRoutes == null) {
 			Log.w("drawStops", "allRoutes is null!");
 			return;
 		}
 
-		// TODO Draw the stops (and shared stops) based on if their respective routes are enabled or not.
 		// Check and load all the shared stops
-
-		// FIXME
 		for (Route route : MapsActivity.allRoutes) {
 
 			if (route.enabled) {
@@ -394,15 +396,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 						}
 					}
 				}
-
-				// TODO Show shared stop
 				if (route.sharedStops != null) {
 					for (SharedStop sharedStop : route.sharedStops) {
 						sharedStop.showSharedStop(MapsActivity.map);
 					}
 				}
 			} else {
-
 				if (route.stops != null || route.stops.length != 0) {
 					if (route.stops[0] != null) {
 						if (route.stops[0].circle != null) {
@@ -414,7 +413,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 						}
 					}
 				}
-
 				if (route.sharedStops != null) {
 					for (SharedStop sharedStop : route.sharedStops) {
 						sharedStop.hideStop();
@@ -422,7 +420,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				}
 			}
 		}
-
 		// Adjust the circle sizes of the stops on the map given the current zoom.
 		AdjustZoom.resizeStops();
 	}

@@ -41,4 +41,12 @@
     <string name="satellite_map">Satellite</string>
     <string name="terrain_map">Terrain</string>
     <string name="open_network_settings">Open network settings</string>
+    <string name="internet_check">Checking internet connection</string>
+    <string name="routematch_creation">Establishing connection with RouteMatch</string>
+    <string name="routematch_creation_fail">An incorrect URL has been provided for the RouteMatch server</string>
+    <string name="downloading_master_schedule">Downloading master schedule</string>
+    <string name="loading_bus_routes">Loading bus routes</string>
+    <string name="its_sunday">There are no buses scheduled to run at this time</string>
+    <string name="mapping_bus_routes">Mapping bus routes</string>
+    <string name="mapping_bus_stops">Mapping bus stops</string>
 </resources>
