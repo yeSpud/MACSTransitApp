@@ -39,11 +39,11 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * <li>Load bus routes (Route) (8) - average number of routes</li>
 	 * <li>Map the bus routes (Polyline) (8)</li>
 	 * <li>Map the bus stops (8)</li>
-	 * <li>Map the shared stops (8)</li>
-	 * <li>Validate the stops (8)</li>
+	 * <li>Map the shared stops (1)</li>
+	 * <li>Validate the stops (1)</li>
 	 * </ul>
 	 */
-	private static final double maxProgress = 1 + 1 + 1 + 8 + 8 + 8 + 8 + 8;
+	private static final double maxProgress = 1 + 1 + 1 + 8 + 8 + 8 + 1 + 1;
 
 	/**
 	 * Create a variable to check if the map activity has already been loaded
@@ -383,7 +383,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// TODO
-		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 1 + 1 + 8 + 8 + 8 + 8;
+		double step = 1.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 1 + 1 + 8 + 8 + 8;
 
 		// Iterate though all the routes.
 		for (int routeIndex = 0; routeIndex < MapsActivity.allRoutes.length; routeIndex++) {
@@ -410,7 +410,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.setProgressBar(currentProgress);
 		}
 
-		this.setProgressBar(1 + 1 + 1 + 8 + 8 + 8 + 8);
+		this.setProgressBar(1 + 1 + 1 + 8 + 8 + 8 + 1);
 	}
 
 	/**
@@ -427,7 +427,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Determine the progress step.
-		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 1 + 1 + 8 + 8 + 8 + 8;
+		double step = 1.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 1 + 1 + 8 + 8 + 8 + 1;
 
 		for (Route route : MapsActivity.allRoutes) {
 			final Stop[] finalStops = SharedStop.recreateStops(route.stops, route.sharedStops);
@@ -438,7 +438,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.setProgressBar(currentProgress);
 		}
 
-		this.setProgressBar(1 + 1 + 1 + 8 + 8 + 8 + 8 + 8);
+		this.setProgressBar(1 + 1 + 1 + 8 + 8 + 8 + 1 + 1);
 	}
 
 	/**

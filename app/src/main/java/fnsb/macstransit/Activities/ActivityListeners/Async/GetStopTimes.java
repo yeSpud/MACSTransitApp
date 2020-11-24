@@ -9,6 +9,9 @@ import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 
+import fnsb.macstransit.Activities.MapsActivity;
+import fnsb.macstransit.RouteMatch.MarkedObject;
+import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 
 /**
@@ -20,7 +23,7 @@ import fnsb.macstransit.RouteMatch.Stop;
  * @since Beta 8.
  */
 @Deprecated
-public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
+public class GetStopTimes extends android.os.AsyncTask<String, Void, JSONObject> {
 
 	/**
 	 * The marker object that will be updated.
@@ -35,7 +38,7 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 	 * <p>
 	 * https://stackoverflow.com/questions/45653121/passing-context-from-service-to-asynctask-without-leaking-it
 	 */
-	private final WeakReference<Context> context;
+	private final WeakReference<MapsActivity> context;
 
 	/**
 	 * Constructor for the Asynchronous method.
@@ -45,29 +48,16 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 	 * @param marker  The marker object that will be updated once the background async process has finished.
 	 * @param context The context from which this is being called from.
 	 */
-	public GetStopTimes(Marker marker, Context context) {
+	public GetStopTimes(Marker marker, MapsActivity context) {
 		this.marker = marker;
 		this.context = new WeakReference<>(context);
 	}
 
-	/**
-	 * Override this method to perform a computation on a background thread.
-	 * The specified parameters are the parameters passed to execute(Params...) by the caller of this task.
-	 * This will normally run on a background thread. But to better support testing frameworks,
-	 * it is recommended that this also tolerates direct execution on the foreground thread,
-	 * as part of the execute(Params...) call.
-	 * This method can call publishProgress(Progress...) to publish updates on the UI thread.
-	 * This method may take several seconds to complete, so it should only be called from a worker thread.
-	 *
-	 * @param stops The parameters of the task.
-	 *              This should only be the stop that needs to retrieved by the RouteMatch object from the RouteMatch server.
-	 * @return A result, defined by the subclass of this task.
-	 * This should be the corresponding JSON from the RouteMatch server.
-	 */
 	@Override
-	protected JSONObject doInBackground(Stop... stops) {
+	protected JSONObject doInBackground(String... stopNames) {
 		Log.v("doInBackground", "Retrieving stop data...");
-		return fnsb.macstransit.Activities.MapsActivity.routeMatch.getDeparturesByStop(stops[0]);
+
+		return MapsActivity.routeMatch.getDeparturesByStop(stopNames[0]);
 	}
 
 	/**
@@ -91,7 +81,7 @@ public class GetStopTimes extends android.os.AsyncTask<Stop, Void, JSONObject> {
 			// Update the snippet text of the marker's info window
 			Log.v("onPostExecute", "Updating snippet");
 			this.marker.setSnippet(fnsb.macstransit.Activities.ActivityListeners.StopClicked
-					.postStopTimes(marker.getTag(), result, this.context.get()));
+					.postStopTimes((MarkedObject) marker.getTag(), result, this.context.get()));
 
 			// Refresh the info window by calling showInfoWindow().
 			Log.v("onPostExecute", "Refreshing info window");

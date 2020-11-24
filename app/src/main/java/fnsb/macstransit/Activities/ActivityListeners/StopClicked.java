@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
+import fnsb.macstransit.Activities.ActivityListeners.Async.GetStopTimes;
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.MarkedObject;
@@ -56,7 +57,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @return The string containing either all the arrival and departure times for the stop,
 	 * or the overflowString if there is too much data.
 	 */
-	public static String postStopTimes(Object stop, org.json.JSONObject json, Context context) {
+	public static String postStopTimes(MarkedObject stop, org.json.JSONObject json, Context context) {
 		// Get the stop data from the retrieved json.
 		org.json.JSONArray stopData = fnsb.macstransit.RouteMatch.RouteMatch.parseData(json);
 		int count = stopData.length();
@@ -70,6 +71,22 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// If the stop is a shared stop, execute the following:
 			if (stop instanceof SharedStop) {
 				// FIXME
+				SharedStop sharedStop = (SharedStop) stop;
+				Route[] potentialSelectedRoutes = new Route[sharedStop.routes.length];
+				int finalIndex = 0;
+				for (Route route : sharedStop.routes) {
+					if (route.enabled) {
+						potentialSelectedRoutes[finalIndex] = route;
+						finalIndex++;
+					}
+				}
+
+				Route[] selectedRoutes = new Route[finalIndex];
+				System.arraycopy(potentialSelectedRoutes, 0, selectedRoutes, 0, finalIndex);
+
+				string = StopClicked.generateTimeString(stopData, count, context, selectedRoutes,
+						true);
+
 			} else if (stop instanceof Stop) {
 				// Since the stop is just a stop, just go straight into generating the time string,
 				// without the route name.
@@ -326,7 +343,18 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		marker.setVisible(true);
 		marker.setSnippet(this.activity.getString(fnsb.macstransit.R.string.retrieving_stop_times));
 		// FIXME
-		// new fnsb.macstransit.Activities.ActivityListeners.Async.GetStopTimes(marker, this.activity).execute(marker);
+		MarkedObject tag = (MarkedObject) marker.getTag();
+
+		GetStopTimes runner = new GetStopTimes(marker, this.activity);
+		if (tag instanceof Stop) {
+			Stop stop = (Stop) tag;
+			runner.execute(stop.stopName);
+		} else if (tag instanceof SharedStop) {
+			SharedStop sharedStop = (SharedStop) tag;
+			runner.execute(sharedStop.stopName);
+		} else {
+			// TODO
+		}
 		marker.showInfoWindow();
 	}
 }

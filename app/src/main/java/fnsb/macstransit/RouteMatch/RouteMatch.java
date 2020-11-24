@@ -82,21 +82,18 @@ public class RouteMatch {
 	}
 
 	/**
-	 * Gets the stop data from the RouteMatch server.
-	 * If the final encoded url is somehow malformed (most likely through a bad stop id)
-	 * then an empty JSONObject will be returned instead.
-	 *
-	 * @param stop The stop to get the data for.
-	 * @return The data as a JSONObject for the pertaining stop.
+	 * TODO Documentation
+	 * @param stopName
+	 * @return
 	 */
-	public JSONObject getDeparturesByStop(@NotNull Stop stop) {
+	public JSONObject getDeparturesByStop(@NotNull String stopName) {
 		try {
 			// Create a pattern to match special URL characters.
 			final Pattern pattern = Pattern.compile("\\+");
 
 			// Create the url that will be used to retrieve the stop data.
 			String url = this.url + "departures/byStop/" +
-					pattern.matcher(java.net.URLEncoder.encode(stop.stopName, "UTF-8"))
+					pattern.matcher(java.net.URLEncoder.encode(stopName, "UTF-8"))
 							.replaceAll("%20");
 			Log.d("getDeparturesByStop", "URL: " + url);
 

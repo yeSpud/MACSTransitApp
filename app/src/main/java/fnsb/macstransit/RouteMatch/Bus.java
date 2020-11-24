@@ -237,11 +237,8 @@ public class Bus extends MarkedObject {
 			// Compare the new bus to the oldBuses.
 			// If they match, then add it to the array list and update its position.
 			for (Bus oldBus : oldBuses) {
-				Log.d("updateCurrentBuses",
-						String.format("Comparing bus %s to bus %s", newBus.vehicleId, oldBus.vehicleId));
 
 				if (newBus.vehicleId.equals(oldBus.vehicleId)) {
-					Log.d("updateCurrentBuses", "Found matching bus " + newBus.vehicleId);
 
 					// Update the buses position, heading, and speed
 					Marker marker = oldBus.getMarker();
