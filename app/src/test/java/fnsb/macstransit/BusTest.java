@@ -108,7 +108,7 @@ public class BusTest {
 		}
 
 		long endTime = System.nanoTime();
-		System.out.println("Arraylist time: " + (endTime - startTime));
+		Helper.printTime(startTime, endTime);
 
 		return buses.toArray(new Bus[0]);
 
@@ -130,7 +130,7 @@ public class BusTest {
 
 		long endTime =  System.nanoTime();
 
-		System.out.println("StdArray time: " + (endTime - startTime));
+		Helper.printTime(startTime, endTime);
 
 		return potentialBuses;
 	}
@@ -150,11 +150,12 @@ public class BusTest {
 		try {
 			Bus[] b1 = BusTest.ArrayListTest(array);
 			Bus[] b2 = BusTest.StandardArraysTest(array);
+
+			assertEquals(b1.length, b2.length);
+
 		} catch (Route.RouteException e) {
 			fail();
 		}
-
-
 	}
 
 	private static Bus createBus(JSONArray vehicles, int i) throws Route.RouteException, JSONException {

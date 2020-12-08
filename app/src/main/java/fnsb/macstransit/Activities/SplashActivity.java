@@ -6,12 +6,6 @@ import android.os.Build;
 import android.util.Log;
 import android.view.View;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.net.MalformedURLException;
-
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
@@ -137,7 +131,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 		// Run the initialization on a new thread as to not hang the app.
 		this.initializeApp().start();
-		
 	}
 
 	/**
@@ -203,7 +196,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			try {
 				MapsActivity.routeMatch = new fnsb.macstransit.RouteMatch.
 						RouteMatch("https://fnsb.routematch.com/feed/");
-			} catch (MalformedURLException e) {
+			} catch (java.net.MalformedURLException e) {
 				Log.e("initializeApp", "", e);
 				this.setMessage(R.string.routematch_creation_fail);
 				this.progressBar.setVisibility(View.INVISIBLE);
@@ -213,12 +206,12 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 			// Get the master schedule from the RouteMatch server
 			this.setMessage(R.string.downloading_master_schedule);
-			JSONObject masterSchedule = MapsActivity.routeMatch.getMasterSchedule();
+			org.json.JSONObject masterSchedule = MapsActivity.routeMatch.getMasterSchedule();
 			this.setProgressBar(1 + 1 + 1);
 
 			// Load the bus routes from the master schedule.
 			this.setMessage(R.string.loading_bus_routes);
-			JSONArray routes = RouteMatch.parseData(masterSchedule);
+			org.json.JSONArray routes = RouteMatch.parseData(masterSchedule);
 
 			// Check if there are no routes for the day.
 			if (routes.length() == 0) {
@@ -264,7 +257,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		this.progressBar.setVisibility(View.INVISIBLE);
 
 		// Then, set the message of the text view to notify the user that there is no internet connection.
-		this.setMessage("Cannot connect to the internet");
+		this.setMessage(R.string.cannot_connect_internet);
 
 		// Then setup the button to open the internet settings when clicked on, and make it visible.
 		this.button.setText(R.string.open_network_settings);
@@ -324,7 +317,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		for (Route route : MapsActivity.allRoutes) {
 			try {
 				route.loadPolyLineCoordinates();
-			} catch (JSONException e) {
+			} catch (org.json.JSONException e) {
 
 				// If there is a JSONException while loading the polyline coordinates, just log it.
 				Log.e("mapBusRoutes", String.format("Unable to map route %s", route.routeName), e);
@@ -382,7 +375,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			return;
 		}
 
-		// TODO
+		// Set the current progress.
 		double step = 1.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 1 + 1 + 8 + 8 + 8;
 
 		// Iterate though all the routes.
@@ -448,6 +441,9 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Set the loaded state to true as everything was loaded (or should have been loaded).
 		SplashActivity.loaded = true;
 
+		// Suggest some garbage collection since we are done with a lot of heavy processing.
+		System.gc();
+
 		// Start the MapsActivity, and close this splash activity.
 		this.startActivity(new Intent(this, MapsActivity.class));
 		this.finish();
@@ -486,20 +482,30 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Update the progress bar to the current progress.
 	 *
-	 * @param progress
+	 * @param progress The current progress out of SplashActivity.maxProgress.
 	 */
 	private void setProgressBar(double progress) {
+		// Because we are updating UI elements we need to run the following on the UI thread.
 		this.runOnUiThread(() -> {
+
 			// Convert the progress to be an int out of 100.
 			int p = (int) Math.round((progress / SplashActivity.maxProgress) * 100);
 
-			// Validate that that the progress is between 0 and 100.
+			/* Validate that that the progress is between 0 and 100.
+			This is the equivalent of:
+			if (p > 100) {
+				p = 100;
+			} else {
+				p = Math.max(p,0);
+			}
+			 */
 			p = (p > 100) ? 100 : Math.max(p, 0);
 
 			// Make sure the progress bar is not null
 			if (this.progressBar != null) {
+
 				// Apply the progress to the progress bar, and animate it if its supported in the SDK.
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
 					this.progressBar.setProgress(p, true);
@@ -507,6 +513,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 					this.progressBar.setProgress(p);
 				}
 			} else {
+
+				// Log that the progress bar has not been set up yet
 				Log.w("setProgressBar", "Progressbar has not been initialized yet");
 			}
 		});
@@ -517,7 +525,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * and by setting the click action of the button to launch the onResume() method once again.
 	 */
 	private void showRetryButton() {
-
 		// Since we are updating UI elements, run the following on the UI thread.
 		this.runOnUiThread(() -> {
 

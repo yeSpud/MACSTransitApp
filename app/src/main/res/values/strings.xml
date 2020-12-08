@@ -49,4 +49,5 @@
     <string name="its_sunday">There are no buses scheduled to run at this time</string>
     <string name="mapping_bus_routes">Mapping bus routes</string>
     <string name="mapping_bus_stops">Mapping bus stops</string>
+    <string name="cannot_connect_internet">Cannot connect to the internet</string>
 </resources>

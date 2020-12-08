@@ -117,14 +117,13 @@ class Helper {
 
 		System.out.print("Time taken to execute: ");
 		if (seconds != 0) {
-			System.out.println(seconds + " seconds");
+			System.out.println(String.format("%f seconds\t(%d nanoseconds)", seconds, total));
 		} else if (milliseconds != 0) {
-			System.out.println(milliseconds + " milliseconds");
+			System.out.println(String.format("%f milliseconds\t(%d nanoseconds)", milliseconds, total));
 		} else if (microseconds != 0) {
-			System.out.println(microseconds + " microseconds");
+			System.out.println(String.format("%f microseconds\t(%d nanoseconds)", microseconds, total));
 		} else {
 			System.out.println(total + " nanoseconds");
 		}
 	}
-
 }
