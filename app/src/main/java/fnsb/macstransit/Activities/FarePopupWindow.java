@@ -39,7 +39,7 @@ public class FarePopupWindow extends AlertDialog {
 		// Setup the hyperlink
 		dialogView.findViewById(R.id.link).setOnClickListener((click) ->
 				context.startActivity(new Intent(Intent.ACTION_VIEW,
-						android.net.Uri.parse("http://fnsb.us/transportation/Pages/Bus-Fares.aspx"))));
+						android.net.Uri.parse("https://www.fnsb.gov/352/Bus-Fares"))));
 
 		// Create the dialog via the alert dialog builder.
 		AlertDialog.Builder builder = new AlertDialog.Builder(context);
