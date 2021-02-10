@@ -370,56 +370,61 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * Draws the stops and shared stops onto the map, and adjusts the stop sizes based on the zoom level.
 	 */
-	public void drawStops() { // FIXME
+	public void drawStops() {
 		// First, make sure that allRoutes isn't null. If it is, return early.
 		if (MapsActivity.allRoutes == null) {
 			Log.w("drawStops", "allRoutes is null!");
 			return;
 		}
 
-		// Check and load all the shared stops
+		// Iterate though all the routes as we know at this point that they are not null.
 		for (Route route : MapsActivity.allRoutes) {
 
-			if (route.enabled) {
-				if (route.stops[0] != null) {
-					if (route.stops[0].circle == null) {
-						for (Stop stop : route.stops) {
-							if (stop != null) {
-								stop.showStop(MapsActivity.map);
-							}
-						}
+			// Iterate though the stops in the route before getting to the shared stops.
+			for (Stop stop : route.stops) {
+
+				// Check that the stop isn't null
+				// as calling any functions of a null object would result in a crash.
+				if (stop != null) {
+
+					if (route.enabled) {
+
+						// Show the stop on the map.
+						stop.showStop(MapsActivity.map);
 					} else {
-						if (!route.stops[0].circle.isVisible()) {
-							for (Stop stop : route.stops) {
-								stop.showStop(MapsActivity.map);
-							}
-						}
+
+						// Hide the stop from the map.
+						// Be sure its only hidden and not actually destroying the object.
+						stop.hideStop();
 					}
+				} else {
+
+					// Log that one of the stops was null. If this is called often enough then it
+					// may be worthwhile to check the validateStops function in the SplashActivity.
+					Log.w("drawStops", "Stop is null!");
 				}
-				if (route.sharedStops != null) {
-					for (SharedStop sharedStop : route.sharedStops) {
+			}
+
+			// Check that there are shared stops to hide in the route.
+			if (route.sharedStops != null) {
+
+				// Iterate though the shared stops in the route.
+				for (SharedStop sharedStop : route.sharedStops) {
+
+					if (route.enabled) {
+
+						// Show the shared stops.
 						sharedStop.showSharedStop(MapsActivity.map);
-					}
-				}
-			} else {
-				if (route.stops != null || route.stops.length != 0) {
-					if (route.stops[0] != null) {
-						if (route.stops[0].circle != null) {
-							if (route.stops[0].circle.isVisible()) {
-								for (Stop stop : route.stops) {
-									stop.hideStop();
-								}
-							}
-						}
-					}
-				}
-				if (route.sharedStops != null) {
-					for (SharedStop sharedStop : route.sharedStops) {
+					} else {
+
+						// Hide the shared stops on the map.
+						// Note that the stops should be hidden - not destroyed.
 						sharedStop.hideStop();
 					}
 				}
 			}
 		}
+
 		// Adjust the circle sizes of the stops on the map given the current zoom.
 		AdjustZoom.resizeStops();
 	}
