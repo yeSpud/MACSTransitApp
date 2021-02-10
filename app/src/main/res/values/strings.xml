@@ -50,4 +50,6 @@
     <string name="mapping_bus_routes">Mapping bus routes</string>
     <string name="mapping_bus_stops">Mapping bus stops</string>
     <string name="cannot_connect_internet">Cannot connect to the internet</string>
+    <string name="shared_bus_stop_check">Checking for shared bus stops</string>
+    <string name="stop_validation">Validating stops</string>
 </resources>

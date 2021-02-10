@@ -363,11 +363,14 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Adds the shared stops to the map.
+	 * This is done by iterating through all the stops in each route and checking for duplicates.
+	 * If there are any found they will be added to all the routes the stop belongs to as a shared stop.
+	 * At this point the original stop is still present in the route.
 	 */
 	private void mapSharedStops() {
-
-		this.setMessage("Checking for shared bus stops");
+		// Let the user know that we are checking for shared bus stops at this point.
+		this.setMessage(R.string.shared_bus_stop_check);
 
 		// Verify that allRoutes is not null. If it is then log and return early.
 		if (MapsActivity.allRoutes == null) {
@@ -387,31 +390,37 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			// Iterate through all the stops in our first comparison route.
 			for (Stop stop : route.stops) {
 
+				// Get an array of shared routes.
 				Route[] sharedRoutes = SharedStop.getSharedRoutes(route, routeIndex, stop);
 
+				// If the shared routes array has more than one entry, create a new shared stop object.
 				if (sharedRoutes.length > 1) {
 					SharedStop sharedStop = new SharedStop(stop.circleOptions.getCenter(),
 							stop.stopName, sharedRoutes);
 
+					// Iterate though all the routes in the shared route, and add our newly created shared stop.
 					for (Route sharedRoute : sharedRoutes) {
 						sharedRoute.addSharedStop(sharedStop);
 					}
 				}
 			}
 
+			// Update the progress.
 			currentProgress += step;
 			this.setProgressBar(currentProgress);
 		}
 
+		// Update the progress bar one last time for this method.
 		this.setProgressBar(1 + 1 + 1 + 8 + 8 + 8 + 1);
 	}
 
 	/**
-	 * TODO Documentation
+	 * Validates the stops and shared stops.
+	 * Meaning this method removes the stops that are shared stops as to not duplicate the stop.
 	 */
 	private void validateStops() {
-
-		this.setMessage("Validating stops");
+		// Let the user know that we are validating the stops (and shared stop) for each route.
+		this.setMessage(R.string.stop_validation);
 
 		// Verify that allRoutes is not null. If it is then log and return early.
 		if (MapsActivity.allRoutes == null) {
@@ -422,15 +431,24 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Determine the progress step.
 		double step = 1.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 1 + 1 + 8 + 8 + 8 + 1;
 
+		// Iterate though all the routes and recreate the stops for each route.
 		for (Route route : MapsActivity.allRoutes) {
+
+			// Get the final stop count for each route
+			// by removing stops that are taken care of by the shared route object.
 			final Stop[] finalStops = SharedStop.recreateStops(route.stops, route.sharedStops);
 			Log.d("validateStops", String.format("Final stop count: %d", finalStops.length));
+
+			// Set the stops array for the route to the final determined stop array.
+			// This array no longer contains the stops that are shared stops.
 			route.stops = finalStops;
 
+			// Update the progress.
 			currentProgress += step;
 			this.setProgressBar(currentProgress);
 		}
 
+		// Update the progress bar one last time for this method.
 		this.setProgressBar(1 + 1 + 1 + 8 + 8 + 8 + 1 + 1);
 	}
 
@@ -441,8 +459,19 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Set the loaded state to true as everything was loaded (or should have been loaded).
 		SplashActivity.loaded = true;
 
-		// Suggest some garbage collection since we are done with a lot of heavy processing.
-		System.gc();
+		/*
+		Suggest some garbage collection since we are done with a lot of heavy processing.
+		While this is normally discouraged as it implies poor processing practices,
+		it's used here since we have finished a gauntlet of processing steps that created and discarded
+		many different arrays, which can now be returned to the OS.
+		*/
+		// Runtime.getRuntime().gc();
+		/*
+		UPDATE:
+		After reading through many articles it has been decided to disable the garbage collection call
+		as in most cases it seems to hurt performance. Its being left in the code as a comment in the event
+		that it should be re-enabled for testing, but that's about it - a testing use case.
+		*/
 
 		// Start the MapsActivity, and close this splash activity.
 		this.startActivity(new Intent(this, MapsActivity.class));
@@ -450,12 +479,13 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	}
 
 	/**
-	 * Sets the text of the TextView to be that of the provided message argument.
+	 * Sets the message content to be displayed to the user on the splash screen.
 	 *
-	 * @param message The message to be displayed in the text area.
+	 * @param resID The string ID of the message. This can be retrieved by calling R.string.STRING_ID
 	 */
-	@Deprecated
-	private void setMessage(CharSequence message) {
+	private void setMessage(int resID) {
+		// Get the message from the string resource.
+		final CharSequence message = this.getResources().getString(resID);
 
 		// Since we are changing a TextView element, the following needs to be run on the UI thread.
 		this.runOnUiThread(() -> {
@@ -471,14 +501,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				Log.w("setMessage", "TextView has not been initialized yet");
 			}
 		});
-	}
-
-	/**
-	 * TODO Documentation
-	 * @param resID
-	 */
-	private void setMessage(int resID) {
-		this.setMessage(this.getResources().getString(resID));
 	}
 
 	/**
