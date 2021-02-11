@@ -13,7 +13,8 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-import fnsb.macstransit.Activities.ActivityListeners.Async.GetStopTimes;
+import fnsb.macstransit.Activities.ActivityListeners.Async.GetStopTimeHandler;
+import fnsb.macstransit.Activities.ActivityListeners.Async.StopTimeCallback;
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.MarkedObject;
@@ -253,8 +254,8 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 *
 	 * @param string The string to search.
 	 * @return The number of times the character occurs within the string.
-	 */
-	public static int getNewlineOccurrence(@NotNull CharSequence string) { // TODO Unit test
+	 */ // TODO Unit test
+	public static int getNewlineOccurrence(@NotNull CharSequence string) {
 		// Create a variable to store the occurrence.
 		int count = 0;
 
@@ -342,19 +343,20 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		// and set the snippet to the times when the bus is expected to arrive / depart.
 		marker.setVisible(true);
 		marker.setSnippet(this.activity.getString(fnsb.macstransit.R.string.retrieving_stop_times));
-		// FIXME
-		MarkedObject tag = (MarkedObject) marker.getTag();
 
-		GetStopTimes runner = new GetStopTimes(marker, this.activity);
-		if (tag instanceof Stop) {
-			Stop stop = (Stop) tag;
-			runner.execute(stop.stopName);
-		} else if (tag instanceof SharedStop) {
-			SharedStop sharedStop = (SharedStop) tag;
-			runner.execute(sharedStop.stopName);
-		} else {
-			// TODO
-		}
+		// Get the name of the stop
+		String name = marker.getTitle();
+
+		// Create a method on how to handle the stop time once its retrieved.
+		StopTimeCallback.AsyncCallback callbackMethod = new GetStopTimeHandler(marker, this.activity);
+
+		// Setup a new stop callback to reset the info window.
+		StopTimeCallback callback =  new StopTimeCallback(callbackMethod);
+
+		// Retrieve the stop times
+		callback.retrieveStopTime(name);
+
+		// For now though just show the info window.
 		marker.showInfoWindow();
 	}
 }
