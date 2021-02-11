@@ -1,4 +1,4 @@
-package fnsb.macstransit.Activities.ActivityListeners.Async;
+package fnsb.macstransit.Activities.ActivityListeners;
 
 import android.app.Activity;
 import android.util.Log;
@@ -7,8 +7,8 @@ import com.google.android.gms.maps.model.Marker;
 
 import org.json.JSONObject;
 
-import fnsb.macstransit.Activities.ActivityListeners.StopClicked;
 import fnsb.macstransit.RouteMatch.MarkedObject;
+import fnsb.macstransit.Threads.StopTimeCallback;
 
 /**
  * Created by Spud on 2021-02-10 for the project: MACS Transit.

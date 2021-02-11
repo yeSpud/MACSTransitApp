@@ -13,8 +13,7 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-import fnsb.macstransit.Activities.ActivityListeners.Async.GetStopTimeHandler;
-import fnsb.macstransit.Activities.ActivityListeners.Async.StopTimeCallback;
+import fnsb.macstransit.Threads.StopTimeCallback;
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.MarkedObject;
