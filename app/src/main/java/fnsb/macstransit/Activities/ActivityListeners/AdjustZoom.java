@@ -2,9 +2,8 @@ package fnsb.macstransit.Activities.ActivityListeners;
 
 import android.util.Log;
 
-import com.google.android.gms.maps.model.Circle;
-
 import fnsb.macstransit.Activities.MapsActivity;
+import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.Stop;
 
 /**
@@ -15,15 +14,36 @@ import fnsb.macstransit.RouteMatch.Stop;
  * @version 2.0
  * @since Beta 7.
  */
-public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCameraIdleListener { // FIXME
+public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCameraIdleListener {
 
 	/**
 	 * Constant used for calculating new circle sizes.
 	 */
+	@Deprecated
 	private static final float zoomConstant = 11.0f;
 
+	/**
+	 * TODO Documentation
+	 * FIXME
+	 */
 	public static void resizeStops() {
-		// FIXME
+
+		// Get the camera's new zoom position TODO
+		float zoom = MapsActivity.map.getCameraPosition().zoom;
+		double lat = MapsActivity.map.getCameraPosition().target.latitude;
+		double metersPerPixel = 156543.03392 * Math.cos(lat * Math.PI / 180.0) / Math.pow(2, zoom);
+		Log.v("onCameraIdle", "Meters / Pixel: " + metersPerPixel);
+
+		// TODO
+		for (Route route : MapsActivity.allRoutes) {
+			for (Stop stop : route.stops) {
+				if (stop.circle != null) {
+					stop.circle.setRadius(metersPerPixel * 4);
+				}
+			}
+		}
+
+		// TODO Shared stops
 	}
 
 	/**
@@ -34,9 +54,8 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 	 */
 	@Override
 	public void onCameraIdle() {
-		// Get the camera's new zoom position
-		float zoom = MapsActivity.map.getCameraPosition().zoom;
 
-		// FIXME
+		// TODO
+		AdjustZoom.resizeStops();
 	}
 }
