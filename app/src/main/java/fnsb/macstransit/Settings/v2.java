@@ -249,7 +249,7 @@ public class v2 {
 	 *
 	 * @return The streetview boolean.
 	 */
-	public boolean getStreetview() {
+	public boolean getStreetView() {
 		return v2.streetview;
 	}
 

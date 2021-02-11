@@ -88,7 +88,7 @@ public class v2Test {
 		assertFalse(this.settings.getTraffic());
 		assertTrue(this.settings.getDarktheme());
 		assertTrue(this.settings.getPolylines());
-		assertFalse(this.settings.getStreetview());
+		assertFalse(this.settings.getStreetView());
 		assertSame(GoogleMap.MAP_TYPE_SATELLITE, this.settings.getMaptype());
 	}
 }

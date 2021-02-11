@@ -15,6 +15,8 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 
+import java.util.ConcurrentModificationException;
+
 import fnsb.macstransit.Activities.ActivityListeners.AdjustZoom;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Bus;
@@ -28,16 +30,20 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		com.google.android.gms.maps.OnMapReadyCallback {
 
 	/**
-	 * TODO Documentation
+	 * Create an array to store all the routes that we will track.
+	 * This is not to say that all routes in this array are enabled - they can also be disabled (hidden).
+	 * <p>
+	 * This array is initialized in SplashActivity.
+	 * As such it has the possibility of being null (caused by Sunday bypass).
 	 * TODO Check for concurrent exceptions
-	 * TODO Check for potential null uses
 	 */
 	@Nullable
 	public static Route[] allRoutes;
 
 	/**
-	 * TODO Documentation
-	 * TODO Check for concurrent exception!
+	 * Create an array of all the buses that will be used
+	 * (either shown or hidden) on the map at any given time.
+	 * For now just initialize this array to 0.
 	 */
 	public static Bus[] buses = new Bus[0];
 
@@ -52,12 +58,14 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	public static GoogleMap map;
 
 	/**
-	 * TODO Documentation
+	 * Create a variable to store our fare popup window instance.
+	 * This should be initialized in the onCreate method for this activity.
 	 */
 	private static FarePopupWindow farePopupWindow;
 
 	/**
-	 * TODO Documentation
+	 * Create our instance of the update thread that will be used to get the
+	 * (new) position of buses after a period of time.
 	 */
 	private final UpdateThread updateThread = new UpdateThread(this);
 
@@ -179,7 +187,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			this.onOtherOptionsItemSelected(item);
 		} else if (item.getGroupId() == R.id.routes) { // Check if the item that was selected belongs to the routes group.
 			try {
-				this.onRouteItemToggled(item);
+				MapsActivity.onRouteItemToggled(item);
 			} catch (Route.RouteException e) {
 				Toast.makeText(this, "An error occurred while toggling that route",
 						Toast.LENGTH_LONG).show();
@@ -195,7 +203,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * TODO Documentation
+	 * Checks the selected item and executed different methods depending on its item ID.
+	 * If the item ID is determined to not correspond with any method, a warning will be logged.
 	 *
 	 * @param item The menu item that was selected. This value cannot be null.
 	 */
@@ -205,6 +214,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Identify what action to execute based on the item ID.
 		// Because resource IDs will be non-final in Android Gradle Plugin version 5.0,
 		// we cant use a switch case statement :(   Back to if else if else stuff.
+		// noinspection IfStatementWithTooManyBranches - Disabes too many if else branches warning as we have no other choice.
 		if (item.getItemId() == R.id.night_mode) { // Check if the item that was selected was the night mode toggle.
 			Log.d("onOptionsItemSelected", "Toggling night mode...");
 
@@ -230,14 +240,18 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * TODO Documentation
+	 * Checks the selected item and enables or disables the specific route depending in its checked status.
 	 *
-	 * @param item
+	 * @param item The menu item that should belong to a route. This value cannot be null.
+	 * @throws Route.RouteException Thrown if the route to be toggled is not found within allRoutes.
 	 */
-	private void onRouteItemToggled(@NotNull MenuItem item) throws Route.RouteException {
+	private static void onRouteItemToggled(@NotNull MenuItem item) throws Route.RouteException {
 		Log.v("onRouteItemSelected", "onRouteItemSelected bas been called!");
 
+		// Make sure there are routes to iterate though by checking to see if allRoutes isn't null.
 		if (MapsActivity.allRoutes == null) {
+
+			// Since allRoutes is null return early.
 			return;
 		}
 
@@ -261,11 +275,18 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Updated the selected route's boolean.
 		selectedRoute.enabled = enabled;
 
-		// (Re) draw the buses onto the map.
-		MapsActivity.drawBuses();
+		// Try to (re)draw the buses onto the map.
+		// Because we are iterating a static variable that is modified on a different thread
+		// there is a possibility of a concurrent modification.
+		try {
+			MapsActivity.drawBuses();
+		} catch (ConcurrentModificationException e) {
+			Log.e("onRouteItemToggled",
+					"Unable to redraw all buses due to concurrent modification", e);
+		}
 
 		// (Re) draw the stops onto the map.
-		this.drawStops();
+		MapsActivity.drawStops();
 
 		// (Re) draw the routes onto the map (if enabled).
 		if (CurrentSettings.settings.getPolylines()) {
@@ -275,7 +296,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Set the menu item's checked value to that of the enabled value
 		item.setChecked(enabled);
 	}
-
 
 	/**
 	 * Called when the activity will start interacting with the user.
@@ -370,7 +390,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * Draws the stops and shared stops onto the map, and adjusts the stop sizes based on the zoom level.
 	 */
-	public void drawStops() {
+	private static void drawStops() {
 		// First, make sure that allRoutes isn't null. If it is, return early.
 		if (MapsActivity.allRoutes == null) {
 			Log.w("drawStops", "allRoutes is null!");
@@ -430,44 +450,72 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * TODO Documentation
+	 * Draws the route's polylines to the map.
+	 * While all polylines are drawn they will only be shown if the route that they belong to is enabled.
 	 */
 	private static void drawRoutes() {
-		// Draw the route polylines based on if they are enabled or not.
+
+		// Make sure there are routes to iterate through (check if the routes are not null).
 		if (MapsActivity.allRoutes != null) {
+
+			// Start by iterating through all the routes.
 			for (Route route : MapsActivity.allRoutes) {
+
 				try {
+
+					// Check if the route has a polyline to set visible.
 					if (route.getPolyline() == null) {
+
+						// Create a new polyline for the route since it didn't have one before.
 						route.createPolyline();
 					}
+
+					// Set the polyline's visibility to whether the route is enabled or not.
 					route.getPolyline().setVisible(route.enabled);
 				} catch (NullPointerException e) {
-					Log.w("drawRoutes", String.format("Route %s doesn't have polyline!", route.routeName));
+
+					// If the polyline was still null after being created, log it as a warning.
+					Log.w("drawRoutes", String.format("Polyline for route %s was not created successfully!",
+							route.routeName));
 				}
 			}
 		}
 	}
 
 	/**
-	 * TODO Documentation
+	 * (Re)draws the buses on the map.
+	 * While all buses are drawn they will only be shown if the route that they belong to is enabled.
+	 *
+	 * @throws ConcurrentModificationException Concurrent exception may be thrown
+	 *                                         as it iterates through the bus list,
+	 *                                         which may be modified at the time of iteration.
 	 */
-	private static void drawBuses() {
-		// Force redraw the buses based on if their routes are enabled or not.
-		// Otherwise this is taken care of in the update thread.
+	private static void drawBuses() throws ConcurrentModificationException {
+
+		// Start by iterating though all the buses on the map.
 		for (Bus bus : MapsActivity.buses) {
 			try {
+
+				// Set the bus marker visibility based on if the bus's route is enabled or not.
 				bus.getMarker().setVisible(bus.route.enabled);
 			} catch (NullPointerException e) {
+
+				// If the marker was null, log it as a warning.
 				Log.w("drawBuses", "Bus doesn't have a marker!");
 			}
 		}
 	}
 
 	/**
-	 * TODO Documentation
+	 * Updates the various settings on the map object determined by the settings file.
+	 * It also redraws the buses and stops that are active on the map, and draws the polylines if they are enabled.
+	 * This should be called when the map has been setup and is ready to be refreshed.
 	 */
 	public void updateMapSettings() {
+
+		// Make sure to only execute the following if the maps object is not null (map has been setup).
 		if (MapsActivity.map != null) {
+
 			// Enable traffic overlay based on settings.
 			MapsActivity.map.setTrafficEnabled(CurrentSettings.settings.getTraffic());
 
@@ -479,20 +527,27 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 			// Enable street-view options based on settings.
 			/* - DEPRECATED -
-			if (CurrentSettings.settings.getStreetview()) {
+			if (CurrentSettings.settings.getStreetView()) {
 				StreetViewListener streetViewListener = new StreetViewListener(this);
 				MapsActivity.map.setOnInfoWindowLongClickListener(streetViewListener);
 			}
-			 */
+			*/
 
 			// Enable all the routes that were favorited.
 			Route.enableFavoriteRoutes(MapsActivity.allRoutes, CurrentSettings.settings.getRoutes());
 
-			// Redraw the buses.
-			MapsActivity.drawBuses();
+			// Try redrawing the buses.
+			// Because we are iterating a static variable that is modified on a different thread
+			// there is a possibility of a concurrent modification.
+			try {
+				MapsActivity.drawBuses();
+			} catch (ConcurrentModificationException e) {
+				Log.e("updateMapSettings",
+						"Unable to draw all buses due to concurrent modification", e);
+			}
 
 			// Draw the stops.
-			this.drawStops();
+			MapsActivity.drawStops();
 
 			// Draw the routes.
 			if (CurrentSettings.settings.getPolylines()) {

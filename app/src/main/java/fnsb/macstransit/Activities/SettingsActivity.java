@@ -64,7 +64,7 @@ public class SettingsActivity extends AppCompatActivity {
 		this.polyBox.setChecked(CurrentSettings.settings.getPolylines());
 
 		this.streetviewBox = this.findViewById(R.id.VR);
-		this.streetviewBox.setChecked(CurrentSettings.settings.getStreetview());
+		this.streetviewBox.setChecked(CurrentSettings.settings.getStreetView());
 
 		// Setup the radio buttons
 		this.mapType = this.findViewById(R.id.map_group);
