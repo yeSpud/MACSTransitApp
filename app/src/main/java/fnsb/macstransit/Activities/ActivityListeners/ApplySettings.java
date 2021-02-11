@@ -45,16 +45,14 @@ public class ApplySettings implements View.OnClickListener {
 
 		// Determine the map type
 		int mapId;
-		switch (this.activity.mapType.getCheckedRadioButtonId()) {
-			case R.id.satellite_map:
-				mapId = GoogleMap.MAP_TYPE_SATELLITE;
-				break;
-			case R.id.terrain_map:
-				mapId = GoogleMap.MAP_TYPE_TERRAIN;
-				break;
-			default:
-				mapId = GoogleMap.MAP_TYPE_NORMAL;
-				break;
+
+		int radioId = this.activity.mapType.getCheckedRadioButtonId();
+		if (radioId == R.id.satellite_map) {
+			mapId = GoogleMap.MAP_TYPE_SATELLITE;
+		} else if (radioId == R.id.terrain_map) {
+			mapId = GoogleMap.MAP_TYPE_TERRAIN;
+		} else {
+			mapId = GoogleMap.MAP_TYPE_NORMAL;
 		}
 
 		// Format the options into a Json string

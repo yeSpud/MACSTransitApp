@@ -85,8 +85,8 @@ public class PopupWindow extends AlertDialog implements
 			// Make sure to set the heading if it exists, and format it to be all lower case,
 			// except the first character.
 			if (bus.heading != null && !"".equals(bus.heading)) {
-				String lowercaseHeading = bus.heading.toLowerCase();
-				builder.append(String.format("Heading: %s\n", lowercaseHeading.substring(0, 1).toUpperCase() + lowercaseHeading.substring(1)));
+				String lowercaseHeading = bus.heading.toLowerCase(Locale.US);
+				builder.append(String.format("Heading: %s\n", lowercaseHeading.substring(0, 1).toUpperCase(Locale.US) + lowercaseHeading.substring(1)));
 			}
 
 			// Append the speed in mph if its not 0.
