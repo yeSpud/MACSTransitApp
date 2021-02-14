@@ -7,7 +7,6 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 
 import fnsb.macstransit.Activities.SettingsActivity;
@@ -38,14 +37,18 @@ public class ApplySettings implements View.OnClickListener {
 		this.activity = activity;
 	}
 
+	/**
+	 * Called when a view has been clicked.
+	 * @param v The view that was clicked.
+	 */
 	@Override
 	public void onClick(View v) {
+
 		// Get the favorite routes from the activity.
 		Route[] favoritedRoutes = this.getFavoritedRoutes();
 
-		// Determine the map type
+		// Determine the map type.
 		int mapId;
-
 		int radioId = this.activity.mapType.getCheckedRadioButtonId();
 		if (radioId == R.id.satellite_map) {
 			mapId = GoogleMap.MAP_TYPE_SATELLITE;
@@ -55,7 +58,7 @@ public class ApplySettings implements View.OnClickListener {
 			mapId = GoogleMap.MAP_TYPE_NORMAL;
 		}
 
-		// Format the options into a Json string
+		// Format the options into a Json string.
 		org.json.JSONObject json;
 		try {
 			json = CurrentSettings.settings.formatSettingsToJsonString(this.activity.trafficBox.isChecked(),
@@ -71,7 +74,7 @@ public class ApplySettings implements View.OnClickListener {
 		// Write that string to the file
 		CurrentSettings.settings.writeStringToFile(json.toString(), this.activity);
 
-		// Reload the settings
+		// Reload the settings.
 		try {
 			CurrentSettings.settings.parseSettings(json);
 		} catch (JSONException e) {
@@ -80,7 +83,7 @@ public class ApplySettings implements View.OnClickListener {
 					Toast.LENGTH_LONG).show();
 		}
 
-		// Close the activity
+		// Close the activity.
 		this.activity.finish();
 	}
 
@@ -88,20 +91,31 @@ public class ApplySettings implements View.OnClickListener {
 	 * Gets the favorited routes from the favorited routes container.
 	 * @return The array of selected favorited routes.
 	 */
-	@NotNull
+	@org.jetbrains.annotations.NotNull
 	private Route[] getFavoritedRoutes() {
-		// Get the number of potential favorite routes
+
+		// Get the number of potential favorite routes.
 		int potentialRoutesCount = this.activity.favoriteContainer.getChildCount();
 		Log.d("getFavoritedRoutes", "Potential count: " + potentialRoutesCount);
 
-		// Determine the selected routes
+		// Create an array of potential routes.
+		// Since we know the maximum just use that as its starting size.
 		Route[] potentialRoutes = new Route[potentialRoutesCount];
 		int routesPosition = 0;
+
+		// Iterate though each radio button in the favorites container.
 		for (int i = 0; i < potentialRoutesCount; i++) {
+
+			// Get a specific checkbox from the favorites container.
 			CheckBox box = (CheckBox) this.activity.favoriteContainer.getChildAt(i);
+
+			// Add the route to the array if its checked.
 			if (box.isChecked()) {
 				potentialRoutes[routesPosition] = (Route) box.getTag();
+				//noinspection ObjectAllocationInLoop
 				Log.d("getFavoritedRoutes", "Adding route " + potentialRoutes[routesPosition].routeName);
+
+				// Add one to a tally of verified favorite routes.
 				routesPosition++;
 			}
 		}
