@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.StringWriter;
+import java.util.ArrayList;
 
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
@@ -74,7 +75,6 @@ public class StopTest {
 		assertFalse(Stop.isDuplicate(new Stop("", 0.0d, 0.0d, null), null));
 		assertFalse(Stop.isDuplicate(null, new Stop[0]));
 		assertFalse(Stop.isDuplicate(null, new Stop[]{null}));
-
 	}
 
 	@Test
@@ -96,7 +96,79 @@ public class StopTest {
 				fail();
 			}
 		}
-		System.out.println(count/files.length);
+		System.out.println(count / files.length);
 	}
 
+
+	@Test
+	/*
+	 * This test should test the loading of multiple stops, apply a duplication check, apply shared stops,
+	 * and finally remove overlapping shared stops and regular stops.
+	 */
+	public void stopGauntlet() {
+		try {
+			// Start by getting the json files to use for testing.
+			// TODO Add Gray, Orange lines.
+			final int loadedFiles = 6;
+			final File[] files = new File[]{Helper.BLUE_STOPS, Helper.BROWN_STOPS,
+					Helper.GREEN_STOPS, Helper.PURPLE_STOPS, Helper.RED_STOPS, Helper.YELLOW_STOPS};
+			final Route[] routes = new Route[]{new Route("Blue"), new Route("Brown"),
+					new Route("Green"), new Route("Purple"), new Route("Red"),
+					new Route("Yellow")};
+
+
+			// Check the stops that will have duplicates.
+			ArrayList<Stop[]> stopsWithDuplicates = new ArrayList<>(loadedFiles);
+
+			// Start by loading the stops from each file.
+			for (int i = 0; i < loadedFiles; i++) {
+				File stopJsonFile = files[i];
+				JSONObject jsonObject = Helper.getJSON(stopJsonFile);
+				JSONArray dataArray = RouteMatch.parseData(jsonObject);
+
+				// Also iterate though the raw data and print each stops lat long
+				/*
+				System.out.println(routes[i].routeName + " stops:");
+				for (int j = 0; j < dataArray.length(); j++) {
+					JSONObject stop = dataArray.getJSONObject(j);
+					double lat = stop.getDouble("latitude");
+					double lon = stop.getDouble("longitude");
+					System.out.println(String.format("%f, %f", lat, lon));
+				}
+				 */
+
+				Stop[] stops = Stop.generateStops(dataArray, routes[i]);
+				stopsWithDuplicates.add(stops);
+			}
+
+			// Now iterate though each stop that has duplicates and verify the number of stops.
+			// This number should be large as we haven not removed the duplicate stops at this point.
+			final int[] validDuplicateStopCounts = new int[]{233, 24, 144, 78, 176, 145};
+			for (int i = 0; i < loadedFiles; i++) {
+				Stop[] stops = stopsWithDuplicates.get(i);
+				System.out.println(String.format("Number of stops for %s (with potential duplicates): %d",
+						stops[0].route.routeName, stops.length));
+				assertEquals(validDuplicateStopCounts[i], stops.length);
+			}
+
+
+			// Now test the removal of duplicate stops.
+			ArrayList<Stop[]> stopsWithoutDuplicates = new ArrayList<>(loadedFiles);
+			final int[] validateStopCounts = new int[]{66,24,104,39,58,56};
+			for (int i = 0; i < loadedFiles; i++) {
+				Stop[] stops = stopsWithDuplicates.get(i);
+				Stop[] vStops = Stop.validateGeneratedStops(stops);
+				System.out.println(String.format("Number of stops for %s: %d", vStops[0].route.routeName, vStops.length));
+				assertEquals(validateStopCounts[i], vStops.length);
+				stopsWithoutDuplicates.add(vStops);
+			}
+
+
+			// TODO
+		} catch (Exception e) {
+			// If anything goes wrong, print and then fail.
+			e.printStackTrace();
+			fail();
+		}
+	}
 }
