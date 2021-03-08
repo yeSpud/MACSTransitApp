@@ -390,6 +390,24 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			// Iterate through all the stops in our first comparison route.
 			for (Stop stop : route.stops) {
 
+				// Make sure our stop is not already in our shared stop.
+				if (route.sharedStops != null) {
+					boolean found = false;
+
+					// Iterate though the shared stops in the route.
+					for (SharedStop ssCheck : route.sharedStops) {
+
+						// If the route was found, continue.
+						if (SharedStop.areEqual(ssCheck, stop)) {
+							found = true;
+							break;
+						}
+					}
+					if (found) {
+						continue;
+					}
+				}
+
 				// Get an array of shared routes.
 				Route[] sharedRoutes = SharedStop.getSharedRoutes(route, routeIndex, stop);
 
