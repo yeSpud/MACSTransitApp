@@ -216,9 +216,12 @@ public class SharedStop extends MarkedObject {
 	 */
 	public void setCircleSizes(double size) {
 
-		Log.d("resizeStops",  "Setting initial size to: " + (size * (1.0d/(1))));
+		Log.d("setCircleSizes",  "Setting initial size to: " + (size * (1.0d/(1))));
 		for (int i = 0; i < routes.length; i++) {
 			this.circleOptions[i].radius(size * (1.0d/(i+1)));
+			if (this.circles[i] != null) {
+				this.circles[i].setRadius(size * (1.0d / (i + 1)));
+			}
 		}
 	}
 

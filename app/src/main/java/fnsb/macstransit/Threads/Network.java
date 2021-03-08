@@ -60,7 +60,7 @@ public class Network {
 			try {
 				// Get the read result from the network thread.
 				String result = Network.readFromUrl(url, useTimeouts);
-				Log.d("getJsonFromUrl", "Returned string: " + result);
+				Log.v("getJsonFromUrl", "Returned string: " + result);
 
 				// Append the resulting string to the StringBuilder.
 				jsonString.append(result);
