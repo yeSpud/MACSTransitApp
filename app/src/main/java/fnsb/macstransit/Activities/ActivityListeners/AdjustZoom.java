@@ -4,6 +4,7 @@ import android.util.Log;
 
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.Route;
+import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 
 /**
@@ -28,22 +29,38 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 	 */
 	public static void resizeStops() {
 
-		// Get the camera's new zoom position TODO
+		/*
+		 *Calculate meters per pixel.
+		 * This will be used to determine the circle size as we want it it be 4 meters in size.
+		 * To calculate this we will need the current zoom as well as the cameras latitude.
+		 */
 		float zoom = MapsActivity.map.getCameraPosition().zoom;
 		double lat = MapsActivity.map.getCameraPosition().target.latitude;
-		double metersPerPixel = 156543.03392 * Math.cos(lat * Math.PI / 180.0) / Math.pow(2, zoom);
-		Log.v("onCameraIdle", "Meters / Pixel: " + metersPerPixel);
 
-		// TODO
-		for (Route route : MapsActivity.allRoutes) {
-			for (Stop stop : route.stops) {
-				if (stop.circle != null) {
-					stop.circle.setRadius(metersPerPixel * 4);
+		// With the zoom and latitude determined we can then calculate meters per pixel.
+		@SuppressWarnings("MagicNumber")
+		double metersPerPixel = 156543.03392 * Math.cos(lat * Math.PI / 180.0) / Math.pow(2, zoom);
+		Log.v("resizeStops", "Meters / Pixel: " + metersPerPixel);
+
+		// Check that there are routes to iterate though
+		if (MapsActivity.allRoutes != null) {
+			for (Route route : MapsActivity.allRoutes) {
+				for (Stop stop : route.stops) {
+					if (stop.circle != null) {
+						Log.d("resizeStops","Setting circle size to: " + metersPerPixel*4);
+						stop.circle.setRadius(metersPerPixel * 4);
+					}
+				}
+
+				// TODO Shared stops
+				// FIXME
+				if (route.sharedStops != null) {
+					for (SharedStop sharedStop : route.sharedStops) {
+						sharedStop.setCircleSizes(metersPerPixel * 4);
+					}
 				}
 			}
 		}
-
-		// TODO Shared stops
 	}
 
 	/**

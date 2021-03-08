@@ -5,11 +5,6 @@ import android.util.Log;
 
 import com.google.android.gms.maps.model.Marker;
 
-import org.json.JSONObject;
-
-import fnsb.macstransit.RouteMatch.MarkedObject;
-import fnsb.macstransit.Threads.StopTimeCallback;
-
 /**
  * Created by Spud on 2021-02-10 for the project: MACS Transit.
  * <p>
@@ -18,39 +13,53 @@ import fnsb.macstransit.Threads.StopTimeCallback;
  * @version 1.0.
  * @since Release 1.2.
  */
-public class GetStopTimeHandler implements StopTimeCallback.AsyncCallback {
+public class GetStopTimeHandler implements fnsb.macstransit.Threads.StopTimeCallback.AsyncCallback {
 
 	/**
-	 * TODO Documentation
+	 * The marker that belongs to the stop which was clicked.
 	 */
 	private final Marker marker;
 
 	/**
-	 * TODO Documentation
+	 * The parent activity that this handler was called from.
 	 */
 	private final Activity activity;
 
+	/**
+	 * Constructor for the StopTimeHandler.
+	 * This class manages the callback from retrieving the departure and arrival times for a given stop.
+	 *
+	 * @param marker   The marker that belongs to the stop that we are retrieving times for.
+	 * @param activity The activity this handler belongs to (we need this to make sure what UI thread to run on later).
+	 */
 	public GetStopTimeHandler(Marker marker, Activity activity) {
 		this.marker = marker;
 		this.activity = activity;
 	}
 
+	/**
+	 * TODO Documentation
+	 *
+	 * @param departures The raw departure json retrieved from the url.
+	 *                   No processing has been done to it at this point.
+	 */
 	@Override
-	public void receivedStopTime(JSONObject departures) {
+	public void receivedStopTime(org.json.JSONObject departures) {
 
-		// Only execute if the marker isn't null
+		// Only execute if the marker isn't null.
 		if (this.marker != null) {
 
+			// Be sure to run the following on the UI thread to avoid a crash.
 			this.activity.runOnUiThread(() -> {
 
-				// Update the snippet text of the marker's info window
+				// Update the snippet text of the marker's info window.
 				Log.v("receivedStopTime", "Updating snippet");
-				this.marker.setSnippet(StopClicked.postStopTimes((MarkedObject) marker.getTag(), departures, this.activity));
+				this.marker.setSnippet(StopClicked.postStopTimes((fnsb.macstransit.RouteMatch.MarkedObject)
+						marker.getTag(), departures, this.activity));
 
 				// Refresh the info window by calling showInfoWindow().
 				Log.v("receivedStopTime", "Refreshing info window");
 				this.marker.showInfoWindow();
-
 			});
 		}
 	}

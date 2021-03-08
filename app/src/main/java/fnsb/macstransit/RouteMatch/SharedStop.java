@@ -24,11 +24,6 @@ public class SharedStop extends MarkedObject {
 	/**
 	 * TODO Documentation
 	 */
-	private static final double STARTING_RADIUS = 60.0d;
-
-	/**
-	 * TODO Documentation
-	 */
 	public Route[] routes;
 
 	/**
@@ -59,9 +54,9 @@ public class SharedStop extends MarkedObject {
 
 		this.circleOptions = new CircleOptions[routes.length];
 		this.circles = new Circle[routes.length];
+
 		for (int i = 0; i < routes.length; i++) {
-			this.circleOptions[i] = new CircleOptions().center(this.location)
-					.radius(SharedStop.STARTING_RADIUS - (10*i));
+			this.circleOptions[i] = new CircleOptions().center(this.location);
 
 			Route route = routes[i];
 			if (route.color != 0) {
@@ -69,6 +64,8 @@ public class SharedStop extends MarkedObject {
 				this.circleOptions[i].strokeColor(route.color);
 			}
 		}
+
+		this.setCircleSizes(12.0d);
 	}
 
 	/**
@@ -163,6 +160,12 @@ public class SharedStop extends MarkedObject {
 		return finalStops;
 	}
 
+	/**
+	 * TODO Documentation
+	 * @param sharedStop
+	 * @param stop
+	 * @return
+	 */
 	public static boolean areEqual(@NotNull SharedStop sharedStop, @NotNull Stop stop) {
 		boolean nameMatch = sharedStop.stopName.equals(stop.stopName),
 		latitudeMatch = sharedStop.circleOptions[0].getCenter().latitude == stop.circleOptions.getCenter().latitude,
@@ -207,7 +210,27 @@ public class SharedStop extends MarkedObject {
 		}
 	}
 
-	private static Circle createSharedStopCircle(GoogleMap map, CircleOptions options, SharedStop sharedStop, boolean clickable) {
+	/**
+	 * TODO Documentation
+	 * @param size
+	 */
+	public void setCircleSizes(double size) {
+
+		Log.d("resizeStops",  "Setting initial size to: " + (size * (1.0d/(1))));
+		for (int i = 0; i < routes.length; i++) {
+			this.circleOptions[i].radius(size * (1.0d/(i+1)));
+		}
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param map
+	 * @param options
+	 * @param sharedStop
+	 * @param clickable
+	 * @return
+	 */
+	private static @NotNull Circle createSharedStopCircle(@NotNull GoogleMap map, CircleOptions options, SharedStop sharedStop, boolean clickable) {
 		Circle circle = map.addCircle(options);
 		circle.setTag(sharedStop);
 		circle.setClickable(clickable);
