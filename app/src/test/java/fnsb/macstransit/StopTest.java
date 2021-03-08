@@ -165,7 +165,7 @@ public class StopTest {
 			}
 
 
-			// Temporarily set all routes to not null
+			// Temporarily set all routes to not null in order to bypass a null check.
 			MapsActivity.allRoutes = routes;
 
 			// Now test the creation of shared stops.
@@ -212,7 +212,7 @@ public class StopTest {
 			}
 
 			// Test the number of shared stops.
-			final int[] sharedStopsCount = new int[]{14, 3, 10, 10, 12, 16};
+			final int[] sharedStopsCount = new int[]{14, 3, 10, 10, 12, 17};
 			for (int i = 0; i < loadedFiles; i++) {
 				Route route = routes[i];
 				System.out.println(String.format("%s route stops: %d", route.routeName, route.stops.length));
@@ -223,8 +223,24 @@ public class StopTest {
 					fail();
 				}
 			}
+			// Reset all routes.
+			MapsActivity.allRoutes = null;
 
-			// TODO
+
+			// Test removal of stops that have shared stops.
+			ArrayList<Stop[]> finalStops = new ArrayList<>(loadedFiles);
+			for (Route route : routes) {
+				Stop[] stops = SharedStop.recreateStops(route.stops, route.sharedStops);
+				System.out.println(String.format("Going from %d stops to %d stops for route %s", route.stops.length,
+						stops.length, route.routeName));
+				finalStops.add(stops);
+			}
+
+			final int[] finalStopCount = new int[]{66 - 14, 24 - 3, 104 - 10, 39 - 10, 58 - 12, 56 - 17};
+			for (int i = 0; i < loadedFiles; i++) {
+				Stop[] stops = finalStops.get(i);
+				assertEquals(finalStopCount[i], stops.length);
+			}
 		} catch (Exception e) {
 			// If anything goes wrong, print and then fail.
 			e.printStackTrace();
