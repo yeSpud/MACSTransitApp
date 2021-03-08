@@ -9,8 +9,10 @@ import java.io.File;
 import java.io.StringWriter;
 import java.util.ArrayList;
 
+import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
+import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 
 import static org.junit.Assert.assertEquals;
@@ -153,16 +155,55 @@ public class StopTest {
 
 
 			// Now test the removal of duplicate stops.
-			ArrayList<Stop[]> stopsWithoutDuplicates = new ArrayList<>(loadedFiles);
-			final int[] validateStopCounts = new int[]{66,24,104,39,58,56};
+			final int[] validateStopCounts = new int[]{66, 24, 104, 39, 58, 56};
 			for (int i = 0; i < loadedFiles; i++) {
 				Stop[] stops = stopsWithDuplicates.get(i);
 				Stop[] vStops = Stop.validateGeneratedStops(stops);
 				System.out.println(String.format("Number of stops for %s: %d", vStops[0].route.routeName, vStops.length));
 				assertEquals(validateStopCounts[i], vStops.length);
-				stopsWithoutDuplicates.add(vStops);
+				routes[i].stops = vStops;
 			}
 
+			// Temporarily set all routes to not null
+			MapsActivity.allRoutes = routes;
+
+			// Now test the creation of shared stops.
+			for (int routeIndex = 0; routeIndex < loadedFiles; routeIndex++) {
+
+				// Get a first comparison route.
+				Route route = routes[routeIndex];
+
+				// Iterate through all the stops in our first comparison route.
+				for (Stop stop : route.stops) {
+
+					// Get an array of shared routes.
+					Route[] sharedRoutes = SharedStop.getSharedRoutes(route, routeIndex, stop);
+
+					// If the shared routes array has more than one entry, create a new shared stop object.
+					if (sharedRoutes.length > 1) {
+						SharedStop sharedStop = new SharedStop(stop.circleOptions.getCenter(),
+								stop.stopName, sharedRoutes);
+
+						// Iterate though all the routes in the shared route, and add our newly created shared stop.
+						for (Route sharedRoute : sharedRoutes) {
+							sharedRoute.addSharedStop(sharedStop);
+						}
+					}
+				}
+			}
+
+			// Test the number of shared stops.
+			final int[] sharedStopsCount = new int[]{14, 3, 10, 10, 12, 16};
+			for (int i = 0; i < loadedFiles; i++) {
+				Route route = routes[i];
+				System.out.println(String.format("%s route stops: %d", route.routeName, route.stops.length));
+				if (route.sharedStops != null) {
+					System.out.println(String.format("%s route shared stops: %d", route.routeName, route.sharedStops.length));
+					assertEquals(sharedStopsCount[i], route.sharedStops.length);
+				} else {
+					fail();
+				}
+			}
 
 			// TODO
 		} catch (Exception e) {
