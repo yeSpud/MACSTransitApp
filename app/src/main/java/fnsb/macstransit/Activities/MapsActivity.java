@@ -497,7 +497,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			try {
 
 				// Set the bus marker visibility based on if the bus's route is enabled or not.
-				bus.getMarker().setVisible(bus.route.enabled);
+				bus.marker.setVisible(bus.route.enabled);
 			} catch (NullPointerException e) {
 
 				// If the marker was null, log it as a warning.

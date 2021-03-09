@@ -200,8 +200,8 @@ public class StopTest {
 
 					// If the shared routes array has more than one entry, create a new shared stop object.
 					if (sharedRoutes.length > 1) {
-						SharedStop sharedStop = new SharedStop(stop.circleOptions.getCenter(),
-								stop.stopName, sharedRoutes);
+						SharedStop sharedStop = new SharedStop(stop.circleOptions.getCenter(), stop.name,
+								sharedRoutes);
 
 						// Iterate though all the routes in the shared route, and add our newly created shared stop.
 						for (Route sharedRoute : sharedRoutes) {

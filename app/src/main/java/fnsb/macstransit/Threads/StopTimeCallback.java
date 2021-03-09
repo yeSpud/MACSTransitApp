@@ -49,11 +49,17 @@ public class StopTimeCallback {
 	}
 
 
+	/**
+	 * TODO Documentation
+	 */
 	public interface AsyncCallback {
 
 		/**
-		 * TODO Documentation
-		 * @param departures
+		 * Called when the stop time has been reviewed. While this callback does not return anything,
+		 * it does take the JSONObject of the departures as an argument.
+		 *
+		 * @param departures The raw departure json retrieved from the url.
+		 *                   No processing has been done to it at this point.
 		 */
 		void receivedStopTime(JSONObject departures);
 

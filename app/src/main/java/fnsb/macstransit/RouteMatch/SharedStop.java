@@ -29,11 +29,6 @@ public class SharedStop extends MarkedObject {
 	/**
 	 * TODO Documentation
 	 */
-	public String stopName;
-
-	/**
-	 * TODO Documentation
-	 */
 	public CircleOptions[] circleOptions;
 
 	/**
@@ -47,9 +42,9 @@ public class SharedStop extends MarkedObject {
 	public LatLng location;
 
 	public SharedStop(LatLng latLng, String stopName, Route @NotNull [] routes) {
+		super(stopName);
 
 		this.location = latLng;
-		this.stopName = stopName;
 		this.routes = routes;
 
 		this.circleOptions = new CircleOptions[routes.length];
@@ -144,7 +139,7 @@ public class SharedStop extends MarkedObject {
 					finalIndex++;
 				} catch (ArrayIndexOutOfBoundsException e) {
 					Log.w("recreateStops", String.format("Failed to add stop: %s for route %s",
-							stop.stopName, stop.route.routeName));
+							stop.name, stop.route.routeName));
 					Log.e("recreateStops", "Final stops array is too small!", e);
 				}
 			}
@@ -167,7 +162,7 @@ public class SharedStop extends MarkedObject {
 	 * @return
 	 */
 	public static boolean areEqual(@NotNull SharedStop sharedStop, @NotNull Stop stop) {
-		boolean nameMatch = sharedStop.stopName.equals(stop.stopName),
+		boolean nameMatch = sharedStop.name.equals(stop.name),
 		latitudeMatch = sharedStop.circleOptions[0].getCenter().latitude == stop.circleOptions.getCenter().latitude,
 		longitudeMatch = sharedStop.circleOptions[0].getCenter().longitude == stop.circleOptions.getCenter().longitude;
 

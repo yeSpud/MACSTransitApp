@@ -31,11 +31,6 @@ public class Stop extends MarkedObject {
 	public final Route route;
 
 	/**
-	 * The name (or ID) of the stop.
-	 */
-	public final String stopName;
-
-	/**
 	 * The circle marking the bus stop on the map
 	 * (be sure to check if this exists first as it may be null).
 	 */
@@ -68,10 +63,10 @@ public class Stop extends MarkedObject {
 	 * @param route     The route that the stop corresponds to.
 	 */
 	public Stop(String stopName, double latitude, double longitude, Route route) {
+		super(stopName);
 
 		// Set our stop name and route.
 		this.route = route;
-		this.stopName = stopName;
 
 		// Setup the circle options for our stop.
 		// This will later be applied to the actual circle object.
@@ -113,12 +108,12 @@ public class Stop extends MarkedObject {
 		if (this.circle == null) {
 
 			// Create a new circle object.
-			Log.d("showStop", "Creating new stop for " + this.stopName);
+			Log.d("showStop", "Creating new stop for " + this.name);
 			this.circle = Stop.createStopCircle(map, this.circleOptions, this);
 		} else {
 
 			// Since the circle already exists simply set it to visible.
-			Log.d("showStop", "Showing stop " + this.stopName);
+			Log.d("showStop", "Showing stop " + this.name);
 			this.circle.setClickable(true);
 			this.circle.setVisible(true);
 		}
@@ -134,7 +129,7 @@ public class Stop extends MarkedObject {
 		if (this.circle != null) {
 
 			// Since it exists, hide the circle.
-			Log.d("hideStop", "Hiding stop " + this.stopName);
+			Log.d("hideStop", "Hiding stop " + this.name);
 			this.circle.setClickable(false);
 			this.circle.setVisible(false);
 		}
@@ -251,7 +246,7 @@ public class Stop extends MarkedObject {
 			}
 
 			// Check if the following match.
-			boolean nameMatch = stop.stopName.equals(stopArrayItem.stopName),
+			boolean nameMatch = stop.name.equals(stopArrayItem.name),
 					routeMatch = stop.route.routeName.equals(stopArrayItem.route.routeName),
 					latitudeMatch = stop.circleOptions.getCenter().latitude == stopArrayItem.circleOptions.getCenter().latitude,
 					longitudeMatch = stop.circleOptions.getCenter().longitude == stopArrayItem.circleOptions.getCenter().longitude;
@@ -275,7 +270,7 @@ public class Stop extends MarkedObject {
 	public static boolean stopMatches(@NotNull Stop stop1, @NotNull Stop stop2) throws NullPointerException {
 		boolean latMatch = stop1.circleOptions.getCenter().latitude == stop2.circleOptions.getCenter().latitude,
 		longMatch = stop1.circleOptions.getCenter().longitude == stop2.circleOptions.getCenter().longitude,
-		nameMatch = stop1.stopName.equals(stop2.stopName);
+		nameMatch = stop1.name.equals(stop2.name);
 
 		return latMatch && longMatch && nameMatch;
 	}

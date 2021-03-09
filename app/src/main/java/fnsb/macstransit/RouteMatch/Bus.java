@@ -26,13 +26,6 @@ import fnsb.macstransit.Activities.MapsActivity;
 public class Bus extends MarkedObject {
 
 	/**
-	 * The ID of the bus. While typically this is a number, on the rare occasion it can also be a name.
-	 * As such, it should just be stored as a string.
-	 * If this needs to be a number try parsing it from the string.
-	 */
-	public String vehicleId;
-
-	/**
 	 * The latitude and longitude of the bus. Essentially making up its respective coordinates.
 	 * This is stored as a double as latitude and longitude values are floating points numbers.
 	 */
@@ -72,7 +65,7 @@ public class Bus extends MarkedObject {
 	 * @param longitude
 	 */
 	public Bus(String vehicleId, Route route, double latitude, double longitude) {
-		this.vehicleId = vehicleId;
+		super(vehicleId);
 		this.route = route;
 		this.color = route.color;
 		this.latitude = latitude;
@@ -181,7 +174,7 @@ public class Bus extends MarkedObject {
 					// Add the bus to the buses array
 					Log.d("getBuses", String.format(Locale.US,
 							"Adding bus %s belonging to the %s route to the bus array",
-							bus.vehicleId, route.routeName));
+							bus.name, route.routeName));
 					buses[i] = bus;
 				}
 			}
@@ -206,13 +199,13 @@ public class Bus extends MarkedObject {
 			boolean notFound = Bus.noBusMatch(oldBus, newBuses);
 
 			if (notFound) {
-				Log.d("removeOldBuses", String.format("Removing bus %s from map", oldBus.vehicleId));
+				Log.d("removeOldBuses", String.format("Removing bus %s from map", oldBus.name));
 				try {
-					oldBus.getMarker().remove();
+					oldBus.marker.remove();
 				} catch (NullPointerException e) {
 					Log.w("removeOldBuses", "Marker already null!");
 				}
-				oldBus.setMarker(null);
+				oldBus.marker = null;
 			}
 
 		}
@@ -238,20 +231,18 @@ public class Bus extends MarkedObject {
 			// If they match, then add it to the array list and update its position.
 			for (Bus oldBus : oldBuses) {
 
-				if (newBus.vehicleId.equals(oldBus.vehicleId)) {
+				if (newBus.name.equals(oldBus.name)) {
 
 					// Update the buses position, heading, and speed
-					Marker marker = oldBus.getMarker();
+					Marker marker = oldBus.marker;
 					if (marker != null) {
-						marker.setPosition(new com.google.android.gms.maps.model.LatLng(newBus.latitude,
-								newBus.longitude));
-						oldBus.setMarker(marker);
+						marker.setPosition(new LatLng(newBus.latitude, newBus.longitude));
+						oldBus.marker = marker;
 						oldBus.heading = newBus.heading;
 						oldBus.speed = newBus.speed;
 						buses.add(oldBus);
 					} else {
-						Log.w("updateCurrentBuses", "Marker is null for updated bus " +
-								oldBus.vehicleId);
+						Log.w("updateCurrentBuses", String.format("Marker is null for updated bus %s", oldBus.name));
 					}
 				}
 			}
@@ -284,16 +275,16 @@ public class Bus extends MarkedObject {
 			boolean notFound = Bus.noBusMatch(newBus, oldBuses);
 
 			if (notFound) {
-				Log.d("addNewBuses", "Adding new bus to map: " + newBus.vehicleId);
+				Log.d("addNewBuses", "Adding new bus to map: " + newBus.name);
 
 				// Create the bus marker
 				Marker busMarker = newBus.addMarker(MapsActivity.map, new LatLng(newBus.latitude, newBus.longitude),
-						newBus.color, "Bus " + newBus.vehicleId);
+						newBus.color, "Bus " + newBus.name);
 
 				// Determine whether or not to show the bus marker.
 				busMarker.setVisible(newBus.route.enabled);
 
-				newBus.setMarker(busMarker);
+				newBus.marker = busMarker;
 				buses.add(newBus);
 			}
 		}
@@ -313,9 +304,9 @@ public class Bus extends MarkedObject {
 	 */
 	public static boolean noBusMatch(Bus busObject, @NotNull Bus[] busObjects) {
 		for (Bus bus : busObjects) {
-			Log.d("noBusMatch", String.format("Comparing %s to %s", busObject.vehicleId, bus.vehicleId));
+			Log.d("noBusMatch", String.format("Comparing %s to %s", busObject.name, bus.name));
 
-			if (busObject.vehicleId.equals(bus.vehicleId)) {
+			if (busObject.name.equals(bus.name)) {
 				Log.d("noBusMatch", "Vehicle IDs match");
 				if (busObject.route.routeName.equals(bus.route.routeName)) {
 					Log.d("noBusMatch", "Objects match!");

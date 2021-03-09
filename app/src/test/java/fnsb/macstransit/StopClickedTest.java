@@ -27,6 +27,17 @@ public class StopClickedTest {
 		assertEquals("12:59 am", StopClicked.formatTime("00:59").toLowerCase());
 		assertEquals("12:00 am", StopClicked.formatTime("00:00").toLowerCase());
 		assertEquals("11:59 pm", StopClicked.formatTime("23:59").toLowerCase());
+		assertEquals("", StopClicked.formatTime(""));
+	}
+
+	@Test
+	public void newLineOccurrenceTest() {
+		assertEquals(2, StopClicked.getNewlineOccurrence("Foo\nBar\nBaz"));
+		assertEquals(2, StopClicked.getNewlineOccurrence("Foo\n\nBar"));
+		assertEquals(0, StopClicked.getNewlineOccurrence("Foo"));
+		assertEquals(0, StopClicked.getNewlineOccurrence("String with spaces."));
+		assertEquals(0, StopClicked.getNewlineOccurrence(null));
+		assertEquals(1, StopClicked.getNewlineOccurrence("\n"));
 	}
 
 }

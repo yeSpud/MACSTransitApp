@@ -1,18 +1,24 @@
 package fnsb.macstransit.Activities.ActivityListeners;
 
 import android.content.Context;
+import android.text.format.DateFormat;
 import android.util.Log;
-import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import fnsb.macstransit.Activities.InfoWindowAdapter;
+import fnsb.macstransit.RouteMatch.RouteMatch;
 import fnsb.macstransit.Threads.StopTimeCallback;
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.R;
@@ -33,6 +39,8 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 	/**
 	 * The maps activity that this listener corresponds to.
+	 *
+	 * @deprecated Because this is a potential for a memory leak try to move away from passing activities as arguments.
 	 */
 	@Deprecated
 	private final MapsActivity activity;
@@ -57,61 +65,64 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @return The string containing either all the arrival and departure times for the stop,
 	 * or the overflowString if there is too much data.
 	 */
-	public static String postStopTimes(MarkedObject stop, org.json.JSONObject json, Context context) {
+	public static String postStopTimes(MarkedObject stop, JSONObject json, Context context) {
+
 		// Get the stop data from the retrieved json.
-		org.json.JSONArray stopData = fnsb.macstransit.RouteMatch.RouteMatch.parseData(json);
-		int count = stopData.length();
+		JSONArray stopData = RouteMatch.parseData(json);
+
+		// Get the times for the stop.
+		// Since the method arguments are slightly different for a shared stop compared to a regular stop,
+		// check if the marker is an instance of a Stop or SharedStop.
+		String string = "";
+
+		// TODO Test me
+		// TODO Comments
+		boolean isSharedStop = stop instanceof SharedStop;
+
+		Route[] routes;
+		try {
+			routes = isSharedStop ? StopClicked.getEnabledRoutesForStop(((SharedStop) stop).routes) : new Route[]{((Stop) stop).route};
+		} catch (ClassCastException e) {
+			Log.e("postStopTimes", String.format("Unaccounted object class: %s", stop.getClass()), e);
+			return string;
+		}
 
 		try {
-			// Get the times for the stop.
-			// Since the method arguments are slightly different for a shared stop compared to a regular stop,
-			// check if the marker is an instance of a Stop or SharedStop.
-			String string=  "";
-
-			// If the stop is a shared stop, execute the following:
-			if (stop instanceof SharedStop) {
-				// FIXME
-				SharedStop sharedStop = (SharedStop) stop;
-				Route[] potentialSelectedRoutes = new Route[sharedStop.routes.length];
-				int finalIndex = 0;
-				for (Route route : sharedStop.routes) {
-					if (route.enabled) {
-						potentialSelectedRoutes[finalIndex] = route;
-						finalIndex++;
-					}
-				}
-
-				Route[] selectedRoutes = new Route[finalIndex];
-				System.arraycopy(potentialSelectedRoutes, 0, selectedRoutes, 0, finalIndex);
-
-				string = StopClicked.generateTimeString(stopData, count, context, selectedRoutes,
-						true);
-
-			} else if (stop instanceof Stop) {
-				// Since the stop is just a stop, just go straight into generating the time string,
-				// without the route name.
-				string = StopClicked.generateTimeString(stopData, count, context,
-						new Route[]{((Stop) stop).route}, false);
-			} else {
-				// If the instance of the stop was undetermined, warn the developer.
-				Log.w("postStopTimes", "Object unaccounted for!");
-				return "";
-			}
-
-			// Load the times string into a popup window for when its clicked on.
-			fnsb.macstransit.Activities.PopupWindow.body = string;
-
-			// Check to see how many new lines there are in the display.
-			// If there are more than the maximum lines allowed bu the info window adapter,
-			// display "Click to view all the arrival and departure times.".
-			return StopClicked.getNewlineOccurrence(string) <= fnsb.macstransit.Activities.InfoWindowAdapter.MAX_LINES
-					? string : context.getString(R.string.click_to_view_all_the_arrival_and_departure_times);
-
+			string = StopClicked.generateTimeString(stopData, context, routes, isSharedStop);
 		} catch (JSONException e) {
-			// If there was an error, just print a stack trace, and return an empty string.
-			e.printStackTrace();
-			return "";
+			Log.e("postStopTimes", "Could not get stop time from json", e);
+			return string;
 		}
+
+		// Load the times string into a popup window for when its clicked on.
+		fnsb.macstransit.Activities.PopupWindow.body = string;
+
+		// Check to see how many new lines there are in the display.
+		// If there are more than the maximum lines allowed bu the info window adapter,
+		// display "Click to view all the arrival and departure times.".
+		return StopClicked.getNewlineOccurrence(string) <= InfoWindowAdapter.MAX_LINES ? string
+				: context.getString(R.string.click_to_view_all_the_arrival_and_departure_times);
+	}
+
+	/**
+	 * TODO Documentation
+	 *
+	 * @param allRoutesForStop
+	 * @return
+	 */
+	@NotNull
+	public static Route[] getEnabledRoutesForStop(@NotNull Route[] allRoutesForStop) {
+		Route[] potentialRoutes = new Route[allRoutesForStop.length];
+		int routeCount = 0;
+		for (Route route : allRoutesForStop) {
+			if (route.enabled) {
+				potentialRoutes[routeCount] = route;
+				routeCount++;
+			}
+		}
+		Route[] selectedRoutes = new Route[routeCount];
+		System.arraycopy(potentialRoutes, 0, selectedRoutes, 0, routeCount);
+		return selectedRoutes;
 	}
 
 	/**
@@ -119,29 +130,28 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * particular stop when clicked on.
 	 *
 	 * @param stopArray        The JSONArray that contains all the stops for the route.
-	 * @param count            The number of stops within the JSONArray.
-	 * @param context          The context from which this method is being called
-	 *                         (used for string lookup).
+	 * @param context          The context from which this method is being called (used for string lookup).
 	 * @param routes           The routes to get the times for.
 	 * @param includeRouteName Whether or not to include the route name in the final string.
 	 * @return The string containing all the departure and arrival times for the particular stop.
 	 * @throws JSONException Thrown if there is a JSONException while parsing the data for the stop.
 	 */
 	@NotNull
-	private static String generateTimeString(org.json.JSONArray stopArray, int count, Context context,
-	                                         Route[] routes, boolean includeRouteName) throws JSONException {
+	private static String generateTimeString(@NotNull JSONArray stopArray, Context context, Route[] routes,
+	                                         boolean includeRouteName) throws JSONException {
 
+		int count = stopArray.length();
 		StringBuilder snippetText = new StringBuilder(count);
 
-		// Iterate through the stops in the json object to get the time for.
+		// TODO Documentation
 		for (int index = 0; index < count; index++) {
-			Log.d("generateTimeString", String.format("Parsing stop times for stop %d/%d",
-					index, count));
+			Log.d("generateTimeString", String.format("Parsing stop times for stop %d/%d", index,
+					count));
 
 			// Get the stop time from the current stop.
 			JSONObject object = stopArray.getJSONObject(index);
 
-			// First, check if the current time does belong to the desired parentRoute
+			// TODO
 			for (Route route : routes) {
 				if (route.routeName.equals(object.getString("routeId"))) {
 
@@ -151,7 +161,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 							departureTime = StopClicked.getTime(object, "predictedDepartureTime");
 
 					// If the user doesn't use 24-hour time, convert to 12-hour time.
-					if (!android.text.format.DateFormat.is24HourFormat(context)) {
+					if (!DateFormat.is24HourFormat(context)) {
 						Log.d("generateTimeString", "Converting time to 12 hour time");
 						arrivalTime = StopClicked.formatTime(arrivalTime);
 						departureTime = StopClicked.formatTime(departureTime);
@@ -159,7 +169,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 					// Append the route name if there is one.
 					if (includeRouteName) {
-						Log.d("generateTimeString", "Adding route: " + route.routeName);
+						Log.d("generateTimeString", String.format("Adding route: %s", route.routeName));
 						snippetText.append(String.format("Route: %s\n", route.routeName));
 					}
 
@@ -173,7 +183,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		// Get the length of the original snippet text.
 		int length = snippetText.length();
 
-		// Replace the last 2 new lines
+		// Replace the last 2 new lines.
 		if (length > 2) {
 			snippetText.deleteCharAt(length - 1);
 			snippetText.deleteCharAt(length - 2);
@@ -203,13 +213,10 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		}
 
 		// Get a matcher object from the time regex (example: 00:00), and have it match the tag.
-		java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\\d\\d:\\d\\d")
-				.matcher(timeString);
+		Matcher matcher = Pattern.compile("\\d\\d:\\d\\d").matcher(timeString);
 
 		// If the match was found, return it, if not return null.
 		return matcher.find() ? matcher.group(0) : "";
-
-
 	}
 
 	/**
@@ -219,6 +226,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @return The formatted time string with the AM/PM characters included.
 	 */
 	public static String formatTime(String time) {
+
 		// Create a date format for parsing 24 hour time.
 		SimpleDateFormat fullTime = new SimpleDateFormat("H:mm", Locale.US);
 
@@ -227,9 +235,11 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 		java.util.Date fullTimeDate;
 		try {
+
 			// Try to get the 24 hour time as a date.
 			fullTimeDate = fullTime.parse(time);
 		} catch (java.text.ParseException e) {
+
 			// If there was a parsing exception simply return the old time.
 			Log.e("formatTime", "Could not parse full 24 hour time", e);
 			return time;
@@ -237,6 +247,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 		// Check if the 24 hour time date is null.
 		if (fullTimeDate == null) {
+
 			// Since the 24 hour time date is null return the old time.
 			Log.e("formatTime", "24 hour time date is null");
 			return time;
@@ -253,18 +264,26 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 *
 	 * @param string The string to search.
 	 * @return The number of times the character occurs within the string.
-	 */ // TODO Unit test
-	public static int getNewlineOccurrence(@NotNull CharSequence string) {
+	 */
+	public static int getNewlineOccurrence(CharSequence string) {
+
+		// Check to make sure the string is not null. If it is return 0.
+		if (string == null) {
+			return 0;
+		}
+
 		// Create a variable to store the occurrence.
 		int count = 0;
 
 		// Iterate through the string.
 		for (int i = 0; i < string.length(); i++) {
+
 			// If the character at the current index matches our character, increase the count.
 			if (string.charAt(i) == '\n') {
 				count++;
 			}
 		}
+
 		// Finally, return the count.
 		return count;
 	}
@@ -279,80 +298,76 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	@Override
 	public void onCircleClick(@NotNull com.google.android.gms.maps.model.Circle circle) {
 
-		MarkedObject potentialStop = (MarkedObject) circle.getTag();
+		// Get the marked object from our circle.
+		MarkedObject markedObject = (MarkedObject) circle.getTag();
 
-		if (potentialStop instanceof Stop) {
-			Log.d("onCircleClick", "Showing stop info window");
-
-			// Get the stop, and show its marker.
-			Stop stop = (Stop) potentialStop;
-
-			if (stop.getMarker() == null) {
-				try {
-					Marker marker = stop.addMarker(MapsActivity.map, stop.circleOptions.getCenter(), stop.route.color, stop.stopName);
-					stop.setMarker(marker);
-				} catch (Exception e) {
-					e.printStackTrace();
-					// If the stop doesn't have a marker, just use toast to display the stop ID.
-
-					Toast.makeText(this.activity, stop.stopName, Toast.LENGTH_SHORT).show();
-					Log.w("showStop", String.format("Stop %s has no marker!", stop.stopName));
-				}
-			}
-
-			//this.showMarker(stop.getMarker());
-		} else if (potentialStop instanceof SharedStop) {
-			Log.d("onCircleClick", "Showing shared stop info window");
-
-			SharedStop sharedStop = (SharedStop) potentialStop;
-
-			if (sharedStop.getMarker() == null) {
-				try {
-					for (int i = 0; i < sharedStop.routes.length; i++) {
-						Route route = sharedStop.routes[i];
-						if (route.enabled) {
-							Marker marker = sharedStop.addMarker(MapsActivity.map, sharedStop.circleOptions[i].getCenter(), route.color, sharedStop.stopName);
-							sharedStop.setMarker(marker);
-							break;
-						}
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					// If the stop doesn't have a marker, just use toast to display the stop ID.
-					Toast.makeText(this.activity, sharedStop.stopName, Toast.LENGTH_SHORT).show();
-					Log.w("showStop", String.format("Stop %s has no marker!", sharedStop.stopName));
-				}
-			}
-		} else {
-			// If it was neither a stop or a shared stop, warn that there was an unaccounted for object.
-			Log.w("onCircleClick", String.format("Circle object (%s) unaccounted for!", circle.getTag()));
+		// Make sure our marked object is not null.
+		if (markedObject == null) {
+			Log.w("onCircleClick", "Circle tag is null!");
 			return;
 		}
 
-		this.showMarker(potentialStop.getMarker());
+		// If the marker for our marked object is null, create a new marker.
+		if (markedObject.marker == null) {
+
+			// Get the location and color of the object
+			// (this is different depending on whether or not its a shared stop or a regular stop).
+			LatLng location;
+			int color;
+
+			if (markedObject instanceof SharedStop) {
+
+				// Get the location and color of the largest circle of our shared stop.
+				SharedStop sharedStop = (SharedStop) markedObject;
+				location = sharedStop.location;
+				color = sharedStop.routes[0].color;
+			} else if (markedObject instanceof Stop) {
+
+				// Get the location and color of our stop.
+				Stop stop = (Stop) markedObject;
+				location = stop.circleOptions.getCenter();
+				color = stop.route.color;
+			} else {
+
+				// Since our marked object was neither a shared stop nor a regular stop log it as a warning,
+				// and return early.
+				Log.w("onCircleClick", String.format("Object unaccounted for: %s", markedObject.getClass()));
+				return;
+			}
+
+			// Create a new marker for our marked object using the newly determined location and color.
+			markedObject.marker = markedObject.addMarker(MapsActivity.map, location, color, markedObject.name);
+		}
+
+		// Show our marker.
+		this.showMarker(markedObject.marker);
 	}
 
-
 	/**
-	 * TODO Documentation
-	 * @param marker
+	 * Shows the given marker on the map by setting it to visible.
+	 * The title of the marker is set to the name of the stop.
+	 * The marker snippet is set to a pending message as a callback method retrieves the stop times for the stop.
+	 *
+	 * @param marker The marker to be shown. This cannot be null.
 	 */
 	private void showMarker(@NotNull Marker marker) {
-		// Since the marker is not null, show it the marker,
-		// and set the snippet to the times when the bus is expected to arrive / depart.
-		marker.setVisible(true);
-		marker.setSnippet(this.activity.getString(fnsb.macstransit.R.string.retrieving_stop_times));
 
-		// Get the name of the stop
+		// Since the marker is not null, show it the marker by setting it to visible.
+		marker.setVisible(true);
+
+		// Get the name of the stop.
 		String name = marker.getTitle();
+
+		// For now just set the snippet text to "retrieving stop times" as a callback method gets the times.
+		marker.setSnippet(this.activity.getString(fnsb.macstransit.R.string.retrieving_stop_times));
 
 		// Create a method on how to handle the stop time once its retrieved.
 		StopTimeCallback.AsyncCallback callbackMethod = new GetStopTimeHandler(marker, this.activity);
 
 		// Setup a new stop callback to reset the info window.
-		StopTimeCallback callback =  new StopTimeCallback(callbackMethod);
+		StopTimeCallback callback = new StopTimeCallback(callbackMethod);
 
-		// Retrieve the stop times
+		// Retrieve the stop times.
 		callback.retrieveStopTime(name);
 
 		// For now though just show the info window.

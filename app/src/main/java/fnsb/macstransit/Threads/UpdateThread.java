@@ -112,9 +112,6 @@ public class UpdateThread {
 					MapsActivity.buses = buses.toArray(new Bus[0]);
 				});
 
-				// Suggest garbage collection since we just finished some processing.
-				System.gc();
-
 				// Sleep for the given update frequency
 				try {
 					Thread.sleep(this.updateFrequency);

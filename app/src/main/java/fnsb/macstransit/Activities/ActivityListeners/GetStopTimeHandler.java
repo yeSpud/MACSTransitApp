@@ -38,7 +38,8 @@ public class GetStopTimeHandler implements fnsb.macstransit.Threads.StopTimeCall
 	}
 
 	/**
-	 * TODO Documentation
+	 * Called when the stop time has been received from the remote server.
+	 * While this callback does not return anything it does take the JSONObject of the departures as an argument.
 	 *
 	 * @param departures The raw departure json retrieved from the url.
 	 *                   No processing has been done to it at this point.

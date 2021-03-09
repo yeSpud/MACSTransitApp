@@ -10,6 +10,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.StringWriter;
+
 /**
  * Created by Spud on 2019-11-20 for the project: MACS Transit.
  * <p>
@@ -23,7 +25,20 @@ public class MarkedObject {
 	/**
 	 * The marker of the marker of the marked object.
 	 */
-	private Marker marker;
+	public Marker marker;
+
+	/**
+	 * The name / title / ID of the marked object.
+	 */
+	public final String name;
+
+	/**
+	 * TODO Documentation
+	 * @param name
+	 */
+	public MarkedObject(String name) {
+		this.name = name;
+	}
 
 	/**
 	 * Static helper function that determines and returns the marker's BitmapDescriptor color
@@ -38,24 +53,6 @@ public class MarkedObject {
 		float[] hsv = new float[3];
 		android.graphics.Color.colorToHSV(color, hsv);
 		return com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]);
-	}
-
-	/**
-	 * Retrieves the marker of the object.
-	 *
-	 * @return The marker.
-	 */
-	public Marker getMarker() {
-		return this.marker;
-	}
-
-	/**
-	 * Sets the marker of the object.
-	 *
-	 * @param marker The marker to be set.
-	 */
-	public void setMarker(Marker marker) {
-		this.marker = marker;
 	}
 
 	/**
