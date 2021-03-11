@@ -49,7 +49,7 @@ public class Network {
 	 */
 	public static JSONObject getJsonFromUrl(String url, boolean useTimeouts) {
 		// Log the url that was passed as an argument for debugging purposes
-		Log.d("getJsonFromUrl", "Url provided: " + url);
+		Log.i("getJsonFromUrl", "Url provided: " + url);
 
 		// Create a StringBuilder object that can be accessed within the thread.
 		// This will later be used to create the returned JSONObject.

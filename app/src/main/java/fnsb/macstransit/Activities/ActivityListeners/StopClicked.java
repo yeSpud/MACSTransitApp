@@ -22,7 +22,7 @@ import fnsb.macstransit.RouteMatch.Stop;
 /**
  * Created by Spud on 2019-10-30 for the project: MACS Transit.
  * <p>
- * For the license, view the file titled LICENSE at the root of the project
+ * For the license, view the file titled LICENSE at the root of the project.
  *
  * @version 1.4
  * @since Beta 7.
@@ -70,7 +70,6 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		// Check if our marked object is a shared stop (for future formatting reasons).
 		boolean isSharedStop = stop instanceof SharedStop;
 
-		// TODO Test me
 		// Try setting the routes array to either enabled routes (shared stop) or our single route (stop).
 		Route[] routes;
 		try {
@@ -212,28 +211,45 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	}
 
 	/**
-	 * Gets the the time (predicted arrival or predicted departure depending on the tag)
+	 * Gets the the time (predicted arrival or predicted departure depending on the key)
 	 * for the stop via its JSONObject.
 	 *
 	 * @param json The JSONObject containing the time for the stop.
-	 * @param tag  The specific tag to search for within the JSONObject.
+	 * @param key  The specific key to search for within the JSONObject.
 	 * @return The time found within the JSONObject.
 	 */
-	public static String getTime(@NotNull JSONObject json, String tag) { // TODO Unit test
+	@org.jetbrains.annotations.Nullable
+	public static String getTime(JSONObject json, String key) {
+
+		// Check to make sure the json object is not null. If it is, return an empty string.
+		if (json == null) {
+			return "";
+		}
+
 		String timeString;
 		try {
-			// Try to get the time string from the json object based on the tag.
-			timeString = json.getString(tag);
+			// Try to get the time string from the json object based on the key.
+			timeString = json.getString(key);
 		} catch (JSONException e) {
-			// Log any errors and return an empty string if unsuccessful.
+
+			// Try to manage the exception, as it may be thrown if the value is actually null.
+			if (e.getMessage().equals(String.format("JSONObject[\"%s\"] is not a string.", key))) {
+				Log.w("getTime", String.format("%s has the wrong type (not a string - probably null)",
+						key));
+
+				// Because the string was probably "Null", return null.
+				return null;
+			}
+
+			// Log any errors and return empty if unsuccessful.
 			Log.e("getTime", "Unable to get stop times.", e);
 			return "";
 		}
 
-		// Get a matcher object from the time regex (example: 00:00), and have it match the tag.
+		// Get a matcher object from the time regex (example: 00:00), and have it match the key.
 		java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("\\d\\d:\\d\\d").matcher(timeString);
 
-		// If the match was found, return it, if not return null.
+		// If the match was found, return it, if not return midnight.
 		return matcher.find() ? matcher.group(0) : "";
 	}
 
@@ -261,6 +277,12 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// If there was a parsing exception simply return the old time.
 			Log.e("formatTime", "Could not parse full 24 hour time", e);
 			return time;
+		} catch (NullPointerException npe) {
+
+			// Because time was null return an empty string.
+			// We cant return the argument because then we would be returning null.
+			Log.e("formatTime", "Provided time was null!", npe);
+			return "";
 		}
 
 		// Check if the 24 hour time date is null.
