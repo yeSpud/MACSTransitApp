@@ -47,7 +47,15 @@ class Helper {
 			YELLOW_STOPS = new File(Helper.ROOT + "stops/Yellow.json");
 
 	/**
+	 * TODO Documentation
+	 */
+	static final File TRANSIT_CENTER = new File(Helper.ROOT + "stopTimes/Transit Center.json"),
+			GEIST_MCDS = new File(Helper.ROOT + "stopTimes/Geist McDs.json"),
+			WOOD_CENTER = new File(Helper.ROOT + "stopTimes/Wood Center.json");
+
+	/**
 	 * TODO Documentation and comments
+	 *
 	 * @param file
 	 * @return
 	 */
@@ -78,11 +86,12 @@ class Helper {
 
 	/**
 	 * TODO Documentation and comments
+	 *
 	 * @param file
 	 * @return
 	 * @throws JSONException
 	 */
-	static @NotNull JSONObject getJSON(File file) throws JSONException{
+	static @NotNull JSONObject getJSON(File file) throws JSONException {
 		String text = Helper.getText(file);
 
 		if (text == null) {
@@ -94,6 +103,7 @@ class Helper {
 
 	/**
 	 * TODO Documentation
+	 *
 	 * @param startTime
 	 * @param endTime
 	 */
@@ -106,12 +116,12 @@ class Helper {
 		}
 
 		if ((microseconds / 1000 >= 1)) {
-			milliseconds = ((total /1000d) / 1000d);
+			milliseconds = ((total / 1000d) / 1000d);
 			microseconds = 0;
 		}
 
 		if ((milliseconds / 1000) >= 1) {
-			seconds = (((total /1000d) / 1000d) / 1000d);
+			seconds = (((total / 1000d) / 1000d) / 1000d);
 			microseconds = 0;
 		}
 
