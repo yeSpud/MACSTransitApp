@@ -75,6 +75,7 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 	 */
 	@Override
 	public View getInfoContents(@org.jetbrains.annotations.NotNull Marker marker) {
+
 		// Create the info section of the info window, and make sure its orientation is set to vertical
 		LinearLayout info = new LinearLayout(this.activity);
 		info.setOrientation(LinearLayout.VERTICAL);

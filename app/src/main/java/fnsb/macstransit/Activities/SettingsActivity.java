@@ -1,17 +1,10 @@
 package fnsb.macstransit.Activities;
 
 import android.os.Build;
-import android.os.Bundle;
 import android.widget.CheckBox;
-import android.widget.LinearLayout;
-import android.widget.RadioGroup;
-
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.maps.GoogleMap;
 
-import fnsb.macstransit.Activities.ActivityListeners.ApplySettings;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.Settings.CurrentSettings;
@@ -19,54 +12,83 @@ import fnsb.macstransit.Settings.CurrentSettings;
 /**
  * Created by Spud on 2019-11-24 for the project: MACS Transit.
  * <p>
- * For the license, view the file titled LICENSE at the root of the project
+ * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 2.0
+ * @version 2.0.
  * @since Beta 8.
  */
-public class SettingsActivity extends AppCompatActivity {
+public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 
 	/**
-	 * TODO Documentation
+	 * Checkboxes that have already been manually defined in the settings layout.
+	 * These boxes will have their functionality setup in the onCreate method.
 	 */
 	public CheckBox trafficBox, darkthemeBox, polyBox, streetviewBox;
 
 	/**
-	 * TODO Documentation
+	 * Radio group used to identify the map type to be used in the maps activity (standard, satellite, other...).
 	 */
-	public RadioGroup mapType;
+	public android.widget.RadioGroup mapType;
 
 	/**
-	 * TODO Documentation
+	 * Layout container that will contain the checkboxes for enabling, disabling,
+	 * and generating favorite route entries.
 	 */
-	public LinearLayout favoriteContainer;
+	public android.widget.LinearLayout favoriteContainer;
 
 	/**
-	 * TODO Documentation
+	 * Constant used to set the initial size of the text for the favorite routes check box.
+	 */
+	private static final int CHECKBOX_TEXT_SIZE = 15;
+
+	/**
+	 * Called when the activity is starting.
+	 * This is where most initialization should go:
+	 * calling setContentView(int) to inflate the activity's UI,
+	 * using findViewById(int) to programmatically interact with widgets in the UI,
+	 * calling managedQuery(Uri, String[], String, String[], String)
+	 * to retrieve cursors for data being displayed, etc.
+	 * <p>
+	 * You can call finish() from within this function,
+	 * in which case onDestroy() will be immediately called after onCreate(Bundle)
+	 * without any of the rest of the activity lifecycle (onStart(), onResume(), onPause(), etc)
+	 * executing.
+	 * <p>
+	 * Derived classes must call through to the super class's implementation of this method.
+	 * If they do not, an exception will be thrown.
+	 * <p>
+	 * This method must be called from the main thread of your app.
+	 * If you override this method you must call through to the superclass implementation.
 	 *
-	 * @param savedInstanceState
+	 * @param savedInstanceState Bundle:
+	 *                           If the activity is being re-initialized after previously being shut down then this Bundle contains the data it most recently supplied in onSaveInstanceState(Bundle).
+	 *                           Note: Otherwise it is null. This value may be null.
 	 */
 	@Override
-	protected void onCreate(@Nullable Bundle savedInstanceState) {
+	protected void onCreate(@androidx.annotation.Nullable android.os.Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// Set the layout view to the settings view
+		// Set the layout view to the settings view.
 		this.setContentView(R.layout.settings);
 
-		// Setup the fixed checkboxes
+		// Setup the fixed checkboxes.
+		// Traffic box is used to determine whether or not to show the traffic overlay.
 		this.trafficBox = this.findViewById(R.id.traffic);
 		this.trafficBox.setChecked(CurrentSettings.settings.getTraffic());
 
+		// Dark theme box is used to determine whether or not to start the ap with a dark themed map.
 		this.darkthemeBox = this.findViewById(R.id.night_mode);
 		this.darkthemeBox.setChecked(CurrentSettings.settings.getDarktheme());
 
+		// Polybox is used to determine whether or not to show polylines for routes.
 		this.polyBox = this.findViewById(R.id.polylines);
 		this.polyBox.setChecked(CurrentSettings.settings.getPolylines());
 
+		// Streetview box would be used to activate the streetview easter egg if it were not deprecated.
 		this.streetviewBox = this.findViewById(R.id.VR);
 		this.streetviewBox.setChecked(CurrentSettings.settings.getStreetView());
 
-		// Setup the radio buttons
+		// Setup the radio buttons.
 		this.mapType = this.findViewById(R.id.map_group);
 		switch (CurrentSettings.settings.getMaptype()) {
 			case GoogleMap.MAP_TYPE_SATELLITE:
@@ -80,35 +102,48 @@ public class SettingsActivity extends AppCompatActivity {
 				break;
 		}
 
-		// Setup the favorites container
+		// Setup the favorites container.
 		this.favoriteContainer = this.findViewById(R.id.favorite_route_container);
 		this.addToFavoritesContainer();
 
-		// Setup the buttons
-		this.findViewById(R.id.apply).setOnClickListener(new ApplySettings(this));
+		// Setup the buttons.
+		// The apply settings button should run the apply settings listener.
+		this.findViewById(R.id.apply).setOnClickListener(new fnsb.macstransit.Activities.
+				ActivityListeners.ApplySettings(this));
+
+		// The cancel button should just finish the class and return.
 		this.findViewById(R.id.cancel).setOnClickListener((v) -> this.finish());
 	}
 
 	/**
-	 * TODO Documentation
+	 * Creates new favorite route checkboxes for all the routes that can be tracked,
+	 * and adds them to the favorite routes container.
 	 */
 	private void addToFavoritesContainer() {
+
 		// Iterate through all the routes (if there are any).
 		if (MapsActivity.allRoutes != null) {
 			for (Route route : MapsActivity.allRoutes) {
+
+				// Create a new checkbox.
 				CheckBox checkBox = new CheckBox(this);
+
+				// Set the checkbox's text to the route name.
 				checkBox.setText(route.routeName);
-				checkBox.setTextSize(15);
+
+				// Set the color and size of the text to constants.
+				checkBox.setTextSize(SettingsActivity.CHECKBOX_TEXT_SIZE);
 				checkBox.setTextColor(this.getResources().getColor(R.color.white));
 
 				// Add button tint if the sdk supports it.
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-					checkBox.setButtonTintList(this.getResources().getColorStateList(R.color.white));
+					checkBox.setButtonTintList(androidx.appcompat.content.res.AppCompatResources.
+							getColorStateList(this, R.color.white));
 				}
 
 				checkBox.setTag(route);
 
-				// Determine if the box should be checked
+				// Determine if the box should be checked.
 				for (Route savedRoute : CurrentSettings.settings.getRoutes()) {
 					if (savedRoute.routeName.equals(route.routeName)) {
 						checkBox.setChecked(true);
@@ -116,7 +151,7 @@ public class SettingsActivity extends AppCompatActivity {
 					}
 				}
 
-				// Add the box to the favorites container
+				// Add the box to the favorites container.
 				this.favoriteContainer.addView(checkBox);
 			}
 		}

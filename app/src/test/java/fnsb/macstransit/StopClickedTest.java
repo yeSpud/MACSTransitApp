@@ -109,7 +109,7 @@ public class StopClickedTest {
 				"scheduleAdherenceEnabled", "status", "stopId", "stopTypeDefinitionBitset", "subRouteLongName",
 				"subRouteShortName", "templates", "timePoint", "tripDirection", "tripId", "vehicleId"};
 		for (String failKey : failKeys) {
-			System.out.println(String.format("Checking key %s", failKey));
+			// System.out.println(String.format("Checking key %s", failKey));
 			assertNotEquals(arrivalTime, StopClicked.getTime(stopObject, failKey));
 			assertNotEquals(departureTime, StopClicked.getTime(stopObject, failKey));
 		}

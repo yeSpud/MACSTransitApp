@@ -8,10 +8,12 @@ import fnsb.macstransit.R;
 /**
  * Created by Spud on 2020-02-03 for the project: MACS Transit.
  * <p>
- * For the license, view the file titled LICENSE at the root of the project
+ * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.0
+ * @version 1.0.
  * @since Release 1.1.
+ * @deprecated This popup is no longer used as the core issue of why this warning needed to be implemented
+ * (too many threads) has been fixed.
  */
 @Deprecated
 public class WarningPopup extends AlertDialog {
