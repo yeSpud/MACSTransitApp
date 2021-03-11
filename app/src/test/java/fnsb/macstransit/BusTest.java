@@ -1,7 +1,5 @@
 package fnsb.macstransit;
 
-import android.util.Log;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,7 +29,7 @@ import static org.junit.Assert.fail;
 public class BusTest {
 
 	@Test
-	public void getBusesTest() {
+	public void getBusesTest() { // FIXME
 		assertTrue(Helper.ALL_VEHICLES_JSON.exists());
 		assertTrue(Helper.ALL_VEHICLES_JSON.canRead());
 		String data = Helper.getText(Helper.ALL_VEHICLES_JSON);
@@ -59,7 +57,7 @@ public class BusTest {
 	}
 
 	@Test
-	public void noBusMatchTest() {
+	public void noBusMatchTest() { // FIXME
 		// Create various dummy test routes.
 		Route greenRoute, blueRoute, otherGreen;
 		try {
@@ -73,12 +71,19 @@ public class BusTest {
 		}
 
 		// Create various dummy buses.
-		Bus bus0 = new Bus("0", greenRoute, 0.0, 0.0),
-				bus1 = new Bus("1", greenRoute, 0.0, 0.0),
-				bus2 = new Bus("2", greenRoute, 0.0, 0.0),
-				bus3 = new Bus("3", greenRoute, 0.0, 0.0),
-				bus2Blue = new Bus("2", blueRoute, 0.0, 0.0),
-				bus0OG = new Bus("0", otherGreen, 0.0, 0.0);
+		Bus bus0, bus1, bus2, bus3, bus2Blue, bus0OG;
+		try {
+			bus0 = new Bus("0", greenRoute, 0.0, 0.0);
+			bus1 = new Bus("1", greenRoute, 0.0, 0.0);
+			bus2 = new Bus("2", greenRoute, 0.0, 0.0);
+			bus3 = new Bus("3", greenRoute, 0.0, 0.0);
+			bus2Blue = new Bus("2", blueRoute, 0.0, 0.0);
+			bus0OG = new Bus("0", otherGreen, 0.0, 0.0);
+		} catch (Route.RouteException e) {
+			e.printStackTrace();
+			fail();
+			return;
+		}
 
 		// Load most of the dummy buses into a test array.
 		Bus[] testBusArray = new Bus[]{bus0, bus1, bus2};
@@ -93,14 +98,14 @@ public class BusTest {
 
 	}
 
-	public static Bus[] ArrayListTest(JSONArray vehicles) throws Route.RouteException {
+	public static Bus[] ArrayListTest(JSONArray vehicles) throws Route.RouteException { // TODO Fixme
 		long startTime = System.nanoTime();
 
 		ArrayList<Bus> buses = new ArrayList<>();
 
 		for (int i = 0; i < vehicles.length(); i++) {
 			try {
-				Bus bus = BusTest.createBus(vehicles, i);
+				Bus bus = Bus.createNewBus(vehicles.getJSONObject(i));
 				buses.add(bus);
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -114,29 +119,29 @@ public class BusTest {
 
 	}
 
-	public static Bus[] StandardArraysTest(JSONArray vehicles) throws Route.RouteException {
+	public static Bus[] StandardArraysTest(JSONArray vehicles) throws Route.RouteException { // FIXME
 		long startTime = System.nanoTime();
 
 		Bus[] potentialBuses = new Bus[vehicles.length()];
 
 		for (int i = 0; i < vehicles.length(); i++) {
 			try {
-				Bus bus = BusTest.createBus(vehicles, i);
+				Bus bus = Bus.createNewBus(vehicles.getJSONObject(i));
 				potentialBuses[i] = bus;
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 		}
 
-		long endTime =  System.nanoTime();
+		long endTime = System.nanoTime();
 
 		Helper.printTime(startTime, endTime);
 
 		return potentialBuses;
 	}
 
-	@Test // Proof of concept
-	public void ArrayTests() {
+	@Test // Proof of concept for standard arrays vs arraylists.
+	public void ArrayTests() { // FIXME
 		JSONObject testData = null;
 		try {
 			testData = Helper.getJSON(Helper.ALL_VEHICLES_JSON);
@@ -157,38 +162,4 @@ public class BusTest {
 			fail();
 		}
 	}
-
-	private static Bus createBus(JSONArray vehicles, int i) throws Route.RouteException, JSONException {
-		JSONObject busObject = vehicles.getJSONObject(i);
-
-		// Try to get the necessary value (the vehicle id) for creating a new bus object.
-		// If unsuccessful continue on the loop without executing any of the lower checks.
-		String vehicleId = busObject.getString("vehicleId");
-
-		// Try to get the necessary value (the route name) for creating a new bus object.
-		// If unsuccessful continue on the loop without executing any of the lower checks.
-		String routeName = busObject.getString("masterRouteId");
-
-		// Try to get the necessary value (the latitude) for creating a new bus object.
-		// If unsuccessful continue on the loop without executing any of the lower checks.
-		double latitude =  busObject.getDouble("latitude");
-
-		// Try to get the necessary value (the longitude) for creating a new bus object.
-		// If unsuccessful continue on the loop without executing any of the lower checks.
-		double longitud = busObject.getDouble("longitude");
-
-		// Try to get any extra values (the heading) for creating a new bus object.
-		// These valeus arent necessary, but are nice to have.
-		String heading = busObject.getString("headingName");
-
-		// Try to get any extra values (the speed) for creating a new bus object.
-		// These valeus arent necessary, but are nice to have.
-		int speed = busObject.getInt("speed");
-
-		Bus bus = new Bus(vehicleId, new Route("test"), latitude, longitud);
-		bus.heading = heading;
-		bus.speed = speed;
-		return bus;
-	}
-
 }

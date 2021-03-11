@@ -18,9 +18,9 @@ import fnsb.macstransit.Activities.MapsActivity;
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
- * For the license, view the file titled LICENSE at the root of the project
+ * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 2.1
+ * @version 2.1.
  * @since Beta 3.
  */
 public class Bus extends MarkedObject {
@@ -59,15 +59,22 @@ public class Bus extends MarkedObject {
 	/**
 	 * TODO Documentation
 	 *
-	 * @param vehicleId
-	 * @param route
+	 * @param vehicleId The ID of the bus.
+	 * @param route The route object the bus belongs to. This cannot be null.
 	 * @param latitude
 	 * @param longitude
 	 */
-	public Bus(String vehicleId, Route route, double latitude, double longitude) {
+	public Bus(String vehicleId, Route route, double latitude, double longitude) throws Route.RouteException {
 		super(vehicleId);
+
+		if (route == null) {
+			throw new Route.RouteException("Route cannot be null!");
+		}
+
+
 		this.route = route;
 		this.color = route.color;
+
 		this.latitude = latitude;
 		this.longitude = longitude;
 	}
@@ -81,11 +88,7 @@ public class Bus extends MarkedObject {
 	 * @throws Route.RouteException
 	 */
 	@NotNull
-	public static Bus[] getBuses(JSONArray vehiclesJson) throws Route.RouteException {
-		// Make sure all the routes have been loaded before continuing.
-		if (MapsActivity.allRoutes == null || MapsActivity.allRoutes.length == 0) {
-			throw new Route.RouteException("There are no loaded routes!");
-		}
+	public static Bus[] getBuses(@NotNull JSONArray vehiclesJson) throws Route.RouteException { // TODO Unit test
 
 		// Create an array to store all the buses that are in the json array.
 		Bus[] buses = new Bus[vehiclesJson.length()];
@@ -95,7 +98,7 @@ public class Bus extends MarkedObject {
 
 			// Try to get the json object corresponding to the bus. If unsuccessful,
 			// continue on the loop without executing any of the lower checks.
-			JSONObject busObject = null;
+			JSONObject busObject;
 			try {
 				busObject = vehiclesJson.getJSONObject(i);
 			} catch (JSONException e) {
@@ -103,85 +106,78 @@ public class Bus extends MarkedObject {
 				continue;
 			}
 
-			// Try to get the necessary value (the vehicle id) for creating a new bus object.
-			// If unsuccessful continue on the loop without executing any of the lower checks.
-			String vehicleId = null;
+			Bus bus;
 			try {
-				vehicleId = busObject.getString("vehicleId");
+				bus = Bus.createNewBus(busObject);
 			} catch (JSONException e) {
-				Log.e("getBuses", "Could not get bus id from bus json object", e);
+				Log.e("getBuses", "Could not create new bus object from json", e);
 				continue;
 			}
 
-			// Try to get the necessary value (the route name) for creating a new bus object.
-			// If unsuccessful continue on the loop without executing any of the lower checks.
-			String routeName = null;
-			try {
-				routeName = busObject.getString("masterRouteId");
-			} catch (JSONException e) {
-				Log.e("getBuses", "Could not get route name from bus json object", e);
-				continue;
-			}
-
-			// Try to get the necessary value (the latitude) for creating a new bus object.
-			// If unsuccessful continue on the loop without executing any of the lower checks.
-			double latitude = 0.0d;
-			try {
-				latitude = busObject.getDouble("latitude");
-			} catch (JSONException e) {
-				Log.e("getBuses", "Could not get latitude from bus json object", e);
-				continue;
-			}
-
-			// Try to get the necessary value (the longitude) for creating a new bus object.
-			// If unsuccessful continue on the loop without executing any of the lower checks.
-			double longitud = 0.0d;
-			try {
-				longitud = busObject.getDouble("longitude");
-			} catch (JSONException e) {
-				Log.e("getBuses", "Could not get longitude from bus json object", e);
-				continue;
-			}
-
-			// Try to get any extra values (the heading) for creating a new bus object.
-			// These valeus arent necessary, but are nice to have.
-			String heading = "";
-			try {
-				heading = busObject.getString("headingName");
-			} catch (JSONException e) {
-				Log.w("getBuses", "Could not get bus heading from json object");
-			}
-
-			// Try to get any extra values (the speed) for creating a new bus object.
-			// These valeus arent necessary, but are nice to have.
-			int speed = 0;
-			try {
-				speed = busObject.getInt("speed");
-			} catch (JSONException e) {
-				Log.w("getBuses", "Could not get bus speed from json object");
-			}
-
-			// Iterate through all the routes.
-			for (Route route : MapsActivity.allRoutes) {
-
-				// If the route name maches the bus route name create a new bus belonging to that route,
-				// and add it to the bus array.
-				if (route.routeName.equals(routeName)) {
-					Bus bus = new Bus(vehicleId, route, latitude, longitud);
-					bus.heading = heading;
-					bus.speed = speed;
-
-					// Add the bus to the buses array
-					Log.d("getBuses", String.format(Locale.US,
-							"Adding bus %s belonging to the %s route to the bus array",
-							bus.name, route.routeName));
-					buses[i] = bus;
-				}
-			}
+			// Add the bus to the buses array
+			Log.d("getBuses",
+					String.format("Adding bus %s belonging to the %s route to the bus array", bus.name,
+							bus.route.routeName));
+			buses[i] = bus;
 		}
 
 		// Return the bus array as an array of buses.
 		return buses;
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param busObject
+	 * @throws JSONException
+	 * @throws Route.RouteException
+	 * @return
+	 */
+	@NotNull
+	public static Bus createNewBus(@NotNull JSONObject busObject) throws JSONException, Route.RouteException { // TODO Unit test
+
+		// Get the vehicle ID of the bus.
+		String vehicleId = busObject.getString("vehicleId");
+
+		// Ge the route name of the bus.
+		// This will be used to determine the route object of the bus from our array of all routes.
+		String routeName = busObject.getString("masterRouteId");
+
+		// Since we have the route name we need to now find the actual route that belongs to it.
+		// First make sure all the routes have been loaded before continuing.
+		if (MapsActivity.allRoutes == null || MapsActivity.allRoutes.length == 0) {
+			throw new Route.RouteException("There are no loaded routes!");
+		}
+
+		// Now iterate through all the routes.
+		Route route = null;
+		for (Route r : MapsActivity.allRoutes) {
+
+			// If the route name matches that of our bus route, then that's our route object.
+			if (r.routeName.equals(routeName)) {
+				route = r;
+				break;
+			}
+		}
+
+		// Get the the latitude of the bus.
+		double latitude = busObject.getDouble("latitude");
+
+		// Get the longitude of the bus.
+		double longitud = busObject.getDouble("longitude");
+
+		// Try to get the heading of the bus. This value isn't necessary, but is nice to have.
+		String heading = busObject.optString("headingName", "");
+
+		// Try to get the current speed of the bus. This value isn't necessary, but is nice to have.
+		int speed = busObject.optInt("speed", 0);
+
+		// Create a new bus object using the determined information.
+		Bus bus = new Bus(vehicleId, route, latitude, longitud);
+		bus.heading = heading;
+		bus.speed = speed;
+
+		// Return our newly created bus.
+		return bus;
 	}
 
 	/**
