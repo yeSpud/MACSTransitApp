@@ -24,6 +24,10 @@ public class Log {
 		return 0;
 	}
 
+	public static int v(String tag, String message) {
+		return Log.output("verbose", tag, message);
+	}
+
 	public static int d(String tag, String message) {
 		return Log.output("debug", tag, message);
 	}
@@ -54,5 +58,4 @@ public class Log {
 		}
 		return ret;
 	}
-
 }

@@ -6,14 +6,16 @@ import org.json.JSONObject;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
+import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -28,36 +30,86 @@ import static org.junit.Assert.fail;
  */
 public class BusTest {
 
-	@Test
-	public void getBusesTest() { // FIXME
-		assertTrue(Helper.ALL_VEHICLES_JSON.exists());
-		assertTrue(Helper.ALL_VEHICLES_JSON.canRead());
-		String data = Helper.getText(Helper.ALL_VEHICLES_JSON);
-		assertNotNull(data);
-		JSONObject testData;
+	public BusTest() {
+		Route brown, green, red;
 		try {
-			testData = new JSONObject(data);
-		} catch (JSONException e) {
+			brown = new Route("Brown");
+			green = new Route("Green");
+			red = new Route("Red");
+		} catch (Route.RouteException e) {
 			e.printStackTrace();
 			fail();
 			return;
 		}
+		MapsActivity.allRoutes = new Route[]{brown, green, red};
+	}
 
-		JSONArray array = RouteMatch.parseData(testData);
-		assertNotNull(array);
-		assertEquals(3, array.length());
 
-		// Test the exception when there are no routes loaded.
-		assertThrows(Route.RouteException.class, () -> Bus.getBuses(new JSONArray()));
-		assertThrows(Route.RouteException.class, () -> Bus.getBuses(null));
-		assertThrows(Route.RouteException.class, () -> Bus.getBuses(array));
+	@SuppressWarnings("MagicNumber")
+	@Test
+	public void getBusesTest() {
+		// First test bad arguments,
+		try {
+			assertArrayEquals(Bus.EMPTY_BUSES, Bus.getBuses(new JSONArray()));
+			assertArrayEquals(Bus.EMPTY_BUSES, Bus.getBuses(null));
+		} catch (Route.RouteException e) {
+			e.printStackTrace();
+			fail();
+		}
 
-		// Load in all routes
-		// TODO
+		// Now test valid buses.
+		try {
+			assertArrayEquals(Bus.EMPTY_BUSES, Bus.getBuses(RouteMatch.parseData(Helper.getJSON(Helper.ALL_VEHICLES_EMPTY_JSON))));
+			Bus[] buses = Bus.getBuses(RouteMatch.parseData(Helper.getJSON(Helper.ALL_VEHICLES_JSON)));
+			assertEquals(3, buses.length);
+
+			// Test the individual buses.
+			String[] ids = new String[]{"142", "131", "71"};
+			double[] lat = new double[]{64.85543060302734, 64.81417083740234, 64.84135437011719};
+			double[] lon = new double[]{-147.7141876220703, -147.61318969726562, -147.71914672851562};
+			for (int i = 0; i < buses.length; i++) {
+				Bus bus = buses[i];
+				assertEquals(ids[i], bus.name);
+				assertEquals(Objects.requireNonNull(MapsActivity.allRoutes)[i], bus.route);
+				assertEquals(lat[i], bus.latitude, 0.0);
+				assertEquals(lon[i], bus.longitude, 0.0);
+			}
+		} catch (JSONException| Route.RouteException | NullPointerException e) {
+			e.printStackTrace();
+			fail();
+		}
+	}
+
+	@SuppressWarnings("MagicNumber")
+	@Test
+	public void createNewBusTest() {
+
+		// Test against bad arguments.
+		assertThrows(NullPointerException.class, () -> Bus.createNewBus(null));
+		assertThrows(JSONException.class, () -> Bus.createNewBus(new JSONObject()));
+
+		// Test with valid arguments.
+		String[] ids = new String[]{"142", "131", "71"};
+		double[] lat = new double[]{64.85543060302734, 64.81417083740234, 64.84135437011719};
+		double[] lon = new double[]{-147.7141876220703, -147.61318969726562, -147.71914672851562};
+		try {
+			JSONArray busArray = RouteMatch.parseData(Helper.getJSON(Helper.ALL_VEHICLES_JSON));
+
+			for (int i = 0; i < busArray.length(); i++) {
+				Bus bus = Bus.createNewBus(busArray.getJSONObject(i));
+				assertEquals(ids[i], bus.name);
+				assertEquals(Objects.requireNonNull(MapsActivity.allRoutes)[i], bus.route);
+				assertEquals(lat[i], bus.latitude, 0.0);
+				assertEquals(lon[i], bus.longitude, 0.0);
+			}
+		} catch (JSONException | Route.RouteException | NullPointerException e) {
+			e.printStackTrace();
+			fail();
+		}
 	}
 
 	@Test
-	public void noBusMatchTest() { // FIXME
+	public void noBusMatchTest() {
 		// Create various dummy test routes.
 		Route greenRoute, blueRoute, otherGreen;
 		try {
@@ -89,16 +141,16 @@ public class BusTest {
 		Bus[] testBusArray = new Bus[]{bus0, bus1, bus2};
 
 		// Test the noBusMatch method.
-		assertFalse(Bus.noBusMatch(bus0, testBusArray));
-		assertFalse(Bus.noBusMatch(bus1, testBusArray));
-		assertFalse(Bus.noBusMatch(bus2, testBusArray));
-		assertTrue(Bus.noBusMatch(bus3, testBusArray));
-		assertTrue(Bus.noBusMatch(bus2Blue, testBusArray));
-		assertFalse(Bus.noBusMatch(bus0OG, testBusArray));
+		assertFalse(Bus.isBusNotInArray(bus0, testBusArray));
+		assertFalse(Bus.isBusNotInArray(bus1, testBusArray));
+		assertFalse(Bus.isBusNotInArray(bus2, testBusArray));
+		assertTrue(Bus.isBusNotInArray(bus3, testBusArray));
+		assertTrue(Bus.isBusNotInArray(bus2Blue, testBusArray));
+		assertFalse(Bus.isBusNotInArray(bus0OG, testBusArray));
 
 	}
 
-	public static Bus[] ArrayListTest(JSONArray vehicles) throws Route.RouteException { // TODO Fixme
+	private static Bus[] ArrayListTest(JSONArray vehicles) throws Route.RouteException {
 		long startTime = System.nanoTime();
 
 		ArrayList<Bus> buses = new ArrayList<>();
@@ -119,7 +171,7 @@ public class BusTest {
 
 	}
 
-	public static Bus[] StandardArraysTest(JSONArray vehicles) throws Route.RouteException { // FIXME
+	private static Bus[] StandardArraysTest(JSONArray vehicles) throws Route.RouteException {
 		long startTime = System.nanoTime();
 
 		Bus[] potentialBuses = new Bus[vehicles.length()];
@@ -140,7 +192,7 @@ public class BusTest {
 		return potentialBuses;
 	}
 
-	@Test // Proof of concept for standard arrays vs arraylists.
+	@Test // Proof of concept for standard arrays vs array lists.
 	public void ArrayTests() { // FIXME
 		JSONObject testData = null;
 		try {

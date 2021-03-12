@@ -2,15 +2,15 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.StringWriter;
 
 /**
  * Created by Spud on 2019-11-20 for the project: MACS Transit.
@@ -25,6 +25,7 @@ public class MarkedObject {
 	/**
 	 * The marker of the marker of the marked object.
 	 */
+	@Nullable
 	public Marker marker;
 
 	/**
