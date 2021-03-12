@@ -68,7 +68,7 @@ public class Bus extends MarkedObject {
 	 * @param longitude The longitude of the bus.
 	 */
 	public Bus(String vehicleId, Route route, double latitude, double longitude) throws Route.RouteException {
-		super(vehicleId);
+		super(String.format("Bus %s", vehicleId));
 
 		// Make sure the provided route is not null.
 		if (route == null) {
@@ -310,8 +310,8 @@ public class Bus extends MarkedObject {
 				Log.d("addNewBuses", String.format("Adding new bus to map: %s", newBus.name));
 
 				// Create the bus marker.
-				Marker busMarker = newBus.addMarker(MapsActivity.map, new LatLng(newBus.latitude,
-								newBus.longitude), newBus.color, String.format("Bus %s", newBus.name));
+				Marker busMarker = newBus.addMarker(MapsActivity.map,
+						new LatLng(newBus.latitude, newBus.longitude), newBus.color);
 
 				// Determine whether or not to show the bus marker.
 				busMarker.setVisible(newBus.route.enabled);

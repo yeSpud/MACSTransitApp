@@ -64,7 +64,7 @@ public class BusTest {
 			assertEquals(3, buses.length);
 
 			// Test the individual buses.
-			String[] ids = new String[]{"142", "131", "71"};
+			String[] ids = new String[]{"Bus 142", "Bus 131", "Bus 71"};
 			double[] lat = new double[]{64.85543060302734, 64.81417083740234, 64.84135437011719};
 			double[] lon = new double[]{-147.7141876220703, -147.61318969726562, -147.71914672851562};
 			for (int i = 0; i < buses.length; i++) {
@@ -89,7 +89,7 @@ public class BusTest {
 		assertThrows(JSONException.class, () -> Bus.createNewBus(new JSONObject()));
 
 		// Test with valid arguments.
-		String[] ids = new String[]{"142", "131", "71"};
+		String[] ids = new String[]{"Bus 142", "Bus 131", "Bus 71"};
 		double[] lat = new double[]{64.85543060302734, 64.81417083740234, 64.84135437011719};
 		double[] lon = new double[]{-147.7141876220703, -147.61318969726562, -147.71914672851562};
 		try {

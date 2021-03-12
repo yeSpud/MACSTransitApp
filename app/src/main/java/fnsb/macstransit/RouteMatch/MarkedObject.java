@@ -2,10 +2,6 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
-import androidx.annotation.Nullable;
-
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -15,9 +11,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by Spud on 2019-11-20 for the project: MACS Transit.
  * <p>
- * For the license, view the file titled LICENSE at the root of the project
+ * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.1
+ * @version 1.1.
  * @since Beta 8.
  */
 public class MarkedObject {
@@ -25,7 +21,7 @@ public class MarkedObject {
 	/**
 	 * The marker of the marker of the marked object.
 	 */
-	@Nullable
+	@androidx.annotation.Nullable
 	public Marker marker;
 
 	/**
@@ -34,8 +30,9 @@ public class MarkedObject {
 	public final String name;
 
 	/**
-	 * TODO Documentation
-	 * @param name
+	 * Constructor for a marked object.
+	 *
+	 * @param name The name of the marked object. This will later be used as the markers title.
 	 */
 	public MarkedObject(String name) {
 		this.name = name;
@@ -57,14 +54,18 @@ public class MarkedObject {
 	}
 
 	/**
-	 * TODO Documentation
-	 * @param map
-	 * @param coordinates
-	 * @param color
-	 * @param title
-	 * @return
+	 * Adds a marker to the map. Note that this method does not save the marker to the marked object.
+	 * It only adds it to the map, and returns the newly added marker.
+	 *
+	 * @param map         The map to add the marker to.
+	 * @param coordinates The LatLng coordinates of the marker.
+	 * @param color       The color of the marker.
+	 *                    This will try to get the closest approximation to the color as there are a limited number of marker colors.
+	 * @return The newly added marker.
 	 */
-	public Marker addMarker(@NotNull GoogleMap map, LatLng coordinates, int color, String title) {
+	public Marker addMarker(@NotNull com.google.android.gms.maps.GoogleMap map,
+	                        com.google.android.gms.maps.model.LatLng coordinates, int color) {
+
 		// Create a new maker options object
 		MarkerOptions options = new MarkerOptions();
 
@@ -80,8 +81,8 @@ public class MarkedObject {
 		Marker marker = map.addMarker(options);
 
 		// Set the marker title.
-		Log.d("addMarker", "Setting marker title to: " + title);
-		marker.setTitle(title);
+		Log.d("addMarker", "Setting marker title to: " + this.name);
+		marker.setTitle(this.name);
 
 		// Set the marker's tag.
 		Log.d("addMarker", "Setting the markers tag to: " + this.getClass());

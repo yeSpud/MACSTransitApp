@@ -233,12 +233,15 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		} catch (JSONException e) {
 
 			// Try to manage the exception, as it may be thrown if the value is actually null.
-			if (e.getMessage().equals(String.format("JSONObject[\"%s\"] is not a string.", key))) {
-				Log.w("getTime", String.format("%s has the wrong type (not a string - probably null)",
-						key));
+			String message = e.getMessage();
+			if (message != null) {
+				if (message.equals(String.format("JSONObject[\"%s\"] is not a string.", key))) {
+					Log.w("getTime", String.format("%s has the wrong type (not a string - probably null)",
+							key));
 
-				// Because the string was probably "Null", return null.
-				return null;
+					// Because the string was probably "Null", return null.
+					return null;
+				}
 			}
 
 			// Log any errors and return empty if unsuccessful.
@@ -376,7 +379,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			}
 
 			// Create a new marker for our marked object using the newly determined location and color.
-			markedObject.marker = markedObject.addMarker(MapsActivity.map, location, color, markedObject.name);
+			markedObject.marker = markedObject.addMarker(MapsActivity.map, location, color);
 		}
 
 		// Show our marker.
