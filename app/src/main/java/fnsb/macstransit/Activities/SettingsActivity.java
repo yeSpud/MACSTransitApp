@@ -8,6 +8,7 @@ import com.google.android.gms.maps.GoogleMap;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.Settings.CurrentSettings;
+import fnsb.macstransit.Settings.v2;
 
 /**
  * Created by Spud on 2019-11-24 for the project: MACS Transit.
@@ -74,23 +75,23 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Setup the fixed checkboxes.
 		// Traffic box is used to determine whether or not to show the traffic overlay.
 		this.trafficBox = this.findViewById(R.id.traffic);
-		this.trafficBox.setChecked(CurrentSettings.settingsImplementation.getTraffic());
+		this.trafficBox.setChecked(((v2) CurrentSettings.settingsImplementation).getTraffic());
 
 		// Dark theme box is used to determine whether or not to start the ap with a dark themed map.
 		this.darkthemeBox = this.findViewById(R.id.night_mode);
-		this.darkthemeBox.setChecked(CurrentSettings.settingsImplementation.getDarktheme());
+		this.darkthemeBox.setChecked(((v2) CurrentSettings.settingsImplementation).getDarktheme());
 
 		// Polybox is used to determine whether or not to show polylines for routes.
 		this.polyBox = this.findViewById(R.id.polylines);
-		this.polyBox.setChecked(CurrentSettings.settingsImplementation.getPolylines());
+		this.polyBox.setChecked(((v2) CurrentSettings.settingsImplementation).getPolylines());
 
 		// Streetview box would be used to activate the streetview easter egg if it were not deprecated.
 		this.streetviewBox = this.findViewById(R.id.VR);
-		this.streetviewBox.setChecked(CurrentSettings.settingsImplementation.getStreetView());
+		this.streetviewBox.setChecked(((v2) CurrentSettings.settingsImplementation).getStreetView());
 
 		// Setup the radio buttons.
 		this.mapType = this.findViewById(R.id.map_group);
-		switch (CurrentSettings.settingsImplementation.getMaptype()) {
+		switch (((v2) CurrentSettings.settingsImplementation).getMaptype()) {
 			case GoogleMap.MAP_TYPE_SATELLITE:
 				this.mapType.check(R.id.satellite_map);
 				break;
@@ -144,7 +145,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 				checkBox.setTag(route);
 
 				// Determine if the box should be checked.
-				for (Route savedRoute : CurrentSettings.settingsImplementation.getRoutes()) {
+				for (Route savedRoute : ((v2) CurrentSettings.settingsImplementation).getRoutes()) {
 					if (savedRoute.routeName.equals(route.routeName)) {
 						checkBox.setChecked(true);
 						break;

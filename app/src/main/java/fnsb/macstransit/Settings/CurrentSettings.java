@@ -21,14 +21,13 @@ import java.io.FileInputStream;
  * @version 1.0.
  * @since Release 1.2.
  */
-@SuppressWarnings("deprecation")
 public class CurrentSettings {
 
 	/**
 	 * The most current implementation of the settings class.
 	 * This is the class that you likely want to call when retrieving settings.
 	 */
-	public static v2 settingsImplementation = new v2();
+	public static BaseSettings settingsImplementation = new v2();
 
 	/**
 	 * Attempts to find the settings file on the device.
@@ -55,19 +54,20 @@ public class CurrentSettings {
 				Log.d("findSettingsFile", String.format("Checking file: %s", name));
 
 				// Check if the name matches the current settings file.
-				if (name.equals(v2.FILENAME)) {
+				if (name.equals(CurrentSettings.settingsImplementation.FILENAME)) {
 
 					// Since it matches, create a new file object using that name.
 					Log.v("findSettingsFile", "Current file found!");
-					return new File(directory, v2.FILENAME);
+					return new File(directory, CurrentSettings.settingsImplementation.FILENAME);
 				}
 
 				// Check if the name matches an older settings file.
-				if (name.equals(v1.FILENAME)) {
+				v1 oldSettings = new v1();
+				if (name.equals(oldSettings.FILENAME)) {
 
 					// Since it matches the old file name, create a new file object using the name.
 					Log.v("findSettingsFile", "Old file found!");
-					return new File(directory, v1.FILENAME);
+					return new File(directory, oldSettings.FILENAME);
 				}
 			}
 		}
@@ -97,10 +97,10 @@ public class CurrentSettings {
 			if (settingsFile.exists()) {
 
 				// Determine the settings version. If its an older version, convert it.
-				if (settingsFile.getName().equals(v2.FILENAME)) {
+				if (settingsFile.getName().equals(CurrentSettings.settingsImplementation.FILENAME)) {
 
 					// Load the settings from the settings file.
-					JSONObject settingsValues = CurrentSettings.settingsImplementation.readFromSettingsFile(context);
+					JSONObject settingsValues = ((v2) CurrentSettings.settingsImplementation).readFromSettingsFile(context);
 					Log.d("loadSettings", "Loading settings: " + settingsValues.toString(4));
 					CurrentSettings.settingsImplementation.parseSettings(settingsValues);
 				} else {
@@ -130,7 +130,8 @@ public class CurrentSettings {
 	public static JSONObject convertSettings(@NonNull File oldFile, @NonNull Context context) {
 
 		// Check if the old file name is that of v1.
-		if (oldFile.getName().equals(v1.FILENAME)) {
+		v1 oldVersion = new v1();
+		if (oldFile.getName().equals(oldVersion.FILENAME)) {
 
 			// Load the old settings.
 			Log.v("convertSettings", "Converting from v1");
@@ -140,13 +141,12 @@ public class CurrentSettings {
 
 			try {
 				// Carry over the old settings to the new format, and load in the defaults for unknown values.
-				JSONObject newSettings = CurrentSettings.settingsImplementation.
-						formatSettingsToJsonString(v1.ENABLE_TRAFFIC_VIEW, v1.DEFAULT_NIGHT_MODE,
+				JSONObject newSettings = ((v2) CurrentSettings.settingsImplementation).formatSettingsToJsonString(v1.ENABLE_TRAFFIC_VIEW, v1.DEFAULT_NIGHT_MODE,
 								v1.SHOW_POLYLINES, v1.ENABLE_VR_OPTIONS,
 								com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL);
 
 				// Write those settings to the new settings file.
-				CurrentSettings.settingsImplementation.writeStringToFile(newSettings.toString(), context);
+				CurrentSettings.settingsImplementation.writeSettingsToFile(newSettings.toString(), context);
 
 				// Remove the old v1 file, and return the JSON object that was written to it.
 				if (oldFile.delete()) {

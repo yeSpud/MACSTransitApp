@@ -45,20 +45,20 @@ public class v2Test {
 	@Test
 	public void testFormat() {
 		try {
-			assertNotEquals(CurrentSettings.settingsImplementation.formatSettingsToJsonString(false,
+			assertNotEquals(((v2)CurrentSettings.settingsImplementation).formatSettingsToJsonString(false,
 					false, false, false, GoogleMap.MAP_TYPE_NORMAL),
 					new JSONObject());
 			assertEquals("{\"enable dark theme\":false,\"enable polylines\":false," +
 					"\"favorited routes\":[],\"enable traffic view\":false,\"map type\":1," +
 					"\"enable streetview\":false,\"version\":2}",
-					CurrentSettings.settingsImplementation.formatSettingsToJsonString(false,
+					((v2)CurrentSettings.settingsImplementation).formatSettingsToJsonString(false,
 							false, false, false,
 							GoogleMap.MAP_TYPE_NORMAL).toString());
 
 			assertEquals("{\"enable dark theme\":true,\"enable polylines\":true," +
 							"\"favorited routes\":[],\"enable traffic view\":true,\"map type\":1," +
 							"\"enable streetview\":true,\"version\":2}",
-					CurrentSettings.settingsImplementation.formatSettingsToJsonString(true,
+					((v2)CurrentSettings.settingsImplementation).formatSettingsToJsonString(true,
 							true, true, true,
 							GoogleMap.MAP_TYPE_NORMAL).toString());
 		} catch (JSONException e) {

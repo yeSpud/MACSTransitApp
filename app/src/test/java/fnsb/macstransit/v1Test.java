@@ -29,8 +29,8 @@ public class v1Test {
 
 	@Test
 	public void testName() {
-		assertEquals("settings.txt", v1.FILENAME);
-		assertNotEquals("settings.json", v1.FILENAME);
+		assertEquals("settings.txt", this.settings.FILENAME);
+		assertNotEquals("settings.json", this.settings.FILENAME);
 	}
 
 	@Test

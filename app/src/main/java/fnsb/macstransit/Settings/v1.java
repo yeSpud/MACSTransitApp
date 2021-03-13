@@ -1,6 +1,9 @@
 package fnsb.macstransit.Settings;
 
+import android.content.Context;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -11,21 +14,12 @@ import java.io.File;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.0
+ * @version 1.0.
  * @since Release 1.2.
  */
 @Deprecated
-public class v1 {
-
-	/**
-	 * The name of the settings file for this version.
-	 */
-	public static final String FILENAME = "settings.txt";
-
-	/**
-	 * The version of the settings format.
-	 */
-	public static final int VERSION = 1;
+@SuppressWarnings("deprecation")
+public class v1 extends BaseSettings {
 
 	/**
 	 * Strings used to parse the key:value pairs in the old settings file
@@ -41,12 +35,22 @@ public class v1 {
 
 
 	/**
+	 * Constructor for v1.
+	 * Because this class extends BaseSettings, the file and version need to be passed.
+	 */
+	public v1() {
+		super("settings.txt", 1);
+	}
+
+	/**
 	 * Reads a string array from the settings file.
 	 * The array is determined by splitting the content of the settings file on the new line.
 	 *
 	 * @param file The settings file.
 	 * @return The string array read from the settings file.
 	 */
+	@Override
+	@Nullable
 	public String[] readFromSettingsFile(File file) {
 		// Read the file content
 		String content = CurrentSettings.readFile(file);
@@ -68,10 +72,10 @@ public class v1 {
 	 * @param context The context to get the settings file by.
 	 * @return The string array read from the settings file.
 	 */
+	@Override
 	public String[] readFromSettingsFile(@NotNull android.content.Context context) {
 		// First get the settings file.
-		@SuppressWarnings("deprecation")
-		File file = new File(context.getFilesDir(), v1.FILENAME);
+		File file = new File(context.getFilesDir(), this.FILENAME);
 		Log.i("readFromSettingsFile", "Supposed file location: " + file.getAbsolutePath());
 
 		// Return the string array from the file determined by the context.
@@ -83,7 +87,7 @@ public class v1 {
 	 *
 	 * @param strings The string array containing the various key:value pairs read from the settings file.
 	 */
-	@SuppressWarnings("deprecation")
+	@Override
 	public void parseSettings(@NotNull String[] strings) {
 		// Parse the settings into the static global variables above.
 		for (String string : strings) {
@@ -112,5 +116,24 @@ public class v1 {
 					break;
 			}
 		}
+	}
+
+	/**
+	 * Writes the provided string to the settings file. Since this version is deprecated just return.
+	 *
+	 * @param string  The string to be written to the settings file.
+	 * @param context The app context (for determining where the file is).
+	 */
+	@Override
+	public void writeSettingsToFile(String string, Context context) {
+	}
+
+	/**
+	 * Creates a new settings file with default values. Since this version is deprecated just return.
+	 *
+	 * @param context The app context used to determine the file location.
+	 */
+	@Override
+	public void createSettingsFile(Context context) {
 	}
 }

@@ -25,17 +25,7 @@ import fnsb.macstransit.RouteMatch.Route;
  * @version 1.0
  * @since Release 1.2.
  */
-public class v2 {
-
-	/**
-	 * The filename of the settings file.
-	 */
-	public static final String FILENAME = "Settings.json";
-
-	/**
-	 * The version of the settings file.
-	 */
-	public static final int VERSION = 2;
+public class v2 extends BaseSettings {
 
 	/**
 	 * Static variables used by the app.
@@ -53,12 +43,17 @@ public class v2 {
 	 */
 	public static Route[] favoriteRoutes;
 
+	public v2() {
+		super("Settings.json", 2);
+	}
+
 	/**
 	 * Reads the JSON object from the settings file.
 	 *
 	 * @param file The settings file.
 	 * @return The JSON object read from the settings file.
 	 */
+	@Override
 	public JSONObject readFromSettingsFile(File file) {
 		String content = CurrentSettings.readFile(file);
 		Log.d("readFromSettingsFile", "Content: " + content);
@@ -84,9 +79,10 @@ public class v2 {
 	 * @param context The context to get the settings file by.
 	 * @return The JSON object read from the settings file.
 	 */
+	@Override
 	public JSONObject readFromSettingsFile(@NotNull Context context) {
 		// Get the file from the context.
-		File file = new File(context.getFilesDir(), v2.FILENAME);
+		File file = new File(context.getFilesDir(), this.FILENAME);
 		Log.i("readFromSettingsFile", "Supposed file location: " + file.getAbsolutePath());
 
 		// Return the JSON object from the file determined by the context.
@@ -113,7 +109,7 @@ public class v2 {
 		JSONObject parent = new JSONObject();
 
 		// Add all the the simple key value pairs to the parent JSON object.
-		parent.putOpt("version", v2.VERSION)
+		parent.putOpt("version", this.VERSION)
 				.putOpt("enable traffic view", bTraffic)
 				.putOpt("enable dark theme", bDarktheme)
 				.putOpt("enable polylines", bPolylines)
@@ -139,9 +135,10 @@ public class v2 {
 	 * @param string  The string to be written to the settings file.
 	 * @param context The app context (for determining where the file is).
 	 */
-	public void writeStringToFile(String string, Context context) {
+	@Override
+	public void writeSettingsToFile(String string, Context context) {
 		// Try opening the settings file.
-		try (java.io.FileOutputStream outputStream = context.openFileOutput(v2.FILENAME, Context.MODE_PRIVATE)) {
+		try (java.io.FileOutputStream outputStream = context.openFileOutput(this.FILENAME, Context.MODE_PRIVATE)) {
 			// Write the string to the file.
 			Log.d("writeStringToFile", "Writing string: " + string);
 			outputStream.write(string.getBytes());
@@ -158,15 +155,15 @@ public class v2 {
 	 *
 	 * @param context The app context used to determine the file location.
 	 */
+	@Override
 	public void createSettingsFile(Context context) {
 		Log.v("createSettingsFile", "Creating new settings file");
 		try {
 			// Create a new JSON object with all the default settings.
-			JSONObject json = CurrentSettings.settingsImplementation.formatSettingsToJsonString(false,
-					false, false, false, GoogleMap.MAP_TYPE_NORMAL);
+			JSONObject json = this.formatSettingsToJsonString(false, false, false, false, GoogleMap.MAP_TYPE_NORMAL);
 
 			// Write those settings to the file.
-			CurrentSettings.settingsImplementation.writeStringToFile(json.toString(), context);
+			this.writeSettingsToFile(json.toString(), context);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -178,6 +175,7 @@ public class v2 {
 	 * @param json The JSON object containing the values to be parsed into settings.
 	 * @throws JSONException Thrown if there was an issue with parsing any values.
 	 */
+	@Override
 	public void parseSettings(@NotNull JSONObject json) throws JSONException {
 		// Parse the simpler JSON objects from the settings file first.
 		v2.traffic = json.getBoolean("enable traffic view");
