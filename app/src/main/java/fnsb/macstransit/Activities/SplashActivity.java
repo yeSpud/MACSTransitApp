@@ -391,14 +391,15 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			for (Stop stop : route.stops) {
 
 				// Make sure our stop is not already in our shared stop.
-				if (route.sharedStops != null) {
+				SharedStop[] sharedStops = route.getSharedStops();
+				if (sharedStops != null) {
 					boolean found = false;
 
 					// Iterate though the shared stops in the route.
-					for (SharedStop ssCheck : route.sharedStops) {
+					for (SharedStop sharedStop : sharedStops) {
 
 						// If the route was found, continue.
-						if (SharedStop.areEqual(ssCheck, stop)) {
+						if (SharedStop.areEqual(sharedStop, stop)) {
 							found = true;
 							break;
 						}
@@ -454,7 +455,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 			// Get the final stop count for each route
 			// by removing stops that are taken care of by the shared route object.
-			final Stop[] finalStops = SharedStop.recreateStops(route.stops, route.sharedStops);
+			final Stop[] finalStops = SharedStop.recreateStops(route.stops, route.getSharedStops());
 			Log.d("validateStops", String.format("Final stop count: %d", finalStops.length));
 
 			// Set the stops array for the route to the final determined stop array.

@@ -10,6 +10,7 @@ import fnsb.macstransit.RouteMatch.MarkedObject;
  * @version 1.3
  * @since Beta 7.
  */
+@androidx.annotation.UiThread
 public class StopDeselected implements com.google.android.gms.maps.GoogleMap.OnInfoWindowCloseListener {
 
 	/**
@@ -20,8 +21,7 @@ public class StopDeselected implements com.google.android.gms.maps.GoogleMap.OnI
 	 * @param marker The marker of the info window that was closed.
 	 */
 	@Override
-	public void onInfoWindowClose(@org.jetbrains.annotations.NotNull
-			                                  com.google.android.gms.maps.model.Marker marker) {
+	public void onInfoWindowClose(@androidx.annotation.NonNull com.google.android.gms.maps.model.Marker marker) {
 
 		// Get the tag as a marked object for easier lookup.
 		MarkedObject potentialStop = (MarkedObject) marker.getTag();

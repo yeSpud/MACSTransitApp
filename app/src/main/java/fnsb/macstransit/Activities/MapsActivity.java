@@ -6,13 +6,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.MapStyleOptions;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 
 import java.util.ConcurrentModificationException;
@@ -176,7 +176,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * @return Return false to allow normal menu processing to proceed, true to consume it here.
 	 */
 	@Override
-	public boolean onOptionsItemSelected(@NotNull MenuItem item) {
+	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 		Log.v("onOptionsItemSelected", "onOptionsItemSelected has been called!");
 
 		// Identify which method to call based on the item ID.
@@ -208,7 +208,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 *
 	 * @param item The menu item that was selected. This value cannot be null.
 	 */
-	private void onOtherOptionsItemSelected(@NotNull MenuItem item) {
+	private void onOtherOptionsItemSelected(@NonNull MenuItem item) {
 		Log.v("onOtherOptionSelected", "onOtherOptionsItemSelected has been called!");
 
 		// Identify what action to execute based on the item ID.
@@ -245,7 +245,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * @param item The menu item that should belong to a route. This value cannot be null.
 	 * @throws Route.RouteException Thrown if the route to be toggled is not found within allRoutes.
 	 */
-	private static void onRouteItemToggled(@NotNull MenuItem item) throws Route.RouteException {
+	private static void onRouteItemToggled(@NonNull MenuItem item) throws Route.RouteException {
 		Log.v("onRouteItemSelected", "onRouteItemSelected bas been called!");
 
 		// Make sure there are routes to iterate though by checking to see if allRoutes isn't null.
@@ -426,10 +426,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			}
 
 			// Check that there are shared stops to hide in the route.
-			if (route.sharedStops != null) {
+			SharedStop[] sharedStops = route.getSharedStops();
+			if (sharedStops != null) {
 
 				// Iterate though the shared stops in the route.
-				for (SharedStop sharedStop : route.sharedStops) {
+				for (SharedStop sharedStop : sharedStops) {
 
 					if (route.enabled) {
 
@@ -534,7 +535,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			*/
 
 			// Enable all the routes that were favorited.
-			Route.enableFavoriteRoutes(MapsActivity.allRoutes, CurrentSettings.settings.getRoutes());
+			Route.enableFavoriteRoutes(CurrentSettings.settings.getRoutes());
 
 			// Try redrawing the buses.
 			// Because we are iterating a static variable that is modified on a different thread

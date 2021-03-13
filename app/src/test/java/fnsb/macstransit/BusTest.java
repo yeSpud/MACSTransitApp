@@ -193,7 +193,7 @@ public class BusTest {
 	}
 
 	@Test // Proof of concept for standard arrays vs array lists.
-	public void ArrayTests() { // FIXME
+	public void ArrayTests() {
 		JSONObject testData = null;
 		try {
 			testData = Helper.getJSON(Helper.ALL_VEHICLES_JSON);

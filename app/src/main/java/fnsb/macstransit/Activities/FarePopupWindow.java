@@ -14,6 +14,7 @@ import fnsb.macstransit.R;
  * @version 1.1
  * @since Release 1.1.
  */
+@androidx.annotation.UiThread
 public class FarePopupWindow extends AlertDialog {
 
 	/**

@@ -2,10 +2,11 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -93,7 +94,7 @@ public class Bus extends MarkedObject {
 	 * @throws Route.RouteException Thrown if there are no routes to track
 	 *                              (either MapsActivity.allRoutes is null or is 0 in length).
 	 */
-	@NotNull
+	@NonNull
 	public static Bus[] getBuses(org.json.JSONArray vehiclesJson) throws Route.RouteException {
 
 		// Check if the json array is null. If it is return an empty bus array.
@@ -149,7 +150,7 @@ public class Bus extends MarkedObject {
 	 * @throws NullPointerException Thrown if the provided json is null.
 	 */
 	@org.jetbrains.annotations.Contract("null -> fail")
-	@NotNull
+	@NonNull
 	public static Bus createNewBus(JSONObject busObject) throws JSONException, Route.RouteException,
 			NullPointerException {
 
@@ -209,7 +210,7 @@ public class Bus extends MarkedObject {
 	 * @param oldBuses The original buses.
 	 * @param newBuses The new buses retrieved from the server.
 	 */
-	public static void removeOldBuses(@NotNull Bus[] oldBuses, Bus[] newBuses) {
+	public static void removeOldBuses(@NonNull Bus[] oldBuses, Bus[] newBuses) {
 
 		// Iterate through the oldBuses
 		for (Bus oldBus : oldBuses) {
@@ -241,8 +242,8 @@ public class Bus extends MarkedObject {
 	 * @param newBuses The new buses retrieved from the server.
 	 * @return An array of buses which have been updated.
 	 */
-	@NotNull
-	public static Bus[] updateCurrentBuses(Bus[] oldBuses, @NotNull Bus[] newBuses) {
+	@NonNull
+	public static Bus[] updateCurrentBuses(Bus[] oldBuses, @NonNull Bus[] newBuses) {
 
 		// Create an array with the maximum size of the size of our new buses.
 		// We will resize the array later,
@@ -289,8 +290,8 @@ public class Bus extends MarkedObject {
 	 * @param newBuses The new buses retrieved from the server.
 	 * @return An array of all the new buses.
 	 */
-	@NotNull
-	public static Bus[] addNewBuses(Bus[] oldBuses, @NotNull Bus[] newBuses) {
+	@NonNull
+	public static Bus[] addNewBuses(Bus[] oldBuses, @NonNull Bus[] newBuses) {
 
 		// Create an array with the maximum size of the size of our new buses.
 		// We will resize the array later,
@@ -338,7 +339,7 @@ public class Bus extends MarkedObject {
 	 * @param buses The bus array to search for the given bus.
 	 * @return Whether the bus was NOT found.
 	 */
-	public static boolean isBusNotInArray(Bus bus, @NotNull Bus[] buses) {
+	public static boolean isBusNotInArray(Bus bus, @NonNull Bus[] buses) {
 
 		// Iterate though each bus.
 		for (Bus iteratorBus : buses) {

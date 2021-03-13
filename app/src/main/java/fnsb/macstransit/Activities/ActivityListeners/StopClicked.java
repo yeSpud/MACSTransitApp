@@ -3,7 +3,8 @@ package fnsb.macstransit.Activities.ActivityListeners;
 import android.content.Context;
 import android.util.Log;
 
-import org.jetbrains.annotations.NotNull;
+import androidx.annotation.NonNull;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -11,13 +12,13 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-import fnsb.macstransit.Threads.StopTimeCallback;
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.MarkedObject;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
+import fnsb.macstransit.Threads.StopTimeCallback;
 
 /**
  * Created by Spud on 2019-10-30 for the project: MACS Transit.
@@ -107,8 +108,8 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @param allRoutesForStop The routes in the shared stop.
 	 * @return The routes in the shared stop that are enabled.
 	 */
-	@NotNull
-	public static Route[] getEnabledRoutesForStop(@NotNull Route[] allRoutesForStop) {
+	@NonNull
+	public static Route[] getEnabledRoutesForStop(@NonNull Route[] allRoutesForStop) {
 
 		// Create a new routes array to store routes that have been verified to be enabled.
 		Route[] potentialRoutes = new Route[allRoutesForStop.length];
@@ -146,8 +147,8 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @return The string containing all the departure and arrival times for the particular stop.
 	 * @throws JSONException Thrown if there is a JSONException while parsing the data for the stop.
 	 */
-	@NotNull
-	private static String generateTimeString(@NotNull JSONArray stopArray, Context context, Route[] routes,
+	@NonNull
+	private static String generateTimeString(@NonNull JSONArray stopArray, Context context, Route[] routes,
 	                                         boolean includeRouteName) throws JSONException {
 
 		// Get the number of entries in our json array.
@@ -218,7 +219,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 * @param key  The specific key to search for within the JSONObject.
 	 * @return The time found within the JSONObject.
 	 */
-	@org.jetbrains.annotations.Nullable
+	@androidx.annotation.Nullable
 	public static String getTime(JSONObject json, String key) {
 
 		// Check to make sure the json object is not null. If it is, return an empty string.
@@ -338,8 +339,9 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 *
 	 * @param circle The circle that is clicked.
 	 */
+	@androidx.annotation.UiThread
 	@Override
-	public void onCircleClick(@NotNull com.google.android.gms.maps.model.Circle circle) {
+	public void onCircleClick(@NonNull com.google.android.gms.maps.model.Circle circle) {
 
 		// Get the marked object from our circle.
 		MarkedObject markedObject = (MarkedObject) circle.getTag();
@@ -393,7 +395,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 *
 	 * @param marker The marker to be shown. This cannot be null.
 	 */
-	private void showMarker(@NotNull com.google.android.gms.maps.model.Marker marker) {
+	private void showMarker(@NonNull com.google.android.gms.maps.model.Marker marker) {
 
 		// Since the marker is not null, show it the marker by setting it to visible.
 		marker.setVisible(true);

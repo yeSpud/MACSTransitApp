@@ -2,11 +2,10 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-
-import org.jetbrains.annotations.NotNull;
-
 
 /**
  * Created by Spud on 2019-11-20 for the project: MACS Transit.
@@ -46,7 +45,7 @@ public class MarkedObject {
 	 * @return The resulting BitmapDescriptor. This will almost certainly not be the exact color,
 	 * but rather will be something close to it.
 	 */
-	@NotNull
+	@NonNull
 	private static com.google.android.gms.maps.model.BitmapDescriptor getMarkerIcon(int color) {
 		float[] hsv = new float[3];
 		android.graphics.Color.colorToHSV(color, hsv);
@@ -63,7 +62,7 @@ public class MarkedObject {
 	 *                    This will try to get the closest approximation to the color as there are a limited number of marker colors.
 	 * @return The newly added marker.
 	 */
-	public Marker addMarker(@NotNull com.google.android.gms.maps.GoogleMap map,
+	public Marker addMarker(@NonNull com.google.android.gms.maps.GoogleMap map,
 	                        com.google.android.gms.maps.model.LatLng coordinates, int color) {
 
 		// Create a new maker options object

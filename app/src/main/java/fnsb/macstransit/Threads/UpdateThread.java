@@ -65,7 +65,7 @@ public class UpdateThread {
 	}
 
 	/**
-	 * This is the thread that repeatedly queries the routematch server for data on the buses,
+	 * This is the thread that repeatedly queries the RouteMatch server for data on the buses,
 	 * childRoutes, and stops.
 	 * It loops with the frequency defined by the {@code updateFrequency} variable
 	 * (default of 4000 milliseconds, or 4 seconds).

@@ -3,6 +3,7 @@ package fnsb.macstransit.Activities.ActivityListeners;
 import android.util.Log;
 
 import fnsb.macstransit.Activities.MapsActivity;
+import fnsb.macstransit.RouteMatch.SharedStop;
 
 /**
  * Created by Spud on 2019-10-28 for the project: MACS Transit.
@@ -12,6 +13,7 @@ import fnsb.macstransit.Activities.MapsActivity;
  * @version 2.0.
  * @since Beta 7.
  */
+@androidx.annotation.UiThread
 public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCameraIdleListener {
 
 
@@ -50,8 +52,9 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 				}
 
 				// Then resize the route's shared stop circles.
-				if (route.sharedStops != null) {
-					for (fnsb.macstransit.RouteMatch.SharedStop sharedStop : route.sharedStops) {
+				SharedStop[] sharedStops = route.getSharedStops();
+				if (sharedStops != null) {
+					for (SharedStop sharedStop : sharedStops) {
 						sharedStop.setCircleSizes(metersPerPixel * 4);
 					}
 				}

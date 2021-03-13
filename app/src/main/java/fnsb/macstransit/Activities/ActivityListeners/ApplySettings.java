@@ -22,6 +22,7 @@ import fnsb.macstransit.Settings.CurrentSettings;
  * @version 1.0
  * @since Release 1.2.
  */
+@androidx.annotation.UiThread
 public class ApplySettings implements View.OnClickListener {
 
 	/**
@@ -31,6 +32,7 @@ public class ApplySettings implements View.OnClickListener {
 
 	/**
 	 * Constructor for the on click listener.
+	 *
 	 * @param activity The activity that corresponds to this listener.
 	 */
 	public ApplySettings(SettingsActivity activity) {
@@ -39,6 +41,7 @@ public class ApplySettings implements View.OnClickListener {
 
 	/**
 	 * Called when a view has been clicked.
+	 *
 	 * @param v The view that was clicked.
 	 */
 	@Override
@@ -89,9 +92,10 @@ public class ApplySettings implements View.OnClickListener {
 
 	/**
 	 * Gets the favorited routes from the favorited routes container.
+	 *
 	 * @return The array of selected favorited routes.
 	 */
-	@org.jetbrains.annotations.NotNull
+	@androidx.annotation.NonNull
 	private Route[] getFavoritedRoutes() {
 
 		// Get the number of potential favorite routes.

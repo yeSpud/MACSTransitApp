@@ -2,14 +2,18 @@ package fnsb.macstransit;
 
 import android.graphics.Color;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.junit.Test;
 
+import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.Route;
+import fnsb.macstransit.RouteMatch.RouteMatch;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -24,30 +28,10 @@ import static org.junit.Assert.fail;
  */
 public class RouteTest {
 
-	Route[] allRoutes, favoriteRoutes;
-
-	public RouteTest() {
-		// Initialize dummy allRoutes
-		try {
-			this.allRoutes = new Route[]{new Route("Foo"), new Route("Bar"), new Route("Baz")};
-		} catch (Route.RouteException e) {
-			e.printStackTrace();
-			fail();
-			return;
-		}
-
-		// Initialize dummy favorite route
-		try {
-			this.favoriteRoutes = new Route[]{new Route("Foo")};
-		} catch (Route.RouteException e) {
-			e.printStackTrace();
-			fail();
-		}
-	}
-
 	@SuppressWarnings("ResultOfObjectAllocationIgnored")
 	@Test
 	public void routeTest() {
+
 		// Constructor test!
 		// Basically make sure it errors when its supposed to.
 		assertThrows(Route.RouteException.class, () -> new Route("f o p"));
@@ -67,18 +51,65 @@ public class RouteTest {
 	}
 
 	@Test
-	public void enableFavoriteRoutesTest() {
-		// Enable the favoriteRoutes
-		Route.enableFavoriteRoutes(this.allRoutes, this.favoriteRoutes);
+	public void generateRoutesTest() {
 
-		// Check for expected values
-		assertTrue(this.allRoutes[0].enabled);
-		assertFalse(this.allRoutes[1].enabled);
-		assertFalse(this.allRoutes[2].enabled);
+		// Test bad arguments first.
+		assertArrayEquals(Route.EMPTY_ROUTE, Route.generateRoutes(null));
+		assertArrayEquals(Route.EMPTY_ROUTE, Route.generateRoutes(new JSONArray()));
+
+		// Now test valid arguments.
+		try {
+			Route[] routes = Route.generateRoutes(RouteMatch.parseData(Helper.getJSON(Helper.MASTERROUTE_JSON)));
+			assertEquals(8, routes.length);
+
+			String[] names = new String[]{"Yellow", "Grey", "Brown", "Blue", "Red", "Green", "Purple", "Orange"};
+			int index = 0;
+			for (Route route : routes) {
+				assertEquals(names[index], route.routeName);
+				index++;
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+			fail();
+		}
+
+	}
+
+	@Test
+	public void enableFavoriteRoutesTest() {
+
+		// TODO All
+		try {
+			MapsActivity.allRoutes = new Route[]{new Route("Foo"),
+					new Route("Bar"), new Route("Baz")};
+		} catch (Route.RouteException e) {
+			e.printStackTrace();
+			fail();
+			return;
+		}
+
+		// TODO Fav
+		Route[] favoriteRoutes;
+		try {
+			favoriteRoutes = new Route[]{new Route("Foo")};
+		} catch (Route.RouteException e) {
+			e.printStackTrace();
+			fail();
+			return;
+		}
+
+		// Enable the favoriteRoutes.
+		Route.enableFavoriteRoutes(favoriteRoutes);
+
+		// Check for expected values.
+		assertTrue(MapsActivity.allRoutes[0].enabled);
+		assertFalse(MapsActivity.allRoutes[1].enabled);
+		assertFalse(MapsActivity.allRoutes[2].enabled);
 
 		try {
-			Route.enableFavoriteRoutes(null, null);
-			Route.enableFavoriteRoutes(this.allRoutes, null);
+			Route.enableFavoriteRoutes(null);
+			MapsActivity.allRoutes = null;
+			Route.enableFavoriteRoutes(null);
 		} catch (NullPointerException e) {
 			e.printStackTrace();
 			fail();

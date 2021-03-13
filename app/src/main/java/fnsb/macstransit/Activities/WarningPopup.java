@@ -16,6 +16,7 @@ import fnsb.macstransit.R;
  * (too many threads) has been fixed.
  */
 @Deprecated
+@androidx.annotation.UiThread
 public class WarningPopup extends AlertDialog {
 
 	/**

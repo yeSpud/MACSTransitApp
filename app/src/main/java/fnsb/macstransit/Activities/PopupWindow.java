@@ -18,6 +18,7 @@ import fnsb.macstransit.RouteMatch.Bus;
  * @version 1.3
  * @since Beta 8.
  */
+@androidx.annotation.UiThread
 public class PopupWindow extends AlertDialog implements
 		com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener {
 
@@ -53,10 +54,10 @@ public class PopupWindow extends AlertDialog implements
 	/**
 	 * Shows the popup window dialog.
 	 *
-	 * @param marker The marker this popup dialog belongs to.
+	 * @param marker The marker this popup dialog belongs to. This cannot be null.
 	 * @param title  The title of the popup.
 	 */
-	private void showDialog(CharSequence title, Marker marker) {
+	private void showDialog(CharSequence title, @androidx.annotation.NonNull Marker marker) {
 
 		Context context = this.getContext();
 
