@@ -21,6 +21,7 @@ import java.io.FileInputStream;
  * @version 1.0.
  * @since Release 1.2.
  */
+@SuppressWarnings("deprecation")
 public class CurrentSettings {
 
 	/**
@@ -101,8 +102,12 @@ public class CurrentSettings {
 
 					// Load the settings from the settings file.
 					JSONObject settingsValues = ((v2) CurrentSettings.settingsImplementation).readFromSettingsFile(context);
-					Log.d("loadSettings", "Loading settings: " + settingsValues.toString(4));
-					CurrentSettings.settingsImplementation.parseSettings(settingsValues);
+					if (settingsValues != null) {
+						Log.d("loadSettings", String.format("Loading settings: %s", settingsValues.toString(4)));
+						CurrentSettings.settingsImplementation.parseSettings(settingsValues);
+					} else {
+						Log.w("loadSettings", "Settings values are null!");
+					}
 				} else {
 
 					// Convert the settings file, and then parse the result.
@@ -137,7 +142,11 @@ public class CurrentSettings {
 			Log.v("convertSettings", "Converting from v1");
 			v1 oldSettings = new v1();
 			String[] oldSettingsValues = oldSettings.readFromSettingsFile(context);
-			oldSettings.parseSettings(oldSettingsValues);
+			if (oldSettingsValues != null) {
+				oldSettings.parseSettings(oldSettingsValues);
+			} else {
+				Log.w("convertSettings", "Old settings values were null!");
+			}
 
 			try {
 				// Carry over the old settings to the new format, and load in the defaults for unknown values.

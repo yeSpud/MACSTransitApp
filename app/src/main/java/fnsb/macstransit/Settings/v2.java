@@ -4,15 +4,15 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.google.android.gms.maps.GoogleMap;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.util.ArrayList;
 
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.Route;
@@ -28,21 +28,25 @@ import fnsb.macstransit.RouteMatch.Route;
 public class v2 extends BaseSettings {
 
 	/**
-	 * Static variables used by the app.
+	 * Settings variables used by the app.
 	 */
-	public static boolean traffic = false, darktheme = false, polylines = false, streetview = false;
+	private boolean traffic = false, darktheme = false, polylines = false, streetview = false;
 
 	/**
-	 * Static variable used by the app. This variable corresponds with what map type should be used.
+	 * Settings variable used by the app. This variable corresponds with what map type should be used.
 	 */
-	public static int maptype = GoogleMap.MAP_TYPE_NORMAL;
+	private int maptype = GoogleMap.MAP_TYPE_NORMAL;
 
 	/**
 	 * Favorite routes set by the user.
-	 * These routes should be selected as soon as the app has finished initialization.
+	 * These routes should be enabled / selected as soon as the app has finished initialization.
 	 */
-	public static Route[] favoriteRoutes;
+	public Route[] favoriteRoutes;
 
+	/**
+	 * Constructor for v2.
+	 * Because this class extends BaseSettings, the file and version need to be passed.
+	 */
 	public v2() {
 		super("Settings.json", 2);
 	}
@@ -55,6 +59,8 @@ public class v2 extends BaseSettings {
 	 */
 	@Override
 	public JSONObject readFromSettingsFile(File file) {
+
+		// Load the content from the file via a call to readFile.
 		String content = CurrentSettings.readFile(file);
 		Log.d("readFromSettingsFile", "Content: " + content);
 
@@ -80,7 +86,8 @@ public class v2 extends BaseSettings {
 	 * @return The JSON object read from the settings file.
 	 */
 	@Override
-	public JSONObject readFromSettingsFile(@NotNull Context context) {
+	public JSONObject readFromSettingsFile(@NonNull Context context) {
+
 		// Get the file from the context.
 		File file = new File(context.getFilesDir(), this.FILENAME);
 		Log.i("readFromSettingsFile", "Supposed file location: " + file.getAbsolutePath());
@@ -92,18 +99,18 @@ public class v2 extends BaseSettings {
 	/**
 	 * Formats the given arguments into a JSON object that can be written to the settings file.
 	 *
-	 * @param bTraffic Whether or not to show the traffic overlay.
-	 * @param bDarktheme Whether or not to launch with the dark theme.
-	 * @param bPolylines Whether to not to show polylines.
-	 * @param bStreetview Whether or not to enable the (deprecated) streetview feature.
-	 * @param iMapType What type of map to use.
+	 * @param bTraffic        Whether or not to show the traffic overlay.
+	 * @param bDarktheme      Whether or not to launch with the dark theme.
+	 * @param bPolylines      Whether to not to show polylines.
+	 * @param bStreetview     Whether or not to enable the (deprecated) streetview feature.
+	 * @param iMapType        What type of map to use.
 	 * @param rFavoriteRoutes An array of favorited routes defined by the user.
 	 * @return The formatted JSON object.
 	 * @throws JSONException Thrown if there are any issues parsing the arguments provided.
 	 */
 	public JSONObject formatSettingsToJsonString(boolean bTraffic, boolean bDarktheme, boolean bPolylines,
-	                                             boolean bStreetview, int iMapType, Route... rFavoriteRoutes)
-			throws JSONException {
+	                                             boolean bStreetview, int iMapType,
+	                                             @NonNull Route... rFavoriteRoutes) throws JSONException {
 
 		// Create a new JSON object to hold all the setting values.
 		JSONObject parent = new JSONObject();
@@ -132,21 +139,29 @@ public class v2 extends BaseSettings {
 	/**
 	 * Writes the provided string to the settings file.
 	 *
-	 * @param string  The string to be written to the settings file.
-	 * @param context The app context (for determining where the file is).
+	 * @param string  The string to be written to the settings file. This cannot be null.
+	 * @param context The app context (for determining where the file is). This cannot be null.
 	 */
 	@Override
-	public void writeSettingsToFile(String string, Context context) {
+	public void writeSettingsToFile(@NonNull String string, @NonNull Context context) {
+
 		// Try opening the settings file.
 		try (java.io.FileOutputStream outputStream = context.openFileOutput(this.FILENAME, Context.MODE_PRIVATE)) {
+
 			// Write the string to the file.
 			Log.d("writeStringToFile", "Writing string: " + string);
 			outputStream.write(string.getBytes());
 			outputStream.flush();
+		} catch (java.io.FileNotFoundException e) {
+
+			// Log that the file wasn't found, and notify the user.
+			Log.e("writeSettingsToFile", "File was not found", e);
+			Toast.makeText(context, "Unable to find settings file", Toast.LENGTH_LONG).show();
 		} catch (java.io.IOException e) {
-			// Notify of any issues writing the file.
+
+			// Notify of any issues writing the file, and log it.
+			Log.e("writeSettingsToFile", "Unable to write to file", e);
 			Toast.makeText(context, "Unable write settings to file", Toast.LENGTH_LONG).show();
-			e.printStackTrace();
 		}
 	}
 
@@ -157,10 +172,12 @@ public class v2 extends BaseSettings {
 	 */
 	@Override
 	public void createSettingsFile(Context context) {
-		Log.v("createSettingsFile", "Creating new settings file");
+		Log.i("createSettingsFile", "Creating new settings file");
+
 		try {
 			// Create a new JSON object with all the default settings.
-			JSONObject json = this.formatSettingsToJsonString(false, false, false, false, GoogleMap.MAP_TYPE_NORMAL);
+			JSONObject json = this.formatSettingsToJsonString(false, false,
+					false, false, GoogleMap.MAP_TYPE_NORMAL);
 
 			// Write those settings to the file.
 			this.writeSettingsToFile(json.toString(), context);
@@ -176,88 +193,95 @@ public class v2 extends BaseSettings {
 	 * @throws JSONException Thrown if there was an issue with parsing any values.
 	 */
 	@Override
-	public void parseSettings(@NotNull JSONObject json) throws JSONException {
+	public void parseSettings(@NonNull JSONObject json) throws JSONException {
+
 		// Parse the simpler JSON objects from the settings file first.
-		v2.traffic = json.getBoolean("enable traffic view");
-		v2.darktheme = json.getBoolean("enable dark theme");
-		v2.polylines = json.getBoolean("enable polylines");
-		v2.streetview = json.getBoolean("enable streetview");
-		v2.maptype = json.getInt("map type");
+		this.traffic = json.getBoolean("enable traffic view");
+		this.darktheme = json.getBoolean("enable dark theme");
+		this.polylines = json.getBoolean("enable polylines");
+		this.streetview = json.getBoolean("enable streetview");
+		this.maptype = json.getInt("map type");
+
+		// Make sure all routes is not null before loading favorite routes.
+		if (MapsActivity.allRoutes == null) {
+			Log.w("parseSettings", "All routes is null!");
+			return;
+		}
 
 		// Now try to parse the more dynamic content (favorited routes array).
-		ArrayList<Route> routes = new ArrayList<>();
 		JSONArray favoritedRoutes = json.getJSONArray("favorited routes");
+		int favoriteCount = favoritedRoutes.length();
+		Route[] routes = new Route[favoriteCount];
 
 		// Iterate through the JSON array and try to match the names of the routes.
 		for (int i = 0; i < favoritedRoutes.length(); i++) {
 			String routeName = favoritedRoutes.getString(i);
-			if (MapsActivity.allRoutes != null) {
-				for (Route route : MapsActivity.allRoutes) {
-					// If the route names match, add it to the list of routes.
-					if (routeName.equals(route.routeName)) {
-						routes.add(route);
-						break;
-					}
+			for (Route route : MapsActivity.allRoutes) {
+
+				// If the route names match, add it to the list of routes.
+				if (routeName.equals(route.routeName)) {
+					routes[i] = route;
+					break;
 				}
 			}
 		}
 
 		// Parse the list of routes into the favorite routes array.
-		v2.favoriteRoutes = routes.toArray(new Route[0]);
+		this.favoriteRoutes = routes;
 	}
 
 	/**
-	 * Gets the map type static variable.
+	 * Gets the map type variable.
 	 *
 	 * @return The map type value.
 	 */
 	public int getMaptype() {
-		return v2.maptype;
+		return this.maptype;
 	}
 
 	/**
-	 * Gets the traffic static variable.
+	 * Gets the traffic variable.
 	 *
 	 * @return The traffic boolean (if the traffic view should be shown).
 	 */
 	public boolean getTraffic() {
-		return v2.traffic;
+		return this.traffic;
 	}
 
 	/**
-	 * Gets the dark theme static variable.
+	 * Gets the dark theme variable.
 	 *
 	 * @return The dark theme boolean (if dark theme should be set on launch).
 	 */
 	public boolean getDarktheme() {
-		return v2.darktheme;
+		return this.darktheme;
 	}
 
 	/**
-	 * Gets the polyline static variable.
+	 * Gets the polyline variable.
 	 *
 	 * @return The polyline boolean (if they should be shown or not).
 	 */
 	public boolean getPolylines() {
-		return v2.polylines;
+		return this.polylines;
 	}
 
 	/**
-	 * Gets the streetview static variable.
+	 * Gets the streetview variable.
 	 *
 	 * @return The streetview boolean.
 	 */
 	public boolean getStreetView() {
-		return v2.streetview;
+		return this.streetview;
 	}
 
 	/**
-	 * Gets the favorited routes static variable.
+	 * Gets the favorited routes variable.
 	 *
 	 * @return The favorite routes defined by the user.
 	 */
 	public Route[] getRoutes() {
-		return v2.favoriteRoutes;
+		return this.favoriteRoutes;
 	}
 
 }
