@@ -64,7 +64,7 @@ public class ApplySettings implements View.OnClickListener {
 		// Format the options into a Json string.
 		org.json.JSONObject json;
 		try {
-			json = CurrentSettings.settings.formatSettingsToJsonString(this.activity.trafficBox.isChecked(),
+			json = CurrentSettings.settingsImplementation.formatSettingsToJsonString(this.activity.trafficBox.isChecked(),
 					this.activity.darkthemeBox.isChecked(), this.activity.polyBox.isChecked(),
 					this.activity.streetviewBox.isChecked(), mapId, favoritedRoutes);
 		} catch (JSONException e) {
@@ -75,11 +75,11 @@ public class ApplySettings implements View.OnClickListener {
 		}
 
 		// Write that string to the file
-		CurrentSettings.settings.writeStringToFile(json.toString(), this.activity);
+		CurrentSettings.settingsImplementation.writeStringToFile(json.toString(), this.activity);
 
 		// Reload the settings.
 		try {
-			CurrentSettings.settings.parseSettings(json);
+			CurrentSettings.settingsImplementation.parseSettings(json);
 		} catch (JSONException e) {
 			e.printStackTrace();
 			Toast.makeText(v.getContext(), "An exception occurred while reloading settings",

@@ -3,6 +3,9 @@ package fnsb.macstransit.Settings;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -15,23 +18,29 @@ import java.io.FileInputStream;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.0
+ * @version 1.0.
  * @since Release 1.2.
  */
+@SuppressWarnings("deprecation")
 public class CurrentSettings {
 
 	/**
-	 * TODO Documentation
+	 * The most current implementation of the settings class.
+	 * This is the class that you likely want to call when retrieving settings.
 	 */
-	public static v2 settings = new v2();
+	public static v2 settingsImplementation = new v2();
 
 	/**
-	 * TODO Documentation
+	 * Attempts to find the settings file on the device.
+	 * This will try to search for the most current file first, and then retrieve older files.
+	 * If the file is not able to be found then null is returned instead.
 	 *
-	 * @param context
-	 * @return
+	 * @param context The app context (for accessing the folder location). This cannot be null.
+	 * @return The settings file as a file object if found. Otherwise null.
 	 */
-	public static File findSettingsFile(Context context) {
+	@Nullable
+	public static File findSettingsFile(@NonNull Context context) {
+
 		// Get the files directory for the app.
 		File directory = context.getFilesDir();
 
@@ -40,12 +49,14 @@ public class CurrentSettings {
 
 		// Make sure there are files to iterate over.
 		if (files != null && files.length != 0) {
+
 			// Iterate through the files in the directory.
 			for (String name : files) {
-				Log.d("findSettingsFile", "Checking file: " + name);
+				Log.d("findSettingsFile", String.format("Checking file: %s", name));
 
 				// Check if the name matches the current settings file.
 				if (name.equals(v2.FILENAME)) {
+
 					// Since it matches, create a new file object using that name.
 					Log.v("findSettingsFile", "Current file found!");
 					return new File(directory, v2.FILENAME);
@@ -53,11 +64,11 @@ public class CurrentSettings {
 
 				// Check if the name matches an older settings file.
 				if (name.equals(v1.FILENAME)) {
+
 					// Since it matches the old file name, create a new file object using the name.
 					Log.v("findSettingsFile", "Old file found!");
 					return new File(directory, v1.FILENAME);
 				}
-
 			}
 		}
 
@@ -67,52 +78,61 @@ public class CurrentSettings {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Loads the settings from the settings file into {@link #settingsImplementation}.
 	 *
-	 * @param context
-	 * @throws JSONException
+	 * @param context The app context for finding or recreating the settings file.
+	 * @throws JSONException Thrown if there was an issue parsing the settings data.
 	 */
 	public static void loadSettings(Context context) throws JSONException {
+
 		// First, find the file.
 		File settingsFile = CurrentSettings.findSettingsFile(context);
 
 		// If the file doesn't exist (the result is null), create a new file.
 		if (settingsFile == null) {
-			CurrentSettings.settings.createSettingsFile(context);
+			CurrentSettings.settingsImplementation.createSettingsFile(context);
 		} else {
+
 			// Make sure the settings file actually exists.
 			if (settingsFile.exists()) {
+
 				// Determine the settings version. If its an older version, convert it.
-				if (!settingsFile.getName().equals(v2.FILENAME)) {
+				if (settingsFile.getName().equals(v2.FILENAME)) {
+
+					// Load the settings from the settings file.
+					JSONObject settingsValues = CurrentSettings.settingsImplementation.readFromSettingsFile(context);
+					Log.d("loadSettings", "Loading settings: " + settingsValues.toString(4));
+					CurrentSettings.settingsImplementation.parseSettings(settingsValues);
+				} else {
+
 					// Convert the settings file, and then parse the result.
 					JSONObject newSettings = CurrentSettings.convertSettings(settingsFile, context);
 					Log.d("loadSettings", "Loading settings: " + newSettings.toString(4));
-					CurrentSettings.settings.parseSettings(newSettings);
-				} else {
-					// Load the settings from the settings file.
-					JSONObject settingsValues = CurrentSettings.settings.readFromSettingsFile(context);
-					Log.d("loadSettings", "Loading settings: " + settingsValues.toString(4));
-					CurrentSettings.settings.parseSettings(settingsValues);
+					CurrentSettings.settingsImplementation.parseSettings(newSettings);
 				}
 			} else {
-				CurrentSettings.settings.createSettingsFile(context);
-			}
 
+				// Since the settings file does not exist create a new file.
+				CurrentSettings.settingsImplementation.createSettingsFile(context);
+			}
 		}
 	}
 
-
 	/**
-	 * TODO Documentation
+	 * Converts older settings to the new standard as a json object.
+	 * This will also write the converted settings to the current settings file standard.
 	 *
-	 * @param oldFile
-	 * @param context
-	 * @return
+	 * @param oldFile The old settings file.
+	 * @param context The app context (for creating a new current settings file).
+	 * @return The converted settings as a json object.
 	 */
-	public static JSONObject convertSettings(File oldFile, Context context) {
-		// Check if the old file name is that of v1
+	@NonNull
+	public static JSONObject convertSettings(@NonNull File oldFile, @NonNull Context context) {
+
+		// Check if the old file name is that of v1.
 		if (oldFile.getName().equals(v1.FILENAME)) {
-			// Load the old settings
+
+			// Load the old settings.
 			Log.v("convertSettings", "Converting from v1");
 			v1 oldSettings = new v1();
 			String[] oldSettingsValues = oldSettings.readFromSettingsFile(context);
@@ -120,12 +140,13 @@ public class CurrentSettings {
 
 			try {
 				// Carry over the old settings to the new format, and load in the defaults for unknown values.
-				JSONObject newSettings = CurrentSettings.settings.formatSettingsToJsonString(v1.ENABLE_TRAFFIC_VIEW,
-						v1.DEFAULT_NIGHT_MODE, v1.SHOW_POLYLINES, v1.ENABLE_VR_OPTIONS,
-						com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL);
+				JSONObject newSettings = CurrentSettings.settingsImplementation.
+						formatSettingsToJsonString(v1.ENABLE_TRAFFIC_VIEW, v1.DEFAULT_NIGHT_MODE,
+								v1.SHOW_POLYLINES, v1.ENABLE_VR_OPTIONS,
+								com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL);
 
-				// Write those settings to the new settings file
-				CurrentSettings.settings.writeStringToFile(newSettings.toString(), context);
+				// Write those settings to the new settings file.
+				CurrentSettings.settingsImplementation.writeStringToFile(newSettings.toString(), context);
 
 				// Remove the old v1 file, and return the JSON object that was written to it.
 				if (oldFile.delete()) {
@@ -136,26 +157,31 @@ public class CurrentSettings {
 					return new JSONObject();
 				}
 			} catch (JSONException e) {
-				// If anything went wrong, just return an empty JSON object
+
+				// If anything went wrong just return an empty JSON object after logging the exception.
+				Log.e("convertSettings", "Could not parse json", e);
 				e.printStackTrace();
 				return new JSONObject();
 			}
 		} else {
-			Log.w("convertSettings", "File version unknown!\n"+oldFile.getName());
+			Log.w("convertSettings", "File version unknown!\n" + oldFile.getName());
 			return new JSONObject();
 		}
 	}
 
-
 	/**
-	 * TODO Documentation
+	 * Reads the content of the file to a string.
+	 * The returned string may be null if there was an exception thrown while reading,
+	 * or if there is simply nothing to read.
 	 *
-	 * @param file
-	 * @return
+	 * @param file The file to read from.
+	 * @return The content of the file as a string. This may be null.
 	 */
+	@Nullable
 	static String readFile(File file) {
+
 		// Try to create a file input stream in order to read the data from the file.
-		java.io.FileInputStream input = null;
+		java.io.FileInputStream input;
 		try {
 			input = new FileInputStream(file);
 		} catch (java.io.FileNotFoundException e) {
@@ -164,7 +190,7 @@ public class CurrentSettings {
 		}
 
 		// If the file input stream was created successfully, execute the following:
-		StringBuilder stringBuilder = new StringBuilder();
+		StringBuilder stringBuilder = new StringBuilder(0);
 		try (BufferedReader reader = new BufferedReader(new java.io.InputStreamReader(input,
 				java.nio.charset.StandardCharsets.UTF_8))) {
 			String line = reader.readLine();
@@ -173,10 +199,10 @@ public class CurrentSettings {
 				line = reader.readLine();
 			}
 		} catch (java.io.IOException e) {
+
 			// Error occurred when opening raw file for reading.
-			e.printStackTrace();
+			Log.e("readFile", "Could not read from file!", e);
 		}
 		return stringBuilder.toString();
 	}
-
 }

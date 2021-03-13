@@ -162,11 +162,11 @@ public class v2 {
 		Log.v("createSettingsFile", "Creating new settings file");
 		try {
 			// Create a new JSON object with all the default settings.
-			JSONObject json = CurrentSettings.settings.formatSettingsToJsonString(false,
+			JSONObject json = CurrentSettings.settingsImplementation.formatSettingsToJsonString(false,
 					false, false, false, GoogleMap.MAP_TYPE_NORMAL);
 
 			// Write those settings to the file.
-			CurrentSettings.settings.writeStringToFile(json.toString(), context);
+			CurrentSettings.settingsImplementation.writeStringToFile(json.toString(), context);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
