@@ -453,9 +453,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Iterate though all the routes and recreate the stops for each route.
 		for (Route route : MapsActivity.allRoutes) {
 
-			// Get the final stop count for each route
-			// by removing stops that are taken care of by the shared route object.
-			final Stop[] finalStops = SharedStop.recreateStops(route.stops, route.getSharedStops());
+			// Get the final stop count for each route by removing stops that are taken care of by the shared route object.
+			final Stop[] finalStops = SharedStop.removeStopsWithSharedStops(route.stops, route.getSharedStops());
 			Log.d("validateStops", String.format("Final stop count: %d", finalStops.length));
 
 			// Set the stops array for the route to the final determined stop array.

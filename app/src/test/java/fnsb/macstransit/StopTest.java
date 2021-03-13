@@ -6,7 +6,6 @@ import org.json.JSONObject;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.StringWriter;
 import java.util.ArrayList;
 
 import fnsb.macstransit.Activities.MapsActivity;
@@ -232,7 +231,7 @@ public class StopTest {
 			// Test removal of stops that have shared stops.
 			ArrayList<Stop[]> finalStops = new ArrayList<>(loadedFiles);
 			for (Route route : routes) {
-				Stop[] stops = SharedStop.recreateStops(route.stops, route.getSharedStops());
+				Stop[] stops = SharedStop.removeStopsWithSharedStops(route.stops, route.getSharedStops());
 				System.out.println(String.format("Going from %d stops to %d stops for route %s", route.stops.length,
 						stops.length, route.routeName));
 				finalStops.add(stops);
