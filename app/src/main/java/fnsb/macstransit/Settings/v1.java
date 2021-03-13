@@ -3,9 +3,7 @@ package fnsb.macstransit.Settings;
 import android.content.Context;
 import android.util.Log;
 
-import androidx.annotation.Nullable;
-
-import org.jetbrains.annotations.NotNull;
+import androidx.annotation.NonNull;
 
 import java.io.File;
 
@@ -22,7 +20,7 @@ import java.io.File;
 public class v1 extends BaseSettings {
 
 	/**
-	 * Strings used to parse the key:value pairs in the old settings file
+	 * Strings used to parse the key:value pairs in the old settings file.
 	 */
 	private static final String TRAFFIC_KEY = "Enable Traffic View",
 			NIGHT_MODE_KEY = "Enable Dark Theme", POLYLINES_KEY = "Show Polylines",
@@ -50,8 +48,9 @@ public class v1 extends BaseSettings {
 	 * @return The string array read from the settings file.
 	 */
 	@Override
-	@Nullable
+	@androidx.annotation.Nullable
 	public String[] readFromSettingsFile(File file) {
+
 		// Read the file content
 		String content = CurrentSettings.readFile(file);
 		Log.d("readFromSettingsFile", "Content: " + content);
@@ -73,7 +72,8 @@ public class v1 extends BaseSettings {
 	 * @return The string array read from the settings file.
 	 */
 	@Override
-	public String[] readFromSettingsFile(@NotNull android.content.Context context) {
+	public String[] readFromSettingsFile(@NonNull android.content.Context context) {
+
 		// First get the settings file.
 		File file = new File(context.getFilesDir(), this.FILENAME);
 		Log.i("readFromSettingsFile", "Supposed file location: " + file.getAbsolutePath());
@@ -88,7 +88,8 @@ public class v1 extends BaseSettings {
 	 * @param strings The string array containing the various key:value pairs read from the settings file.
 	 */
 	@Override
-	public void parseSettings(@NotNull String[] strings) {
+	public void parseSettings(@NonNull String[] strings) {
+
 		// Parse the settings into the static global variables above.
 		for (String string : strings) {
 			String[] line = string.split(":");
@@ -112,7 +113,7 @@ public class v1 extends BaseSettings {
 					v1.ENABLE_VR_OPTIONS = Boolean.parseBoolean(line[1]);
 					break;
 				default:
-					Log.w("loadSettings", "Line unaccounted for!\n" + string);
+					Log.w("loadSettings", String.format("Line unaccounted for!\n%s", string));
 					break;
 			}
 		}
