@@ -2,7 +2,8 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
-import org.jetbrains.annotations.NotNull;
+import androidx.annotation.NonNull;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -14,9 +15,9 @@ import fnsb.macstransit.Threads.Network;
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
- * For the license, view the file titled LICENSE at the root of the project
+ * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 3.3
+ * @version 3.3.
  * @since Beta 1.
  */
 public class RouteMatch {
@@ -34,6 +35,7 @@ public class RouteMatch {
 	 * @throws MalformedURLException Thrown if the url entered is not in a valid url format.
 	 */
 	public RouteMatch(String url) throws MalformedURLException {
+
 		// Create a regex pattern matcher to match the URL to.
 		final Pattern pattern = Pattern.compile("^https?://\\S+/$");
 
@@ -52,8 +54,10 @@ public class RouteMatch {
 	 * @param object The JSONObject to parse.
 	 * @return The JSONArray, or an empty JSONArray if no data section was found.
 	 */
-	@NotNull
-	public static JSONArray parseData(@NotNull JSONObject object) {
+	@NonNull
+	public static JSONArray parseData(@NonNull JSONObject object) {
+
+		// Try to parse the json data array. If unsuccessful just return an empty json array.
 		try {
 			return object.getJSONArray("data");
 		} catch (org.json.JSONException e) {
@@ -72,35 +76,40 @@ public class RouteMatch {
 	}
 
 	/**
-	 * Gets all the stops for the specified parentRoute from the RouteMatch server.
+	 * Gets all the stops for the specified route from the RouteMatch server.
 	 *
-	 * @param route The parentRoute pertaining to the stops.
-	 * @return The JSONObject pertaining to all the stops for the specified parentRoute.
+	 * @param route The route pertaining to the stops.
+	 * @return The JSONObject pertaining to all the stops for the specified route.
 	 */
-	public JSONObject getAllStops(@NotNull Route route) {
+	public JSONObject getAllStops(@NonNull Route route) {
 		return Network.getJsonFromUrl(this.url + "stops/" + route.routeName, true);
 	}
 
 	/**
-	 * TODO Documentation
-	 * @param stopName
-	 * @return
+	 * Gets the departure (and arrival) information from the specified stop from the RouteMatch server.
+	 *
+	 * @param stopName The stop to get the information for.
+	 * @return The json object contain the departure (and arrival) information
 	 */
-	public JSONObject getDeparturesByStop(@NotNull String stopName) {
-		try {
-			// Create a pattern to match special URL characters.
-			final Pattern pattern = Pattern.compile("\\+");
+	public JSONObject getDeparturesByStop(@NonNull String stopName) {
 
-			// Create the url that will be used to retrieve the stop data.
+		// Create a pattern to match special URL characters.
+		final Pattern pattern = Pattern.compile("\\+");
+
+		// Try to create the url that will be used to retrieve the stop data.
+		try {
 			String url = this.url + "departures/byStop/" +
 					pattern.matcher(java.net.URLEncoder.encode(stopName, "UTF-8"))
 							.replaceAll("%20");
 			Log.d("getDeparturesByStop", "URL: " + url);
 
-			// Get the stop data from the URL.
+			// Return the stop data from the URL.
 			return Network.getJsonFromUrl(url, false);
 		} catch (java.io.UnsupportedEncodingException e) {
-			Log.e("getStop", "The encoded stop was malformed! Returning an empty JSONObject instead");
+
+			// If there was an encoding exception thrown simply return an empty json object (and log it).
+			Log.e("getStop",
+					"The encoded stop was malformed! Returning an empty JSONObject instead", e);
 			return new JSONObject();
 		}
 	}
@@ -111,12 +120,22 @@ public class RouteMatch {
 	 * @param routes The routes of the vehicles to be queried from the RouteMatch server.
 	 * @return The json object containing the data for all the vehicles that were retrieved by their respective routes.
 	 */
-	public JSONObject getVehiclesByRoutes(@NotNull Route... routes) {
+	public JSONObject getVehiclesByRoutes(@NonNull Route... routes) {
+
+		// Get the URL encoded separator for separating different routes.
 		final String separator = "%2C";
-		StringBuilder routesString = new StringBuilder(separator.length());
+
+		// Create a new string builder that will be used to store our final generated string from all the route names.
+		// Since we know that all routes will have a separator,
+		// set the initial length to the separator times the number of routes.
+		StringBuilder routesString = new StringBuilder(separator.length() * routes.length);
+
+		// Iterate through each route and append the route name plus the separator to our string builder.
 		for (Route route : routes) {
 			routesString.append(route.routeName).append(separator);
 		}
+
+		// Return the bus data from the url.
 		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + routesString, false);
 	}
 
@@ -125,10 +144,10 @@ public class RouteMatch {
 	 * (the route the buses will take) of a particular route from the RouteMatch server.
 	 *
 	 * @param route The route to be fetched.
-	 * @return The JSONObject pertaining to the specific parentRoute's parentRoute
+	 * @return The JSONObject pertaining to the specific route
 	 * (what route it will take as a series of latitude and longitude coordinates).
 	 */
-	public JSONObject getLandRoute(@NotNull Route route) {
+	public JSONObject getLandRoute(@NonNull Route route) {
 		return Network.getJsonFromUrl(this.url + "landRoute/byRoute/" + route.routeName, true);
 	}
 }

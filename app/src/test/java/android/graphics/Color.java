@@ -12,8 +12,8 @@ package android.graphics;
  */
 public class Color {
 
-	public static final int BLUE = 0;
-	public static final int GRAY = 0;
+	public static final int BLUE = 0xFF0000FF;
+	public static final int GRAY = 0xFF888888;
 
 	public static int parseColor(String color) {
 		System.out.println(String.format("Requested color: %s (returning 0 instead)", color));

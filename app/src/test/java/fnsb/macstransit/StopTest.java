@@ -178,11 +178,12 @@ public class StopTest {
 				for (Stop stop : route.stops) {
 
 					// Make sure our stop is not already in our shared stop.
-					if (route.sharedStops != null) {
+					SharedStop[] sharedStops = route.getSharedStops();
+					if (sharedStops != null) {
 						boolean found = false;
 
 						// Iterate though the shared stops in the route.
-						for (SharedStop ssCheck : route.sharedStops) {
+						for (SharedStop ssCheck : sharedStops) {
 
 							// If the route was found, continue.
 							if (SharedStop.areEqual(ssCheck, stop)) {
@@ -216,9 +217,10 @@ public class StopTest {
 			for (int i = 0; i < loadedFiles; i++) {
 				Route route = routes[i];
 				System.out.println(String.format("%s route stops: %d", route.routeName, route.stops.length));
-				if (route.sharedStops != null) {
-					System.out.println(String.format("%s route shared stops: %d", route.routeName, route.sharedStops.length));
-					assertEquals(sharedStopsCount[i], route.sharedStops.length);
+				SharedStop[] sharedStops = route.getSharedStops();
+				if (sharedStops != null) {
+					System.out.println(String.format("%s route shared stops: %d", route.routeName, sharedStops.length));
+					assertEquals(sharedStopsCount[i], sharedStops.length);
 				} else {
 					fail();
 				}
@@ -230,7 +232,7 @@ public class StopTest {
 			// Test removal of stops that have shared stops.
 			ArrayList<Stop[]> finalStops = new ArrayList<>(loadedFiles);
 			for (Route route : routes) {
-				Stop[] stops = SharedStop.recreateStops(route.stops, route.sharedStops);
+				Stop[] stops = SharedStop.recreateStops(route.stops, route.getSharedStops());
 				System.out.println(String.format("Going from %d stops to %d stops for route %s", route.stops.length,
 						stops.length, route.routeName));
 				finalStops.add(stops);
