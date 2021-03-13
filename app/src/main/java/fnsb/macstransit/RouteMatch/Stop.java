@@ -2,20 +2,22 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.UiThread;
+
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
 
-import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
 import org.json.JSONException;
 
 /**
  * Created by Spud on 2019-10-18 for the project: MACS Transit.
  * <p>
- * For the license, view the file titled LICENSE at the root of the project
+ * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.3
+ * @version 1.3.
  * @since Beta 6.
  */
 public class Stop extends MarkedObject {
@@ -24,6 +26,13 @@ public class Stop extends MarkedObject {
 	 * The starting radius size of the circle for the stop on the map (in meters).
 	 */
 	private static final double STARTING_RADIUS = 50.0d;
+
+	/**
+	 * Fallback array used for returning an array of stops that is zero in length.
+	 * This is commonly used for an early exit scenario when bad arguments are provided,
+	 * and the method cannot continue otherwise.
+	 */
+	public static final Stop[] EMPTY_STOPS_ARRAY = new Stop[0];
 
 	/**
 	 * This is the route that the stop corresponds to.
@@ -90,7 +99,7 @@ public class Stop extends MarkedObject {
 	 * @param route The route this newly created Stop object will apply to.
 	 * @throws JSONException Thrown if there is any issue in parsing the data from the provided JSONObject.
 	 */
-	public Stop(@NotNull org.json.JSONObject json, Route route) throws JSONException {
+	public Stop(@NonNull org.json.JSONObject json, Route route) throws JSONException {
 		this(json.getString("stopId"), json.getDouble("latitude"),
 				json.getDouble("longitude"), route);
 	}
@@ -98,11 +107,15 @@ public class Stop extends MarkedObject {
 	/**
 	 * Shows the stops for the given route.
 	 * If the stops weren't previously added to the map then this method will also see fit to add them to the map.
+	 * <p>
+	 * This should be run on the UI thread.
 	 *
 	 * @param map The google maps object that the stops will be drawn onto.
 	 *            Be sure this object has been initialized first.
 	 */
+	@UiThread
 	public void showStop(GoogleMap map) {
+
 		// Check if the circle for the stop needs to be created,
 		// or just set to visible if it already exists.
 		if (this.circle == null) {
@@ -123,8 +136,12 @@ public class Stop extends MarkedObject {
 	 * Hides the objects on the map.
 	 * This doesn't dispose of the circle object, but rather sets it to invisible
 	 * (and also sets it to not be clickable in an attempt to disable its hit box from overriding other circles).
+	 * <p>
+	 * This should be run on the UI thread.
 	 */
+	@UiThread
 	public void hideStop() {
+
 		// If the circle is null this will simply return.
 		if (this.circle != null) {
 
@@ -140,11 +157,15 @@ public class Stop extends MarkedObject {
 	 * This method does not set the circle itself, but rather returns the newly created circle.
 	 *
 	 * @param map     The google maps object that this newly created circle will be added to.
+	 *                This cannot be null.
 	 * @param options The options to apply to the circle.
-	 * @param stop
+	 * @param stop    The stop that this circle belongs to (this will be set as the circle's tag)
 	 * @return The newly created circle.
 	 */
-	private static @NotNull Circle createStopCircle(@NotNull GoogleMap map, CircleOptions options, Stop stop) {
+	@NonNull
+	@UiThread
+	private static Circle createStopCircle(@NonNull GoogleMap map, CircleOptions options, Stop stop) {
+
 		// Add the circle to the map.
 		Circle circle = map.addCircle(options);
 
@@ -161,40 +182,58 @@ public class Stop extends MarkedObject {
 	}
 
 	/**
-	 * TODO Documentation
-	 * @param array
-	 * @param route
-	 * @return
+	 * Creates an array of stops from the provided json array.
+	 * If the json array is null then the stop array will be 0 in length.
+	 *
+	 * @param array The json array containing the stop information.
+	 * @param route The route these stops belongs to.
+	 * @return The stop array created from the json array.
 	 */
-	public static @NotNull Stop[] generateStops(@NotNull JSONArray array, Route route) {
+	@NonNull
+	public static Stop[] generateStops(org.json.JSONArray array, Route route) {
+
+		// Check if the json array is null. If it is then simply return a zero length stop array.
+		if (array == null) {
+			return Stop.EMPTY_STOPS_ARRAY;
+		}
+
+		// Create an array of stops that will be filled using the information from the json array.
 		int count = array.length();
 		Stop[] uncheckedStops = new Stop[count];
 
+		// Iterate though the json array.
 		for (int i = 0; i < count; i++) {
 			Stop stop;
+
+			// Try to create a new stop object using the information in the json array.
 			try {
 				stop = new Stop(array.getJSONObject(i), route);
 			} catch (JSONException e) {
+
+				// If unsuccessful simply log the exception and continue iterating.
 				Log.e("generateStops", "Exception occurred while creating stop!", e);
 				continue;
 			}
 			uncheckedStops[i] = stop;
 		}
 
+		// Return the stop array.
 		return uncheckedStops;
 	}
 
 	/**
 	 * Validates the provided array of potential stops and returned the actual stops in the route,
 	 * removing any duplicate or invalid stops.
+	 *
 	 * @param potentialStops The potential stops that may contain duplicate or invalid stops.
 	 * @return The validated stops array (or an empty stop array if the provided potential stops is null).
 	 */
-	public static @NotNull Stop[] validateGeneratedStops(Stop[] potentialStops) {
+	@NonNull
+	public static Stop[] validateGeneratedStops(Stop[] potentialStops) {
+
 		// If the supplied potential stops is null simply return a stop array of size 0.
 		if (potentialStops == null) {
-			//noinspection ZeroLengthArrayAllocation
-			return new Stop[0];
+			return Stop.EMPTY_STOPS_ARRAY;
 		}
 
 		// Create a variable to store the true size of the stops that have been validated.
@@ -229,11 +268,13 @@ public class Stop extends MarkedObject {
 	 * Checks the provided stop against an array of stops to check if its already contained in the array
 	 * (and is therefor a would-be duplicate).
 	 *
-	 * @param stop The Stop object to check for.
+	 * @param stop      The Stop object to check for.
 	 * @param stopArray The stop array to compare the Stop object against.
 	 * @return Returns true if the Stop object was found within the array - otherwise it returns false.
 	 */
 	public static boolean isDuplicate(Stop stop, Stop[] stopArray) {
+
+		// If the provided stop array is null just return false.
 		if (stopArray == null) {
 			return false;
 		}
@@ -262,16 +303,33 @@ public class Stop extends MarkedObject {
 	}
 
 	/**
-	 * TODO Documentation
-	 * @param stop1
-	 * @param stop2
-	 * @return
+	 * Checks if the two provided stops match (have the same name and location).
+	 *
+	 * @param stop1 The first stop to compare.
+	 * @param stop2 The second stop to compare.
+	 * @return Whether the first and second stops are the same.
+	 * @throws NullPointerException Thrown if stop locations are null.
 	 */
-	public static boolean stopMatches(@NotNull Stop stop1, @NotNull Stop stop2) throws NullPointerException {
-		boolean latMatch = stop1.circleOptions.getCenter().latitude == stop2.circleOptions.getCenter().latitude,
-		longMatch = stop1.circleOptions.getCenter().longitude == stop2.circleOptions.getCenter().longitude,
-		nameMatch = stop1.name.equals(stop2.name);
+	public static boolean doStopsMatch(Stop stop1, Stop stop2) throws NullPointerException {
 
+		// If either stops are null return false.
+		if (stop1 == null || stop2 == null) {
+			return false;
+		}
+
+		// Get the two stop locations.
+		LatLng loc1 = stop1.circleOptions.getCenter(), loc2 = stop2.circleOptions.getCenter();
+
+		// Latitude comparison.
+		boolean latMatch = loc1.latitude == loc2.latitude,
+
+				// Longitude comparison.
+				longMatch = loc1.longitude == loc2.longitude,
+
+				// Name comparison.
+				nameMatch = stop1.name.equals(stop2.name);
+
+		// Return whether name and locations are the same.
 		return latMatch && longMatch && nameMatch;
 	}
 }

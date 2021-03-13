@@ -137,7 +137,7 @@ public class SharedStop extends MarkedObject {
 				try {
 
 					// If the stops match, add the route to the potential routes array.
-					if (Stop.stopMatches(stop, stop2)) {
+					if (Stop.doStopsMatch(stop, stop2)) {
 						potentialRoutes[potentialRouteIndex] = route2;
 						potentialRouteIndex++;
 					}
