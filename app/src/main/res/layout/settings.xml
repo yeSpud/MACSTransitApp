@@ -3,7 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimaryDark"
     android:orientation="vertical">
 
     <TextView
@@ -69,8 +68,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:buttonTint="@color/white"
-                android:text="@string/enable_street_view"
                 android:enabled="false"
+                android:text="@string/enable_street_view"
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 android:visibility="gone" />
@@ -78,57 +77,46 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/default_map_type"
-                android:textColor="@color/white"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="25dp"
+                android:text="@string/default_map_type"
+                android:textColor="@color/white"
                 android:textSize="20sp" />
 
-            <LinearLayout
-                android:id="@+id/traffic_view_container"
+
+            <RadioGroup
+                android:id="@+id/map_group"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginEnd="10dp"
-                android:orientation="vertical">
+                android:layout_height="match_parent">
 
-                <RadioGroup
-                    android:id="@+id/map_group"
+                <RadioButton
+                    android:id="@+id/normal_map"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/white"
+                    android:text="@string/normal_map"
+                    android:textColor="@color/white"
+                    android:textSize="15sp" />
 
-                    <RadioButton
-                        android:id="@+id/normal_map"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/normal_map"
-                        android:textSize="15sp"
-                        android:textColor="@color/white"
-                        android:buttonTint="@color/white"/>
+                <RadioButton
+                    android:id="@+id/satellite_map"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/white"
+                    android:text="@string/satellite_map"
+                    android:textColor="@color/white"
+                    android:textSize="15sp" />
 
-                    <RadioButton
-                        android:id="@+id/satellite_map"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/satellite_map"
-                        android:textSize="15sp"
-                        android:textColor="@color/white"
-                        android:buttonTint="@color/white"/>
+                <RadioButton
+                    android:id="@+id/terrain_map"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/white"
+                    android:text="@string/terrain_map"
+                    android:textColor="@color/white"
+                    android:textSize="15sp" />
 
-                    <RadioButton
-                        android:id="@+id/terrain_map"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/terrain_map"
-                        android:textSize="15sp"
-                        android:textColor="@color/white"
-                        android:buttonTint="@color/white"/>
-
-                </RadioGroup>
-
-            </LinearLayout>
-
+            </RadioGroup>
 
             <TextView
                 android:id="@+id/favorite_route_header"

@@ -42,14 +42,14 @@
             android:name=".Activities.SettingsActivity"
             android:label="@string/settings"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
+            android:theme="@style/AppThemeNoActionBar"
             tools:ignore="LockedOrientationActivity" />
 
         <activity
             android:name=".Activities.SplashActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
+            android:theme="@style/AppThemeNoActionBar"
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
