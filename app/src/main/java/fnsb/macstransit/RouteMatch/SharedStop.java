@@ -17,7 +17,7 @@ import fnsb.macstransit.Activities.MapsActivity;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 2.0.
+ * @version 3.0.
  * @since Beta 7.
  */
 public class SharedStop extends MarkedObject {

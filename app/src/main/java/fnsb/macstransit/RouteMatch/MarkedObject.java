@@ -12,7 +12,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.1.
+ * @version 1.2.
  * @since Beta 8.
  */
 public class MarkedObject {
