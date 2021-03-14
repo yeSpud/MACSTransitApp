@@ -3,6 +3,7 @@ package fnsb.macstransit.RouteMatch;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.UiThread;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -210,6 +211,7 @@ public class Bus extends MarkedObject {
 	 * @param oldBuses The original buses.
 	 * @param newBuses The new buses retrieved from the server.
 	 */
+	@UiThread
 	public static void removeOldBuses(@NonNull Bus[] oldBuses, Bus[] newBuses) {
 
 		// Iterate through the oldBuses
@@ -243,6 +245,7 @@ public class Bus extends MarkedObject {
 	 * @return An array of buses which have been updated.
 	 */
 	@NonNull
+	@UiThread
 	public static Bus[] updateCurrentBuses(Bus[] oldBuses, @NonNull Bus[] newBuses) {
 
 		// Create an array with the maximum size of the size of our new buses.
@@ -291,6 +294,7 @@ public class Bus extends MarkedObject {
 	 * @return An array of all the new buses.
 	 */
 	@NonNull
+	@UiThread
 	public static Bus[] addNewBuses(Bus[] oldBuses, @NonNull Bus[] newBuses) {
 
 		// Create an array with the maximum size of the size of our new buses.

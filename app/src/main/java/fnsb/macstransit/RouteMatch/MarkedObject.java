@@ -62,6 +62,7 @@ public class MarkedObject {
 	 *                    This will try to get the closest approximation to the color as there are a limited number of marker colors.
 	 * @return The newly added marker.
 	 */
+	@androidx.annotation.UiThread
 	public Marker addMarker(@NonNull com.google.android.gms.maps.GoogleMap map,
 	                        com.google.android.gms.maps.model.LatLng coordinates, int color) {
 
