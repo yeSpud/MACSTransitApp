@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.UiThread;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -339,7 +340,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 *
 	 * @param circle The circle that is clicked.
 	 */
-	@androidx.annotation.UiThread
+	@UiThread
 	@Override
 	public void onCircleClick(@NonNull com.google.android.gms.maps.model.Circle circle) {
 
@@ -395,6 +396,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	 *
 	 * @param marker The marker to be shown. This cannot be null.
 	 */
+	@UiThread
 	private void showMarker(@NonNull com.google.android.gms.maps.model.Marker marker) {
 
 		// Since the marker is not null, show it the marker by setting it to visible.
