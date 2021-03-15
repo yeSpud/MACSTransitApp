@@ -124,7 +124,7 @@ public class UpdateThread {
 					System.arraycopy(currentBuses, 0, buses, newBuses.length, currentBuses.length);
 
 					// Make sure our entire array was filled.
-					if (buses[buses.length - 1] == null) {
+					if (buses.length != 0 && buses[buses.length - 1] == null) {
 						Log.w("UpdateThread", "Bus array was populated incorrectly!");
 					}
 
@@ -134,7 +134,7 @@ public class UpdateThread {
 
 				// Wait for the given update frequency.
 				try {
-					wait(this.updateFrequency);
+					Thread.sleep(this.updateFrequency);
 				} catch (InterruptedException e) {
 					Log.e("UpdateThread", "Wait interrupted", e);
 				}
