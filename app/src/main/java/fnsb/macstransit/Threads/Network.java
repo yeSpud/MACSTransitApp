@@ -37,7 +37,7 @@ public class Network {
 	/**
 	 * Timeouts (in milliseconds) used by various methods.
 	 */
-	private static final int CONNECTION_TIMEOUT = 5000, READ_TIMEOUT = 5000, PROCESSING_TIMEOUT = 500;
+	private static final int CONNECTION_TIMEOUT = 10000, READ_TIMEOUT = 7000, PROCESSING_TIMEOUT = 500;
 
 	/**
 	 * Reads the JSON from the provided URL, and formats it into a JSONObject.
@@ -61,20 +61,13 @@ public class Network {
 
 		// Run the following on a new thread (because android hates networking on the UI thread).
 		Thread t = new Thread(() -> {
-			try {
 
-				// Get the read result from the network thread.
-				String result = Network.readFromUrl(url, useTimeouts);
-				Log.v("getJsonFromUrl", "Returned string: " + result);
+			// Get the read result from the network thread.
+			String result = Network.readFromUrl(url, useTimeouts);
+			Log.v("getJsonFromUrl", "Returned string: " + result);
 
-				// Append the resulting string to the StringBuilder.
-				jsonString.append(result);
-			} catch (SocketTimeoutException e) {
-
-				// If the socket timed out while trying to get data from the url,
-				// simply return from the thread.
-				Log.w("getJsonFromUrl", "Connection timed out");
-			}
+			// Append the resulting string to the StringBuilder.
+			jsonString.append(result);
 		});
 
 		// Set the name of the network thread, and start it.
@@ -121,11 +114,9 @@ public class Network {
 	 * @param url         The url to read from.
 	 * @param useTimeouts Whether or not to use the builtin timeouts for this method.
 	 * @return The string containing the Json string, which can then be parsed into a JSONObject.
-	 * @throws SocketTimeoutException Thrown if the specified timeout has been reached.
 	 */
 	@NonNull
-	@SuppressWarnings("RedundantThrows")
-	private static String readFromUrl(String url, boolean useTimeouts) throws SocketTimeoutException {
+	private static String readFromUrl(String url, boolean useTimeouts) {
 
 		// Try connecting to the provided url.
 		java.net.URLConnection connection;
@@ -151,6 +142,11 @@ public class Network {
 		java.io.InputStream inputStream;
 		try {
 			inputStream = connection.getInputStream();
+		} catch (SocketTimeoutException timedOut) {
+
+			// Log that the connection timed out.
+			Log.w("readFromUrl", "Connection timed out.");
+			return "";
 		} catch (IOException e) {
 
 			// If there was an exception thrown simply log it and return an empty string.

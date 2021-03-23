@@ -59,6 +59,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	public static GoogleMap map;
 
 	/**
+	 * Bool used to check if we have selected favorited routes from all routes.
+	 * If this is set to true then we do not need to select favorite routes again as it should only be selected once.
+	 */
+	public static boolean selectedFavorites = false;
+
+	/**
 	 * Create a variable to store our fare popup window instance.
 	 * This should be initialized in the onCreate method for this activity.
 	 */
@@ -392,6 +398,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * Draws the stops and shared stops onto the map, and adjusts the stop sizes based on the zoom level.
 	 */
 	private static void drawStops() {
+
 		// First, make sure that allRoutes isn't null. If it is, return early.
 		if (MapsActivity.allRoutes == null) {
 			Log.w("drawStops", "allRoutes is null!");
@@ -496,11 +503,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Start by iterating though all the buses on the map.
 		for (Bus bus : MapsActivity.buses) {
-			try {
+
+			if (bus.marker != null) {
 
 				// Set the bus marker visibility based on if the bus's route is enabled or not.
 				bus.marker.setVisible(bus.route.enabled);
-			} catch (NullPointerException e) {
+			} else {
 
 				// If the marker was null, log it as a warning.
 				Log.w("drawBuses", "Bus doesn't have a marker!");
@@ -535,8 +543,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			}
 			*/
 
-			// Enable all the routes that were favorited.
-			Route.enableFavoriteRoutes(((v2) CurrentSettings.settingsImplementation).getRoutes());
+			// Enable all the routes that were favorited. Be sure to only run this once.
+			if (!MapsActivity.selectedFavorites) {
+				Route.enableFavoriteRoutes(((v2) CurrentSettings.settingsImplementation).getRoutes());
+			}
 
 			// Try redrawing the buses.
 			// Because we are iterating a static variable that is modified on a different thread

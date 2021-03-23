@@ -215,6 +215,8 @@ public class Route {
 	/**
 	 * Iterates though all the routes in MapsActivity.allRoutes
 	 * and enables those that have been favorited (as determined by being in the favoritedRoutes array).
+	 * <p>
+	 * This should only be run once.
 	 *
 	 * @param favoritedRoutes The selected routes to be enabled from MapsActivity.allRoutes.
 	 */
@@ -238,6 +240,9 @@ public class Route {
 				}
 			}
 		}
+
+		// Set the selectedFavorites variable to be true as to not run again.
+		MapsActivity.selectedFavorites = true;
 	}
 
 	/**
@@ -411,7 +416,7 @@ public class Route {
 		 * Constructor for a new exception with a (hopefully detailed) message, and a cause.
 		 *
 		 * @param message The (ideally detailed) message.
-		 * @param cause The cause for the exception. This may be null if the cause is undetermined.
+		 * @param cause   The cause for the exception. This may be null if the cause is undetermined.
 		 */
 		public RouteException(String message, @Nullable Throwable cause) {
 			super(message, cause);

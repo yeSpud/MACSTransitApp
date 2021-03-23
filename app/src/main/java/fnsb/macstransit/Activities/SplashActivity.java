@@ -179,7 +179,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 *
 	 * @return The thread that will run all the necessary initialization methods.
 	 */
-	@org.jetbrains.annotations.NotNull
+	@androidx.annotation.NonNull
 	private Thread initializeApp() {
 		Thread thread = new Thread(() -> {
 
@@ -253,6 +253,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * It will also close the application when the button is clicked (as to force a restart of the app).
 	 */
 	private void noInternet() {
+
 		// First, hide the progress bar.
 		this.progressBar.setVisibility(View.INVISIBLE);
 
@@ -280,6 +281,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * @return Whether or not the device has an internet connection.
 	 */
 	private boolean isMissingInternet() {
+
 		// Get the connectivity manager for the device.
 		ConnectivityManager connectivityManager = (ConnectivityManager) this.getApplicationContext()
 				.getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
@@ -301,6 +303,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * Loads the polylines for each route. Also known as mapping the bus routes to the map.
 	 */
 	private void mapBusRoutes() {
+
 		// Display that we are mapping bus routes to the user.
 		this.setMessage(R.string.mapping_bus_routes);
 
@@ -337,6 +340,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * so stops for separate routes will overlap.
 	 */
 	private void mapBusStops() {
+
 		// Update the user that we are now mapping (calculating) bus stops.
 		this.setMessage(R.string.mapping_bus_stops);
 
@@ -369,6 +373,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * At this point the original stop is still present in the route.
 	 */
 	private void mapSharedStops() {
+
 		// Let the user know that we are checking for shared bus stops at this point.
 		this.setMessage(R.string.shared_bus_stop_check);
 
@@ -438,6 +443,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * Meaning this method removes the stops that are shared stops as to not duplicate the stop.
 	 */
 	private void validateStops() {
+
 		// Let the user know that we are validating the stops (and shared stop) for each route.
 		this.setMessage(R.string.stop_validation);
 
@@ -474,8 +480,12 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * Launches the maps activity.
 	 */
 	private void launchMapsActivity() {
+
 		// Set the loaded state to true as everything was loaded (or should have been loaded).
 		SplashActivity.loaded = true;
+
+		// Set the selected favorites routes to be false for the maps activity.
+		MapsActivity.selectedFavorites = false;
 
 		/*
 		Suggest some garbage collection since we are done with a lot of heavy processing.
