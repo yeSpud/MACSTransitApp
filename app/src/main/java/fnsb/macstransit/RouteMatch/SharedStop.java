@@ -312,14 +312,17 @@ public class SharedStop extends MarkedObject {
 	@UiThread
 	public void setCircleSizes(double size) {
 
-		// Log the size that is being set for the initial circle (index 0).
-		Log.d("setCircleSizes", "Setting initial size to: " + (size * (1.0d / (1))));
-
 		// Iterate though each circle option (and circle if its not null) and reset its radius.
 		for (int i = 0; i < this.circles.length; i++) {
-			this.circleOptions[i].radius(size * (1.0d / (i + 1)));
+
+			// Get the size of the circle based on its radius.
+			double radiusSize = size * (1.0d / (i + 1));
+			Log.v("setCircleSizes", String.format("Radius size: %f", radiusSize));
+
+			// Set the circle size.
+			this.circleOptions[i].radius(radiusSize);
 			if (this.circles[i] != null) {
-				this.circles[i].setRadius(size * (1.0d / (i + 1)));
+				this.circles[i].setRadius(radiusSize);
 			}
 		}
 	}

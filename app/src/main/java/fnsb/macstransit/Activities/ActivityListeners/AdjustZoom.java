@@ -39,15 +39,17 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 		// Check that there are routes to iterate though.
 		if (MapsActivity.allRoutes != null) {
 
+			// Get the size of the circle to resize to.
+			double size = metersPerPixel * 4;
+			Log.d("resizeStops", String.format("Setting circle size to: %f", metersPerPixel * 4));
+
 			// Iterate though each route.
 			for (fnsb.macstransit.RouteMatch.Route route : MapsActivity.allRoutes) {
 
 				// Start by resizing the stop circles first.
 				for (fnsb.macstransit.RouteMatch.Stop stop : route.stops) {
 					if (stop.circle != null) {
-						Log.d("resizeStops", String.format("Setting circle size to: %f",
-								metersPerPixel * 4));
-						stop.circle.setRadius(metersPerPixel * 4);
+						stop.circle.setRadius(size);
 					}
 				}
 
@@ -55,7 +57,7 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 				SharedStop[] sharedStops = route.getSharedStops();
 				if (sharedStops != null) {
 					for (SharedStop sharedStop : sharedStops) {
-						sharedStop.setCircleSizes(metersPerPixel * 4);
+						sharedStop.setCircleSizes(size);
 					}
 				}
 			}
