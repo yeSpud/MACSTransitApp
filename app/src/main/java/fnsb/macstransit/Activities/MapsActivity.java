@@ -1,6 +1,7 @@
 package fnsb.macstransit.Activities;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -93,7 +94,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 *                           in the event that there was an issue and the activity had to be destroyed.
 	 */
 	@Override
-	protected void onCreate(@Nullable android.os.Bundle savedInstanceState) {
+	protected void onCreate(@Nullable Bundle savedInstanceState) { // TODO Look into restoring bundle.
 		Log.v("onCreate", "onCreate has been called!");
 		super.onCreate(savedInstanceState);
 
@@ -131,6 +132,14 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			MapsActivity.updateThreadRunner = this.updateThread.getNewThread();
 		}
 
+	}
+
+	@Override
+	protected void onSaveInstanceState(@NonNull Bundle outState) {
+		Log.v("onSaveInstanceState", "onSaveInstanceState called!");
+		super.onSaveInstanceState(outState);
+
+		// TODO Save all the variables addressed in onCreate so its not remade.
 	}
 
 	/**
@@ -329,6 +338,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Update the map's dynamic settings.
 		this.updateMapSettings();
+
+		// (Re) start the update thread.
+		this.manageUpdateThread();
 	}
 
 	/**
@@ -342,27 +354,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	protected void onPause() {
 		Log.v("onPause", "onPause has been called!");
 		super.onPause();
-		this.updateThread.run = false;
-	}
-
-	/**
-	 * Perform any final cleanup before an activity is destroyed.
-	 * This can happen either because the activity is finishing (someone called finish() on it),
-	 * or because the system is temporarily destroying this instance of the activity to save space.
-	 * You can distinguish between these two scenarios with the isFinishing() method.
-	 * <p>
-	 * Note: <i>do not count on this method being called as a place for saving data! For example,
-	 * if an activity is editing data in a content provider,
-	 * those edits should be committed in either onPause() or onSaveInstanceState(Bundle), not here.
-	 * This method is usually implemented to free resources like threads that are associated with an activity,
-	 * so that a destroyed activity does not leave such things around while the rest of its application is still running.
-	 * There are situations where the system will simply kill the activity's hosting process without calling this method (or any others) in it,
-	 * so it should not be used to do things that are intended to remain around after the process goes away.</i>
-	 */
-	@Override
-	protected void onDestroy() {
-		Log.v("onDestroy", "onDestroy has been called!");
-		super.onDestroy();
 		this.updateThread.run = false;
 	}
 
@@ -535,7 +526,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * It also redraws the buses and stops that are active on the map, and draws the polylines if they are enabled.
 	 * This should be called when the map has been setup and is ready to be refreshed.
 	 */
-	public void updateMapSettings() {
+	private void updateMapSettings() {
 
 		// Make sure to only execute the following if the maps object is not null (map has been setup).
 		if (MapsActivity.map != null) {
@@ -579,36 +570,47 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			if (((v2) CurrentSettings.settingsImplementation).getPolylines()) {
 				MapsActivity.drawRoutes();
 			}
-
-			// Set the update thread to true so we will run it.
-			this.updateThread.run = true;
-
-			// Depending on the state of the update thread, either resume, or start the runner.
-			java.lang.Thread.State state = MapsActivity.updateThreadRunner.getState();
-			Log.d("updateMapSettings", "State of thread: " + state.name());
-			switch (state) {
-				case NEW:
-					Log.d("updateMapSettings", "Starting update thread");
-
-					// Start the thread.
-					MapsActivity.updateThreadRunner.start();
-					break;
-				case WAITING:
-
-					// Be sure to synchronize with the thread lock.
-					synchronized (UpdateThread.LOCK) {
-						UpdateThread.LOCK.notifyAll();
-						break;
-					}
-				case TERMINATED:
-					Log.w("updateMapSettings", "Update thread has been terminated.");
-					break;
-				default:
-					Log.w("updateMapSettings", "Thread state unaccounted for");
-					break;
-			}
 		} else {
 			Log.w("updateMapSettings", "Map is not yet ready!");
+		}
+	}
+
+	/**
+	 * TODO Documentation
+	 */
+	private void manageUpdateThread() {
+
+		// Set the update thread to true so we will run it.
+		this.updateThread.run = true;
+
+		// If the thread isn't locked, then there is no need to continue.
+		if (!UpdateThread.getIsLocked()) {
+			return;
+		}
+
+		// Depending on the state of the update thread, either resume, or start the runner.
+		java.lang.Thread.State state = MapsActivity.updateThreadRunner.getState();
+		Log.d("manageUpdateThread", "State of thread: " + state.name());
+		switch (state) {
+			case NEW:
+				Log.d("manageUpdateThread", "Starting update thread");
+
+				// Start the thread.
+				MapsActivity.updateThreadRunner.start();
+				break;
+			case WAITING:
+
+				// Be sure to synchronize with the thread lock.
+				synchronized (UpdateThread.LOCK) {
+					UpdateThread.LOCK.notifyAll();
+					break;
+				}
+			case TERMINATED:
+				Log.w("manageUpdateThread", "Update thread has been terminated.");
+				break;
+			default:
+				Log.w("manageUpdateThread", "Thread state unaccounted for");
+				break;
 		}
 	}
 

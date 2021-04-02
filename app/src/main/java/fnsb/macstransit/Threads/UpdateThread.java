@@ -51,6 +51,12 @@ public class UpdateThread {
 	public static final Object LOCK = new Object();
 
 	/**
+	 * TODO Documentation
+	 * Default value is true.
+	 */
+	private static boolean isLocked = true;
+
+	/**
 	 * Lazy constructor for the UpdateThread.
 	 *
 	 * @param context The application context this is being run from.
@@ -82,6 +88,9 @@ public class UpdateThread {
 		Log.i("UpdateThread", "Created new update thread!");
 
 		Thread updateThread = new Thread(() -> {
+
+			// At this point the thread is not yet locked.
+			UpdateThread.isLocked = false;
 
 			// Check to make sure allRoutes isn't null.
 			// It its null then log that it is and return early.
@@ -138,9 +147,13 @@ public class UpdateThread {
 						// (as to reuse it when resuming later).
 						Log.i("UpdateThread", "Waiting for thread to restart...");
 
-						// Wait for notify to be called from the MapsActivity.
+						// Wait for notify to be called from the MapsActivity, and lock the thread.
 						try {
+							UpdateThread.isLocked = true;
 							UpdateThread.LOCK.wait();
+
+							// At this point the thread has been unlocked. Yay!
+							UpdateThread.isLocked = false;
 							Log.i("UpdateThread", "Resuming...");
 						} catch (InterruptedException e) {
 							Log.e("UpdateThread", "Interrupted while waiting!", e);
@@ -159,5 +172,13 @@ public class UpdateThread {
 
 		updateThread.setName("Update Thread");
 		return updateThread;
+	}
+
+	/**
+	 * TODO Documentation
+	 * @return
+	 */
+	public static boolean getIsLocked() {
+		return UpdateThread.isLocked;
 	}
 }
