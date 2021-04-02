@@ -72,7 +72,7 @@ public class RouteMatch {
 	 * @return The master Schedule as a JSONObject.
 	 */
 	public JSONObject getMasterSchedule() {
-		return Network.getJsonFromUrl(this.url + "masterRoute/", true);
+		return Network.getJsonFromUrl(this.url + "masterRoute/", false);
 	}
 
 	/**

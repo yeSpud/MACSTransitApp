@@ -35,9 +35,15 @@ import java.net.SocketTimeoutException;
 public class Network {
 
 	/**
-	 * Timeouts (in milliseconds) used by various methods.
+	 * Timeout used for receiving a connection from the server. This can be is infamously slow.
+	 * This is measured in milliseconds.
 	 */
-	private static final int CONNECTION_TIMEOUT = 10000, READ_TIMEOUT = 7000, PROCESSING_TIMEOUT = 500;
+	private static final int CONNECTION_TIMEOUT = 65 * 1000; // 1s = 1000ms; 65s = 65 * 1000 ms
+
+	/**
+	 * Timeouts for reading and processing (in milliseconds) used by various methods.
+	 */
+	private static final int READ_TIMEOUT = 7000, PROCESSING_TIMEOUT = 500;
 
 	/**
 	 * Reads the JSON from the provided URL, and formats it into a JSONObject.

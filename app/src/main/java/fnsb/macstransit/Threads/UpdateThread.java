@@ -32,9 +32,9 @@ public class UpdateThread {
 	private final long updateFrequency;
 
 	/**
-	 * The default update frequency (every 5 seconds / every 5000 milliseconds).
+	 * The default update frequency (every 70 seconds / every 70000 milliseconds).
 	 */
-	public static final long DEFAULT_FREQUENCY = 5000;
+	public static final long DEFAULT_FREQUENCY = 70 * 1000;
 
 	/**
 	 * The application context this is being called from.
