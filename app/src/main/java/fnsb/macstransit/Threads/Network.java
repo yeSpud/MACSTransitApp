@@ -38,7 +38,7 @@ public class Network {
 	 * Timeout used for receiving a connection from the server. This can be is infamously slow.
 	 * This is measured in milliseconds.
 	 */
-	private static final int CONNECTION_TIMEOUT = 65 * 1000; // 1s = 1000ms; 65s = 65 * 1000 ms
+	private static final int CONNECTION_TIMEOUT = 65 * 1000; // 1s = 1000ms; 65s = 65 * 1000 ms.
 
 	/**
 	 * Timeouts for reading and processing (in milliseconds) used by various methods.
@@ -58,7 +58,7 @@ public class Network {
 	@NonNull
 	public static JSONObject getJsonFromUrl(String url, boolean useTimeouts) {
 
-		// Log the url that was passed as an argument for debugging purposes
+		// Log the url that was passed as an argument for debugging purposes.
 		Log.i("getJsonFromUrl", "Url provided: " + url);
 
 		// Create a StringBuilder object that can be accessed within the thread.

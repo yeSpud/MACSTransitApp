@@ -26,20 +26,29 @@ public class UpdateThread {
 	 * and thus the more frequently its pulls data from the RouteMatch server,
 	 * and thus the more data it will consume.
 	 * <p>
-	 * This number is stored as a long, as it is the time in <i>milliseconds</i>,
-	 * with the default being 4000 (4 seconds).
+	 * This number is stored as a long, as it is the time in <i>milliseconds</i>).
 	 */
 	private final long updateFrequency;
 
 	/**
-	 * The default update frequency (every 70 seconds / every 70000 milliseconds).
+	 * The default update frequency (every 10 seconds / every 10000 milliseconds).
 	 */
-	public static final long DEFAULT_FREQUENCY = 70 * 1000;
+	public static final long DEFAULT_FREQUENCY = 10 * 1000;
 
 	/**
 	 * The application context this is being called from.
 	 */
 	private final MapsActivity context;
+
+	/**
+	 * The runner that fetches the buses from the RouteMatch server.
+	 */
+	private final UpdateBuses updateBuses = new UpdateBuses();
+
+	/**
+	 * Object used for synchronization between the maps activity and the update thread.
+	 */
+	public static final Object LOCK = new Object();
 
 	/**
 	 * Lazy constructor for the UpdateThread.
@@ -65,86 +74,90 @@ public class UpdateThread {
 	}
 
 	/**
-	 * This is the thread that repeatedly queries the RouteMatch server for data on the buses,
-	 * childRoutes, and stops.
-	 * It loops with the frequency defined by the {@code updateFrequency} variable
-	 * (default of 4000 milliseconds, or 4 seconds).
+	 * Creates a new update thread object.
 	 *
-	 * @return The thread. Note that this dies not run the thread, that has to be called separately.
+	 * @return The newly created update thread object.
 	 */
-	public Thread thread() {
-		return new Thread(() -> {
+	public Thread getNewThread() {
+		Log.i("UpdateThread", "Created new update thread!");
 
-			// For debugging purposes, let the poor developer know when the thread has started.
-			Log.i("Update thread", "Starting up...");
+		Thread updateThread = new Thread(() -> {
 
-			// Check to make sure allRoutes isn't null. If it is, just set run to false.
-			this.run = (MapsActivity.allRoutes != null);
+			// Check to make sure allRoutes isn't null.
+			// It its null then log that it is and return early.
+			if (MapsActivity.allRoutes == null) {
+				Log.w("UpdateThread", "No routes to work with!");
+				return;
+			}
 
-			// Loop continuously while the run variable is true, and the thread hasn't been interrupted.
-			while (this.run && !Thread.interrupted()) {
+			// For debugging purposes, let the developer know when the thread has started.
+			Log.i("UpdateThread", "Starting up...");
 
-				// Get the buses from the RouteMatch server.
-				org.json.JSONObject returnedVehicles = MapsActivity.routeMatch.getVehiclesByRoutes(MapsActivity.allRoutes);
-				org.json.JSONArray vehiclesJson = fnsb.macstransit.RouteMatch.RouteMatch.parseData(returnedVehicles);
+			// Loop continuously while the thread has not been interrupted.
+			while (!Thread.interrupted()) {
 
-				// Get the array of buses.
-				// This array will include current and new buses.
-				Bus[] potentialNewBuses;
-				try {
-					potentialNewBuses = Bus.getBuses(vehiclesJson);
-				} catch (fnsb.macstransit.RouteMatch.Route.RouteException e) {
+				// Be sure to synchronize the following to the LOCK object.
+				synchronized (UpdateThread.LOCK) {
 
-					// If there was a route exception thrown, stop the loop early.
-					Log.e("UpdateThread", "MapsActivity.allRoutes is empty!", e);
-					this.run = false;
-					break;
-				}
+					// If we are currently set to run then get the buses from the RouteMatch server.
+					// If we aren't running, then wait for the thread to be notified from elsewhere.
+					if (this.run) {
 
-				// Update the bus positions on the map on the UI thread.
-				// This must be executed on the UI thread or else the app will crash.
-				this.context.runOnUiThread(() -> {
+						// Get the buses from the RouteMatch server.
+						org.json.JSONObject returnedVehicles = MapsActivity.routeMatch.
+								getVehiclesByRoutes(MapsActivity.allRoutes);
+						org.json.JSONArray vehiclesJson = fnsb.macstransit.RouteMatch.RouteMatch.
+								parseData(returnedVehicles);
 
-					// Get the array of new buses.
-					// These buses are buses that were not previously on the map until now.
-					Bus[] newBuses = Bus.addNewBuses(MapsActivity.buses, potentialNewBuses);
+						// Get the array of buses. This array will include current and new buses.
+						Bus[] buses;
+						try {
+							buses = fnsb.macstransit.RouteMatch.Bus.getBuses(vehiclesJson);
+						} catch (fnsb.macstransit.RouteMatch.Route.RouteException e) {
 
-					// Update the current position of our current buses.
-					// This also removes old buses from the array, but they still have markers on the map.
-					Bus[] currentBuses = Bus.updateCurrentBuses(MapsActivity.buses, potentialNewBuses);
+							// If there was a route exception thrown, stop the loop early.
+							Log.e("UpdateThread", "Exception thrown while parsing buses", e);
+							break;
+						}
 
-					// Remove the markers of the old buses that are no longer on the map.
-					Bus.removeOldBuses(MapsActivity.buses, potentialNewBuses);
+						// Update the bus positions on the map on the UI thread.
+						// This must be executed on the UI thread or else the app will crash.
+						this.updateBuses.potentialNewBuses = buses;
+						this.context.runOnUiThread(this.updateBuses);
 
-					// Create a new bus array that will store our new and updated buses.
-					Bus[] buses = new Bus[newBuses.length + currentBuses.length];
+						// Wait for the given update frequency.
+						try {
+							Thread.sleep(this.updateFrequency);
+						} catch (InterruptedException e) {
+							Log.e("UpdateThread", "Wait interrupted", e);
+						}
 
-					// Populate our bus array.
-					System.arraycopy(newBuses, 0, buses, 0, newBuses.length);
-					System.arraycopy(currentBuses, 0, buses, newBuses.length, currentBuses.length);
+					} else {
 
-					// Make sure our entire array was filled.
-					if (buses.length != 0 && buses[buses.length - 1] == null) {
-						Log.w("UpdateThread", "Bus array was populated incorrectly!");
+						// Notify the developer that we are going to pause the thread
+						// (as to reuse it when resuming later).
+						Log.i("UpdateThread", "Waiting for thread to restart...");
+
+						// Wait for notify to be called from the MapsActivity.
+						try {
+							UpdateThread.LOCK.wait();
+							Log.i("UpdateThread", "Resuming...");
+						} catch (InterruptedException e) {
+							Log.e("UpdateThread", "Interrupted while waiting!", e);
+						}
 					}
 
-					// Set our bus array.
-					MapsActivity.buses = buses;
-				});
+					// Notify the developer that the thread is now looping.
+					Log.d("UpdateThread", "Looping...");
 
-				// Wait for the given update frequency.
-				try {
-					Thread.sleep(this.updateFrequency);
-				} catch (InterruptedException e) {
-					Log.e("UpdateThread", "Wait interrupted", e);
 				}
-
-				// Notify the developer that the thread is now starting over.
-				Log.d("Update thread", "Looping...");
 			}
 
 			// Notify the developer that the thread has exited the while loop and will now stop.
-			Log.i("Update thread", "Shutting down...");
+			Log.i("UpdateThread", "Shutting down...");
 		});
+
+		updateThread.setName("Update Thread");
+		return updateThread;
 	}
 }

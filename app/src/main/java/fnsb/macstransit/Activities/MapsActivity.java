@@ -71,10 +71,15 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	private static FarePopupWindow farePopupWindow;
 
 	/**
-	 * Create our instance of the update thread that will be used to get the
-	 * (new) position of buses after a period of time.
+	 * Update thread used for fetching bus locations.
+	 * This class is mainly here to setup the actual thread that fetches the bus locations.
 	 */
 	private final UpdateThread updateThread = new UpdateThread(this);
+
+	/**
+	 * This is the actual thread object that fetches the bus locations.
+	 */
+	private static Thread updateThreadRunner;
 
 	/**
 	 * This is where the activity is initialized. Most importantly,
@@ -115,8 +120,17 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			Toast.makeText(this, "Cannot find map!", Toast.LENGTH_LONG).show();
 		}
 
-		// Setup the fare info window
-		MapsActivity.farePopupWindow = new FarePopupWindow(this);
+		// Setup the fare info window.
+		if (MapsActivity.farePopupWindow == null) {
+			MapsActivity.farePopupWindow = new FarePopupWindow(this);
+		}
+
+
+		// Setup the actual thread object for the update thread.
+		if (MapsActivity.updateThreadRunner == null) {
+			MapsActivity.updateThreadRunner = this.updateThread.getNewThread();
+		}
+
 	}
 
 	/**
@@ -566,9 +580,32 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				MapsActivity.drawRoutes();
 			}
 
+			// Set the update thread to true so we will run it.
 			this.updateThread.run = true;
-			if (!this.updateThread.thread().isAlive()) {
-				this.updateThread.thread().start();
+
+			// Depending on the state of the update thread, either resume, or start the runner.
+			java.lang.Thread.State state = MapsActivity.updateThreadRunner.getState();
+			Log.d("updateMapSettings", "State of thread: " + state.name());
+			switch (state) {
+				case NEW:
+					Log.d("updateMapSettings", "Starting update thread");
+
+					// Start the thread.
+					MapsActivity.updateThreadRunner.start();
+					break;
+				case WAITING:
+
+					// Be sure to synchronize with the thread lock.
+					synchronized (UpdateThread.LOCK) {
+						UpdateThread.LOCK.notifyAll();
+						break;
+					}
+				case TERMINATED:
+					Log.w("updateMapSettings", "Update thread has been terminated.");
+					break;
+				default:
+					Log.w("updateMapSettings", "Thread state unaccounted for");
+					break;
 			}
 		} else {
 			Log.w("updateMapSettings", "Map is not yet ready!");
