@@ -2,6 +2,8 @@ package fnsb.macstransit.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -71,7 +73,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * Create a variable to store our fare popup window instance.
 	 * This should be initialized in the onCreate method for this activity.
 	 */
-	private static FarePopupWindow farePopupWindow;
+	private FarePopupWindow farePopupWindow;
 
 	/**
 	 * Update thread used for fetching bus locations.
@@ -79,6 +81,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	@Nullable
 	private static UpdateThread updateThread;
+
+	/**
+	 * TODO Documentation
+	 */
+	private final Handler mainThreadHandler = new Handler(Looper.myLooper());
 
 	/**
 	 * This is where the activity is initialized. Most importantly,
@@ -115,6 +122,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		SupportMapFragment mapFragment = (SupportMapFragment) this.getSupportFragmentManager()
 				.findFragmentById(R.id.map);
 
+
 		// Set the map fragment callback if it's not null.
 		if (mapFragment != null) {
 			mapFragment.getMapAsync(this);
@@ -122,19 +130,17 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			Toast.makeText(this, "Cannot find map!", Toast.LENGTH_LONG).show();
 		}
 
-		// Setup the fare info window if it didn't exist previously.
-		if (MapsActivity.farePopupWindow == null) {
-			MapsActivity.farePopupWindow = new FarePopupWindow(this);
+		// Create a new fares popup window if one does not yet already exist.
+		if (this.farePopupWindow == null) {
+			 this.farePopupWindow = new FarePopupWindow(this);
 		}
-
 
 		// Setup the actual thread object for the update thread if it didn't exist previously.
 		if (MapsActivity.updateThread == null) {
-			MapsActivity.updateThread = new UpdateThread(this);
+			MapsActivity.updateThread = new UpdateThread(this.mainThreadHandler);
 		}
 
 		MapsActivity.updateThread.state = UpdateThread.STATE.RUN;
-
 	}
 
 	@Override
@@ -316,7 +322,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			// Launch the settings activity
 			this.startActivity(new Intent(this, SettingsActivity.class));
 		} else if (item.getItemId() == R.id.fares) { // Check if the item that was selected was the fares button.
-			MapsActivity.farePopupWindow.showFarePopupWindow();
+			this.farePopupWindow.showFarePopupWindow();
 		} else {
 
 			// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!

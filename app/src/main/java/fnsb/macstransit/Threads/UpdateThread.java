@@ -1,5 +1,7 @@
 package fnsb.macstransit.Threads;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import fnsb.macstransit.Activities.MapsActivity;
@@ -44,9 +46,9 @@ public class UpdateThread {
 	public static final long DEFAULT_FREQUENCY = 10 * 1000;
 
 	/**
-	 * The application context this is being called from.
+	 * TODO Documentation
 	 */
-	private final MapsActivity context;
+	private final Handler UIHandler;
 
 	/**
 	 * The runner that fetches the buses from the RouteMatch server.
@@ -69,23 +71,22 @@ public class UpdateThread {
 	/**
 	 * Lazy constructor for the UpdateThread.
 	 *
-	 * @param context The application context this is being run from.
-	 *                This is needed to run methods on the UI Thread.
+	 * @param handler TODO Documentation
 	 */
-	public UpdateThread(MapsActivity context) {
-		this(context, UpdateThread.DEFAULT_FREQUENCY);
+	public UpdateThread(Handler handler) {
+		this(handler, UpdateThread.DEFAULT_FREQUENCY);
 	}
 
 	/**
 	 * Constructor for the UpdateThread.
 	 *
-	 * @param context         The application context this is being run from.
-	 *                        This is needed to run methods on the UI Thread.
+	 * @param handler TODO Documentation
+	 *
 	 * @param updateFrequency How frequently (in milliseconds) the thread should loop.
 	 *                        If this is omitted, it will default to 4000 milliseconds (4 seconds).
 	 */
-	public UpdateThread(MapsActivity context, long updateFrequency) {
-		this.context = context;
+	public UpdateThread(Handler handler, long updateFrequency) {
+		this.UIHandler = handler;
 		this.updateFrequency = updateFrequency;
 	}
 
@@ -208,7 +209,7 @@ public class UpdateThread {
 		// Update the bus positions on the map on the UI thread.
 		// This must be executed on the UI thread or else the app will crash.
 		this.updateBuses.potentialNewBuses = buses;
-		this.context.runOnUiThread(this.updateBuses);
+		this.UIHandler.post(this.updateBuses);
 	}
 
 	/**
