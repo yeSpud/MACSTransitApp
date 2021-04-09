@@ -83,7 +83,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	private static UpdateThread updateThread;
 
 	/**
-	 * TODO Documentation
+	 * Handler used to update bus markers on the UI Thread from the Update Thread.
 	 */
 	private final Handler mainThreadHandler = new Handler(Looper.myLooper());
 
@@ -664,7 +664,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * TODO Documentation
+	 * Manages and syncs the state of the Update Thread.
 	 */
 	private static void manageUpdateThread() {
 

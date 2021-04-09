@@ -1,7 +1,6 @@
 package fnsb.macstransit.Threads;
 
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import fnsb.macstransit.Activities.MapsActivity;
@@ -18,15 +17,14 @@ import fnsb.macstransit.RouteMatch.Bus;
 public class UpdateThread {
 
 	/**
-	 * TODO Documentation
+	 * Various states that the Update Thread operates in.
 	 */
 	public enum STATE {
 		PAUSE, RUN, STOP
 	}
 
 	/**
-	 * TODO Documentation
-	 * Default is stop.
+	 * The current state of the Update Thread. Default state is stopped.
 	 */
 	public STATE state = STATE.STOP;
 
@@ -46,12 +44,12 @@ public class UpdateThread {
 	public static final long DEFAULT_FREQUENCY = 10 * 1000;
 
 	/**
-	 * TODO Documentation
+	 * Handler used to update bus markers on the UI Thread (without memory leaks).
 	 */
 	private final Handler UIHandler;
 
 	/**
-	 * The runner that fetches the buses from the RouteMatch server.
+	 * The runner that updates the buses on the map. This must be run on the UI Thread.
 	 */
 	private final UpdateBuses updateBuses = new UpdateBuses();
 
@@ -61,17 +59,21 @@ public class UpdateThread {
 	public final Object LOCK = new Object();
 
 	/**
-	 * TODO Documentation
-	 * Default value is true.
+	 * Used to determine if the thread is locked without a specified timeout (waits for forever).
+	 * This is private because it should not be set outside this class.
+	 * Default value is true before the thread is setup.
 	 */
 	private boolean isLockedForever = true;
 
+	/**
+	 * Thread that periodically fetches new buses from the RouteMatch server.
+	 */
 	public final Thread runner = this.getNewThread();
 
 	/**
 	 * Lazy constructor for the UpdateThread.
 	 *
-	 * @param handler TODO Documentation
+	 * @param handler Handler used to update buses on the UI Thread.
 	 */
 	public UpdateThread(Handler handler) {
 		this(handler, UpdateThread.DEFAULT_FREQUENCY);
@@ -80,8 +82,7 @@ public class UpdateThread {
 	/**
 	 * Constructor for the UpdateThread.
 	 *
-	 * @param handler TODO Documentation
-	 *
+	 * @param handler         Handler used to update buses on the UI Thread.
 	 * @param updateFrequency How frequently (in milliseconds) the thread should loop.
 	 *                        If this is omitted, it will default to 4000 milliseconds (4 seconds).
 	 */
@@ -169,7 +170,7 @@ public class UpdateThread {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Stops the update thread.
 	 */
 	public void stop() {
 		Log.d("UpdateThread", "Stopping thread...");
@@ -178,7 +179,8 @@ public class UpdateThread {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Method that fetches buses from the route match server,
+	 * and passes off the result to be parsed on the UI thread.
 	 */
 	private void fetchBuses() {
 
@@ -198,7 +200,7 @@ public class UpdateThread {
 		// Get the array of buses. This array will include current and new buses.
 		Bus[] buses;
 		try {
-			buses = fnsb.macstransit.RouteMatch.Bus.getBuses(vehiclesJson);
+			buses = Bus.getBuses(vehiclesJson);
 		} catch (fnsb.macstransit.RouteMatch.Route.RouteException e) {
 
 			// If there was a route exception thrown just break early after logging it.
@@ -213,8 +215,9 @@ public class UpdateThread {
 	}
 
 	/**
-	 * TODO Documentation
-	 * @return
+	 * Gets whether or not the thread is currently locked forever (waiting without timeout).
+	 *
+	 * @return If the thread is locked forever (waiting without timeout).
 	 */
 	public boolean getIsLockedForever() {
 		return this.isLockedForever;

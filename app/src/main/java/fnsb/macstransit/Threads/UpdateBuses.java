@@ -29,7 +29,6 @@ public class UpdateBuses implements Runnable {
 	 */
 	@Override
 	public void run() {
-
 		Log.v("UpdateBuses", "Updating buses on map");
 
 		// Get the array of new buses.
