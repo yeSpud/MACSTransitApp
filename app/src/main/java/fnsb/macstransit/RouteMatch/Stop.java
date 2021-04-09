@@ -332,4 +332,19 @@ public class Stop extends MarkedObject {
 		// Return whether name and locations are the same.
 		return latMatch && longMatch && nameMatch;
 	}
+
+	/**
+	 * Removes the stop's circle from the map.
+	 * This also sets the circle to null so it can be recreated later.
+	 * This must be run on the UI Thread.
+	 */
+	@UiThread
+	public void removeStopCircle() {
+
+		// Remove stop circles (if it has them).
+		if (this.circle != null) {
+			this.circle.remove();
+			this.circle = null;
+		}
+	}
 }

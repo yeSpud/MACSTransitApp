@@ -27,8 +27,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * The max progress for the progress bar.
 	 * The progress is determined the following checks:
 	 * <ul>
-	 * <li>Internet check (1)</li>
-	 * <li>Creating a RouteMatch object (1)</li>
 	 * <li>Downloading the master schedule (1)</li>
 	 * <li>Load bus routes (Route) (8) - average number of routes</li>
 	 * <li>Map the bus routes (Polyline) (8)</li>
@@ -37,7 +35,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * <li>Validate the stops (1)</li>
 	 * </ul>
 	 */
-	private static final double maxProgress = 1 + 1 + 1 + 8 + 8 + 8 + 1 + 1;
+	private static final double maxProgress = 1 + 8 + 8 + 8 + 1 + 1;
 
 	/**
 	 * Create a variable to check if the map activity has already been loaded
@@ -189,7 +187,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				this.noInternet();
 				return;
 			}
-			this.setProgressBar(1);
 
 			// Create the RouteMatch object.
 			this.setMessage(R.string.routematch_creation);
@@ -202,12 +199,12 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				this.progressBar.setVisibility(View.INVISIBLE);
 				return;
 			}
-			this.setProgressBar(1 + 1);
 
 			// Get the master schedule from the RouteMatch server
+			this.setProgressBar(-1);
 			this.setMessage(R.string.downloading_master_schedule);
 			org.json.JSONObject masterSchedule = MapsActivity.routeMatch.getMasterSchedule();
-			this.setProgressBar(1 + 1 + 1);
+			this.setProgressBar(1);
 
 			// Load the bus routes from the master schedule.
 			this.setMessage(R.string.loading_bus_routes);
@@ -223,7 +220,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				return;
 			}
 			MapsActivity.allRoutes = Route.generateRoutes(routes);
-			this.setProgressBar(1 + 1 + 1 + 8);
+			this.setProgressBar(1 + 8);
 
 			// Map bus routes (map polyline coordinates).
 			this.mapBusRoutes();
@@ -314,7 +311,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Determine the progress step.
-		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 1 + 1 + 8;
+		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 8;
 
 		// Iterate though each route, and try to load the polyline in each of them.
 		for (Route route : MapsActivity.allRoutes) {
@@ -332,7 +329,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Update the progress bar one final time for this method.
-		this.setProgressBar(1 + 1 + 1 + 8 + 8);
+		this.setProgressBar(1 + 8 + 8);
 	}
 
 	/**
@@ -351,7 +348,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Determine the progress step.
-		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 1 + 1 + 8 + 8;
+		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 8 + 8;
 
 		// Iterate thorough all the routes to load each stop.
 		for (Route route : MapsActivity.allRoutes) {
@@ -363,7 +360,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Update the progress one last time for this method.
-		this.setProgressBar(1 + 1 + 1 + 8 + 8 + 8);
+		this.setProgressBar(1 + 8 + 8 + 8);
 	}
 
 	/**
@@ -384,7 +381,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Set the current progress.
-		double step = 1.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 1 + 1 + 8 + 8 + 8;
+		double step = 1.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 8 + 8 + 8;
 
 		// Iterate though all the routes.
 		for (int routeIndex = 0; routeIndex < MapsActivity.allRoutes.length; routeIndex++) {
@@ -435,7 +432,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Update the progress bar one last time for this method.
-		this.setProgressBar(1 + 1 + 1 + 8 + 8 + 8 + 1);
+		this.setProgressBar(1 + 8 + 8 + 8 + 1);
 	}
 
 	/**
@@ -454,7 +451,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Determine the progress step.
-		double step = 1.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 1 + 1 + 8 + 8 + 8 + 1;
+		double step = 1.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 8 + 8 + 8 + 1;
 
 		// Iterate though all the routes and recreate the stops for each route.
 		for (Route route : MapsActivity.allRoutes) {
@@ -473,7 +470,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Update the progress bar one last time for this method.
-		this.setProgressBar(1 + 1 + 1 + 8 + 8 + 8 + 1 + 1);
+		this.setProgressBar(1 + 8 + 8 + 8 + 1 + 1);
 	}
 
 	/**
@@ -536,37 +533,42 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 *
 	 * @param progress The current progress out of SplashActivity.maxProgress.
 	 */
-	private void setProgressBar(double progress) {
+	private void setProgressBar(final double progress) {
+		Log.v("setProgressBar", String.format("Provided progress: %f", progress));
+
 		// Because we are updating UI elements we need to run the following on the UI thread.
 		this.runOnUiThread(() -> {
 
-			// Convert the progress to be an int out of 100.
-			int p = (int) Math.round((progress / SplashActivity.maxProgress) * 100);
+				// Convert the progress to be an int out of 100.
+				int p = (int) Math.round((progress / SplashActivity.maxProgress) * 100);
 
-			/* Validate that that the progress is between 0 and 100.
-			This is the equivalent of:
-			if (p > 100) {
-				p = 100;
-			} else {
-				p = Math.max(p,0);
-			}
-			 */
-			p = (p > 100) ? 100 : Math.max(p, 0);
-
-			// Make sure the progress bar is not null
-			if (this.progressBar != null) {
-
-				// Apply the progress to the progress bar, and animate it if its supported in the SDK.
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-					this.progressBar.setProgress(p, true);
+				/* Validate that that the progress is between 0 and 100.
+				This is the equivalent of:
+				if (p > 100) {
+					p = 100;
 				} else {
-					this.progressBar.setProgress(p);
+					p = Math.max(p,0);
 				}
-			} else {
+				 */
+				p = (p > 100) ? 100 : Math.max(p, 0);
 
-				// Log that the progress bar has not been set up yet
-				Log.w("setProgressBar", "Progressbar has not been initialized yet");
-			}
+				// Make sure the progress bar is not null.
+				if (this.progressBar != null) {
+
+					// Set the progress to indeterminate if its less than 1.
+					this.progressBar.setIndeterminate(progress < 0.0d);
+
+					// Apply the progress to the progress bar, and animate it if its supported in the SDK.
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+						this.progressBar.setProgress(p, true);
+					} else {
+						this.progressBar.setProgress(p);
+					}
+				} else {
+
+					// Log that the progress bar has not been set up yet.
+					Log.w("setProgressBar", "Progressbar has not been initialized yet");
+				}
 		});
 	}
 

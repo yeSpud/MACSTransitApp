@@ -16,9 +16,17 @@ import fnsb.macstransit.RouteMatch.Bus;
 public class UpdateThread {
 
 	/**
-	 * Create a boolean that will be used to determine if the update thread should be running or not.
+	 * TODO Documentation
 	 */
-	public boolean run = false;
+	public enum STATE {
+		PAUSE, RUN, STOP
+	}
+
+	/**
+	 * TODO Documentation
+	 * Default is stop.
+	 */
+	public STATE state = STATE.STOP;
 
 	/**
 	 * How quickly the thread should loop after its completed.
@@ -48,13 +56,15 @@ public class UpdateThread {
 	/**
 	 * Object used for synchronization between the maps activity and the update thread.
 	 */
-	public static final Object LOCK = new Object();
+	public final Object LOCK = new Object();
 
 	/**
 	 * TODO Documentation
 	 * Default value is true.
 	 */
-	private static boolean isLocked = true;
+	private boolean isLockedForever = true;
+
+	public final Thread runner = this.getNewThread();
 
 	/**
 	 * Lazy constructor for the UpdateThread.
@@ -84,90 +94,73 @@ public class UpdateThread {
 	 *
 	 * @return The newly created update thread object.
 	 */
-	public Thread getNewThread() {
+	@androidx.annotation.NonNull
+	private Thread getNewThread() {
 		Log.i("UpdateThread", "Created new update thread!");
 
 		Thread updateThread = new Thread(() -> {
 
 			// At this point the thread is not yet locked.
-			UpdateThread.isLocked = false;
-
-			// Check to make sure allRoutes isn't null.
-			// It its null then log that it is and return early.
-			if (MapsActivity.allRoutes == null) {
-				Log.w("UpdateThread", "No routes to work with!");
-				return;
-			}
+			this.isLockedForever = false;
 
 			// For debugging purposes, let the developer know when the thread has started.
 			Log.i("UpdateThread", "Starting up...");
 
-			// Loop continuously while the thread has not been interrupted.
-			while (!Thread.interrupted()) {
+			// Be sure to synchronize the following to the LOCK object.
+			synchronized (this.LOCK) {
 
-				// Be sure to synchronize the following to the LOCK object.
-				synchronized (UpdateThread.LOCK) {
+				// Loop continuously while the thread has not been interrupted.
+				while (!Thread.interrupted() && this.state != STATE.STOP) {
+					try {
 
-					// If we are currently set to run then get the buses from the RouteMatch server.
-					// If we aren't running, then wait for the thread to be notified from elsewhere.
-					if (this.run) {
+						// Notify the developer that the thread is now looping.
+						Log.d("UpdateThread", "Looping...");
 
-						// Get the buses from the RouteMatch server.
-						org.json.JSONObject returnedVehicles = MapsActivity.routeMatch.
-								getVehiclesByRoutes(MapsActivity.allRoutes);
-						org.json.JSONArray vehiclesJson = fnsb.macstransit.RouteMatch.RouteMatch.
-								parseData(returnedVehicles);
+						switch (this.state) {
+							case RUN:
 
-						// Get the array of buses. This array will include current and new buses.
-						Bus[] buses;
-						try {
-							buses = fnsb.macstransit.RouteMatch.Bus.getBuses(vehiclesJson);
-						} catch (fnsb.macstransit.RouteMatch.Route.RouteException e) {
+								// If we are currently set to run then get the buses from the RouteMatch server.
+								// If we aren't running, then wait for the thread to be notified from elsewhere.
+								// Fetch the buses and update them on the map.
+								this.fetchBuses();
 
-							// If there was a route exception thrown, stop the loop early.
-							Log.e("UpdateThread", "Exception thrown while parsing buses", e);
-							break;
+								// Wait for the given update frequency.
+								Log.v("UpdateThread", String.format("Waiting for %d milliseconds",
+										this.updateFrequency));
+								this.LOCK.wait(this.updateFrequency);
+								break;
+							case PAUSE:
+
+								// Notify the developer that we are going to pause the thread
+								// (as to reuse it when resuming later).
+								Log.i("UpdateThread", "Waiting for thread to be unpaused...");
+
+								// Wait for notify to be called from the MapsActivity, and lock the thread.
+								this.isLockedForever = true;
+								this.LOCK.wait();
+
+								// At this point the thread has been unlocked. Yay!
+								this.isLockedForever = false;
+								Log.i("UpdateThread", "Resuming...");
+								break;
+							case STOP:
+								Log.i("UpdateThread", "Stopping thread...");
+								break;
 						}
 
-						// Update the bus positions on the map on the UI thread.
-						// This must be executed on the UI thread or else the app will crash.
-						this.updateBuses.potentialNewBuses = buses;
-						this.context.runOnUiThread(this.updateBuses);
-
-						// Wait for the given update frequency.
-						try {
-							Thread.sleep(this.updateFrequency);
-						} catch (InterruptedException e) {
-							Log.e("UpdateThread", "Wait interrupted", e);
-						}
-
-					} else {
-
-						// Notify the developer that we are going to pause the thread
-						// (as to reuse it when resuming later).
-						Log.i("UpdateThread", "Waiting for thread to restart...");
-
-						// Wait for notify to be called from the MapsActivity, and lock the thread.
-						try {
-							UpdateThread.isLocked = true;
-							UpdateThread.LOCK.wait();
-
-							// At this point the thread has been unlocked. Yay!
-							UpdateThread.isLocked = false;
-							Log.i("UpdateThread", "Resuming...");
-						} catch (InterruptedException e) {
-							Log.e("UpdateThread", "Interrupted while waiting!", e);
-						}
+					} catch (InterruptedException e) {
+						Log.w("UpdateThread", "Wait interrupted! Exiting early...", e);
+						break;
+					} catch (IllegalMonitorStateException stateException) {
+						Log.e("UpdateThread", "Illegal state", stateException);
+						break;
 					}
-
-					// Notify the developer that the thread is now looping.
-					Log.d("UpdateThread", "Looping...");
-
 				}
 			}
 
 			// Notify the developer that the thread has exited the while loop and will now stop.
 			Log.i("UpdateThread", "Shutting down...");
+
 		});
 
 		updateThread.setName("Update Thread");
@@ -176,9 +169,54 @@ public class UpdateThread {
 
 	/**
 	 * TODO Documentation
+	 */
+	public void stop() {
+		Log.d("UpdateThread", "Stopping thread...");
+		this.state = STATE.STOP;
+		this.runner.interrupt();
+	}
+
+	/**
+	 * TODO Documentation
+	 */
+	private void fetchBuses() {
+
+		// Check to make sure allRoutes isn't null.
+		// It its null then log that it is and return early.
+		if (MapsActivity.allRoutes == null) {
+			Log.w("UpdateThread", "No routes to work with!");
+			return;
+		}
+
+		// Get the buses from the RouteMatch server.
+		org.json.JSONObject returnedVehicles = MapsActivity.routeMatch.
+				getVehiclesByRoutes(MapsActivity.allRoutes);
+		org.json.JSONArray vehiclesJson = fnsb.macstransit.RouteMatch.RouteMatch.
+				parseData(returnedVehicles);
+
+		// Get the array of buses. This array will include current and new buses.
+		Bus[] buses;
+		try {
+			buses = fnsb.macstransit.RouteMatch.Bus.getBuses(vehiclesJson);
+		} catch (fnsb.macstransit.RouteMatch.Route.RouteException e) {
+
+			// If there was a route exception thrown just break early after logging it.
+			Log.e("UpdateThread", "Exception thrown while parsing buses", e);
+			return;
+		}
+
+		// Update the bus positions on the map on the UI thread.
+		// This must be executed on the UI thread or else the app will crash.
+		this.updateBuses.potentialNewBuses = buses;
+		this.context.runOnUiThread(this.updateBuses);
+	}
+
+	/**
+	 * TODO Documentation
 	 * @return
 	 */
-	public static boolean getIsLocked() {
-		return UpdateThread.isLocked;
+	public boolean getIsLockedForever() {
+		return this.isLockedForever;
 	}
+
 }

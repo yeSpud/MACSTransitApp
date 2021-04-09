@@ -358,4 +358,26 @@ public class SharedStop extends MarkedObject {
 		// Return our newly created circle.
 		return circle;
 	}
+
+	/**
+	 * Removes all the shared stop circles from the map.
+	 * This also set the circles to null (so the circles can be recreated later).
+	 * This must run on the UI Thread.
+	 */
+	@UiThread
+	public void removeSharedStopCircles() {
+
+		// Iterate though each circle in the shared stop.
+		for (int i = 0; i < this.circles.length; i++) {
+
+			// Get the circle from the shared stop, and remove it.
+			Circle circle = this.circles[i];
+			if (circle != null) {
+				circle.remove();
+			}
+
+			// Set all the circles to null.
+			this.circles[i] = null;
+		}
+	}
 }

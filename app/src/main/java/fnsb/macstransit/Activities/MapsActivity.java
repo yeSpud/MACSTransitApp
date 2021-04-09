@@ -12,10 +12,8 @@ import androidx.annotation.Nullable;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
-import com.google.android.gms.maps.model.Polyline;
 
 import org.json.JSONException;
 
@@ -77,14 +75,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 	/**
 	 * Update thread used for fetching bus locations.
-	 * This class is mainly here to setup the actual thread that fetches the bus locations.
+	 * This may be null until initialized in onCreate.
 	 */
-	private final UpdateThread updateThread = new UpdateThread(this);
-
-	/**
-	 * This is the actual thread object that fetches the bus locations.
-	 */
-	private static Thread updateThreadRunner;
+	@Nullable
+	private static UpdateThread updateThread;
 
 	/**
 	 * This is where the activity is initialized. Most importantly,
@@ -135,11 +129,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 
 		// Setup the actual thread object for the update thread if it didn't exist previously.
-		if (MapsActivity.updateThreadRunner == null) {
-			MapsActivity.updateThreadRunner = this.updateThread.getNewThread();
+		if (MapsActivity.updateThread == null) {
+			MapsActivity.updateThread = new UpdateThread(this);
 		}
 
-		this.updateThread.run = true;
+		MapsActivity.updateThread.state = UpdateThread.STATE.RUN;
 
 	}
 
@@ -158,11 +152,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				Log.d("onDestroy", "Removing stop circles");
 				for (Stop stop : route.stops) {
 
-					// Remove stop circles (if it has them).
-					if (stop.circle != null) {
-						stop.circle.remove();
-						stop.circle = null;
-					}
+					// Remove the stop's circle.
+					stop.removeStopCircle();
 
 					// Remove stop's marker.
 					stop.removeMarker();
@@ -176,16 +167,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				if (sharedStops != null) {
 					for (SharedStop sharedStop : sharedStops) {
 
-						// Iterate though each circle in the shared stop.
-						for (int i = 0; i < sharedStop.circles.length; i++) {
-
-							// Get the circle from the shared stop, and remove it.
-							Circle circle = sharedStop.circles[i];
-							if (circle != null) {
-								circle.remove();
-							}
-							sharedStop.circles[i] = null;
-						}
+						// Remove each shared stop circles.
+						sharedStop.removeSharedStopCircles();
 
 						// Remove the shared stop's marker.
 						sharedStop.removeMarker();
@@ -205,6 +188,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			for (Bus bus : MapsActivity.buses) {
 				bus.removeMarker();
 			}
+		}
+
+		// Stop the update thread.
+		if (MapsActivity.updateThread != null) {
+			MapsActivity.updateThread.stop();
+			MapsActivity.updateThread = null;
 		}
 	}
 
@@ -405,7 +394,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Update the map's dynamic settings.
 		this.updateMapSettings();
 
-		this.updateThread.run = true;
+		if (MapsActivity.updateThread != null) {
+			MapsActivity.updateThread.state = UpdateThread.STATE.RUN;
+		}
 
 		// (Re) start the update thread.
 		MapsActivity.manageUpdateThread();
@@ -423,7 +414,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		Log.v("onPause", "onPause has been called!");
 		super.onPause();
 
-		this.updateThread.run = false;
+		if (MapsActivity.updateThread != null) {
+			MapsActivity.updateThread.state = UpdateThread.STATE.PAUSE;
+		}
 	}
 
 	/**
@@ -669,39 +662,45 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 */
 	private static void manageUpdateThread() {
 
+		// Return early if the update thread is null.
+		if (MapsActivity.updateThread == null) {
+			return;
+		}
+
 		// If the thread isn't locked, then there is no need to continue.
-		if (!UpdateThread.getIsLocked()) {
+		if (!MapsActivity.updateThread.getIsLockedForever()) {
 			return;
 		}
 
-		// Return early if the thread runner is null.
-		if (MapsActivity.updateThreadRunner == null) {
-			return;
-		}
+		// Be sure to synchronize with the thread lock.
+		Log.v("manageUpdateThread", "Synchronizing with lock");
+		synchronized (MapsActivity.updateThread.LOCK) {
 
-		// Depending on the state of the update thread, either resume, or start the runner.
-		java.lang.Thread.State state = MapsActivity.updateThreadRunner.getState();
-		Log.d("manageUpdateThread", "State of thread: " + state.name());
-		switch (state) {
-			case NEW:
-				Log.d("manageUpdateThread", "Starting update thread");
+			// Depending on the state of the update thread, either resume, or start the runner.
+			java.lang.Thread.State state = MapsActivity.updateThread.runner.getState();
+			Log.d("manageUpdateThread", "State of thread: " + state.name());
+			switch (state) {
+				case NEW:
+					Log.d("manageUpdateThread", "Starting update thread");
 
-				// Start the thread.
-				MapsActivity.updateThreadRunner.start();
-				break;
-			case WAITING:
-
-				// Be sure to synchronize with the thread lock.
-				synchronized (UpdateThread.LOCK) {
-					UpdateThread.LOCK.notifyAll();
+					// Start the thread.
+					MapsActivity.updateThread.runner.start();
 					break;
-				}
-			case TERMINATED:
-				Log.w("manageUpdateThread", "Update thread has been terminated.");
-				break;
-			default:
-				Log.w("manageUpdateThread", "Thread state unaccounted for");
-				break;
+				case BLOCKED:
+				case TIMED_WAITING:
+				case WAITING:
+
+					// Notify the thread to resume
+					MapsActivity.updateThread.LOCK.notifyAll();
+					break;
+				case TERMINATED:
+
+					Log.w("manageUpdateThread", "Update thread has been terminated.");
+					break;
+				default:
+					Log.w("manageUpdateThread", "Thread state unaccounted for");
+					break;
+			}
 		}
 	}
 
