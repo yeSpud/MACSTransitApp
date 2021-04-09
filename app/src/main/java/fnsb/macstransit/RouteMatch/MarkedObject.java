@@ -3,6 +3,7 @@ package fnsb.macstransit.RouteMatch;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.UiThread;
 
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -62,7 +63,7 @@ public class MarkedObject {
 	 *                    This will try to get the closest approximation to the color as there are a limited number of marker colors.
 	 * @return The newly added marker.
 	 */
-	@androidx.annotation.UiThread
+	@UiThread
 	public Marker addMarker(@NonNull com.google.android.gms.maps.GoogleMap map,
 	                        com.google.android.gms.maps.model.LatLng coordinates, int color) {
 
@@ -90,5 +91,17 @@ public class MarkedObject {
 
 		// Return the generated marker.
 		return marker;
+	}
+
+	/**
+	 * Removes the marker from the map, and sets it to null.
+	 * This must be run on the UI thread.
+	 */
+	@UiThread
+	public void removeMarker() {
+		if (this.marker != null) {
+			this.marker.remove();
+			this.marker = null;
+		}
 	}
 }

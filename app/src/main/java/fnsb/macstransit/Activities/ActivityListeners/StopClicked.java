@@ -79,7 +79,14 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		} catch (ClassCastException e) {
 
 			// If there was an issue casting from classes log the error and return the current content of the string.
-			Log.e("postStopTimes", String.format("Unaccounted object class: %s", stop.getClass()), e);
+			Log.e("postStopTimes", String.format("Unaccounted object class: %s",
+					stop.getClass()), e);
+
+			return string;
+		} catch (NullPointerException nullPointerException) {
+
+			// Log the null exception, and return the current string content.
+			Log.e("postStopTimes", "Null pointer exception thrown!", nullPointerException);
 			return string;
 		}
 
@@ -350,6 +357,12 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		// Make sure our marked object is not null.
 		if (markedObject == null) {
 			Log.w("onCircleClick", "Circle tag is null!");
+			return;
+		}
+
+		// Make sure the map is not null either.
+		if (MapsActivity.map == null) {
+			Log.w("onCircleClick", "Map is not ready!");
 			return;
 		}
 

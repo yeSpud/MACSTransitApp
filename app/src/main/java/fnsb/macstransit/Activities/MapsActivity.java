@@ -12,7 +12,10 @@ import androidx.annotation.Nullable;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Polyline;
 
 import org.json.JSONException;
 
@@ -55,8 +58,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	public static fnsb.macstransit.RouteMatch.RouteMatch routeMatch;
 
 	/**
-	 * Create the map object.
+	 * Create the map object. This will be null until the map is ready to be used.
 	 */
+	@Nullable
 	public static GoogleMap map;
 
 	/**
@@ -94,7 +98,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 *                           in the event that there was an issue and the activity had to be destroyed.
 	 */
 	@Override
-	protected void onCreate(@Nullable Bundle savedInstanceState) { // TODO Look into restoring bundle.
+	protected void onCreate(@Nullable Bundle savedInstanceState) {
 		Log.v("onCreate", "onCreate has been called!");
 		super.onCreate(savedInstanceState);
 
@@ -110,36 +114,98 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			return;
 		}
 
+		// Set the map to null for now. It will be set when the callback is ready.
+		MapsActivity.map = null;
+
 		// Obtain the SupportMapFragment and get notified when the map is ready to be used.
 		SupportMapFragment mapFragment = (SupportMapFragment) this.getSupportFragmentManager()
 				.findFragmentById(R.id.map);
 
-		// Set the map fragment callback.
+		// Set the map fragment callback if it's not null.
 		if (mapFragment != null) {
 			mapFragment.getMapAsync(this);
 		} else {
 			Toast.makeText(this, "Cannot find map!", Toast.LENGTH_LONG).show();
 		}
 
-		// Setup the fare info window.
+		// Setup the fare info window if it didn't exist previously.
 		if (MapsActivity.farePopupWindow == null) {
 			MapsActivity.farePopupWindow = new FarePopupWindow(this);
 		}
 
 
-		// Setup the actual thread object for the update thread.
+		// Setup the actual thread object for the update thread if it didn't exist previously.
 		if (MapsActivity.updateThreadRunner == null) {
 			MapsActivity.updateThreadRunner = this.updateThread.getNewThread();
 		}
 
+		this.updateThread.run = true;
+
 	}
 
 	@Override
-	protected void onSaveInstanceState(@NonNull Bundle outState) {
-		Log.v("onSaveInstanceState", "onSaveInstanceState called!");
-		super.onSaveInstanceState(outState);
+	protected void onDestroy() {
+		Log.v("onDestroy", "onDestroy called!");
+		super.onDestroy();
 
-		// TODO Save all the variables addressed in onCreate so its not remade.
+		// Make sure there are routes to iterate though
+		if (MapsActivity.allRoutes != null) {
+
+			// Iterate though each route to get access to its shared stops and regular stops.
+			for (Route route : MapsActivity.allRoutes) {
+
+				// Iterate though each stop.
+				Log.d("onDestroy", "Removing stop circles");
+				for (Stop stop : route.stops) {
+
+					// Remove stop circles (if it has them).
+					if (stop.circle != null) {
+						stop.circle.remove();
+						stop.circle = null;
+					}
+
+					// Remove stop's marker.
+					stop.removeMarker();
+				}
+
+				// Get the shared stops for the route.
+				Log.d("onDestroy", "Removing shared stop circles");
+				SharedStop[] sharedStops = route.getSharedStops();
+
+				// If the shared stops isn't null then iterate though each shared stop.
+				if (sharedStops != null) {
+					for (SharedStop sharedStop : sharedStops) {
+
+						// Iterate though each circle in the shared stop.
+						for (int i = 0; i < sharedStop.circles.length; i++) {
+
+							// Get the circle from the shared stop, and remove it.
+							Circle circle = sharedStop.circles[i];
+							if (circle != null) {
+								circle.remove();
+							}
+							sharedStop.circles[i] = null;
+						}
+
+						// Remove the shared stop's marker.
+						sharedStop.removeMarker();
+					}
+				}
+
+				// Remove route polylines.
+				Log.d("onDestroy", "Removing route polyline");
+				route.removePolyline();
+			}
+		}
+
+		if (MapsActivity.buses != null) {
+
+			// Iterate though all the buses, and remove its marker.
+			Log.d("onDestroy", "Removing bus markers");
+			for (Bus bus : MapsActivity.buses) {
+				bus.removeMarker();
+			}
+		}
 	}
 
 	/**
@@ -339,8 +405,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Update the map's dynamic settings.
 		this.updateMapSettings();
 
+		this.updateThread.run = true;
+
 		// (Re) start the update thread.
-		this.manageUpdateThread();
+		MapsActivity.manageUpdateThread();
 	}
 
 	/**
@@ -354,6 +422,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	protected void onPause() {
 		Log.v("onPause", "onPause has been called!");
 		super.onPause();
+
 		this.updateThread.run = false;
 	}
 
@@ -515,8 +584,28 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				bus.marker.setVisible(bus.route.enabled);
 			} else {
 
-				// If the marker was null, log it as a warning.
-				Log.w("drawBuses", "Bus doesn't have a marker!");
+				if (bus.route.enabled) {
+
+					if (MapsActivity.map != null) {
+
+						// Try creating a new marker for the bus (if its enabled).
+						bus.marker = bus.addMarker(MapsActivity.map,
+								new LatLng(bus.latitude, bus.longitude), bus.color);
+
+						bus.marker.setVisible(true);
+
+					} else {
+
+						// Since the map is null simply log it as a  warning.
+						Log.w("drawBuses", "Map is not ready!");
+					}
+
+				} else {
+
+					// If the marker was null simply log it as a warning.
+					Log.w("drawBuses", String.format("Bus doesn't have a marker for route %s!",
+							bus.route.routeName));
+				}
 			}
 		}
 	}
@@ -578,13 +667,15 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * TODO Documentation
 	 */
-	private void manageUpdateThread() {
-
-		// Set the update thread to true so we will run it.
-		this.updateThread.run = true;
+	private static void manageUpdateThread() {
 
 		// If the thread isn't locked, then there is no need to continue.
 		if (!UpdateThread.getIsLocked()) {
+			return;
+		}
+
+		// Return early if the thread runner is null.
+		if (MapsActivity.updateThreadRunner == null) {
 			return;
 		}
 
@@ -620,8 +711,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * @param enabled Whether to toggle the maps night mode
 	 */
 	public void toggleNightMode(boolean enabled) {
-		MapsActivity.map.setMapStyle(enabled ?
-				MapStyleOptions.loadRawResourceStyle(this, R.raw.nightmode) :
-				MapStyleOptions.loadRawResourceStyle(this, R.raw.standard));
+		if (MapsActivity.map != null) {
+			MapsActivity.map.setMapStyle(enabled ?
+					MapStyleOptions.loadRawResourceStyle(this, R.raw.nightmode) :
+					MapStyleOptions.loadRawResourceStyle(this, R.raw.standard));
+		} else {
+			Log.w("toggleNightMode", "Map is not yet ready");
+		}
 	}
 }

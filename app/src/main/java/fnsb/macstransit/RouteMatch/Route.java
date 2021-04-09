@@ -4,6 +4,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.UiThread;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
@@ -336,6 +337,7 @@ public class Route {
 	 * Creates and sets the polyline for the route.
 	 * If there are no polyline coordinates for the route then this simply returns early and does not create the polyline.
 	 */
+	@UiThread
 	public void createPolyline() {
 		Log.v("createPolyline", "Creating route polyline");
 
@@ -343,6 +345,11 @@ public class Route {
 		if (this.polyLineCoordinates == null || this.polyLineCoordinates.length == 0) {
 			Log.w("createPolyline", "There are no polyline coordinates to work with!");
 			return;
+		}
+
+		// Make sure the map isn't null.
+		if (MapsActivity.map == null) {
+			Log.w("createPolyline", "Map is not yet ready!");
 		}
 
 		// Create new polyline options from the array of polyline coordinates stored for the route.
@@ -396,6 +403,18 @@ public class Route {
 	@Nullable
 	public SharedStop[] getSharedStops() {
 		return this.sharedStops;
+	}
+
+	/**
+	 * Removes the routes polyline from the map, and sets it to null.
+	 * This must be run on the UI thread.
+	 */
+	@UiThread
+	public void removePolyline() {
+		if (this.polyline != null) {
+			this.polyline.remove();
+			this.polyline = null;
+		}
 	}
 
 	/**

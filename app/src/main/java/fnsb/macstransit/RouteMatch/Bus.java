@@ -314,15 +314,21 @@ public class Bus extends MarkedObject {
 			if (notFound) {
 				Log.d("addNewBuses", String.format("Adding new bus to map: %s", newBus.name));
 
-				// Create the bus marker.
-				Marker busMarker = newBus.addMarker(MapsActivity.map,
-						new LatLng(newBus.latitude, newBus.longitude), newBus.color);
+				// Make sure the map is not null before creating the new bus marker.
+				if (MapsActivity.map != null) {
 
-				// Determine whether or not to show the bus marker.
-				busMarker.setVisible(newBus.route.enabled);
+					// Create the bus marker.
+					Marker busMarker = newBus.addMarker(MapsActivity.map,
+							new LatLng(newBus.latitude, newBus.longitude), newBus.color);
 
-				// Set the bus marker.
-				newBus.marker = busMarker;
+					// Determine whether or not to show the bus marker.
+					busMarker.setVisible(newBus.route.enabled);
+
+					// Set the bus marker.
+					newBus.marker = busMarker;
+				} else {
+					Log.w("addNewBus", "Map is not yet ready!");
+				}
 
 				// Add the bus to the bus array.
 				potentialBuses[busSize] = newBus;

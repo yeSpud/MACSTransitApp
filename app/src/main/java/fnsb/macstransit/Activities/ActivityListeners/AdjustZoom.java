@@ -23,6 +23,11 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 	 */
 	public static void resizeStops() {
 
+		// Make sure the map is not null before continuing.
+		if (MapsActivity.map == null) {
+			return;
+		}
+
 		/*
 		 * Calculate meters per pixel.
 		 * This will be used to determine the circle size as we want it it be 4 meters in size.
