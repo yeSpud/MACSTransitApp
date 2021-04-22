@@ -2,8 +2,11 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.UiThread;
+
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -11,399 +14,440 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.regex.Pattern;
 
-import fnsb.macstransit.Activities.ActivityListeners.Async.UpdateBuses;
-import fnsb.macstransit.Threads.UpdateThread;
+import fnsb.macstransit.Activities.MapsActivity;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * <p>
- * For the license, view the file titled LICENSE at the root of the project
+ * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 2.4
+ * @version 2.5.
  * @since Beta 3.
  */
 public class Route {
 
 	/**
-	 * The name of the parentRoute.
+	 * The name of the route.
 	 * Note: This cannot contain whitespace characters (ie spaces, tabs, or new lines),
 	 * as its used in a url.
 	 */
-	public String routeName;
+	public final String routeName;
 
 	/**
-	 * The color of the parentRoute.
-	 * This is optional, as there is a high chance that the parentRoute does not have one.
+	 * The color of the route.
+	 * This is optional, as there is a high chance that the route does not have one.
 	 * <p>
-	 * This is an int instead of a Color object because for whatever reason android stores its colors as ints.
+	 * This is an int instead of a Color object as android stores its colors as an integer.
 	 */
 	public int color;
 
 	/**
-	 * The array of stops for this parentRoute.
-	 * This may be empty / null if the parentRoute has not been initialized,
+	 * The array of stops for this route.
+	 * This may be empty / null if the route has not been initialized,
 	 * and the stops haven't been loaded.
 	 */
 	public Stop[] stops;
 
 	/**
-	 * The array of buses that belong to this route.
+	 * The array of shared stops for this route.
+	 * This may be empty/ null if the route has not been initialized,
+	 * and the the shared stops haven't been loaded, or if there are no shared stops for the route.
+	 * <p>
+	 * The reason why this is private access is because there is a special way this should be set within the route class.
 	 */
-	public Bus[] buses = new Bus[0];
-
-	/**
-	 * The asynchronous method that updates the buses for this route.
-	 */
-	public UpdateBuses asyncBusUpdater = new UpdateBuses(this);
+	private SharedStop[] sharedStops;
 
 	/**
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
-	 * This should be initialized with an array of length 0.
 	 */
-	public LatLng[] polyLineCoordinates = new LatLng[0];
+	public LatLng[] polyLineCoordinates;
 
 	/**
-	 * The network thread that updates this given route.
+	 * Whether or not the route is enabled or disabled (to be shown or hidden). Default is false (disabled).
 	 */
-	public UpdateThread updateThread;
+	public boolean enabled = false;
 
 	/**
-	 * The polyline that corresponds to this parentRoute. This may be null if not enabled.
+	 * Fallback empty route array used as a way to circumvent potential exceptions.
+	 */
+	public static final Route[] EMPTY_ROUTE = new Route[0];
+
+	/**
+	 * The polyline that corresponds to this route.
+	 * The reason why this is private access is because there is a special way this should be set within the route class.
 	 */
 	private Polyline polyline;
 
 	/**
-	 * Constructor for the parentRoute. The name of the parentRoute is the only thing that is required.
-	 * Be sure that the provided parentRoute name does <b>NOT</b> contain any whitespace characters!
+	 * Constructor for the route. The name of the route is the only thing that is required.
+	 * Be sure that the provided route name does <b>NOT</b> contain any whitespace characters!
 	 *
-	 * @param routeName The name of the parentRoute. Be sure this does <b>NOT</b>
+	 * @param routeName The name of the route. Be sure this does <b>NOT</b>
 	 *                  contain any whitespace characters!
-	 * @throws Exception Thrown if the parentRoute name contains white space characters.
+	 * @throws RouteException Thrown if the route name contains white space characters.
 	 */
-	public Route(String routeName) throws Exception {
-		if (routeName.contains(" ") || routeName.contains("\n") || routeName.contains("\t")) {
-			throw new Exception("Route name cannot contain white space!");
-		} else {
-			this.routeName = routeName;
-			this.updateThread = new UpdateThread(this);
-		}
+	public Route(@NonNull String routeName) throws RouteException {
+		this(routeName, 0);
 	}
 
 	/**
-	 * Constructor for the parentRoute. The name of the parentRoute is the only thing that is required.
-	 * Be sure that the provided parentRoute name does <b>NOT</b> contain any whitespace characters!
+	 * Constructor for the route. The name of the route is the only thing that is required.
+	 * Be sure that the provided route name does <b>NOT</b> contain any whitespace characters!
 	 *
-	 * @param routeName The name of the parentRoute. e sure this does <b>NOT</b>
+	 * @param routeName The name of the route. Be sure this does <b>NOT</b>
 	 *                  contain any whitespace characters!
-	 * @param color     The parentRoute's color. This is optional,
+	 * @param color     The route's color. This is optional,
 	 *                  and of the color is non-existent simply use the
 	 *                  {@code Route(String routeName)} constructor.
-	 * @throws Exception Thrown if the parentRoute name contains white space characters.
+	 * @throws RouteException Thrown if the route name contains white space characters.
 	 */
-	public Route(String routeName, int color) throws Exception {
-		this(routeName);
+	public Route(String routeName, int color) throws RouteException {
+
+		// Create a simple regex to check for any white space characters.
+		Pattern whitespace = Pattern.compile("\\s");
+
+		// If there were any white space characters found then throw a RouteException.
+		if (whitespace.matcher(routeName).find()) {
+			throw new RouteException("Route name cannot contain white space!");
+		} else {
+			this.routeName = routeName;
+		}
 		this.color = color;
 	}
 
 	/**
-	 * Dynamically generates the childRoutes that are used by parsing the master schedule.
-	 * This may return an empty parentRoute array if there was an issue parsing the data,
-	 * or if there were no childRoutes to parse based off the master schedule.
+	 * Generates the array of routes from the master schedule json array.
+	 * If a null array is provided then an empty array will be returned.
 	 *
-	 * @param masterSchedule The master schedule JSONObject from the RouteMatch server.
-	 * @return An array of childRoutes that <b><i>can be</i></b> tracked.
+	 * @param masterSchedule The json array containing the master schedule containing all the routes.
+	 * @return The routes derived from the master schedule.
 	 */
-	public static Route[] generateRoutes(JSONObject masterSchedule) {
+	@NonNull
+	public static Route[] generateRoutes(JSONArray masterSchedule) {
 
-		// Create an array to store all the generated childRoutes. This will be returned in the end.
-		ArrayList<Route> routes = new ArrayList<>();
+		// Make sure the master schedule is not null. If it is, return an empty route array.
+		if (masterSchedule == null) {
+			Log.w("generateRoutes", "Master schedule is null!");
+			return Route.EMPTY_ROUTE;
+		}
 
-		// Get the data from the master schedule, and store it in a JSONArray.
-		JSONArray data = RouteMatch.parseData(masterSchedule);
+		// Create an array to store all the generated routes.
+		int count = masterSchedule.length();
+		Route[] potentialRoutes = new Route[count];
+		int routeCount = 0;
 
-		// Iterate through the data array to begin parsing the childRoutes
-		int count = data.length();
+		// Iterate though each route in the master schedule.
 		for (int index = 0; index < count; index++) {
+			Log.d("generateRoutes", String.format("Parsing route %d/%d", index + 1, count));
+
+			// Try to get the route data from the array.
+			// If there's an issue parsing the data simply continue to the next iteration of the loop.
+			JSONObject routeData;
 			try {
+				routeData = masterSchedule.getJSONObject(index);
+			} catch (JSONException e) {
+				Log.w("generateRoutes", "Issue retrieving the route data");
+				continue;
+			}
 
-				// Get the current progress for parsing the childRoutes
-				Log.d("generateRoutes", String.format("Parsing parentRoute %d/%d", index + 1,
-						count));
-
-				// Get the routeData that we are currently parsing as its own JSONObject variable.
-				org.json.JSONObject routeData = data.getJSONObject(index);
-
-				// First, parse the name.
-				String name = routeData.getString("shortName");
-
-				// Now try to parse the color.
-				try {
-					int color = android.graphics.Color.parseColor(routeData.getString("routeColor"));
-					routes.add(new Route(name, color));
-				} catch (IllegalArgumentException | JSONException colorError) {
-					Log.w("generateRoutes", "Unable to determine parentRoute color");
-					// Just return the parentRoute with the name
-					routes.add(new Route(name));
-				}
-
-			} catch (Exception e) {
-				// If there was an exception, simply print the stacktrace, and break from the for loop.
-				e.printStackTrace();
-				break;
+			// Try to create the route using the route data obtained above.
+			// If there was a route exception thrown simply log it.
+			try {
+				Route route = Route.generateRoute(routeData);
+				potentialRoutes[routeCount] = route;
+				routeCount++;
+			} catch (RouteException e) {
+				Log.w("generateRoutes", "Issue creating route from route data");
 			}
 		}
 
-		// Return the parentRoute array list as a new array of childRoutes. Yes, they are different.
-		return routes.toArray(new Route[0]);
-	}
-
-	/**
-	 * Enabled a parentRoute by parentRoute name,
-	 * and returns a new array of enabled childRoutes including the previously enabled childRoutes.
-	 *
-	 * @param routeName The new parentRoute to enable (by parentRoute name).
-	 * @param oldRoutes The array of old childRoutes that were previously enabled.
-	 *                  If there were no previously enabled childRoutes then this must be an array of size 0.
-	 * @return The array of childRoutes that are now being tracked.
-	 */
-	public static Route[] enableRoutes(String routeName, Route[] oldRoutes) {
-		Log.d("enableRoutes", "Enabling route: " + routeName);
-
-		// Make a copy of the oldRoutes array, but have it be one sizer bigger.
-		Route[] routes = Arrays.copyOf(oldRoutes, oldRoutes.length + 1);
-
-		// If the parentRoute is to be enabled, iterate through all the allRoutes that are able to be tracked.
-		for (Route route : fnsb.macstransit.Activities.MapsActivity.allRoutes) {
-
-			// If the parentRoute that is able to be tracked is equal to that of the parentRoute
-			// entered as an argument, add that parentRoute to the selected allRoutes array.
-			if (route.routeName.equals(routeName)) {
-				Log.d("enableRoutes", "Found matching route!");
-
-				routes[oldRoutes.length] = route;
-
-				// Enable the routes update thread.
-				route.updateThread.run = true;
-				route.updateThread.thread().start();
-
-				// If there are any preexisting buses in the route, show them.
-				try {
-					for (Bus bus : route.buses) {
-						Marker marker = bus.getMarker();
-						if (marker != null) {
-							marker.setVisible(true);
-							bus.setMarker(marker);
-						}
-					}
-				} catch (NullPointerException warn) {
-					Log.w("enableRoutes", "There were no preexisting buses!");
-				}
-
-				// Since we only add one parentRoute at a time (as there is only one routeName argument),
-				// break as soon as its added.
-				break;
-			}
-		}
-
-		// Return the newly enabled childRoutes as an array.
+		// Down size our potential routes array to fit the actual number of routes.
+		Route[] routes = new Route[routeCount];
+		System.arraycopy(potentialRoutes, 0, routes, 0, routeCount);
 		return routes;
 	}
 
 	/**
-	 * Disables a parentRoute by name, and removes all elements of that parentRoute from the map
-	 * (except stops).
+	 * Creates a new route object from the provided json object.
+	 * If the json object is null then a RouteException will be thrown.
 	 *
-	 * @param routeName The parentRoute the be disabled by name.
-	 * @param oldRoutes The array of old, though currently enabled childRoutes.
-	 * @return The array of childRoutes still to be tracked,
-	 * with the omission of the parentRoute that was to be removed.
-	 * If there are no more childRoutes that are to be enabled, then an array of size 0 will be returned.
+	 * @param jsonObject The json object contain the data to create a new route object.
+	 * @return The newly created route object.
+	 * @throws RouteException Thrown if the json object is null, or if the route name is unable to be parsed.
 	 */
-	public static Route[] disableRoute(String routeName, Route[] oldRoutes) {
-		Log.d("disableRoute", "Disabling route: " + routeName);
+	@NonNull
+	private static Route generateRoute(JSONObject jsonObject) throws RouteException {
 
-		// Convert all the old childRoutes to an array list of childRoutes.
-		ArrayList<Route> routes = new ArrayList<>(Arrays.asList(oldRoutes));
-
-		// Iterate through the currently enabled childRoutes.
-		for (Route route : routes) {
-
-			// If the parentRoute name of the current parentRoute matches that of the parentRoute to be disabled,
-			// execute the following:
-			if (route.routeName.equals(routeName)) {
-
-				// Disable the update thread for the route.
-				route.updateThread.run = false;
-				route.asyncBusUpdater.cancel(true);
-
-				// Remove the bus icons
-				try {
-					for (Bus bus : route.buses) {
-						Marker marker = bus.getMarker();
-						if (marker != null) {
-							marker.setVisible(false);
-							bus.setMarker(marker);
-						}
-					}
-				} catch (NullPointerException warn) {
-					Log.w("disableRoute", "There weren't any buses to disable");
-				}
-
-				// Remove the polyline from the map as well as the parentRoute.
-				Polyline polyline = route.getPolyline();
-				if (polyline != null) {
-					polyline.remove();
-					route.polyline = null;
-				}
-
-				// Finally remove the parentRoute from the array of enabled childRoutes,
-				// and break since we are only removing one parentRoute per call.
-				routes.remove(route);
-				break;
-			}
+		// Make sure the provided json object is not null.
+		if (jsonObject == null) {
+			throw new RouteException("Json object cannot be null!");
 		}
 
-		return routes.toArray(new Route[0]);
+		// First, parse the name.
+		String name;
+		try {
+			name = jsonObject.getString("routeId");
+		} catch (JSONException e) {
+			throw new RouteException("Unable to get route name from JSON", e.getCause());
+		}
+
+		// Now try to parse the route and route color.
+		Route route;
+		try {
+			String colorName = jsonObject.getString("routeColor");
+			int color = android.graphics.Color.parseColor(colorName);
+
+			route = new Route(name, color);
+
+		} catch (JSONException e) {
+			Log.w("generateRoute", "Unable to parse color");
+
+			// Since there was an issue parsing the color, and we have the name at this point...
+			// Simply create the route without a color.
+			route = new Route(name);
+		}
+
+		// Return the newly created route.
+		return route;
 	}
 
 	/**
-	 * Loads the stops from the provided url.
-	 * If there was an error parsing the JSON data for the stop object,
-	 * then this will return what stops it had parsed successfully up until that point.
-	 * As a result, the Stop array returned may be smaller than expected, or have a length of 0.
+	 * Iterates though all the routes in MapsActivity.allRoutes
+	 * and enables those that have been favorited (as determined by being in the favoritedRoutes array).
+	 * <p>
+	 * This should only be run once.
 	 *
-	 * @param routeMatch The parentRoute match instance (for pulling from the RouteMatch server).
-	 * @return The array of stops that were loaded.
+	 * @param favoritedRoutes The selected routes to be enabled from MapsActivity.allRoutes.
 	 */
-	public Stop[] loadStops(RouteMatch routeMatch) {
+	public static void enableFavoriteRoutes(Route[] favoritedRoutes) {
 
-		// Create an array that will store the parsed stop objects
-		ArrayList<Stop> returnArray = new ArrayList<>();
+		// Make sure there are routes to iterate over.
+		if (MapsActivity.allRoutes == null || favoritedRoutes == null) {
+			return;
+		}
 
-		// Get the data from all the stops and store it in a JSONArray.
-		JSONArray data = RouteMatch.parseData(routeMatch.getAllStops(this));
+		// Iterate through all the routes that will be used in the activity.
+		for (Route allRoute : MapsActivity.allRoutes) {
 
-		// Iterate through the data in the JSONArray
-		int count = data.length();
-		for (int index = 0; index < count; index++) {
+			// Iterate though the favorite routes.
+			for (Route favoritedRoute : favoritedRoutes) {
 
-			// Output the current index for debugging reasons
-			Log.d("loadStops", String.format("Parsing stop %d/%d", index + 1, count));
-
-			Stop stop;
-			try {
-				// Using the data from the stop array, try to create a new stop object.
-				stop = new Stop(data.getJSONObject(index), this);
-			} catch (JSONException e) {
-				// If a JSONException was thrown, that means that there was an issue parsing the stop data.
-				// Just print a warning message, and then break from the for loop.
-				// This will cause the function to return whatever was in the return array.
-				Log.w("loadStops", "An issue occurred while attempting to parse the JSON data");
-				break;
-			}
-
-			// Iterate through the return array and check if the created stop is a duplicate.
-			boolean found = false;
-			for (Stop s : returnArray) {
-				// If the stop is a duplicate (matches latitude, longitude, and parentRoute),
-				// set the found boolean to true, abd break form the for loop
-				if (stop.latitude == s.latitude && s.longitude == s.longitude && stop.parentRoute.equals(s.parentRoute)) {
-					found = true;
+				// If the route name matches the favorited route name, enable it.
+				if (allRoute.routeName.equals(favoritedRoute.routeName)) {
+					allRoute.enabled = true;
 					break;
 				}
 			}
-
-			// If the stop was never found, add it to the return array.
-			if (!found) {
-				Log.d("loadStops", "Adding stop: " + stop.stopID + " to the array");
-				returnArray.add(stop);
-			}
 		}
 
-		// Return the array list that contains all the stops as a new Stop array.
-		return returnArray.toArray(new Stop[0]);
+		// Set the selectedFavorites variable to be true as to not run again.
+		MapsActivity.selectedFavorites = true;
 	}
 
 	/**
-	 * Declares and initializes an array of LatLng coordinates to be used by the childRoutes polyline.
+	 * Retrieves and parses the stops for the given route.
+	 * This function does not apply the stops the route.
 	 *
-	 * @param routeMatch The RouteMatch object.
-	 * @return The initialized array of LatLng coordinates.
+	 * @return The array stops corresponding the route.
 	 */
-	public LatLng[] loadPolyLineCoordinates(RouteMatch routeMatch) {
+	public Stop[] loadStops() {
 
-		// Get the JSONArray of points for this parentRoute from the RouteMatch server.
-		JSONArray points = null;
-		try {
-			points = RouteMatch.parseData(routeMatch.getLandRoute(this)).getJSONObject(0)
-					.getJSONArray("points");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+		// Get all the stops for the route from the RouteMatch object.
+		JSONObject allStopsObject = MapsActivity.routeMatch.getAllStops(this);
 
-		// If the points are not null execute the following:
-		if (points != null) {
-			// Get the number of points in the array.
-			int count = points.length();
+		// Get the data from all the stops and store it in a JSONArray.
+		JSONArray data = RouteMatch.parseData(allStopsObject);
 
-			// Create a new array of LatLng coordinates with the size being that of the number
-			// of points in the array.
-			LatLng[] coordinates = new LatLng[count];
+		// Load in all the potential stops for the route.
+		// The reason why this is considered potential stops is because at this stage duplicate
+		// stops have not yet been handled.
+		Stop[] potentialStops = Stop.generateStops(data, this);
 
-			// Initialize the array fo coordinates by iterating through the JSONArray.
-			for (int index = 0; index < count; index++) {
-				Log.d("loadPolyLineCoordinates", String.format("Parsing coordinate %d/%d",
-						index + 1, count));
-				try {
-					// Get the JSONObject at the current index of the array.
-					JSONObject object = points.getJSONObject(index);
-
-					// Set the LatLng object to the latitude and longitude data from the JSONObject.
-					LatLng latLng = new LatLng(object.getDouble("latitude"),
-							object.getDouble("longitude"));
-					coordinates[index] = latLng;
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
-			}
-			return coordinates;
-		} else {
-			// Since the points were null, just return a LatLng array of size 0.
-			return new LatLng[0];
-		}
+		// Return the validated version of the generated stops.
+		// At this point duplicate stops have now been handled and removed.
+		return Stop.validateGeneratedStops(potentialStops);
 	}
 
 	/**
-	 * Returns the polyline that corresponds to the parentRoute.
+	 * Loads the polyline coordinates for the route object by retrieving the array from the RouteMatch server.
+	 * This method will either set the polyline coordinates for the route,
+	 * or will return early if the route match object is null.
 	 *
-	 * @return The polyline that corresponds to the parentRoute.
+	 * @throws JSONException Thrown if there is an issue parsing the polyline coordinates from the returned json.
+	 */
+	public void loadPolyLineCoordinates() throws JSONException {
+
+		// Make sure the RouteMatch object exists.
+		if (MapsActivity.routeMatch == null) {
+			Log.w("loadPolyLineCoordinates", "RouteMatch object is null!");
+			return;
+		}
+
+		// Get the land route json object from the RouteMatch server.
+		JSONObject landRouteObject = MapsActivity.routeMatch.getLandRoute(this);
+
+		// Get the land route data array from the land route object.
+		JSONArray landRouteData = RouteMatch.parseData(landRouteObject);
+
+		// Get the land route points object from the land route data array.
+		JSONObject landRoutePoints = landRouteData.getJSONObject(0);
+
+		// Get the land route points array from the land route points object.
+		JSONArray landRoutePointsArray = landRoutePoints.getJSONArray("points");
+
+		// Get the number of points in the array.
+		int count = landRoutePointsArray.length();
+
+		// Create a new LatLng array to store all the coordinates.
+		LatLng[] coordinates = new LatLng[count];
+
+		// Initialize the array of coordinates by iterating through the land route points array.
+		for (int i = 0; i < count; i++) {
+
+			// Get the land route point object from the land route points array.
+			JSONObject landRoutePoint = landRoutePointsArray.getJSONObject(i);
+
+			// Get the latitude and longitude from the land route point.
+			double latitude = landRoutePoint.getDouble("latitude"),
+					longitude = landRoutePoint.getDouble("longitude");
+
+			// Create a new LatLng object using the latitude and longitude.
+			LatLng latLng = new LatLng(latitude, longitude);
+
+			// Add the newly created LatLng object to the LatLng array.
+			coordinates[i] = latLng;
+		}
+
+		// Set the polyline coordinates array to the finished LatLng array.
+		this.polyLineCoordinates = coordinates;
+	}
+
+	/**
+	 * Returns the polyline that corresponds to the route.
+	 *
+	 * @return The polyline that corresponds to the route.
 	 */
 	public Polyline getPolyline() {
 		return this.polyline;
 	}
 
 	/**
-	 * Creates the polyline that correspond to this route's path by utilizing the polyLineCoordinates.
-	 *
-	 * @param map The map to add the polyline to.
+	 * Creates and sets the polyline for the route.
+	 * If there are no polyline coordinates for the route then this simply returns early and does not create the polyline.
 	 */
-	public void createPolyline(com.google.android.gms.maps.GoogleMap map) {
-		// Add the polyline based off the polyline coordinates within the parentRoute.
+	@UiThread
+	public void createPolyline() {
+		Log.v("createPolyline", "Creating route polyline");
+
+		// Make sure the polyline coordinates is not null or 0. If it is then return early.
+		if (this.polyLineCoordinates == null || this.polyLineCoordinates.length == 0) {
+			Log.w("createPolyline", "There are no polyline coordinates to work with!");
+			return;
+		}
+
+		// Make sure the map isn't null.
+		if (MapsActivity.map == null) {
+			Log.w("createPolyline", "Map is not yet ready!");
+		}
+
+		// Create new polyline options from the array of polyline coordinates stored for the route.
 		PolylineOptions options = new PolylineOptions().add(this.polyLineCoordinates);
 
 		// Make sure its not clickable.
 		options.clickable(false);
 
-		// Set the color of the polylines based on the parentRoute color.
+		// Set the color of the polylines based on the route color.
 		options.color(this.color);
 
-		// Make sure the polyline is visible.
-		options.visible(true);
+		// Make sure the polyline starts out invisible.
+		options.visible(false);
 
-		// Add the polyline to the map, and return it.
-		this.polyline = map.addPolyline(options);
+		// Add the polyline to the map, and set it for the object.
+		this.polyline = MapsActivity.map.addPolyline(options);
+	}
+
+	/**
+	 * Adds the shared to the routes shared stop array.
+	 *
+	 * @param sharedStop The shared stop to add to the route.
+	 */
+	public void addSharedStop(SharedStop sharedStop) {
+
+		// Create a new shared stop array that will contain our current shared stop array + the new shared stop.
+		SharedStop[] newSharedStops;
+
+		if (this.sharedStops == null) {
+
+			// If there was no shared stop array before then simply set the array to just contain our shared stop.
+			newSharedStops = new SharedStop[]{sharedStop};
+		} else {
+
+			// Since our current array of shared stops has content
+			// simply insert our shared stop to the array and copy the rest using System.arraycopy.
+			newSharedStops = new SharedStop[this.sharedStops.length + 1];
+			newSharedStops[0] = sharedStop;
+			System.arraycopy(this.sharedStops, 0, newSharedStops, 1, this.sharedStops.length);
+		}
+
+		// Set the routes shared stop array to the newly created shared stop array.
+		this.sharedStops = newSharedStops;
+	}
+
+	/**
+	 * Gets the shared stops for the route. This may be null if there are none.
+	 *
+	 * @return The shared stops for the route.
+	 */
+	@Nullable
+	public SharedStop[] getSharedStops() {
+		return this.sharedStops;
+	}
+
+	/**
+	 * Removes the routes polyline from the map, and sets it to null.
+	 * This must be run on the UI thread.
+	 */
+	@UiThread
+	public void removePolyline() {
+		if (this.polyline != null) {
+			this.polyline.remove();
+			this.polyline = null;
+		}
+	}
+
+	/**
+	 * Exception class used for throwing any exception relating to Routes.
+	 */
+	public static class RouteException extends Exception {
+
+		/**
+		 * Constructor for a new exception with a (hopefully detailed) message.
+		 *
+		 * @param message The (ideally detailed) message for why this was thrown.
+		 */
+		public RouteException(String message) {
+			super(message);
+		}
+
+		/**
+		 * Constructor for a new exception with a (hopefully detailed) message, and a cause.
+		 *
+		 * @param message The (ideally detailed) message.
+		 * @param cause   The cause for the exception. This may be null if the cause is undetermined.
+		 */
+		public RouteException(String message, @Nullable Throwable cause) {
+			super(message, cause);
+		}
+
+		/**
+		 * Constructor for a new exception with a cause.
+		 *
+		 * @param cause The cause for the exception. This may be null if the cause is undetermined.
+		 */
+		public RouteException(@Nullable Throwable cause) {
+			super(cause);
+		}
 	}
 }

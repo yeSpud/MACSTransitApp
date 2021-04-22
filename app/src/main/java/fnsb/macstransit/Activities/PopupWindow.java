@@ -15,9 +15,10 @@ import fnsb.macstransit.RouteMatch.Bus;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.1
+ * @version 1.2.
  * @since Beta 8.
  */
+@androidx.annotation.UiThread
 public class PopupWindow extends AlertDialog implements
 		com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener {
 
@@ -32,7 +33,6 @@ public class PopupWindow extends AlertDialog implements
 	 *
 	 * @param context The application context.
 	 */
-	@SuppressWarnings("WeakerAccess")
 	public PopupWindow(Context context) {
 		super(context);
 	}
@@ -54,10 +54,10 @@ public class PopupWindow extends AlertDialog implements
 	/**
 	 * Shows the popup window dialog.
 	 *
-	 * @param marker The marker this popup dialog belongs to.
+	 * @param marker The marker this popup dialog belongs to. This cannot be null.
 	 * @param title  The title of the popup.
 	 */
-	private void showDialog(String title, Marker marker) {
+	private void showDialog(CharSequence title, @androidx.annotation.NonNull Marker marker) {
 
 		Context context = this.getContext();
 
@@ -78,19 +78,22 @@ public class PopupWindow extends AlertDialog implements
 				instanceof fnsb.macstransit.RouteMatch.SharedStop) {
 			content.setText(PopupWindow.body);
 		} else if (marker.getTag() instanceof Bus) {
-			// Since the instance is that of a bus, set the content to the heading, speed, and current capacity.
+			// Since the instance is that of a bus, set the content to the heading, speed,
+			// and current capacity.
 			Bus bus = (Bus) marker.getTag();
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new StringBuilder(bus.speed);
 
-			// Make sure to set the heading if it exists, and format it to be all lower case, except the first character.
-			if (!bus.heading.equals("")) {
-				String lowercaseHeading = bus.heading.toLowerCase();
-				builder.append(String.format("Heading: %s\n", lowercaseHeading.substring(0, 1).toUpperCase() + lowercaseHeading.substring(1)));
+			// Make sure to set the heading if it exists, and format it to be all lower case,
+			// except the first character.
+			if (bus.heading != null && !"".equals(bus.heading)) {
+				String lowercaseHeading = bus.heading.toLowerCase(Locale.US);
+				builder.append(String.format("Heading: %s\n", lowercaseHeading.substring(0, 1).toUpperCase(Locale.US) + lowercaseHeading.substring(1)));
 			}
 
-			// Append the speed in mph.
-			builder.append(String.format(Locale.ENGLISH, "Speed: %d mph\n", bus.speed));
-
+			// Append the speed in mph if its not 0.
+			if (bus.speed != 0) {
+				builder.append(String.format(Locale.ENGLISH, "Speed: %d mph\n", bus.speed));
+			}
 
 			// Then set the text to the determined content.
 			content.setText(builder.toString());

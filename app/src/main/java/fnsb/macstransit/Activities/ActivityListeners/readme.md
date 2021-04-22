@@ -4,6 +4,12 @@ TODO
 ## AdjustZoom.java
 TODO
 
+## ApplySettings
+TODO
+
+## GetStopTimeHandler
+TODO
+
 ## StopClicked.java
 TODO
 
@@ -11,13 +17,4 @@ TODO
 TODO
 
 ## StreetViewListener.java
-TODO
-
-## Async
-TODO
-
-### GetStopTimes.java
-TODO
-
-### UpdateBuses.java
 TODO

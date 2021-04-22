@@ -2,15 +2,18 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.UiThread;
+
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 /**
  * Created by Spud on 2019-11-20 for the project: MACS Transit.
  * <p>
- * For the license, view the file titled LICENSE at the root of the project
+ * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.1
+ * @version 1.2.
  * @since Beta 8.
  */
 public class MarkedObject {
@@ -18,7 +21,22 @@ public class MarkedObject {
 	/**
 	 * The marker of the marker of the marked object.
 	 */
-	private Marker marker;
+	@androidx.annotation.Nullable
+	public Marker marker;
+
+	/**
+	 * The name / title / ID of the marked object.
+	 */
+	public final String name;
+
+	/**
+	 * Constructor for a marked object.
+	 *
+	 * @param name The name of the marked object. This will later be used as the markers title.
+	 */
+	public MarkedObject(String name) {
+		this.name = name;
+	}
 
 	/**
 	 * Static helper function that determines and returns the marker's BitmapDescriptor color
@@ -28,6 +46,7 @@ public class MarkedObject {
 	 * @return The resulting BitmapDescriptor. This will almost certainly not be the exact color,
 	 * but rather will be something close to it.
 	 */
+	@NonNull
 	private static com.google.android.gms.maps.model.BitmapDescriptor getMarkerIcon(int color) {
 		float[] hsv = new float[3];
 		android.graphics.Color.colorToHSV(color, hsv);
@@ -35,42 +54,24 @@ public class MarkedObject {
 	}
 
 	/**
-	 * Retrieves the marker of the object.
+	 * Adds a marker to the map. Note that this method does not save the marker to the marked object.
+	 * It only adds it to the map, and returns the newly added marker.
 	 *
-	 * @return The marker.
+	 * @param map         The map to add the marker to.
+	 * @param coordinates The LatLng coordinates of the marker.
+	 * @param color       The color of the marker.
+	 *                    This will try to get the closest approximation to the color as there are a limited number of marker colors.
+	 * @return The newly added marker.
 	 */
-	public Marker getMarker() {
-		return this.marker;
-	}
+	@UiThread
+	public Marker addMarker(@NonNull com.google.android.gms.maps.GoogleMap map,
+	                        com.google.android.gms.maps.model.LatLng coordinates, int color) {
 
-	/**
-	 * Sets the marker of the object.
-	 *
-	 * @param marker The marker to be set.
-	 */
-	public void setMarker(Marker marker) {
-		this.marker = marker;
-	}
-
-	/**
-	 * Creates and adds a marker to the provided map.
-	 *
-	 * @param map       The map to add the marker to.
-	 * @param latitude  The latitude of the marker.
-	 * @param longitude The longitude of the marker.
-	 * @param color     The desired color of the marker.
-	 * @param title     The marker's title.
-	 * @return The newly created marker that has also been added to the map.
-	 */
-	@SuppressWarnings("WeakerAccess")
-	public Marker addMarker(com.google.android.gms.maps.GoogleMap map, double latitude,
-	                        double longitude, int color, String title) {
 		// Create a new maker options object
 		MarkerOptions options = new MarkerOptions();
 
 		// Set the position of the marker via the latitude and longitude.
-		Log.d("addMarker", String.format("Setting marker position to %f, %f", latitude, longitude));
-		options.position(new com.google.android.gms.maps.model.LatLng(latitude, longitude));
+		options.position(coordinates);
 
 		// Set the color of the marker.
 		Log.d("addMarker", "Applying marker color");
@@ -81,14 +82,26 @@ public class MarkedObject {
 		Marker marker = map.addMarker(options);
 
 		// Set the marker title.
-		Log.d("addMarker", "Setting marker title to: " + title);
-		marker.setTitle(title);
+		Log.d("addMarker", "Setting marker title to: " + this.name);
+		marker.setTitle(this.name);
 
 		// Set the marker's tag.
-		Log.d("addMarker", "Setting the markers tag to: " + this);
+		Log.d("addMarker", "Setting the markers tag to: " + this.getClass());
 		marker.setTag(this);
 
 		// Return the generated marker.
 		return marker;
+	}
+
+	/**
+	 * Removes the marker from the map, and sets it to null.
+	 * This must be run on the UI thread.
+	 */
+	@UiThread
+	public void removeMarker() {
+		if (this.marker != null) {
+			this.marker.remove();
+			this.marker = null;
+		}
 	}
 }

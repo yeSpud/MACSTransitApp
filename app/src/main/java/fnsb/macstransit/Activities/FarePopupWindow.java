@@ -11,12 +11,11 @@ import fnsb.macstransit.R;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.0
+ * @version 1.1
  * @since Release 1.1.
  */
-@SuppressWarnings("WeakerAccess")
+@androidx.annotation.UiThread
 public class FarePopupWindow extends AlertDialog {
-
 
 	/**
 	 * Creates a popup window that shows the bus fares.
@@ -38,10 +37,10 @@ public class FarePopupWindow extends AlertDialog {
 		android.view.View dialogView = android.view.LayoutInflater.from(context)
 				.inflate(R.layout.fares_popup, this.findViewById(R.id.content), false);
 
-		// Setup the hyperlink
-		dialogView.findViewById(R.id.link).setOnClickListener((c) ->
+		// Setup the hyperlink.
+		dialogView.findViewById(R.id.link).setOnClickListener((click) ->
 				context.startActivity(new Intent(Intent.ACTION_VIEW,
-						android.net.Uri.parse("http://fnsb.us/transportation/Pages/Bus-Fares.aspx"))));
+						android.net.Uri.parse("https://www.fnsb.gov/352/Bus-Fares"))));
 
 		// Create the dialog via the alert dialog builder.
 		AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -54,5 +53,4 @@ public class FarePopupWindow extends AlertDialog {
 		// Show the dialog.
 		alertDialog.show();
 	}
-
 }

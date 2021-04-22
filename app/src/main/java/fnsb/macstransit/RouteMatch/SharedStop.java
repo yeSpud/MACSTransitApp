@@ -2,265 +2,382 @@ package fnsb.macstransit.RouteMatch;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.UiThread;
+
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
-import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.LatLng;
 
-import java.util.ArrayList;
+import fnsb.macstransit.Activities.MapsActivity;
 
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.
  * <p>
- * For the license, view the file titled LICENSE at the root of the project
+ * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 2.0
+ * @version 3.0.
  * @since Beta 7.
  */
-@SuppressWarnings("WeakerAccess")
-public class SharedStop extends Stop {
+public class SharedStop extends MarkedObject {
 
 	/**
-	 * The array of childRoutes that this stop is shared with.
+	 * Array of routes that share this one shared stop.
 	 */
-	public Route[] childRoutes;
+	public final Route[] routes;
 
 	/**
-	 * The array of parentCircleOptions that will be applied to the childCircles that correspond to this Stop.
+	 * Array of circle options for each circle that represents a route.
 	 */
-	public CircleOptions[] childCircleOptions;
+	public final CircleOptions[] circleOptions;
 
 	/**
-	 * The childCircles that correspond to this stop.
+	 * Array of circles that represent a route that shares this one stop.
 	 */
-	private Circle[] childCircles;
+	public final Circle[] circles;
 
 	/**
-	 * Constructor for the Shared Stop.
+	 * Location (as a LatLng object) of the shared stop.
+	 */
+	public final LatLng location;
+
+	/**
+	 * The initial size to set the largest circle to.
+	 * Each of the subsequent circles are set to a smaller size dependent on this constant.
+	 */
+	public static final double INITIAL_CIRCLE_SIZE = 12.0d;
+
+	/**
+	 * Constructor for SharedStop. This not only sets the location, route, and name,
+	 * but also initializes the circle options for the shared stop.
+	 * <p>
+	 * It should be noted that while the circle options are set the circles are not initialized at this point.
 	 *
-	 * @param stopID    The Stop ID. This is typically the name of the stop.
-	 * @param latitude  The latitude of the Stop.
-	 * @param longitude The longitude of the Stop.
-	 * @param routes    The childRoutes that this Stop corresponds to.
+	 * @param latLng   The location of the shared stop.
+	 * @param stopName The name of the shared stop.
+	 * @param routes   The routes that share this one stop (as an array). This cannot be null.
 	 */
-	private SharedStop(String stopID, double latitude, double longitude, Route[] routes) {
-		super(stopID, latitude, longitude, routes[0]);
+	public SharedStop(LatLng latLng, String stopName, @NonNull Route[] routes) {
+		super(stopName);
 
-		// Copy all of the provided routes into the childRoutes array.
-		this.childRoutes = new Route[routes.length - 1];
-		System.arraycopy(routes, 1, this.childRoutes, 0, this.childRoutes.length);
+		// Set the location of the stop.
+		this.location = latLng;
 
-		// Be sure to create the circle options for the childCircles at this point.
-		this.childCircleOptions = this.createCircleOptions();
-	}
+		// Set the routes that share this stop.
+		this.routes = routes;
 
-	/**
-	 * Simpler constructor the the Shared Stop.
-	 *
-	 * @param basicStop The basic stop that will be changed into a Shared Stop.
-	 * @param routes    The routes that this Stop corresponds to.
-	 */
-	private SharedStop(BasicStop basicStop, Route[] routes) {
-		this(basicStop.stopID, basicStop.latitude, basicStop.longitude, routes);
-	}
+		// Using the routes set the size of the circle options and circles.
+		this.circleOptions = new CircleOptions[routes.length];
+		this.circles = new Circle[routes.length];
 
-	/**
-	 * Finds stops that are shared by different routes, as well as current shared stops.
-	 *
-	 * @param routes             The routes to check for shared stops.
-	 * @param currentSharedStops Previous shared stops.
-	 * @return An array of Shared Stops that were found.
-	 */
-	public static SharedStop[] findSharedStops(Route[] routes, SharedStop[] currentSharedStops) {
-		// Check if there is only 1 or less routes being tracked. If there is,
-		// then there will be no shared stops, so just return.
-		if (routes.length <= 1) {
-			return new SharedStop[0];
+		// Populate the circle options.
+		for (int i = 0; i < routes.length; i++) {
+
+			// Set the center of each circle.
+			this.circleOptions[i] = new CircleOptions().center(this.location);
+
+			// If the route has a color, set circle color.
+			Route route = routes[i];
+			if (route.color != 0) {
+				this.circleOptions[i].fillColor(route.color);
+				this.circleOptions[i].strokeColor(route.color);
+			}
 		}
 
-		ArrayList<SharedStop> sharedStops = new ArrayList<>();
+		// Set the initial circle size.
+		this.setCircleSizes(SharedStop.INITIAL_CIRCLE_SIZE);
+	}
 
-		// Put all the stops into an array
-		BasicStop[] allStops = BasicStop.loadAllStops(routes);
+	/**
+	 * Gets the routes that share the provided stop by iterating through all routes,
+	 * and comparing each route's stop to the provided stop to see if they match.
+	 * <p>
+	 * If there are no matches then the size of the returned route array will be 1.
+	 * This is because its the only route to have that stop in its stop array.
+	 *
+	 * @param route      The route to compare against all other routes.
+	 * @param routeIndex The index of the route that we are comparing in all routes.
+	 * @param stop       The stop to compare against all stops in all other routes.
+	 * @return Array of routes that share the stop. This always return an array of at least 1+.
+	 */
+	@NonNull
+	public static Route[] getSharedRoutes(Route route, int routeIndex, Stop stop) {
 
-		// Iterate through all the stops
-		for (BasicStop basicStop : allStops) {
+		// Check if all routes is null.
+		// If it is then simply return the single route provided as an array of 1.
+		if (MapsActivity.allRoutes == null) {
+			return new Route[]{route};
+		}
 
-			// Create an ArrayList of routes to store all the childRoutes that share this basic stop.
-			ArrayList<Route> sharedRoutes = new ArrayList<>();
+		// Create an array of potential routes that could share a same stop
+		// (the stop that we are iterating over).
+		// Set the array size to that of all the routes minus the current index as to make it decrease every iteration.
+		Route[] potentialRoutes = new Route[MapsActivity.allRoutes.length - routeIndex];
 
-			// Find which childRoutes share the current basicStop (by ID).
-			// Start by iterating though the childRoutes.
-			for (Route r : routes) {
-				Log.d("findSharedStops", "Checking parentRoute: " + r.routeName);
-				// For each route,
-				// check the stops to see if their stop ID matches the stop ID we are checking.
-				for (Stop s : r.stops) {
-					// If the stop matches our ID, then add that route to an array,
-					// so that we can add it to a newly created shared stop.
-					if (s.stopID.equals(basicStop.stopID)) {
-						sharedRoutes.add(r);
-						// Since we are only checking the 1 route,
-						// break from this stop for loop to check another stop.
-						break;
+		// Add the current route to the potential routes, and update the potential route index.
+		potentialRoutes[0] = route;
+		int potentialRouteIndex = 1;
+
+		// In order to iterate though all the routes remaining in the allRoutes array we need to get the 2nd route index.
+		// This is equal to the first route index + 1 as to not hopefully not compare the same route against itself,
+		// but also not compare against previous routes in the array.
+		for (int route2Index = routeIndex + 1; route2Index < MapsActivity.allRoutes.length; route2Index++) {
+
+			// Get the route at the 2nd index for comparison.
+			Route route2 = MapsActivity.allRoutes[route2Index];
+
+			// If the routes are the same then continue to the next iteration of the loop.
+			if (route == route2) {
+				continue;
+			}
+
+			// Iterate though each stop in the second route and compare them to the provided stop.
+			for (Stop stop2 : route2.stops) {
+				try {
+
+					// If the stops match, add the route to the potential routes array.
+					if (Stop.doStopsMatch(stop, stop2)) {
+						potentialRoutes[potentialRouteIndex] = route2;
+						potentialRouteIndex++;
 					}
-				}
-			}
-
-			// Check the sharedRoute array. If its greater than size 1,
-			// then it found an additional parentRoute that had a stop in common (so it shares a stop).
-			if (sharedRoutes.size() > 1) {
-				// Make sure this shared stop isn't already accounted for (will have the same id)!
-				boolean found = false;
-				for (SharedStop s : currentSharedStops) {
-					// If a shared stop has this basic stop's id, mark it as found and break
-					if (s.stopID.equals(basicStop.stopID)) {
-						found = true;
-						break;
-					}
-				}
-
-				// If the stop was never found, add it to the sharedStops array.
-				if (!found) {
-					// Convert this basic stop to a shared stop.
-					Log.d("findSharedStops", String.format("Found %d shared stop for stop %s",
-							sharedRoutes.size(), basicStop.stopID));
-					sharedStops.add(new SharedStop(basicStop, sharedRoutes.toArray(new Route[0])));
-				}
-			}
-		}
-		return sharedStops.toArray(new SharedStop[0]);
-	}
-
-	/**
-	 * Adds the shared stops to the map.
-	 *
-	 * @param map         The map to add the shared stops to.
-	 * @param sharedStops The array of shared stops to be added to the map.
-	 */
-	public static void addSharedStop(com.google.android.gms.maps.GoogleMap map, SharedStop[] sharedStops) {
-		// Iterate through all the shared stops provided and execute the following:
-		for (SharedStop sharedStop : sharedStops) {
-			Log.d("addSharedStop", String.format("Adding stop %s to the map", sharedStop.stopID));
-
-			// Set the parent circle for the shared stop, and make sure its clickable.
-			sharedStop.setCircle(map, true);
-
-			// Create a new Circles array based on the number of childRoutes.
-			Circle[] circles = new Circle[sharedStop.childRoutes.length];
-
-			// Create and add the childCircles to the map.
-			for (int index = 0; index < circles.length; index++) {
-				Circle circle = sharedStop.addCircle(map, sharedStop.childCircleOptions[index],
-						false);
-
-				// If this is the first circle (will have an index of 0), add a marker to the stop.
-				if (index == 0) {
-					Marker marker = sharedStop.addMarker(map, sharedStop.latitude, sharedStop.longitude,
-							sharedStop.parentRoute.color, sharedStop.stopID);
-					marker.setVisible(false);
-					sharedStop.setMarker(marker);
-				}
-
-				// Apply the circle to the circle array.
-				circles[index] = circle;
-			}
-
-			// Now apply the Circles to the SharedStop object
-			sharedStop.setCircles(circles);
-		}
-	}
-
-	/**
-	 * Clears all the elements from the shared stop (as in removes the markers and circles from the map).
-	 *
-	 * @param sharedStops The array of shared stops to remove from the map.
-	 * @return An array of shared stops with the size of 0.
-	 */
-	public static SharedStop[] clearSharedStops(SharedStop[] sharedStops) {
-		Log.d("clearSharedStops", "Clearing all sharedStops");
-
-		// Iterate through all the shared stops and execute the following.
-		for (SharedStop sharedStop : sharedStops) {
-
-			// Get the shared stops marker, and if it's not null remove it.
-			Marker marker = sharedStop.getMarker();
-			if (marker != null) {
-				marker.remove();
-			}
-
-			// Get the parent circle from the shared stop, and remove it if its not null.
-			Circle parentCircle = sharedStop.getCircle();
-			if (parentCircle != null) {
-				parentCircle.remove();
-			}
-
-			// Get the childCircles from the shared shared stop, and if its not null remove them.
-			for (Circle c : sharedStop.getCircles()) {
-				if (c != null) {
-					c.remove();
+				} catch (NullPointerException e) {
+					Log.e("mapSharedStops", "Stop may not have circle options set!", e);
 				}
 			}
 		}
 
-		// Finally clear the shared stop array.
-		return new SharedStop[0];
+		// Create a new array of routes with the actual size of shared routes between the one shared stop.
+		Route[] actualRoutes = new Route[potentialRouteIndex];
+
+		// Copy the content from the potential routes into the actual route, and return the actual route.
+		System.arraycopy(potentialRoutes, 0, actualRoutes, 0, potentialRouteIndex);
+		return actualRoutes;
 	}
 
 	/**
-	 * Gets the circles that belong to this Shared Stop.
-	 * Note: This will only return the child circles, not the parent circle.
+	 * Compares stops against shared stops and only returns the stops that are not shared stops.
 	 *
-	 * @return The array of childCircles that belong to this Stop.
+	 * @param stops       The original stops for the route that may be shared with shared stops.
+	 * @param sharedStops The shared stops for the route.
+	 * @return Returns an array of stops that are unique to the route (not shared by any other routes or shared stops).
 	 */
-	public Circle[] getCircles() {
-		return this.childCircles;
-	}
+	public static Stop[] removeStopsWithSharedStops(Stop[] stops, SharedStop[] sharedStops) {
 
-	/**
-	 * Sets the (child) circles corresponding to the Shared Stop.
-	 *
-	 * @param circles The childCircles that apply to the Shared Stop.
-	 */
-	public void setCircles(Circle[] circles) {
-		this.childCircles = circles;
-	}
-
-	/**
-	 * Creates the array of circle options used by the child circles.
-	 *
-	 * @return The array circle opinions.
-	 */
-	private CircleOptions[] createCircleOptions() {
-
-		int count = this.childRoutes.length;
-		Log.d("createCircleOptions", String.format("Adding %d new circle option(s)", count));
-
-		CircleOptions[] circleOptions = new CircleOptions[count];
-
-		// Iterate though the childCircles and circle parentCircleOptions and initialize them.
-		for (int index = 0; index < count; index++) {
-
-			double size = Stop.PARENT_RADIUS * (1d / (index + 2));
-			Log.d("createCircleOptions", "Size: " + size);
-
-			// Make the circle parentCircleOptions for the first one the biggest,
-			// and the only one that is clickable.
-			CircleOptions circleOption = new CircleOptions()
-					.center(new com.google.android.gms.maps.model.LatLng(this.latitude, this.longitude))
-					.radius(size);
-
-			// Set the color to the index of the parentRoute.
-			int color = this.childRoutes[index].color;
-			if (color != 0) {
-				circleOption.strokeColor(color);
-				circleOption.fillColor(color);
-			}
-
-			// Finally apply that generated CirCleOption to the CircleOptions array.
-			circleOptions[index] = circleOption;
+		// Check if either the stops or shared stops array are null.
+		// If they are just return the original stops array (which may be null - which is fun).
+		if (stops == null || sharedStops == null) {
+			Log.w("remvStpsWthShredStps", "Arguments are null!");
+			return stops;
 		}
 
-		// Return the array of CircleOptions.
-		return circleOptions;
+		// Create an of potential stops with a maximum size of the original stop array.
+		Stop[] potentialStops = new Stop[stops.length];
+		int finalIndex = 0;
+
+		// Iterate though each stop in the provided stop array.
+		for (Stop stop : stops) {
+
+			// Check if the stop matches the shared stop (same name, location).
+			boolean noMatch = true;
+			for (SharedStop sharedStop : sharedStops) {
+				if (SharedStop.areEqual(sharedStop, stop)) {
+					noMatch = false;
+					break;
+				}
+			}
+
+			// If the stop doesn't match add it to the potential stops array since its not shared.
+			if (noMatch) {
+				try {
+					potentialStops[finalIndex] = stop;
+					finalIndex++;
+				} catch (ArrayIndexOutOfBoundsException e) {
+
+					// If the array was out of bounds then log it (catastrophic if left unchecked).
+					Log.e("remvStpsWthShredStps",
+							String.format("Failed to add stop %s from route %s to array\n" +
+											"Final stops array is too small!", stop.name,
+									stop.route.routeName), e);
+				}
+			}
+		}
+
+
+		// If the final index does match the stop length minus shared stop length log how much it was off by.
+		// This is left over from debugging, but is still useful to know.
+		if (finalIndex != (stops.length - sharedStops.length)) {
+			Log.i("remvStpsWthShredStps",
+					String.format("Final index differs from standard number! (%d vs %d)",
+							stops.length - sharedStops.length, finalIndex));
+		}
+
+		final Stop[] finalStops = new Stop[finalIndex];
+		System.arraycopy(potentialStops, 0, finalStops, 0, finalIndex);
+		return finalStops;
+	}
+
+	/**
+	 * Compares the stop and shared stop name and location and returns whether or not both are the same.
+	 *
+	 * @param sharedStop The shared stop to compare.
+	 * @param stop       The stop to compare.
+	 * @return Whether or not they share the same name and location.
+	 */
+	public static boolean areEqual(@NonNull SharedStop sharedStop, @NonNull Stop stop) {
+
+		// Compare names.
+		boolean nameMatch = sharedStop.name.equals(stop.name),
+
+				// Compare latitude.
+				latitudeMatch = sharedStop.circleOptions[0].getCenter().latitude == stop.circleOptions.getCenter().latitude,
+
+				// Compare longitude.
+				longitudeMatch = sharedStop.circleOptions[0].getCenter().longitude == stop.circleOptions.getCenter().longitude;
+
+		// Return whether all three checks match.
+		return nameMatch && latitudeMatch && longitudeMatch;
+	}
+
+	/**
+	 * Sets the shared stop circles to be visible.
+	 * Circles will be created at this point if they were non-existent before (null).
+	 * <p>
+	 * This should be run on the UI thread.
+	 *
+	 * @param map The map to put create the circles on.
+	 */
+	@UiThread
+	public void showSharedStop(GoogleMap map) {
+
+		// Iterate though each of the circles.
+		for (int i = 0; i < circles.length; i++) {
+			Circle circle = this.circles[i];
+
+			// If the circle is null, create a new shared stop circle.
+			if (circle == null) {
+
+				// Only set the newly created circles to clickable if its the 0th index circle (the biggest one).
+				this.circles[i] = SharedStop.createSharedStopCircle(map, this.circleOptions[i],
+						this, i == 0);
+			} else {
+
+				// Only set the circle to be clickable if its the 0th index circle (the biggest one).
+				circle.setClickable(i == 0);
+
+				// Set the circle to be visible.
+				circle.setVisible(true);
+			}
+		}
+	}
+
+	/**
+	 * Hides the shared stop.
+	 * <p>
+	 * If there are any routes that are still enabled that belong to this shared stop then the stop will not be hidden.
+	 * <p>
+	 * This must be run on the UI thread.
+	 */
+	@UiThread
+	public void hideStop() {
+
+		// Iterate though each route in the shared stop.
+		for (Route route : this.routes) {
+
+			// If any route is still enabled, return early.
+			if (route.enabled) {
+				return;
+			}
+		}
+
+		// Iterate though each circle in the shared stop.
+		for (Circle circle : this.circles) {
+
+			// If the circle is not null set it to not be clickable, and hide it.
+			if (circle != null) {
+				circle.setClickable(false);
+				circle.setVisible(false);
+			}
+		}
+	}
+
+	/**
+	 * Sets the circles to the specified size.
+	 * Each subsequent circle is set to a smaller size than the initial circle.
+	 * <p>
+	 * This should be run on the UI thread.
+	 *
+	 * @param size The size to set the circles to.
+	 */
+	@UiThread
+	public void setCircleSizes(double size) {
+
+		// Iterate though each circle option (and circle if its not null) and reset its radius.
+		for (int i = 0; i < this.circles.length; i++) {
+
+			// Get the size of the circle based on its radius.
+			double radiusSize = size * (1.0d / (i + 1));
+			Log.v("setCircleSizes", String.format("Radius size: %f", radiusSize));
+
+			// Set the circle size.
+			this.circleOptions[i].radius(radiusSize);
+			if (this.circles[i] != null) {
+				this.circles[i].setRadius(radiusSize);
+			}
+		}
+	}
+
+	/**
+	 * Creates a new circle with the specified circle options that is immediately visible.
+	 * <p>
+	 * This should be run on the UI thread.
+	 *
+	 * @param map        The map to add the circle to.
+	 * @param options    The specified circle options to apply to the circle.
+	 * @param sharedStop The shared stop this circle belongs to. This will be set as the circle's tag.
+	 * @param clickable  Whether or not the circle should be clickable.
+	 * @return The newly created circle.
+	 */
+	@NonNull
+	@UiThread
+	private static Circle createSharedStopCircle(@NonNull GoogleMap map, CircleOptions options,
+	                                             SharedStop sharedStop, boolean clickable) {
+
+		// Get the circle that was added to the map with the provided circle options.
+		Circle circle = map.addCircle(options);
+
+		// Set the tag of the circle to the provided shared stop object.
+		circle.setTag(sharedStop);
+
+		// Set the circle to be clickable depending on the clickable argument.
+		circle.setClickable(clickable);
+
+		// At this point set the circle to be visible.
+		circle.setVisible(true);
+
+		// Return our newly created circle.
+		return circle;
+	}
+
+	/**
+	 * Removes all the shared stop circles from the map.
+	 * This also set the circles to null (so the circles can be recreated later).
+	 * This must run on the UI Thread.
+	 */
+	@UiThread
+	public void removeSharedStopCircles() {
+
+		// Iterate though each circle in the shared stop.
+		for (int i = 0; i < this.circles.length; i++) {
+
+			// Get the circle from the shared stop, and remove it.
+			Circle circle = this.circles[i];
+			if (circle != null) {
+				circle.remove();
+			}
+
+			// Set all the circles to null.
+			this.circles[i] = null;
+		}
 	}
 }

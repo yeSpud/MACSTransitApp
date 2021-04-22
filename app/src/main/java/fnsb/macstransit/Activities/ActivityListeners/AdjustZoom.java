@@ -2,108 +2,71 @@ package fnsb.macstransit.Activities.ActivityListeners;
 
 import android.util.Log;
 
-import com.google.android.gms.maps.model.Circle;
-
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.SharedStop;
-import fnsb.macstransit.RouteMatch.Stop;
 
 /**
  * Created by Spud on 2019-10-28 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
- * <p>
- * This is used to adjust the circle sizes of the stops and shared stops when the zoom level is changed by the user.
  *
- * @version 1.3
+ * @version 2.0.
  * @since Beta 7.
  */
+@androidx.annotation.UiThread
 public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCameraIdleListener {
 
-	/**
-	 * The MapsActivity that this listener will apply to.
-	 * This is used to get access to all the public variables within the class.
-	 */
-	private MapsActivity activity;
 
 	/**
-	 * Constructor for the listener.
-	 *
-	 * @param activity The MapsActivity that will be using this listener (just pass {@code this} as the argument in the activity).
+	 * Resizes the stop and shared stop circles on the map.
+	 * This works regardless of whether or not a particular route is enabled or disabled.
 	 */
-	public AdjustZoom(MapsActivity activity) {
-		this.activity = activity;
-	}
+	public static void resizeStops() {
 
-	/**
-	 * Adjusts the circle size based on the current zoom level.
-	 *
-	 * @param zoomLevel   The current zoom level.
-	 * @param sharedStops The array of shared stops to update the circles sizes to.
-	 *                    It should be noted that the regular stops will be adjusted on their own
-	 *                    (as those are declared as a static variable within the maps activity),
-	 *                    and do not need to be passed as an argument.
-	 */
-	public static void adjustCircleSize(float zoomLevel, SharedStop[] sharedStops) {
-		// Get how much it has changed from the default zoom (11).
-		float zoomChange = 11.0f / zoomLevel;
+		// Make sure the map is not null before continuing.
+		if (MapsActivity.map == null) {
+			return;
+		}
 
-		// Iterate through all the routes.
-		for (fnsb.macstransit.RouteMatch.Route route : MapsActivity.allRoutes) {
-			// If the route isn't null, execute the following:
-			if (route != null) {
-				// Iterate through all the stops in the route.
-				for (Stop stop : route.stops) {
-					// Get the stop's circle.
-					Circle circle = stop.getCircle();
-					// If the circle isn't null, change its radius in proportion to the zoom change.
-					if (circle != null) {
-						AdjustZoom.adjustParentCircleSize(zoomChange, circle);
+		/*
+		 * Calculate meters per pixel.
+		 * This will be used to determine the circle size as we want it it be 4 meters in size.
+		 * To calculate this we will need the current zoom as well as the cameras latitude.
+		 */
+		float zoom = MapsActivity.map.getCameraPosition().zoom;
+		double lat = MapsActivity.map.getCameraPosition().target.latitude;
+
+		// With the zoom and latitude determined we can then calculate meters per pixel.
+		@SuppressWarnings("MagicNumber")
+		double metersPerPixel = 156543.03392 * Math.cos(lat * Math.PI / 180.0) / Math.pow(2, zoom);
+		Log.v("resizeStops", "Meters / Pixel: " + metersPerPixel);
+
+		// Check that there are routes to iterate though.
+		if (MapsActivity.allRoutes != null) {
+
+			// Get the size of the circle to resize to.
+			double size = metersPerPixel * 4;
+			Log.d("resizeStops", String.format("Setting circle size to: %f", metersPerPixel * 4));
+
+			// Iterate though each route.
+			for (fnsb.macstransit.RouteMatch.Route route : MapsActivity.allRoutes) {
+
+				// Start by resizing the stop circles first.
+				for (fnsb.macstransit.RouteMatch.Stop stop : route.stops) {
+					if (stop.circle != null) {
+						stop.circle.setRadius(size);
+					}
+				}
+
+				// Then resize the route's shared stop circles.
+				SharedStop[] sharedStops = route.getSharedStops();
+				if (sharedStops != null) {
+					for (SharedStop sharedStop : sharedStops) {
+						sharedStop.setCircleSizes(size);
 					}
 				}
 			}
 		}
-
-		// Iterate through all the shared stops and execute the following:
-		for (SharedStop sharedStop : sharedStops) {
-
-			// Get the parent circle from the shared stop.
-			Circle parentCircle = sharedStop.getCircle();
-
-			// If the parent circle isn't null, adjust its size in proportion to the zoom level.
-			if (parentCircle != null) {
-				AdjustZoom.adjustParentCircleSize(zoomChange, parentCircle);
-			}
-
-			// Get the rest of the circles from the shared stop.
-			Circle[] circles = sharedStop.getCircles();
-
-			// Iterate through all the circles and adjust their sizes.
-			for (int index = 0; index < sharedStop.childRoutes.length; index++) {
-				Circle c = circles[index];
-				if (c != null) {
-					// Calculate the new size of the parent circle.
-					double size = (Stop.PARENT_RADIUS * (1d / (index + 2))) * Math.pow(zoomChange, 6);
-
-					// Set the parent circle size.
-					c.setRadius(size);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Adjusts the circle size of the parent circle.
-	 *
-	 * @param zoomChange The value representing how much the view has changed relative to that of the original zoom level.
-	 * @param circle     The parent circle.
-	 */
-	private static void adjustParentCircleSize(float zoomChange, Circle circle) {
-		// Calculate the new size of the parent circle.
-		double size = Stop.PARENT_RADIUS * (Math.pow(zoomChange, 6));
-
-		// Set the parent circle size.
-		circle.setRadius(size);
 	}
 
 	/**
@@ -114,14 +77,8 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 	 */
 	@Override
 	public void onCameraIdle() {
-		// Get the camera's new zoom position
-		float zoom = MapsActivity.map.getCameraPosition().zoom;
 
-		// Adjust the circle size based on zoom level
-		try {
-			AdjustZoom.adjustCircleSize(zoom, this.activity.sharedStops);
-		} catch (NullPointerException NPE) {
-			Log.w("onCameraIdle", "Routes are null!");
-		}
+		// Simply call the resize function.
+		AdjustZoom.resizeStops();
 	}
 }

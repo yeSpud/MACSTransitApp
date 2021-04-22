@@ -1,0 +1,366 @@
+{
+  "data": [
+    {
+      "description": "Airport, Fred Meyer West, UAF, University West",
+      "detourLandrouteId": -1,
+      "direction": "",
+      "landrouteId": -1,
+      "longName": "Yellow",
+      "routeColor": "#feff00",
+      "routeId": "Yellow",
+      "shortName": "Yellow",
+      "subRoutes": [
+        {
+          "description": "University West to UAF Wood Center to Red",
+          "detourLandrouteId": -1,
+          "direction": "Loop",
+          "landrouteId": 33,
+          "longName": "Yellow - Weekday - Morning2",
+          "routeColor": null,
+          "routeId": "Copy of Yellow Weekday - First Trip",
+          "shortName": "Yellow ",
+          "subRoutes": null,
+          "templates": null
+        },
+        {
+          "description": "Fred Meyer West, Airport, UAF Wood Center, University West",
+          "detourLandrouteId": -1,
+          "direction": "Loop",
+          "landrouteId": 53,
+          "longName": "Yellow - Weekday",
+          "routeColor": "#fffffffeff00ffff",
+          "routeId": "Yellow - Weekday - Morning",
+          "shortName": "Yellow",
+          "subRoutes": null,
+          "templates": null
+        }
+      ],
+      "templates": null
+    },
+    {
+      "description": "Farmers Loop",
+      "detourLandrouteId": -1,
+      "direction": "",
+      "landrouteId": -1,
+      "longName": "Grey",
+      "routeColor": "#888684",
+      "routeId": "Grey",
+      "shortName": "Grey",
+      "subRoutes": [
+        {
+          "description": "Eastbound",
+          "detourLandrouteId": -1,
+          "direction": "Eastbound",
+          "landrouteId": 28,
+          "longName": "Grey - Eastbound - EOD",
+          "routeColor": null,
+          "routeId": "Copy of Grey Eastbound",
+          "shortName": "Grey ",
+          "subRoutes": null,
+          "templates": null
+        },
+        {
+          "description": "Eastbound",
+          "detourLandrouteId": -1,
+          "direction": "Eastbound",
+          "landrouteId": 28,
+          "longName": "Grey - Eastbound",
+          "routeColor": null,
+          "routeId": "Grey Eastbound",
+          "shortName": "Grey ",
+          "subRoutes": null,
+          "templates": null
+        },
+        {
+          "description": "Westbound",
+          "detourLandrouteId": -1,
+          "direction": "Westbound",
+          "landrouteId": 28,
+          "longName": "Grey - Westbound",
+          "routeColor": null,
+          "routeId": "Grey Westbound",
+          "shortName": "Grey",
+          "subRoutes": null,
+          "templates": null
+        }
+      ],
+      "templates": null
+    },
+    {
+      "description": "Johansen Retail Center, Hamilton Acres",
+      "detourLandrouteId": -1,
+      "direction": "",
+      "landrouteId": -1,
+      "longName": "Brown",
+      "routeColor": "#7f6000",
+      "routeId": "Brown",
+      "shortName": "Brown",
+      "subRoutes": [
+        {
+          "description": "Hamilton Acres, Johansen Retail Center",
+          "detourLandrouteId": -1,
+          "direction": "Loop",
+          "landrouteId": 30,
+          "longName": "Brown - Weekday",
+          "routeColor": null,
+          "routeId": "Brown - Weekday- Full Route",
+          "shortName": "Brown",
+          "subRoutes": null,
+          "templates": null
+        }
+      ],
+      "templates": null
+    },
+    {
+      "description": "Johansen Retail Center, UAF, Fred Meyer West, Airport Way, Shoppers Forum Mall, Noel Wien Library",
+      "detourLandrouteId": -1,
+      "direction": "",
+      "landrouteId": -1,
+      "longName": "Blue",
+      "routeColor": "#4472c4",
+      "routeId": "Blue",
+      "shortName": "Blue",
+      "subRoutes": [
+        {
+          "description": "College Rd, UAF, Airport Way",
+          "detourLandrouteId": -1,
+          "direction": "Loop",
+          "landrouteId": 25,
+          "longName": "Blue - Weekday - EOD",
+          "routeColor": null,
+          "routeId": "Blue - Weekday - EOD_115",
+          "shortName": "Blue",
+          "subRoutes": null,
+          "templates": null
+        },
+        {
+          "description": "College Rd, UAF, Airport Way",
+          "detourLandrouteId": -1,
+          "direction": "Loop",
+          "landrouteId": 25,
+          "longName": "Blue - Weekday",
+          "routeColor": null,
+          "routeId": "Blue - Weekday - Full w/o Pioneer Park and AKRR_82",
+          "shortName": "Blue",
+          "subRoutes": null,
+          "templates": null
+        },
+        {
+          "description": "College Rd, UAF",
+          "detourLandrouteId": -1,
+          "direction": "Loop",
+          "landrouteId": 25,
+          "longName": "Blue - Weekday - Transit Center to UAF - EOD",
+          "routeColor": null,
+          "routeId": "Copy of Copy of Copy of UAF to Transit Center via UA Museum",
+          "shortName": "Blue",
+          "subRoutes": null,
+          "templates": null
+        },
+        {
+          "description": "UAF, Airport Way",
+          "detourLandrouteId": -1,
+          "direction": "Loop",
+          "landrouteId": 25,
+          "longName": "Blue - Weekday - UAF to Transit Center",
+          "routeColor": null,
+          "routeId": "Copy of Copy of UAF to Transit Center via UA Museum",
+          "shortName": "Blue",
+          "subRoutes": null,
+          "templates": null
+        }
+      ],
+      "templates": null
+    },
+    {
+      "description": "Johansen Retail Center, UAF, Fred Meyer West, Airport Way, Shoppers Forum Mall, Noel Wien Library",
+      "detourLandrouteId": -1,
+      "direction": "",
+      "landrouteId": -1,
+      "longName": "Red",
+      "routeColor": "#f51414",
+      "routeId": "Red",
+      "shortName": "Red",
+      "subRoutes": [
+        {
+          "description": "Airport Way, UAF, College Rd",
+          "detourLandrouteId": -1,
+          "direction": "Loop",
+          "landrouteId": 48,
+          "longName": "Red - Weekday",
+          "routeColor": "#fffffff51414ffff",
+          "routeId": "Copy of Red - Saturday Full Loop_62",
+          "shortName": "Red",
+          "subRoutes": null,
+          "templates": null
+        },
+        {
+          "description": "Airport Way, UAF, College Rd",
+          "detourLandrouteId": -1,
+          "direction": "Loop",
+          "landrouteId": 32,
+          "longName": "Red - Weekday - EOD",
+          "routeColor": null,
+          "routeId": "Red - Weekday - Full Loop - EOD_116",
+          "shortName": "Red",
+          "subRoutes": null,
+          "templates": null
+        },
+        {
+          "description": "UAF, College Rd",
+          "detourLandrouteId": -1,
+          "direction": "Loop",
+          "landrouteId": 32,
+          "longName": "Red - Weekday - Transit Center to UAF - EOD",
+          "routeColor": null,
+          "routeId": "Red - Weekday - Transit Center to UAF_81",
+          "shortName": "Red",
+          "subRoutes": null,
+          "templates": null
+        },
+        {
+          "description": "UAF, College Rd",
+          "detourLandrouteId": -1,
+          "direction": "Loop",
+          "landrouteId": 32,
+          "longName": "Red - Weekday - UAF to Transit Center",
+          "routeColor": null,
+          "routeId": "Red - Weekday - UAF to Transit Center_103",
+          "shortName": "Red",
+          "subRoutes": null,
+          "templates": null
+        }
+      ],
+      "templates": null
+    },
+    {
+      "description": "North Pole",
+      "detourLandrouteId": -1,
+      "direction": "",
+      "landrouteId": -1,
+      "longName": "Green",
+      "routeColor": "#70ad47",
+      "routeId": "Green",
+      "shortName": "Green",
+      "subRoutes": [
+        {
+          "description": "Express Fairbanks to North Pole",
+          "detourLandrouteId": -1,
+          "direction": "Outbound",
+          "landrouteId": 45,
+          "longName": "Green - Weekday - Express Fairbanks to North Pole",
+          "routeColor": null,
+          "routeId": "Copy of Green - Weekday - Fairbanks to North Pole",
+          "shortName": "Green ",
+          "subRoutes": null,
+          "templates": null
+        },
+        {
+          "description": "Fairbanks to North Pole",
+          "detourLandrouteId": -1,
+          "direction": "Outbound",
+          "landrouteId": 45,
+          "longName": "Green - Weekday - Fairbanks to North Pole",
+          "routeColor": null,
+          "routeId": "Green - Weekday - Fairbanks to North Pole",
+          "shortName": "Green ",
+          "subRoutes": null,
+          "templates": null
+        },
+        {
+          "description": "North Pole to Fairbanks",
+          "detourLandrouteId": -1,
+          "direction": "Inbound",
+          "landrouteId": 45,
+          "longName": "Green - Weekday - North Pole to Fairbanks",
+          "routeColor": null,
+          "routeId": "Green - Weekday - North Pole to Fairbanks",
+          "shortName": "Green ",
+          "subRoutes": null,
+          "templates": null
+        }
+      ],
+      "templates": null
+    },
+    {
+      "description": "South Cushman, Van Horn Rd, Cheif Andrew Issac Health Center, Hospital",
+      "detourLandrouteId": -1,
+      "direction": "",
+      "landrouteId": -1,
+      "longName": "Purple",
+      "routeColor": "#8b02ff",
+      "routeId": "Purple",
+      "shortName": "Purple",
+      "subRoutes": [
+        {
+          "description": "South Cushman, Easy Street, FMH",
+          "detourLandrouteId": -1,
+          "direction": "Loop",
+          "landrouteId": 31,
+          "longName": "Purple - Weekday - EOD",
+          "routeColor": null,
+          "routeId": "Purple - Weekday - Full route - EOD_112",
+          "shortName": "Purple",
+          "subRoutes": null,
+          "templates": null
+        },
+        {
+          "description": "South Cushman, Easy Street, FMH ",
+          "detourLandrouteId": -1,
+          "direction": "Loop",
+          "landrouteId": 31,
+          "longName": "Purple - Weekday",
+          "routeColor": null,
+          "routeId": "Purple-Full route",
+          "shortName": "Purple ",
+          "subRoutes": null,
+          "templates": null
+        }
+      ],
+      "templates": null
+    },
+    {
+      "description": "Van Horn Rd, Hospital, Cheif Andew Issac Health Center, Noel Wien Library, Fred Meyer West",
+      "detourLandrouteId": -1,
+      "direction": "",
+      "landrouteId": -1,
+      "longName": "Orange",
+      "routeColor": "#fe7e05",
+      "routeId": "Orange",
+      "shortName": "Orange",
+      "subRoutes": [
+        {
+          "description": "Library, Big Dipper, Van Horn Rd, Fred Meyer West",
+          "detourLandrouteId": -1,
+          "direction": "Eastbound",
+          "landrouteId": 43,
+          "longName": "Orange - Eastbound",
+          "routeColor": null,
+          "routeId": "Orange - Eastbound",
+          "shortName": "Orange ",
+          "subRoutes": null,
+          "templates": null
+        },
+        {
+          "description": "Library, Big Dipper, Van Horn Rd, Fred Meyer West",
+          "detourLandrouteId": -1,
+          "direction": "Westbound",
+          "landrouteId": 43,
+          "longName": "Orange - Westbound",
+          "routeColor": null,
+          "routeId": "Orange - Westbound",
+          "shortName": "Orange",
+          "subRoutes": null,
+          "templates": null
+        }
+      ],
+      "templates": null
+    }
+  ],
+  "feedVersion": "4.7",
+  "fromCache": false,
+  "predicate": null,
+  "subject": null,
+  "time": "2020-06-19T22:25:57.084-08:00",
+  "type": "route"
+}

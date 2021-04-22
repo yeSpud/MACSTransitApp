@@ -1,0 +1,9 @@
+{
+  "data": [],
+  "feedVersion": "4.7",
+  "fromCache": false,
+  "predicate": "['masterRouteId','timeHorizon'],['masterRouteId','timeHorizon'],['masterRouteId','timeHorizon'],['masterRouteId','timeHorizon'],['masterRouteId','timeHorizon'],['masterRouteId','timeHorizon'],['masterRouteId','timeHorizon'],['masterRouteId','timeHorizon']",
+  "subject": "{ masterRouteId='Blue', timeHorizon=30},{ masterRouteId='Brown', timeHorizon=30},{ masterRouteId='Green', timeHorizon=30},{ masterRouteId='Grey', timeHorizon=30},{ masterRouteId='Orange', timeHorizon=30},{ masterRouteId='Purple', timeHorizon=30},{ masterRouteId='Red', timeHorizon=30},{ masterRouteId='Yellow/', timeHorizon=30}",
+  "time": "2020-06-19T22:29:32.519-08:00",
+  "type": "vehicle"
+}
