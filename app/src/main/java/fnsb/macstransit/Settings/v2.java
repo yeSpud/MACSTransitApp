@@ -5,6 +5,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.android.gms.maps.GoogleMap;
 
@@ -40,8 +41,10 @@ public class v2 extends BaseSettings {
 	/**
 	 * Favorite routes set by the user.
 	 * These routes should be enabled / selected as soon as the app has finished initialization.
+	 * This is null as it should not be set by any other method except ones defined by this class.
 	 */
-	public Route[] favoriteRoutes;
+	@Nullable
+	private Route[] favoriteRoutes;
 
 	/**
 	 * Constructor for v2.
@@ -277,9 +280,11 @@ public class v2 extends BaseSettings {
 
 	/**
 	 * Gets the favorited routes variable.
+	 * This may be null if there was an issue parsing favorited routes from settings.
 	 *
 	 * @return The favorite routes defined by the user.
 	 */
+	@Nullable
 	public Route[] getRoutes() {
 		return this.favoriteRoutes;
 	}
