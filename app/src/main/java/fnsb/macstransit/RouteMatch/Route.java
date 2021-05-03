@@ -234,10 +234,18 @@ public class Route {
 			// Iterate though the favorite routes.
 			for (Route favoritedRoute : favoritedRoutes) {
 
-				// If the route name matches the favorited route name, enable it.
-				if (allRoute.routeName.equals(favoritedRoute.routeName)) {
-					allRoute.enabled = true;
-					break;
+				// Make sure the favorited route and the comparison route aren't null.
+				if (favoritedRoute != null && allRoute != null) {
+
+					// If the route name matches the favorited route name, enable it.
+					if (allRoute.routeName.equals(favoritedRoute.routeName)) {
+						allRoute.enabled = true;
+						break;
+					}
+				} else {
+
+					// If either of the routes were null, log it.
+					Log.w("enableFavoriteRoutes", "Route entry in array is null");
 				}
 			}
 		}
