@@ -31,7 +31,7 @@
     <string name="fourtydollars">$40.00</string>
     <string name="twentydollars">$20.00</string>
     <string name="half_month_pass">Half Month Pass</string>
-    <string name="disclaimer">Last updated March 14th, 2021.\nPrices may be inaccurate.\nPlease refer to the official MACS website for more details on pricing.</string>
+    <string name="disclaimer">Last updated May 3rd, 2021.\nPrices may be inaccurate.\nPlease refer to the official MACS website for more details on pricing.</string>
     <string name="macs_website">MACS Website</string>
     <string name="warning">Warning</string>
     <string name="warning_message">Having multiple routes active at a time will cause decreases in performance and an increase in data usage.</string>
