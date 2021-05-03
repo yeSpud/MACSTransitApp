@@ -29,6 +29,11 @@ import fnsb.macstransit.Activities.MapsActivity;
 public class Route {
 
 	/**
+	 * Fallback empty route array used as a way to circumvent potential exceptions.
+	 */
+	public static final Route[] EMPTY_ROUTE = new Route[0];
+
+	/**
 	 * The name of the route.
 	 * Note: This cannot contain whitespace characters (ie spaces, tabs, or new lines),
 	 * as its used in a url.
@@ -51,15 +56,6 @@ public class Route {
 	public Stop[] stops;
 
 	/**
-	 * The array of shared stops for this route.
-	 * This may be empty/ null if the route has not been initialized,
-	 * and the the shared stops haven't been loaded, or if there are no shared stops for the route.
-	 * <p>
-	 * The reason why this is private access is because there is a special way this should be set within the route class.
-	 */
-	private SharedStop[] sharedStops;
-
-	/**
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
 	 */
 	public LatLng[] polyLineCoordinates;
@@ -70,9 +66,13 @@ public class Route {
 	public boolean enabled = false;
 
 	/**
-	 * Fallback empty route array used as a way to circumvent potential exceptions.
+	 * The array of shared stops for this route.
+	 * This may be empty/ null if the route has not been initialized,
+	 * and the the shared stops haven't been loaded, or if there are no shared stops for the route.
+	 * <p>
+	 * The reason why this is private access is because there is a special way this should be set within the route class.
 	 */
-	public static final Route[] EMPTY_ROUTE = new Route[0];
+	private SharedStop[] sharedStops;
 
 	/**
 	 * The polyline that corresponds to this route.

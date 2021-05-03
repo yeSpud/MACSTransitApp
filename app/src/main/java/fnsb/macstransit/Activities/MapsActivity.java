@@ -70,12 +70,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	public static boolean selectedFavorites = false;
 
 	/**
-	 * Create a variable to store our fare popup window instance.
-	 * This should be initialized in the onCreate method for this activity.
-	 */
-	private FarePopupWindow farePopupWindow;
-
-	/**
 	 * Update thread used for fetching bus locations.
 	 * This may be null until initialized in onCreate.
 	 */
@@ -86,6 +80,259 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * Handler used to update bus markers on the UI Thread from the Update Thread.
 	 */
 	private final Handler mainThreadHandler = new Handler(Looper.myLooper());
+
+	/**
+	 * Create a variable to store our fare popup window instance.
+	 * This should be initialized in the onCreate method for this activity.
+	 */
+	private FarePopupWindow farePopupWindow;
+
+	/**
+	 * Checks the selected item and enables or disables the specific route depending in its checked status.
+	 *
+	 * @param item The menu item that should belong to a route. This value cannot be null.
+	 * @throws Route.RouteException Thrown if the route to be toggled is not found within allRoutes.
+	 */
+	private static void onRouteItemToggled(@NonNull MenuItem item) throws Route.RouteException {
+		Log.v("onRouteItemSelected", "onRouteItemSelected bas been called!");
+
+		// Make sure there are routes to iterate though by checking to see if allRoutes isn't null.
+		if (MapsActivity.allRoutes == null) {
+
+			// Since allRoutes is null return early.
+			return;
+		}
+
+		// Create a boolean to store the resulting value of the menu item.
+		boolean enabled = !item.isChecked();
+
+		// Determine which route from all the routes was just selected.
+		Route selectedRoute = null;
+		for (Route route : MapsActivity.allRoutes) {
+			if (route.routeName.equals(item.getTitle().toString())) {
+				selectedRoute = route;
+				break;
+			}
+		}
+
+		// Make sure the selected route was found.
+		if (selectedRoute == null) {
+			throw new Route.RouteException("Unable to determine selected route!");
+		}
+
+		// Updated the selected route's boolean.
+		selectedRoute.enabled = enabled;
+
+		// Try to (re)draw the buses onto the map.
+		// Because we are iterating a static variable that is modified on a different thread
+		// there is a possibility of a concurrent modification.
+		try {
+			MapsActivity.drawBuses();
+		} catch (ConcurrentModificationException e) {
+			Log.e("onRouteItemToggled",
+					"Unable to redraw all buses due to concurrent modification", e);
+		}
+
+		// (Re) draw the stops onto the map.
+		MapsActivity.drawStops();
+
+		// (Re) draw the routes onto the map (if enabled).
+		if (((v2) CurrentSettings.settingsImplementation).getPolylines()) {
+			MapsActivity.drawRoutes();
+		}
+
+		// Set the menu item's checked value to that of the enabled value
+		item.setChecked(enabled);
+	}
+
+	/**
+	 * Draws the stops and shared stops onto the map, and adjusts the stop sizes based on the zoom level.
+	 */
+	private static void drawStops() {
+
+		// First, make sure that allRoutes isn't null. If it is, return early.
+		if (MapsActivity.allRoutes == null) {
+			Log.w("drawStops", "allRoutes is null!");
+			return;
+		}
+
+		// Iterate though all the routes as we know at this point that they are not null.
+		for (Route route : MapsActivity.allRoutes) {
+
+			// Iterate though the stops in the route before getting to the shared stops.
+			for (Stop stop : route.stops) {
+
+				// Check that the stop isn't null
+				// as calling any functions of a null object would result in a crash.
+				if (stop != null) {
+
+					if (route.enabled) {
+
+						// Show the stop on the map.
+						stop.showStop(MapsActivity.map);
+					} else {
+
+						// Hide the stop from the map.
+						// Be sure its only hidden and not actually destroying the object.
+						stop.hideStop();
+					}
+				} else {
+
+					// Log that one of the stops was null. If this is called often enough then it
+					// may be worthwhile to check the validateStops function in the SplashActivity.
+					Log.w("drawStops", "Stop is null!");
+				}
+			}
+
+			// Check that there are shared stops to hide in the route.
+			SharedStop[] sharedStops = route.getSharedStops();
+			if (sharedStops != null) {
+
+				// Iterate though the shared stops in the route.
+				for (SharedStop sharedStop : sharedStops) {
+
+					if (route.enabled) {
+
+						// Show the shared stops.
+						sharedStop.showSharedStop(MapsActivity.map);
+					} else {
+
+						// Hide the shared stops on the map.
+						// Note that the stops should be hidden - not destroyed.
+						sharedStop.hideStop();
+					}
+				}
+			}
+		}
+
+		// Adjust the circle sizes of the stops on the map given the current zoom.
+		AdjustZoom.resizeStops();
+	}
+
+	/**
+	 * Draws the route's polylines to the map.
+	 * While all polylines are drawn they will only be shown if the route that they belong to is enabled.
+	 */
+	private static void drawRoutes() {
+
+		// Make sure there are routes to iterate through (check if the routes are not null).
+		if (MapsActivity.allRoutes != null) {
+
+			// Start by iterating through all the routes.
+			for (Route route : MapsActivity.allRoutes) {
+
+				try {
+
+					// Check if the route has a polyline to set visible.
+					if (route.getPolyline() == null) {
+
+						// Create a new polyline for the route since it didn't have one before.
+						route.createPolyline();
+					}
+
+					// Set the polyline's visibility to whether the route is enabled or not.
+					route.getPolyline().setVisible(route.enabled);
+				} catch (NullPointerException e) {
+
+					// If the polyline was still null after being created, log it as a warning.
+					Log.w("drawRoutes", String.format("Polyline for route %s was not created successfully!",
+							route.routeName));
+				}
+			}
+		}
+	}
+
+	/**
+	 * (Re)draws the buses on the map.
+	 * While all buses are drawn they will only be shown if the route that they belong to is enabled.
+	 *
+	 * @throws ConcurrentModificationException Concurrent exception may be thrown
+	 *                                         as it iterates through the bus list,
+	 *                                         which may be modified at the time of iteration.
+	 */
+	private static void drawBuses() throws ConcurrentModificationException {
+
+		// Start by iterating though all the buses on the map.
+		for (Bus bus : MapsActivity.buses) {
+
+			if (bus.marker != null) {
+
+				// Set the bus marker visibility based on if the bus's route is enabled or not.
+				bus.marker.setVisible(bus.route.enabled);
+			} else {
+
+				if (bus.route.enabled) {
+
+					if (MapsActivity.map != null) {
+
+						// Try creating a new marker for the bus (if its enabled).
+						bus.marker = bus.addMarker(MapsActivity.map,
+								new LatLng(bus.latitude, bus.longitude), bus.color);
+
+						bus.marker.setVisible(true);
+
+					} else {
+
+						// Since the map is null simply log it as a  warning.
+						Log.w("drawBuses", "Map is not ready!");
+					}
+
+				} else {
+
+					// If the marker was null simply log it as a warning.
+					Log.w("drawBuses", String.format("Bus doesn't have a marker for route %s!",
+							bus.route.routeName));
+				}
+			}
+		}
+	}
+
+	/**
+	 * Manages and syncs the state of the Update Thread.
+	 */
+	private static void manageUpdateThread() {
+
+		// Return early if the update thread is null.
+		if (MapsActivity.updateThread == null) {
+			return;
+		}
+
+		// If the thread isn't locked, then there is no need to continue.
+		if (!MapsActivity.updateThread.getIsLockedForever()) {
+			return;
+		}
+
+		// Be sure to synchronize with the thread lock.
+		Log.v("manageUpdateThread", "Synchronizing with lock");
+		synchronized (MapsActivity.updateThread.LOCK) {
+
+			// Depending on the state of the update thread, either resume, or start the runner.
+			java.lang.Thread.State state = MapsActivity.updateThread.runner.getState();
+			Log.d("manageUpdateThread", "State of thread: " + state.name());
+			switch (state) {
+				case NEW:
+					Log.d("manageUpdateThread", "Starting update thread");
+
+					// Start the thread.
+					MapsActivity.updateThread.runner.start();
+					break;
+				case BLOCKED:
+				case TIMED_WAITING:
+				case WAITING:
+
+					// Notify the thread to resume
+					MapsActivity.updateThread.LOCK.notifyAll();
+					break;
+				case TERMINATED:
+
+					Log.w("manageUpdateThread", "Update thread has been terminated.");
+					break;
+				default:
+					Log.w("manageUpdateThread", "Thread state unaccounted for");
+					break;
+			}
+		}
+	}
 
 	/**
 	 * This is where the activity is initialized. Most importantly,
@@ -132,7 +379,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Create a new fares popup window if one does not yet already exist.
 		if (this.farePopupWindow == null) {
-			 this.farePopupWindow = new FarePopupWindow(this);
+			this.farePopupWindow = new FarePopupWindow(this);
 		}
 
 		// Setup the actual thread object for the update thread if it didn't exist previously.
@@ -331,64 +578,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * Checks the selected item and enables or disables the specific route depending in its checked status.
-	 *
-	 * @param item The menu item that should belong to a route. This value cannot be null.
-	 * @throws Route.RouteException Thrown if the route to be toggled is not found within allRoutes.
-	 */
-	private static void onRouteItemToggled(@NonNull MenuItem item) throws Route.RouteException {
-		Log.v("onRouteItemSelected", "onRouteItemSelected bas been called!");
-
-		// Make sure there are routes to iterate though by checking to see if allRoutes isn't null.
-		if (MapsActivity.allRoutes == null) {
-
-			// Since allRoutes is null return early.
-			return;
-		}
-
-		// Create a boolean to store the resulting value of the menu item.
-		boolean enabled = !item.isChecked();
-
-		// Determine which route from all the routes was just selected.
-		Route selectedRoute = null;
-		for (Route route : MapsActivity.allRoutes) {
-			if (route.routeName.equals(item.getTitle().toString())) {
-				selectedRoute = route;
-				break;
-			}
-		}
-
-		// Make sure the selected route was found.
-		if (selectedRoute == null) {
-			throw new Route.RouteException("Unable to determine selected route!");
-		}
-
-		// Updated the selected route's boolean.
-		selectedRoute.enabled = enabled;
-
-		// Try to (re)draw the buses onto the map.
-		// Because we are iterating a static variable that is modified on a different thread
-		// there is a possibility of a concurrent modification.
-		try {
-			MapsActivity.drawBuses();
-		} catch (ConcurrentModificationException e) {
-			Log.e("onRouteItemToggled",
-					"Unable to redraw all buses due to concurrent modification", e);
-		}
-
-		// (Re) draw the stops onto the map.
-		MapsActivity.drawStops();
-
-		// (Re) draw the routes onto the map (if enabled).
-		if (((v2) CurrentSettings.settingsImplementation).getPolylines()) {
-			MapsActivity.drawRoutes();
-		}
-
-		// Set the menu item's checked value to that of the enabled value
-		item.setChecked(enabled);
-	}
-
-	/**
 	 * Called when the activity will start interacting with the user.
 	 * At this point your activity is at the top of its activity stack, with user input going to it.
 	 */
@@ -468,148 +657,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	}
 
 	/**
-	 * Draws the stops and shared stops onto the map, and adjusts the stop sizes based on the zoom level.
-	 */
-	private static void drawStops() {
-
-		// First, make sure that allRoutes isn't null. If it is, return early.
-		if (MapsActivity.allRoutes == null) {
-			Log.w("drawStops", "allRoutes is null!");
-			return;
-		}
-
-		// Iterate though all the routes as we know at this point that they are not null.
-		for (Route route : MapsActivity.allRoutes) {
-
-			// Iterate though the stops in the route before getting to the shared stops.
-			for (Stop stop : route.stops) {
-
-				// Check that the stop isn't null
-				// as calling any functions of a null object would result in a crash.
-				if (stop != null) {
-
-					if (route.enabled) {
-
-						// Show the stop on the map.
-						stop.showStop(MapsActivity.map);
-					} else {
-
-						// Hide the stop from the map.
-						// Be sure its only hidden and not actually destroying the object.
-						stop.hideStop();
-					}
-				} else {
-
-					// Log that one of the stops was null. If this is called often enough then it
-					// may be worthwhile to check the validateStops function in the SplashActivity.
-					Log.w("drawStops", "Stop is null!");
-				}
-			}
-
-			// Check that there are shared stops to hide in the route.
-			SharedStop[] sharedStops = route.getSharedStops();
-			if (sharedStops != null) {
-
-				// Iterate though the shared stops in the route.
-				for (SharedStop sharedStop : sharedStops) {
-
-					if (route.enabled) {
-
-						// Show the shared stops.
-						sharedStop.showSharedStop(MapsActivity.map);
-					} else {
-
-						// Hide the shared stops on the map.
-						// Note that the stops should be hidden - not destroyed.
-						sharedStop.hideStop();
-					}
-				}
-			}
-		}
-
-		// Adjust the circle sizes of the stops on the map given the current zoom.
-		AdjustZoom.resizeStops();
-	}
-
-	/**
-	 * Draws the route's polylines to the map.
-	 * While all polylines are drawn they will only be shown if the route that they belong to is enabled.
-	 */
-	private static void drawRoutes() {
-
-		// Make sure there are routes to iterate through (check if the routes are not null).
-		if (MapsActivity.allRoutes != null) {
-
-			// Start by iterating through all the routes.
-			for (Route route : MapsActivity.allRoutes) {
-
-				try {
-
-					// Check if the route has a polyline to set visible.
-					if (route.getPolyline() == null) {
-
-						// Create a new polyline for the route since it didn't have one before.
-						route.createPolyline();
-					}
-
-					// Set the polyline's visibility to whether the route is enabled or not.
-					route.getPolyline().setVisible(route.enabled);
-				} catch (NullPointerException e) {
-
-					// If the polyline was still null after being created, log it as a warning.
-					Log.w("drawRoutes", String.format("Polyline for route %s was not created successfully!",
-							route.routeName));
-				}
-			}
-		}
-	}
-
-	/**
-	 * (Re)draws the buses on the map.
-	 * While all buses are drawn they will only be shown if the route that they belong to is enabled.
-	 *
-	 * @throws ConcurrentModificationException Concurrent exception may be thrown
-	 *                                         as it iterates through the bus list,
-	 *                                         which may be modified at the time of iteration.
-	 */
-	private static void drawBuses() throws ConcurrentModificationException {
-
-		// Start by iterating though all the buses on the map.
-		for (Bus bus : MapsActivity.buses) {
-
-			if (bus.marker != null) {
-
-				// Set the bus marker visibility based on if the bus's route is enabled or not.
-				bus.marker.setVisible(bus.route.enabled);
-			} else {
-
-				if (bus.route.enabled) {
-
-					if (MapsActivity.map != null) {
-
-						// Try creating a new marker for the bus (if its enabled).
-						bus.marker = bus.addMarker(MapsActivity.map,
-								new LatLng(bus.latitude, bus.longitude), bus.color);
-
-						bus.marker.setVisible(true);
-
-					} else {
-
-						// Since the map is null simply log it as a  warning.
-						Log.w("drawBuses", "Map is not ready!");
-					}
-
-				} else {
-
-					// If the marker was null simply log it as a warning.
-					Log.w("drawBuses", String.format("Bus doesn't have a marker for route %s!",
-							bus.route.routeName));
-				}
-			}
-		}
-	}
-
-	/**
 	 * Updates the various settings on the map object determined by the settings file.
 	 * It also redraws the buses and stops that are active on the map, and draws the polylines if they are enabled.
 	 * This should be called when the map has been setup and is ready to be refreshed.
@@ -670,53 +717,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			}
 		} else {
 			Log.w("updateMapSettings", "Map is not yet ready!");
-		}
-	}
-
-	/**
-	 * Manages and syncs the state of the Update Thread.
-	 */
-	private static void manageUpdateThread() {
-
-		// Return early if the update thread is null.
-		if (MapsActivity.updateThread == null) {
-			return;
-		}
-
-		// If the thread isn't locked, then there is no need to continue.
-		if (!MapsActivity.updateThread.getIsLockedForever()) {
-			return;
-		}
-
-		// Be sure to synchronize with the thread lock.
-		Log.v("manageUpdateThread", "Synchronizing with lock");
-		synchronized (MapsActivity.updateThread.LOCK) {
-
-			// Depending on the state of the update thread, either resume, or start the runner.
-			java.lang.Thread.State state = MapsActivity.updateThread.runner.getState();
-			Log.d("manageUpdateThread", "State of thread: " + state.name());
-			switch (state) {
-				case NEW:
-					Log.d("manageUpdateThread", "Starting update thread");
-
-					// Start the thread.
-					MapsActivity.updateThread.runner.start();
-					break;
-				case BLOCKED:
-				case TIMED_WAITING:
-				case WAITING:
-
-					// Notify the thread to resume
-					MapsActivity.updateThread.LOCK.notifyAll();
-					break;
-				case TERMINATED:
-
-					Log.w("manageUpdateThread", "Update thread has been terminated.");
-					break;
-				default:
-					Log.w("manageUpdateThread", "Thread state unaccounted for");
-					break;
-			}
 		}
 	}
 
