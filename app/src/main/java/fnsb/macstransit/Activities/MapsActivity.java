@@ -433,7 +433,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * This method will only be triggered once the user has installed Google Play services and returned to the app.
 	 */
 	@Override
-	public void onMapReady(GoogleMap googleMap) {
+	public void onMapReady(@NonNull GoogleMap googleMap) {
 		Log.v("onMapReady", "onMapReady has been called!");
 
 		// Setup the map object at this point as it is finally initialized and ready.
@@ -636,9 +636,19 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			}
 			*/
 
-			// Enable all the routes that were favorited. Be sure to only run this once.
+			// Get the favorited routes from the settings object.
+			Route[] favoritedRoutes = ((v2) CurrentSettings.settingsImplementation).getRoutes();
+
 			if (!MapsActivity.selectedFavorites) {
-				Route.enableFavoriteRoutes(((v2) CurrentSettings.settingsImplementation).getRoutes());
+
+				// If the favorited routes is not null, enable them.
+				if (favoritedRoutes != null) {
+					Route.enableFavoriteRoutes(favoritedRoutes);
+				} else {
+
+					// Log if the favorited routes are null.
+					Log.w("updateMapSettings", "Favorite routes array is null");
+				}
 			}
 
 			// Try redrawing the buses.
