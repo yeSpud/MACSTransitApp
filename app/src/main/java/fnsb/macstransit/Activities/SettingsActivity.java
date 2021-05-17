@@ -17,7 +17,7 @@ import fnsb.macstransit.Settings.v2;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 2.0.
+ * @version 2.1.
  * @since Beta 8.
  */
 public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {

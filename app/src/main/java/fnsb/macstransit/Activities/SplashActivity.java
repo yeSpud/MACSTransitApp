@@ -6,6 +6,8 @@ import android.os.Build;
 import android.util.Log;
 import android.view.View;
 
+import androidx.annotation.AnyThread;
+
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
@@ -17,7 +19,7 @@ import fnsb.macstransit.RouteMatch.Stop;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 2.0
+ * @version 2.1.
  * @since Beta 7.
  */
 @SuppressWarnings("MagicNumber")
@@ -166,7 +168,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 		// Simply close the application, since it hasn't finished loading.
 		if (!SplashActivity.loaded) {
-			System.exit(0);
+			this.finishAffinity();
 		}
 	}
 
@@ -249,24 +251,33 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * and setting the button to launch the wireless settings.
 	 * It will also close the application when the button is clicked (as to force a restart of the app).
 	 */
+	@AnyThread
 	private void noInternet() {
 
-		// First, hide the progress bar.
-		this.progressBar.setVisibility(View.INVISIBLE);
+		// The following needs to run on the UI thread.
+		this.runOnUiThread(() -> {
 
-		// Then, set the message of the text view to notify the user that there is no internet connection.
-		this.setMessage(R.string.cannot_connect_internet);
+			// First, hide the progress bar.
+			this.progressBar.setVisibility(View.INVISIBLE);
 
-		// Then setup the button to open the internet settings when clicked on, and make it visible.
-		this.button.setText(R.string.open_network_settings);
-		this.button.setOnClickListener((click) -> {
-			this.startActivityForResult(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS),
-					0);
+			// Then, set the message of the text view to notify the user that there is no internet connection.
 
-			// Also, close this application when clicked
-			this.finish();
+			//this.setMessage(R.string.cannot_connect_internet);
+			this.textView.setText(R.string.cannot_connect_internet);
+
+			// Then setup the button to open the internet settings when clicked on, and make it visible.
+			this.button.setText(R.string.open_network_settings);
+			this.button.setOnClickListener((click) -> {
+				this.startActivityForResult(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS),
+						0);
+
+				// Also, close this application when clicked
+				this.finish();
+			});
+
+			// Set the button to invisible.
+			this.button.setVisibility(View.VISIBLE);
 		});
-		this.button.setVisibility(View.VISIBLE);
 
 		// Since technically everything (which is nothing) has been loaded, set the variable as so
 		SplashActivity.loaded = true;
@@ -500,17 +511,16 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 		// Start the MapsActivity, and close this splash activity.
 		this.startActivity(new Intent(this, MapsActivity.class));
-		this.finish();
+		this.finishAfterTransition();
 	}
 
 	/**
 	 * Sets the message content to be displayed to the user on the splash screen.
 	 *
-	 * @param resID The string ID of the message. This can be retrieved by calling R.string.STRING_ID
+	 * @param resID The string ID of the message. This can be retrieved by calling R.string.STRING_ID.
 	 */
-	private void setMessage(int resID) {
-		// Get the message from the string resource.
-		final CharSequence message = this.getResources().getString(resID);
+	@AnyThread
+	private void setMessage(@androidx.annotation.StringRes final int resID) {
 
 		// Since we are changing a TextView element, the following needs to be run on the UI thread.
 		this.runOnUiThread(() -> {
@@ -519,7 +529,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			if (this.textView != null) {
 
 				// Set the TextView text to that of the message.
-				this.textView.setText(message);
+				this.textView.setText(resID);
 			} else {
 
 				// Since the TextView is null, log that it hasn't been initialized yet.
@@ -533,42 +543,43 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 *
 	 * @param progress The current progress out of SplashActivity.maxProgress.
 	 */
+	@AnyThread
 	private void setProgressBar(final double progress) {
 		Log.v("setProgressBar", String.format("Provided progress: %f", progress));
 
 		// Because we are updating UI elements we need to run the following on the UI thread.
 		this.runOnUiThread(() -> {
 
-				// Convert the progress to be an int out of 100.
-				int p = (int) Math.round((progress / SplashActivity.maxProgress) * 100);
+			// Convert the progress to be an int out of 100.
+			int p = (int) Math.round((progress / SplashActivity.maxProgress) * 100);
 
-				/* Validate that that the progress is between 0 and 100.
-				This is the equivalent of:
-				if (p > 100) {
-					p = 100;
+			/* Validate that that the progress is between 0 and 100.
+			This is the equivalent of:
+			if (p > 100) {
+				p = 100;
+			} else {
+				p = Math.max(p,0);
+			}
+			 */
+			p = (p > 100) ? 100 : Math.max(p, 0);
+
+			// Make sure the progress bar is not null.
+			if (this.progressBar != null) {
+
+				// Set the progress to indeterminate if its less than 1.
+				this.progressBar.setIndeterminate(progress < 0.0d);
+
+				// Apply the progress to the progress bar, and animate it if its supported in the SDK.
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+					this.progressBar.setProgress(p, true);
 				} else {
-					p = Math.max(p,0);
+					this.progressBar.setProgress(p);
 				}
-				 */
-				p = (p > 100) ? 100 : Math.max(p, 0);
+			} else {
 
-				// Make sure the progress bar is not null.
-				if (this.progressBar != null) {
-
-					// Set the progress to indeterminate if its less than 1.
-					this.progressBar.setIndeterminate(progress < 0.0d);
-
-					// Apply the progress to the progress bar, and animate it if its supported in the SDK.
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-						this.progressBar.setProgress(p, true);
-					} else {
-						this.progressBar.setProgress(p);
-					}
-				} else {
-
-					// Log that the progress bar has not been set up yet.
-					Log.w("setProgressBar", "Progressbar has not been initialized yet");
-				}
+				// Log that the progress bar has not been set up yet.
+				Log.w("setProgressBar", "Progressbar has not been initialized yet");
+			}
 		});
 	}
 
@@ -576,7 +587,9 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * Shows the retry button by setting the view to visible, hiding the progress bar,
 	 * and by setting the click action of the button to launch the onResume() method once again.
 	 */
+	@AnyThread
 	private void showRetryButton() {
+
 		// Since we are updating UI elements, run the following on the UI thread.
 		this.runOnUiThread(() -> {
 
