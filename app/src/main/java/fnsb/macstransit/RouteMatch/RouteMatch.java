@@ -16,6 +16,7 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.regex.Pattern;
 
@@ -90,17 +91,6 @@ public class RouteMatch {
 	}
 
 	/**
-	 * Gets the master schedule from the RouteMatch server.
-	 *
-	 * @return The master Schedule as a JSONObject.
-	 * @deprecated Use callMasterSchedule.
-	 */
-	@Deprecated
-	public JSONObject getMasterSchedule() {
-		return Network.getJsonFromUrl(this.url + "masterRoute/", false);
-	}
-
-	/**
 	 * TODO Documentation
 	 * @param successCallback
 	 * @param onError
@@ -124,40 +114,25 @@ public class RouteMatch {
 	}
 
 	/**
-	 * Gets all the stops for the specified route from the RouteMatch server.
-	 *
-	 * @param route The route pertaining to the stops.
-	 * @return The JSONObject pertaining to all the stops for the specified route.
+	 * TODO Documentation
+	 * @param stopName
+	 * @param successCallback
+	 * @param onError
 	 */
-	@Deprecated
-	public JSONObject getAllStops(@NonNull Route route) {
-		return Network.getJsonFromUrl(this.url + "stops/" + route.urlFormattedName, true);
-	}
+	public void callDeparturesByStop(@NonNull String stopName, Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError) {
 
-	/**
-	 * Gets the departure (and arrival) information from the specified stop from the RouteMatch server.
-	 *
-	 * @param stopName The stop to get the information for.
-	 * @return The json object contain the departure (and arrival) information
-	 */
-	@Deprecated
-	public JSONObject getDeparturesByStop(@NonNull String stopName) {
-
-		// Try to create the url that will be used to retrieve the stop data.
+		String url;
 		try {
-			String url = this.url + "departures/byStop/" + Pattern.compile("\\+").
+			url = this.url + "departures/byStop/" + Pattern.compile("\\+").
 					matcher(java.net.URLEncoder.encode(stopName, "UTF-8")).replaceAll("%20");
-			Log.d("getDeparturesByStop", "URL: " + url);
-
-			// Return the stop data from the URL.
-			return Network.getJsonFromUrl(url, false);
-		} catch (java.io.UnsupportedEncodingException e) {
-
-			// If there was an encoding exception thrown simply return an empty json object (and log it).
-			Log.e("getStop",
-					"The encoded stop was malformed! Returning an empty JSONObject instead", e);
-			return new JSONObject();
+		} catch (UnsupportedEncodingException e) {
+			Log.e("callDeparturesByStop", "Cannot encode URL", e);
+			return;
 		}
+
+		JsonObjectRequest request = new JsonObjectRequest(url, null, successCallback, onError);
+		request.setRetryPolicy(RouteMatch.RETRY_POLICY);
+		this.networkQueue.add(request);
 	}
 
 	/**
@@ -196,18 +171,5 @@ public class RouteMatch {
 		JsonObjectRequest request = new JsonObjectRequest(this.url + "landRoute/byRoute/" + route.urlFormattedName, null, successCallback, onError);
 		request.setRetryPolicy(RouteMatch.RETRY_POLICY);
 		this.networkQueue.add(request);
-	}
-
-	/**
-	 * Gets the land route
-	 * (the route the buses will take) of a particular route from the RouteMatch server.
-	 *
-	 * @param route The route to be fetched.
-	 * @return The JSONObject pertaining to the specific route
-	 * (what route it will take as a series of latitude and longitude coordinates).
-	 */
-	@Deprecated
-	public JSONObject getLandRoute(@NonNull Route route) {
-		return Network.getJsonFromUrl(this.url + "landRoute/byRoute/" + route.routeName, true);
 	}
 }
