@@ -112,6 +112,18 @@ public class RouteMatch {
 	}
 
 	/**
+	 * TODO Documentation
+	 * @param route
+	 * @param successCallback
+	 * @param onError
+	 */
+	public void callAllStops(@NonNull Route route, Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError) {
+		JsonObjectRequest request = new JsonObjectRequest(this.url + "stops/" + route.urlFormattedName, null, successCallback, onError);
+		request.setRetryPolicy(RouteMatch.RETRY_POLICY);
+		this.networkQueue.add(request);
+	}
+
+	/**
 	 * Gets all the stops for the specified route from the RouteMatch server.
 	 *
 	 * @param route The route pertaining to the stops.

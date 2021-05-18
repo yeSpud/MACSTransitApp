@@ -8,12 +8,11 @@ import android.view.View;
 
 import androidx.annotation.AnyThread;
 
-import com.android.volley.RequestQueue;
-
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
+import fnsb.macstransit.Threads.SplashActivityLock;
 
 /**
  * Created by Spud on 2019-11-04 for the project: MACS Transit.
@@ -33,12 +32,12 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * <li>Downloading the master schedule (1)</li>
 	 * <li>Load bus routes (Route) (8) - average number of routes</li>
 	 * <li>Map the bus routes (Polyline) (1)</li>
-	 * <li>Map the bus stops (8)</li>
-	 * <li>Map the shared stops (1)</li>
-	 * <li>Validate the stops (1)</li>
+	 * <li>Map the bus stops (1)</li>
+	 * <li>Map the shared stops (8)</li>
+	 * <li>Validate the stops (8)</li>
 	 * </ul>
 	 */
-	private static final double maxProgress = 1 + 8 + 1 + 8 + 1 + 1;
+	private static final double maxProgress = 1 + 8 + 1 + 1 + 8 + 8;
 
 	/**
 	 * Create a variable to check if the map activity has already been loaded
@@ -58,14 +57,14 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	private android.widget.ProgressBar progressBar;
 
 	/**
-	 * TODO Documentation
-	 */
-	public static final Object LOCK = new Object();
-
-	/**
 	 * The Button widget in the activity.
 	 */
 	private android.widget.Button button;
+
+	/**
+	 * TODO Documentation
+	 */
+	private final SplashActivityLock lockCallback = new SplashActivityLock();
 
 	/**
 	 * Called when the activity is starting.
@@ -220,7 +219,13 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 					});
 
 			// Wait for the callback to finish.
-			SplashActivity.waitForLock();
+			synchronized (SplashActivityLock.LOCK) {
+				try {
+					SplashActivityLock.LOCK.wait();
+				} catch (InterruptedException e) {
+					Log.e("initializeApp", "Interrupted!", e);
+				}
+			}
 			this.setProgressBar(1 + 8);
 
 			// Map bus routes (map polyline coordinates).
@@ -323,17 +328,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Iterate though each route, and try to load the polyline in each of them.
 		for (Route route : MapsActivity.allRoutes) {
 			route.loadPolyLineCoordinates();
+			this.lockCallback.waitForLock();
 		}
-
-		// TODO Documentation
-		MapsActivity.routeMatch.networkQueue.addRequestEventListener((request, event) -> {
-			if (event == RequestQueue.RequestEvent.REQUEST_FINISHED) {
-				synchronized (SplashActivity.LOCK) {
-					SplashActivity.LOCK.notifyAll();
-				}
-			}
-		});
-		SplashActivity.waitForLock();
 
 		// Update the progress bar one final time for this method.
 		this.setProgressBar(1 + 8 + 1);
@@ -354,20 +350,14 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			return;
 		}
 
-		// Determine the progress step.
-		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 8 + 8;
-
 		// Iterate thorough all the routes to load each stop.
 		for (Route route : MapsActivity.allRoutes) {
-			route.stops = route.loadStops();
-
-			// Update the progress.
-			currentProgress += step;
-			this.setProgressBar(currentProgress);
+			route.loadStops();
+			this.lockCallback.waitForLock();
 		}
 
 		// Update the progress one last time for this method.
-		this.setProgressBar(1 + 8 + 8 + 8);
+		this.setProgressBar(1 + 8 + 1 + 1);
 	}
 
 	/**
@@ -388,7 +378,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Set the current progress.
-		double step = 1.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 8 + 8 + 8;
+		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 8 + 1 + 1;
 
 		// Iterate though all the routes.
 		for (int routeIndex = 0; routeIndex < MapsActivity.allRoutes.length; routeIndex++) {
@@ -439,7 +429,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Update the progress bar one last time for this method.
-		this.setProgressBar(1 + 8 + 8 + 8 + 1);
+		this.setProgressBar(1 + 8 + 1 + 1 + 8);
 	}
 
 	/**
@@ -458,7 +448,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Determine the progress step.
-		double step = 1.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 8 + 8 + 8 + 1;
+		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 8 + 1 + 1 + 8;
 
 		// Iterate though all the routes and recreate the stops for each route.
 		for (Route route : MapsActivity.allRoutes) {
@@ -477,7 +467,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Update the progress bar one last time for this method.
-		this.setProgressBar(1 + 8 + 8 + 8 + 1 + 1);
+		this.setProgressBar(1 + 8 + 1 + 1 + 8 + 8);
 	}
 
 	/**
@@ -490,6 +480,9 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 		// Set the selected favorites routes to be false for the maps activity.
 		MapsActivity.selectedFavorites = false;
+
+		// Remove our callback
+		MapsActivity.routeMatch.networkQueue.removeRequestEventListener(this.lockCallback);
 
 		/*
 		Suggest some garbage collection since we are done with a lot of heavy processing.
@@ -597,18 +590,5 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.button.setOnClickListener((click) -> this.onResume());
 			this.button.setVisibility(View.VISIBLE);
 		});
-	}
-
-	/**
-	 * TODO Documentation
-	 */
-	private static void waitForLock() {
-		synchronized (SplashActivity.LOCK) {
-			try {
-				SplashActivity.LOCK.wait();
-			} catch (InterruptedException e) {
-				Log.e("waitForLock", "Interrupted!", e);
-			}
-		}
 	}
 }

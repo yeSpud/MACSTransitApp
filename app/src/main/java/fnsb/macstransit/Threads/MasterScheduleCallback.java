@@ -48,8 +48,8 @@ public class MasterScheduleCallback implements com.android.volley.Response.Liste
 
 		fnsb.macstransit.Activities.MapsActivity.allRoutes = fnsb.macstransit.RouteMatch.Route.generateRoutes(routes);
 
-		synchronized (SplashActivity.LOCK) {
-			SplashActivity.LOCK.notifyAll();
+		synchronized (SplashActivityLock.LOCK) {
+			SplashActivityLock.LOCK.notifyAll();
 		}
 	}
 }

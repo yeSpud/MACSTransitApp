@@ -62,8 +62,9 @@ public class Route {
 
 	/**
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
+	 * TODO Explain why this is private!
 	 */
-	public LatLng[] polyLineCoordinates;
+	private LatLng[] polyLineCoordinates;
 
 	/**
 	 * Whether or not the route is enabled or disabled (to be shown or hidden). Default is false (disabled).
@@ -253,27 +254,26 @@ public class Route {
 	}
 
 	/**
-	 * Retrieves and parses the stops for the given route.
-	 * This function does not apply the stops the route.
-	 *
-	 * @return The array stops corresponding the route.
+	 * TODO Documentation
 	 */
-	public Stop[] loadStops() {
+	public void loadStops() {
 
 		// Get all the stops for the route from the RouteMatch object.
-		JSONObject allStopsObject = MapsActivity.routeMatch.getAllStops(this);
+		//JSONObject allStopsObject = MapsActivity.routeMatch.getAllStops(this);
+		MapsActivity.routeMatch.callAllStops(this, result -> {
 
-		// Get the data from all the stops and store it in a JSONArray.
-		JSONArray data = RouteMatch.parseData(allStopsObject);
+			// Get the data from all the stops and store it in a JSONArray.
+			JSONArray data = RouteMatch.parseData(result);
 
-		// Load in all the potential stops for the route.
-		// The reason why this is considered potential stops is because at this stage duplicate
-		// stops have not yet been handled.
-		Stop[] potentialStops = Stop.generateStops(data, this);
+			// Load in all the potential stops for the route.
+			// The reason why this is considered potential stops is because at this stage duplicate
+			// stops have not yet been handled.
+			Stop[] potentialStops = Stop.generateStops(data, this);
 
-		// Return the validated version of the generated stops.
-		// At this point duplicate stops have now been handled and removed.
-		return Stop.validateGeneratedStops(potentialStops);
+			// At this point duplicate stops have now been handled and removed.
+			this.stops = Stop.validateGeneratedStops(potentialStops);
+
+		}, error -> Log.w("loadStops", "Unable to get stops from RouteMatch server", error));
 	}
 
 	/**
@@ -415,6 +415,15 @@ public class Route {
 	@Nullable
 	public SharedStop[] getSharedStops() {
 		return this.sharedStops;
+	}
+
+	/**
+	 * TODO Documentation
+	 * @return
+	 */
+	@Nullable
+	public LatLng[] getPolyLineCoordinates() {
+		return this.polyLineCoordinates;
 	}
 
 	/**
