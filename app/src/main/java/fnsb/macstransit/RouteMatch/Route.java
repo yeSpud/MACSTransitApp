@@ -14,6 +14,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.regex.Pattern;
 
 import fnsb.macstransit.Activities.MapsActivity;
@@ -35,10 +37,13 @@ public class Route {
 
 	/**
 	 * The name of the route.
-	 * Note: This cannot contain whitespace characters (ie spaces, tabs, or new lines),
-	 * as its used in a url.
 	 */
 	public final String routeName;
+
+	/**
+	 * TODO Documentation
+	 */
+	public final String urlFormattedName;
 
 	/**
 	 * The color of the route.
@@ -86,9 +91,9 @@ public class Route {
 	 *
 	 * @param routeName The name of the route. Be sure this does <b>NOT</b>
 	 *                  contain any whitespace characters!
-	 * @throws RouteException Thrown if the route name contains white space characters.
+	 * @throws RouteException TODO Documentation
 	 */
-	public Route(@NonNull String routeName) throws RouteException {
+	public Route(@NonNull String routeName) throws UnsupportedEncodingException {
 		this(routeName, 0);
 	}
 
@@ -101,19 +106,11 @@ public class Route {
 	 * @param color     The route's color. This is optional,
 	 *                  and of the color is non-existent simply use the
 	 *                  {@code Route(String routeName)} constructor.
-	 * @throws RouteException Thrown if the route name contains white space characters.
+	 * @throws UnsupportedEncodingException TODO Documentation
 	 */
-	public Route(String routeName, int color) throws RouteException {
-
-		// Create a simple regex to check for any white space characters.
-		Pattern whitespace = Pattern.compile("\\s");
-
-		// If there were any white space characters found then throw a RouteException.
-		if (whitespace.matcher(routeName).find()) {
-			throw new RouteException("Route name cannot contain white space!");
-		} else {
-			this.routeName = routeName;
-		}
+	public Route(String routeName, int color) throws UnsupportedEncodingException {
+		this.routeName = routeName;
+		this.urlFormattedName = Pattern.compile("\\+").matcher(URLEncoder.encode(routeName, "UTF-8")).replaceAll("%20");
 		this.color = color;
 	}
 
@@ -148,7 +145,7 @@ public class Route {
 			try {
 				routeData = masterSchedule.getJSONObject(index);
 			} catch (JSONException e) {
-				Log.w("generateRoutes", "Issue retrieving the route data");
+				Log.w("generateRoutes", "Issue retrieving the route data", e);
 				continue;
 			}
 
@@ -158,8 +155,8 @@ public class Route {
 				Route route = Route.generateRoute(routeData);
 				potentialRoutes[routeCount] = route;
 				routeCount++;
-			} catch (RouteException e) {
-				Log.w("generateRoutes", "Issue creating route from route data");
+			} catch (RouteException | UnsupportedEncodingException e) {
+				Log.w("generateRoutes", "Issue creating route from route data", e);
 			}
 		}
 
@@ -176,9 +173,10 @@ public class Route {
 	 * @param jsonObject The json object contain the data to create a new route object.
 	 * @return The newly created route object.
 	 * @throws RouteException Thrown if the json object is null, or if the route name is unable to be parsed.
+	 * @throws UnsupportedEncodingException TODO Documentation
 	 */
 	@NonNull
-	private static Route generateRoute(JSONObject jsonObject) throws RouteException {
+	private static Route generateRoute(JSONObject jsonObject) throws RouteException, UnsupportedEncodingException {
 
 		// Make sure the provided json object is not null.
 		if (jsonObject == null) {
@@ -282,10 +280,8 @@ public class Route {
 	 * Loads the polyline coordinates for the route object by retrieving the array from the RouteMatch server.
 	 * This method will either set the polyline coordinates for the route,
 	 * or will return early if the route match object is null.
-	 *
-	 * @throws JSONException Thrown if there is an issue parsing the polyline coordinates from the returned json.
 	 */
-	public void loadPolyLineCoordinates() throws JSONException {
+	public void loadPolyLineCoordinates() {
 
 		// Make sure the RouteMatch object exists.
 		if (MapsActivity.routeMatch == null) {
@@ -293,43 +289,51 @@ public class Route {
 			return;
 		}
 
-		// Get the land route json object from the RouteMatch server.
-		JSONObject landRouteObject = MapsActivity.routeMatch.getLandRoute(this);
+		// TODO Comments
+		MapsActivity.routeMatch.callLandRoute(this, response -> {
 
-		// Get the land route data array from the land route object.
-		JSONArray landRouteData = RouteMatch.parseData(landRouteObject);
+			try {
+				// Get the land route data array from the land route object.
+				JSONArray landRouteData = RouteMatch.parseData(response);
 
-		// Get the land route points object from the land route data array.
-		JSONObject landRoutePoints = landRouteData.getJSONObject(0);
+				// Get the land route points object from the land route data array.
+				JSONObject landRoutePoints = landRouteData.getJSONObject(0);
 
-		// Get the land route points array from the land route points object.
-		JSONArray landRoutePointsArray = landRoutePoints.getJSONArray("points");
+				// Get the land route points array from the land route points object.
+				JSONArray landRoutePointsArray = landRoutePoints.getJSONArray("points");
 
-		// Get the number of points in the array.
-		int count = landRoutePointsArray.length();
+				// Get the number of points in the array.
+				int count = landRoutePointsArray.length();
 
-		// Create a new LatLng array to store all the coordinates.
-		LatLng[] coordinates = new LatLng[count];
+				// Create a new LatLng array to store all the coordinates.
+				LatLng[] coordinates = new LatLng[count];
 
-		// Initialize the array of coordinates by iterating through the land route points array.
-		for (int i = 0; i < count; i++) {
+				// Initialize the array of coordinates by iterating through the land route points array.
+				for (int i = 0; i < count; i++) {
 
-			// Get the land route point object from the land route points array.
-			JSONObject landRoutePoint = landRoutePointsArray.getJSONObject(i);
+					// Get the land route point object from the land route points array.
+					JSONObject landRoutePoint = landRoutePointsArray.getJSONObject(i);
 
-			// Get the latitude and longitude from the land route point.
-			double latitude = landRoutePoint.getDouble("latitude"),
-					longitude = landRoutePoint.getDouble("longitude");
+					// Get the latitude and longitude from the land route point.
+					double latitude = landRoutePoint.getDouble("latitude"),
+							longitude = landRoutePoint.getDouble("longitude");
 
-			// Create a new LatLng object using the latitude and longitude.
-			LatLng latLng = new LatLng(latitude, longitude);
+					// Create a new LatLng object using the latitude and longitude.
+					LatLng latLng = new LatLng(latitude, longitude);
 
-			// Add the newly created LatLng object to the LatLng array.
-			coordinates[i] = latLng;
-		}
+					// Add the newly created LatLng object to the LatLng array.
+					coordinates[i] = latLng;
+				}
 
-		// Set the polyline coordinates array to the finished LatLng array.
-		this.polyLineCoordinates = coordinates;
+				// Set the polyline coordinates array to the finished LatLng array.
+				this.polyLineCoordinates = coordinates;
+
+			} catch (JSONException exception) {
+				Log.e("loadPolyLineCoordinates", "Error parsing json", exception);
+			}
+		}, error -> Log.w("loadPolyLineCoordinates",
+				"Unable to get polyline from routematch server", error));
+
 	}
 
 	/**

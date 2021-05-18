@@ -9,8 +9,8 @@ import androidx.annotation.Nullable;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.RetryPolicy;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.JsonRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
@@ -39,7 +39,12 @@ public class RouteMatch {
 	/**
 	 * TODO Documentation
 	 */
-	private final RequestQueue networkQueue;
+	public final RequestQueue networkQueue;
+
+	/**
+	 * TODO Documentation
+	 */
+	private static final RetryPolicy RETRY_POLICY = new DefaultRetryPolicy(90000, 3, 1);
 
 	/**
 	 * Constructor for the RouteMatch object.
@@ -88,6 +93,7 @@ public class RouteMatch {
 	 * Gets the master schedule from the RouteMatch server.
 	 *
 	 * @return The master Schedule as a JSONObject.
+	 * @deprecated Use callMasterSchedule.
 	 */
 	@Deprecated
 	public JSONObject getMasterSchedule() {
@@ -100,9 +106,8 @@ public class RouteMatch {
 	 * @param onError
 	 */
 	public void callMasterSchedule(Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError) {
-
-		JsonObjectRequest request = new JsonObjectRequest(url + "masterRoute/", null, successCallback, onError);
-		request.setRetryPolicy(new DefaultRetryPolicy(90000, 3, 1));
+		JsonObjectRequest request = new JsonObjectRequest(this.url + "masterRoute/", null, successCallback, onError);
+		request.setRetryPolicy(RouteMatch.RETRY_POLICY);
 		this.networkQueue.add(request);
 	}
 
@@ -114,7 +119,7 @@ public class RouteMatch {
 	 */
 	@Deprecated
 	public JSONObject getAllStops(@NonNull Route route) {
-		return Network.getJsonFromUrl(this.url + "stops/" + route.routeName, true);
+		return Network.getJsonFromUrl(this.url + "stops/" + route.urlFormattedName, true);
 	}
 
 	/**
@@ -126,14 +131,10 @@ public class RouteMatch {
 	@Deprecated
 	public JSONObject getDeparturesByStop(@NonNull String stopName) {
 
-		// Create a pattern to match special URL characters.
-		final Pattern pattern = Pattern.compile("\\+");
-
 		// Try to create the url that will be used to retrieve the stop data.
 		try {
-			String url = this.url + "departures/byStop/" +
-					pattern.matcher(java.net.URLEncoder.encode(stopName, "UTF-8"))
-							.replaceAll("%20");
+			String url = this.url + "departures/byStop/" + Pattern.compile("\\+").
+					matcher(java.net.URLEncoder.encode(stopName, "UTF-8")).replaceAll("%20");
 			Log.d("getDeparturesByStop", "URL: " + url);
 
 			// Return the stop data from the URL.
@@ -166,11 +167,23 @@ public class RouteMatch {
 
 		// Iterate through each route and append the route name plus the separator to our string builder.
 		for (Route route : routes) {
-			routesString.append(route.routeName).append(separator);
+			routesString.append(route.urlFormattedName).append(separator);
 		}
 
 		// Return the bus data from the url.
 		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + routesString, false);
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param route
+	 * @param successCallback
+	 * @param onError
+	 */
+	public void callLandRoute(@NonNull Route route, Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError) {
+		JsonObjectRequest request = new JsonObjectRequest(this.url + "landRoute/byRoute/" + route.urlFormattedName, null, successCallback, onError);
+		request.setRetryPolicy(RouteMatch.RETRY_POLICY);
+		this.networkQueue.add(request);
 	}
 
 	/**

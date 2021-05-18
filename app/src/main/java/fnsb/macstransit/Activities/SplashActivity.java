@@ -8,6 +8,8 @@ import android.view.View;
 
 import androidx.annotation.AnyThread;
 
+import com.android.volley.RequestQueue;
+
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
@@ -30,13 +32,13 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * <ul>
 	 * <li>Downloading the master schedule (1)</li>
 	 * <li>Load bus routes (Route) (8) - average number of routes</li>
-	 * <li>Map the bus routes (Polyline) (8)</li>
+	 * <li>Map the bus routes (Polyline) (1)</li>
 	 * <li>Map the bus stops (8)</li>
 	 * <li>Map the shared stops (1)</li>
 	 * <li>Validate the stops (1)</li>
 	 * </ul>
 	 */
-	private static final double maxProgress = 1 + 8 + 8 + 8 + 1 + 1;
+	private static final double maxProgress = 1 + 8 + 1 + 8 + 1 + 1;
 
 	/**
 	 * Create a variable to check if the map activity has already been loaded
@@ -198,7 +200,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.setMessage(R.string.routematch_creation);
 			try {
 				MapsActivity.routeMatch = new fnsb.macstransit.RouteMatch.
-						RouteMatch("https://fortsmith.routematch.com/feed/", this.getApplicationContext());
+						RouteMatch("https://fortsmith.routematch.com/feed/", this.getApplicationContext()); // TODO Revert me!
 			} catch (java.net.MalformedURLException e) {
 				Log.e("initializeApp", "", e);
 				this.setMessage(R.string.routematch_creation_fail);
@@ -218,14 +220,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 					});
 
 			// Wait for the callback to finish.
-			synchronized (SplashActivity.LOCK) {
-				try {
-					SplashActivity.LOCK.wait();
-				} catch (InterruptedException e) {
-					Log.e("initializeApp", "Interrupted!", e);
-					return;
-				}
-			}
+			SplashActivity.waitForLock();
 			this.setProgressBar(1 + 8);
 
 			// Map bus routes (map polyline coordinates).
@@ -325,26 +320,23 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			return;
 		}
 
-		// Determine the progress step.
-		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 8;
-
 		// Iterate though each route, and try to load the polyline in each of them.
 		for (Route route : MapsActivity.allRoutes) {
-			try {
-				route.loadPolyLineCoordinates();
-			} catch (org.json.JSONException e) {
-
-				// If there is a JSONException while loading the polyline coordinates, just log it.
-				Log.e("mapBusRoutes", String.format("Unable to map route %s", route.routeName), e);
-			}
-
-			// Update the progress.
-			currentProgress += step;
-			this.setProgressBar(currentProgress);
+			route.loadPolyLineCoordinates();
 		}
 
+		// TODO Documentation
+		MapsActivity.routeMatch.networkQueue.addRequestEventListener((request, event) -> {
+			if (event == RequestQueue.RequestEvent.REQUEST_FINISHED) {
+				synchronized (SplashActivity.LOCK) {
+					SplashActivity.LOCK.notifyAll();
+				}
+			}
+		});
+		SplashActivity.waitForLock();
+
 		// Update the progress bar one final time for this method.
-		this.setProgressBar(1 + 8 + 8);
+		this.setProgressBar(1 + 8 + 1);
 	}
 
 	/**
@@ -607,4 +599,16 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		});
 	}
 
+	/**
+	 * TODO Documentation
+	 */
+	private static void waitForLock() {
+		synchronized (SplashActivity.LOCK) {
+			try {
+				SplashActivity.LOCK.wait();
+			} catch (InterruptedException e) {
+				Log.e("waitForLock", "Interrupted!", e);
+			}
+		}
+	}
 }
