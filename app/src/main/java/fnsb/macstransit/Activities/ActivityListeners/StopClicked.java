@@ -417,6 +417,11 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		// Get the name of the stop.
 		String name = marker.getTitle();
 
+		// If the name is null return early.
+		if (name == null) {
+			return;
+		}
+
 		// For now just set the snippet text to "retrieving stop times" as a callback method gets the times.
 		marker.setSnippet(this.activity.getString(fnsb.macstransit.R.string.retrieving_stop_times));
 
@@ -434,7 +439,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 				Log.v("showMarker", "Refreshing info window");
 				marker.showInfoWindow();
 			});
-				}, error -> Log.e("showMarker", "Unable to get departure times", error));
+				}, error -> Log.e("showMarker", "Unable to get departure times", error), this);
 
 		// For now though just show the info window.
 		marker.showInfoWindow();

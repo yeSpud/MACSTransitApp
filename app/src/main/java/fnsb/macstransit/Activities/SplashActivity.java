@@ -216,7 +216,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 						Log.w("initializeApp", "MasterSchedule callback error", error);
 						this.setMessage(R.string.routematch_timeout);
 						this.showRetryButton();
-					});
+					}, this);
 
 			// Wait for the callback to finish.
 			synchronized (SplashActivityLock.LOCK) {

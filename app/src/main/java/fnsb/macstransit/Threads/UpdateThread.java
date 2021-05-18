@@ -5,6 +5,7 @@ import android.util.Log;
 
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.Bus;
+import fnsb.macstransit.RouteMatch.RouteMatch;
 
 /**
  * Created by Spud on 2019-10-13 for the project: MACS Transit.
@@ -118,6 +119,8 @@ public class UpdateThread {
 						// Notify the developer that the thread is now looping.
 						Log.d("UpdateThread", "Looping...");
 
+						MapsActivity.routeMatch.networkQueue.cancelAll(this);
+
 						switch (this.state) {
 							case RUN:
 
@@ -192,26 +195,25 @@ public class UpdateThread {
 		}
 
 		// Get the buses from the RouteMatch server.
-		org.json.JSONObject returnedVehicles = MapsActivity.routeMatch.
-				getVehiclesByRoutes(MapsActivity.allRoutes);
-		org.json.JSONArray vehiclesJson = fnsb.macstransit.RouteMatch.RouteMatch.
-				parseData(returnedVehicles);
+		MapsActivity.routeMatch.callVehiclesByRoutes(response -> {
+			org.json.JSONArray vehiclesJson = fnsb.macstransit.RouteMatch.RouteMatch.parseData(response);
 
-		// Get the array of buses. This array will include current and new buses.
-		Bus[] buses;
-		try {
-			buses = Bus.getBuses(vehiclesJson);
-		} catch (fnsb.macstransit.RouteMatch.Route.RouteException e) {
+			// Get the array of buses. This array will include current and new buses.
+			Bus[] buses;
+			try {
+				buses = Bus.getBuses(vehiclesJson);
+			} catch (fnsb.macstransit.RouteMatch.Route.RouteException e) {
 
-			// If there was a route exception thrown just break early after logging it.
-			Log.e("UpdateThread", "Exception thrown while parsing buses", e);
-			return;
-		}
+				// If there was a route exception thrown just break early after logging it.
+				Log.e("UpdateThread", "Exception thrown while parsing buses", e);
+				return;
+			}
 
-		// Update the bus positions on the map on the UI thread.
-		// This must be executed on the UI thread or else the app will crash.
-		this.updateBuses.potentialNewBuses = buses;
-		this.UIHandler.post(this.updateBuses);
+			// Update the bus positions on the map on the UI thread.
+			// This must be executed on the UI thread or else the app will crash.
+			this.updateBuses.potentialNewBuses = buses;
+			this.UIHandler.post(this.updateBuses);
+		}, error -> Log.w("fetchBuses", "Unable to fetch buses", error), this, MapsActivity.allRoutes);
 	}
 
 	/**

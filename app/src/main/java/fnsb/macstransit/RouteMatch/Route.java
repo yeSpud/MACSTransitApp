@@ -273,7 +273,7 @@ public class Route {
 			// At this point duplicate stops have now been handled and removed.
 			this.stops = Stop.validateGeneratedStops(potentialStops);
 
-		}, error -> Log.w("loadStops", "Unable to get stops from RouteMatch server", error));
+		}, error -> Log.w("loadStops", "Unable to get stops from RouteMatch server", error), this);
 	}
 
 	/**
@@ -332,7 +332,7 @@ public class Route {
 				Log.e("loadPolyLineCoordinates", "Error parsing json", exception);
 			}
 		}, error -> Log.w("loadPolyLineCoordinates",
-				"Unable to get polyline from routematch server", error));
+				"Unable to get polyline from routematch server", error), this);
 
 	}
 

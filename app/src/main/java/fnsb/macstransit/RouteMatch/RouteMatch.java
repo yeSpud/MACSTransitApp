@@ -94,11 +94,10 @@ public class RouteMatch {
 	 * TODO Documentation
 	 * @param successCallback
 	 * @param onError
+	 * @param tag
 	 */
-	public void callMasterSchedule(Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError) {
-		JsonObjectRequest request = new JsonObjectRequest(this.url + "masterRoute/", null, successCallback, onError);
-		request.setRetryPolicy(RouteMatch.RETRY_POLICY);
-		this.networkQueue.add(request);
+	public void callMasterSchedule(Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError, Object tag) {
+		this.executeNetworkRequest(this.url + "masterRoute/", successCallback, onError, tag);
 	}
 
 	/**
@@ -106,11 +105,10 @@ public class RouteMatch {
 	 * @param route
 	 * @param successCallback
 	 * @param onError
+	 * @param tag
 	 */
-	public void callAllStops(@NonNull Route route, Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError) {
-		JsonObjectRequest request = new JsonObjectRequest(this.url + "stops/" + route.urlFormattedName, null, successCallback, onError);
-		request.setRetryPolicy(RouteMatch.RETRY_POLICY);
-		this.networkQueue.add(request);
+	public void callAllStops(@NonNull Route route, Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError, Object tag) {
+		this.executeNetworkRequest(this.url + "stops/" + route.urlFormattedName, successCallback, onError, tag);
 	}
 
 	/**
@@ -118,8 +116,9 @@ public class RouteMatch {
 	 * @param stopName
 	 * @param successCallback
 	 * @param onError
+	 * @param tag
 	 */
-	public void callDeparturesByStop(@NonNull String stopName, Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError) {
+	public void callDeparturesByStop(@NonNull String stopName, Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError, Object tag) {
 
 		String url;
 		try {
@@ -130,9 +129,7 @@ public class RouteMatch {
 			return;
 		}
 
-		JsonObjectRequest request = new JsonObjectRequest(url, null, successCallback, onError);
-		request.setRetryPolicy(RouteMatch.RETRY_POLICY);
-		this.networkQueue.add(request);
+		this.executeNetworkRequest(url, successCallback, onError, tag);
 	}
 
 	/**
@@ -163,13 +160,43 @@ public class RouteMatch {
 
 	/**
 	 * TODO Documentation
+	 * @param successCallback
+	 * @param onError
+	 * @param tag
+	 * @param routes
+	 */
+	public void callVehiclesByRoutes(Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError, Object tag, @NonNull Route... routes) {
+		final String separator = "%2C";
+		StringBuilder routesString = new StringBuilder(separator.length() * routes.length);
+		for (Route route : routes) {
+			routesString.append(route.urlFormattedName).append(separator);
+		}
+		this.executeNetworkRequest(this.url + "vehicle/byRoutes/" + routesString, successCallback, onError, tag);
+	}
+
+	/**
+	 * TODO Documentation
 	 * @param route
 	 * @param successCallback
 	 * @param onError
+	 * @param tag
 	 */
-	public void callLandRoute(@NonNull Route route, Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError) {
-		JsonObjectRequest request = new JsonObjectRequest(this.url + "landRoute/byRoute/" + route.urlFormattedName, null, successCallback, onError);
+	public void callLandRoute(@NonNull Route route, Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError, Object tag) {
+		this.executeNetworkRequest(this.url + "landRoute/byRoute/" + route.urlFormattedName, successCallback, onError, tag);
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param url
+	 * @param successCallback
+	 * @param onError
+	 * @param tag
+	 */
+	private void executeNetworkRequest(@NonNull String url, @NonNull Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError, Object tag) {
+		Log.d("executeNetworkRequest", "Querying url: " + url);
+		JsonObjectRequest request = new JsonObjectRequest(url, null, successCallback, onError);
 		request.setRetryPolicy(RouteMatch.RETRY_POLICY);
+		request.setTag(tag);
 		this.networkQueue.add(request);
 	}
 }

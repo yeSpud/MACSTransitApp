@@ -27,7 +27,7 @@ public class SplashActivityLock implements RequestQueue.RequestEventListener {
 		if (event == RequestQueue.RequestEvent.REQUEST_FINISHED) {
 			synchronized (SplashActivityLock.LOCK) {
 				Log.d("SplashActivityLock", "Notifying lock");
-				SplashActivityLock.LOCK.notifyAll();
+				SplashActivityLock.LOCK.notify();
 			}
 		}
 	}
