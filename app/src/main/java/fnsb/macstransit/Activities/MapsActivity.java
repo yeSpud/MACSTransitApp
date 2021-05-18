@@ -59,7 +59,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 	/**
 	 * Create the map object. This will be null until the map is ready to be used.
+	 * Deprecated because this leaks memory in the static form.
 	 */
+	@Deprecated
 	@Nullable
 	public static GoogleMap map;
 
@@ -447,6 +449,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		if (MapsActivity.updateThread != null) {
 			MapsActivity.updateThread.stop();
 			MapsActivity.updateThread = null;
+		}
+
+		// Be sure to clear the map.
+		if (MapsActivity.map != null) {
+			MapsActivity.map.clear();
 		}
 	}
 

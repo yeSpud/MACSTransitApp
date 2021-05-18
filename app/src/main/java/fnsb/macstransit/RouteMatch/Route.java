@@ -201,7 +201,7 @@ public class Route {
 
 			route = new Route(name, color);
 
-		} catch (JSONException e) {
+		} catch (JSONException | IllegalArgumentException e) {
 			Log.w("generateRoute", "Unable to parse color");
 
 			// Since there was an issue parsing the color, and we have the name at this point...

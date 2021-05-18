@@ -56,6 +56,11 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	private android.widget.ProgressBar progressBar;
 
 	/**
+	 * TODO Documentation
+	 */
+	public static final Object LOCK = new Object();
+
+	/**
 	 * The Button widget in the activity.
 	 */
 	private android.widget.Button button;
@@ -193,7 +198,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.setMessage(R.string.routematch_creation);
 			try {
 				MapsActivity.routeMatch = new fnsb.macstransit.RouteMatch.
-						RouteMatch("https://fnsb.routematch.com/feed/", this.getApplicationContext());
+						RouteMatch("https://fortsmith.routematch.com/feed/", this.getApplicationContext());
 			} catch (java.net.MalformedURLException e) {
 				Log.e("initializeApp", "", e);
 				this.setMessage(R.string.routematch_creation_fail);
@@ -204,7 +209,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			// Get the master schedule from the RouteMatch server
 			this.setProgressBar(-1);
 			this.setMessage(R.string.downloading_master_schedule);
-			//org.json.JSONObject masterSchedule = MapsActivity.routeMatch.getMasterSchedule();
 			MapsActivity.routeMatch.callMasterSchedule(
 					new fnsb.macstransit.Threads.MasterScheduleCallback(this),
 					error -> {
@@ -212,23 +216,16 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 						this.setMessage(R.string.routematch_timeout);
 						this.showRetryButton();
 					});
-			/*
-			this.setProgressBar(1);
 
-			// Load the bus routes from the master schedule.
-			this.setMessage(R.string.loading_bus_routes);
-			org.json.JSONArray routes = RouteMatch.parseData(masterSchedule);
-
-			// Check if there are no routes for the day.
-			if (routes.length() == 0) {
-				this.setMessage(R.string.its_sunday);
-
-				// Also add a chance for the user to retry.
-				this.showRetryButton();
-				SplashActivity.loaded = true;
-				return;
+			// Wait for the callback to finish.
+			synchronized (SplashActivity.LOCK) {
+				try {
+					SplashActivity.LOCK.wait();
+				} catch (InterruptedException e) {
+					Log.e("initializeApp", "Interrupted!", e);
+					return;
+				}
 			}
-			MapsActivity.allRoutes = Route.generateRoutes(routes);
 			this.setProgressBar(1 + 8);
 
 			// Map bus routes (map polyline coordinates).
@@ -245,7 +242,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 			// Finally, launch the maps activity.
 			this.launchMapsActivity();
-			 */
 		});
 
 		// Set the name of the thread, and finally return it.

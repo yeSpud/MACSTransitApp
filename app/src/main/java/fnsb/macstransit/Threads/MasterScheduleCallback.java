@@ -1,14 +1,9 @@
 package fnsb.macstransit.Threads;
 
-import com.android.volley.Response;
-
 import org.json.JSONObject;
 
-import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.Activities.SplashActivity;
 import fnsb.macstransit.R;
-import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.RouteMatch.RouteMatch;
 
 /**
  * Created by Spud on 5/17/21 for the project: MACS Transit.
@@ -18,27 +13,30 @@ import fnsb.macstransit.RouteMatch.RouteMatch;
  * @version 1.0.
  * @since Release 1.2.6.
  */
-public class MasterScheduleCallback implements Response.Listener<JSONObject> {
+public class MasterScheduleCallback implements com.android.volley.Response.Listener<JSONObject> {
 
 	/**
 	 * TODO Documentation
 	 */
+	@Deprecated
 	private final SplashActivity activity;
 
 	/**
 	 * TODO Documentation
+	 *
 	 * @param activity
 	 */
 	public MasterScheduleCallback(SplashActivity activity) {
 		this.activity = activity;
 	}
 
+	// TODO Comments
 	@Override
 	public void onResponse(JSONObject response) {
 		this.activity.setProgressBar(1);
 		this.activity.setMessage(R.string.loading_bus_routes);
 
-		org.json.JSONArray routes = RouteMatch.parseData(response);
+		org.json.JSONArray routes = fnsb.macstransit.RouteMatch.RouteMatch.parseData(response);
 		if (routes.length() == 0) {
 			this.activity.setMessage(R.string.its_sunday);
 
@@ -48,23 +46,10 @@ public class MasterScheduleCallback implements Response.Listener<JSONObject> {
 			return;
 		}
 
-		MapsActivity.allRoutes = Route.generateRoutes(routes);
-		this.activity.setProgressBar(1 + 8);
+		fnsb.macstransit.Activities.MapsActivity.allRoutes = fnsb.macstransit.RouteMatch.Route.generateRoutes(routes);
 
-		// Map bus routes (map polyline coordinates).
-		this.activity.mapBusRoutes();
-
-		// Map bus stops.
-		this.activity.mapBusStops();
-
-		// Map shared stops.
-		this.activity.mapSharedStops();
-
-		// Validate stops.
-		this.activity.validateStops();
-
-		// Finally, launch the maps activity.
-		this.activity.launchMapsActivity();
-
+		synchronized (SplashActivity.LOCK) {
+			SplashActivity.LOCK.notifyAll();
+		}
 	}
 }
