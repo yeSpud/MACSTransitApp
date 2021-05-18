@@ -53,4 +53,5 @@
     <string name="shared_bus_stop_check">Checking for shared bus stops</string>
     <string name="stop_validation">Validating stops</string>
     <string name="favorite_routes_explanation">Selected favorited routes will be pre-selected upon app startup.</string>
+    <string name="routematch_timeout">RouteMatch server timed out</string>
 </resources>

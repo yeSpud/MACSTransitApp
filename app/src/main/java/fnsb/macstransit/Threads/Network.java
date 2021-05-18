@@ -32,6 +32,7 @@ import java.net.SocketTimeoutException;
  * @version 1.2.
  * @since Beta 6.
  */
+@Deprecated
 public class Network {
 
 	/**

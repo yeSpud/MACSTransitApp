@@ -10,7 +10,6 @@ import androidx.annotation.AnyThread;
 
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.RouteMatch.RouteMatch;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 
@@ -194,7 +193,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.setMessage(R.string.routematch_creation);
 			try {
 				MapsActivity.routeMatch = new fnsb.macstransit.RouteMatch.
-						RouteMatch("https://fnsb.routematch.com/feed/");
+						RouteMatch("https://fnsb.routematch.com/feed/", this.getApplicationContext());
 			} catch (java.net.MalformedURLException e) {
 				Log.e("initializeApp", "", e);
 				this.setMessage(R.string.routematch_creation_fail);
@@ -205,7 +204,15 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			// Get the master schedule from the RouteMatch server
 			this.setProgressBar(-1);
 			this.setMessage(R.string.downloading_master_schedule);
-			org.json.JSONObject masterSchedule = MapsActivity.routeMatch.getMasterSchedule();
+			//org.json.JSONObject masterSchedule = MapsActivity.routeMatch.getMasterSchedule();
+			MapsActivity.routeMatch.callMasterSchedule(
+					new fnsb.macstransit.Threads.MasterScheduleCallback(this),
+					error -> {
+						Log.w("initializeApp", "MasterSchedule callback error", error);
+						this.setMessage(R.string.routematch_timeout);
+						this.showRetryButton();
+					});
+			/*
 			this.setProgressBar(1);
 
 			// Load the bus routes from the master schedule.
@@ -238,6 +245,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 			// Finally, launch the maps activity.
 			this.launchMapsActivity();
+			 */
 		});
 
 		// Set the name of the thread, and finally return it.
@@ -310,7 +318,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	/**
 	 * Loads the polylines for each route. Also known as mapping the bus routes to the map.
 	 */
-	private void mapBusRoutes() {
+	public void mapBusRoutes() {
 
 		// Display that we are mapping bus routes to the user.
 		this.setMessage(R.string.mapping_bus_routes);
@@ -347,7 +355,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * Loads the bus stops for every route. At this point shared stops are not implemented,
 	 * so stops for separate routes will overlap.
 	 */
-	private void mapBusStops() {
+	public void mapBusStops() {
 
 		// Update the user that we are now mapping (calculating) bus stops.
 		this.setMessage(R.string.mapping_bus_stops);
@@ -380,7 +388,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * If there are any found they will be added to all the routes the stop belongs to as a shared stop.
 	 * At this point the original stop is still present in the route.
 	 */
-	private void mapSharedStops() {
+	public void mapSharedStops() {
 
 		// Let the user know that we are checking for shared bus stops at this point.
 		this.setMessage(R.string.shared_bus_stop_check);
@@ -450,7 +458,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * Validates the stops and shared stops.
 	 * Meaning this method removes the stops that are shared stops as to not duplicate the stop.
 	 */
-	private void validateStops() {
+	public void validateStops() {
 
 		// Let the user know that we are validating the stops (and shared stop) for each route.
 		this.setMessage(R.string.stop_validation);
@@ -487,7 +495,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	/**
 	 * Launches the maps activity.
 	 */
-	private void launchMapsActivity() {
+	public void launchMapsActivity() {
 
 		// Set the loaded state to true as everything was loaded (or should have been loaded).
 		SplashActivity.loaded = true;
@@ -520,7 +528,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * @param resID The string ID of the message. This can be retrieved by calling R.string.STRING_ID.
 	 */
 	@AnyThread
-	private void setMessage(@androidx.annotation.StringRes final int resID) {
+	public void setMessage(@androidx.annotation.StringRes final int resID) {
 
 		// Since we are changing a TextView element, the following needs to be run on the UI thread.
 		this.runOnUiThread(() -> {
@@ -544,7 +552,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * @param progress The current progress out of SplashActivity.maxProgress.
 	 */
 	@AnyThread
-	private void setProgressBar(final double progress) {
+	public void setProgressBar(final double progress) {
 		Log.v("setProgressBar", String.format("Provided progress: %f", progress));
 
 		// Because we are updating UI elements we need to run the following on the UI thread.
@@ -588,7 +596,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * and by setting the click action of the button to launch the onResume() method once again.
 	 */
 	@AnyThread
-	private void showRetryButton() {
+	public void showRetryButton() {
 
 		// Since we are updating UI elements, run the following on the UI thread.
 		this.runOnUiThread(() -> {
@@ -602,4 +610,5 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.button.setVisibility(View.VISIBLE);
 		});
 	}
+
 }

@@ -1,8 +1,17 @@
 package fnsb.macstransit.RouteMatch;
 
+import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonRequest;
+import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -17,7 +26,7 @@ import fnsb.macstransit.Threads.Network;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 3.3.
+ * @version 4.0.
  * @since Beta 1.
  */
 public class RouteMatch {
@@ -28,13 +37,19 @@ public class RouteMatch {
 	private final String url;
 
 	/**
+	 * TODO Documentation
+	 */
+	private final RequestQueue networkQueue;
+
+	/**
 	 * Constructor for the RouteMatch object.
 	 * Be sure that this is a valid url starting with {@code http(s):}, and ends with a {@code /}.
 	 *
 	 * @param url The feed url to pull data from (IE: https://fnsb.routematch.com/feed/).
+	 * @param context
 	 * @throws MalformedURLException Thrown if the url entered is not in a valid url format.
 	 */
-	public RouteMatch(String url) throws MalformedURLException {
+	public RouteMatch(String url, Context context) throws MalformedURLException {
 
 		// Create a regex pattern matcher to match the URL to.
 		final Pattern pattern = Pattern.compile("^https?://\\S+/$");
@@ -45,6 +60,9 @@ public class RouteMatch {
 		} else {
 			throw new MalformedURLException("Url must either be http, or https, and MUST end with /");
 		}
+
+		// TODO
+		this.networkQueue = Volley.newRequestQueue(context);
 	}
 
 	/**
@@ -71,8 +89,21 @@ public class RouteMatch {
 	 *
 	 * @return The master Schedule as a JSONObject.
 	 */
+	@Deprecated
 	public JSONObject getMasterSchedule() {
 		return Network.getJsonFromUrl(this.url + "masterRoute/", false);
+	}
+
+	/**
+	 * TODO Documentation
+	 * @param successCallback
+	 * @param onError
+	 */
+	public void callMasterSchedule(Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError) {
+
+		JsonObjectRequest request = new JsonObjectRequest(url + "masterRoute/", null, successCallback, onError);
+		request.setRetryPolicy(new DefaultRetryPolicy(90000, 3, 1));
+		this.networkQueue.add(request);
 	}
 
 	/**
@@ -81,6 +112,7 @@ public class RouteMatch {
 	 * @param route The route pertaining to the stops.
 	 * @return The JSONObject pertaining to all the stops for the specified route.
 	 */
+	@Deprecated
 	public JSONObject getAllStops(@NonNull Route route) {
 		return Network.getJsonFromUrl(this.url + "stops/" + route.routeName, true);
 	}
@@ -91,6 +123,7 @@ public class RouteMatch {
 	 * @param stopName The stop to get the information for.
 	 * @return The json object contain the departure (and arrival) information
 	 */
+	@Deprecated
 	public JSONObject getDeparturesByStop(@NonNull String stopName) {
 
 		// Create a pattern to match special URL characters.
@@ -120,6 +153,7 @@ public class RouteMatch {
 	 * @param routes The routes of the vehicles to be queried from the RouteMatch server.
 	 * @return The json object containing the data for all the vehicles that were retrieved by their respective routes.
 	 */
+	@Deprecated
 	public JSONObject getVehiclesByRoutes(@NonNull Route... routes) {
 
 		// Get the URL encoded separator for separating different routes.
@@ -147,6 +181,7 @@ public class RouteMatch {
 	 * @return The JSONObject pertaining to the specific route
 	 * (what route it will take as a series of latitude and longitude coordinates).
 	 */
+	@Deprecated
 	public JSONObject getLandRoute(@NonNull Route route) {
 		return Network.getJsonFromUrl(this.url + "landRoute/byRoute/" + route.routeName, true);
 	}
