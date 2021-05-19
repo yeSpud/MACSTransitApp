@@ -13,7 +13,6 @@ import fnsb.macstransit.Activities.SettingsActivity;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.Settings.CurrentSettings;
-import fnsb.macstransit.Settings.v2;
 
 /**
  * Created by Spud on 6/23/20 for the project: MACS Transit.
@@ -65,9 +64,10 @@ public class ApplySettings implements View.OnClickListener {
 		// Format the options into a Json string.
 		org.json.JSONObject json;
 		try {
-			json = ((v2) CurrentSettings.settingsImplementation).formatSettingsToJsonString(this.activity.trafficBox.isChecked(),
-					this.activity.darkthemeBox.isChecked(), this.activity.polyBox.isChecked(),
-					this.activity.streetviewBox.isChecked(), mapId, favoritedRoutes);
+			json = ((fnsb.macstransit.Settings.v2) CurrentSettings.settingsImplementation).
+					formatSettingsToJsonString(this.activity.trafficBox.isChecked(),
+							this.activity.darkthemeBox.isChecked(), this.activity.polyBox.isChecked(),
+							this.activity.streetviewBox.isChecked(), mapId, favoritedRoutes);
 		} catch (JSONException e) {
 			e.printStackTrace();
 			Toast.makeText(v.getContext(), "An exception occurred while applying settings",

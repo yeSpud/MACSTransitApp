@@ -439,7 +439,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 				Log.v("showMarker", "Refreshing info window");
 				marker.showInfoWindow();
 			});
-				}, error -> Log.e("showMarker", "Unable to get departure times", error), this);
+		}, error -> Log.e("showMarker", "Unable to get departure times", error), this);
 
 		// For now though just show the info window.
 		marker.showInfoWindow();

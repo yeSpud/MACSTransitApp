@@ -150,9 +150,9 @@ public class CurrentSettings {
 
 			try {
 				// Carry over the old settings to the new format, and load in the defaults for unknown values.
-				JSONObject newSettings = ((v2) CurrentSettings.settingsImplementation).formatSettingsToJsonString(v1.ENABLE_TRAFFIC_VIEW, v1.DEFAULT_NIGHT_MODE,
-								v1.SHOW_POLYLINES, v1.ENABLE_VR_OPTIONS,
-								com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL);
+				JSONObject newSettings = ((v2) CurrentSettings.settingsImplementation)
+						.formatSettingsToJsonString(v1.ENABLE_TRAFFIC_VIEW, v1.DEFAULT_NIGHT_MODE,
+								v1.SHOW_POLYLINES, v1.ENABLE_VR_OPTIONS, com.google.android.gms.maps.GoogleMap.MAP_TYPE_NORMAL);
 
 				// Write those settings to the new settings file.
 				CurrentSettings.settingsImplementation.writeSettingsToFile(newSettings.toString(), context);

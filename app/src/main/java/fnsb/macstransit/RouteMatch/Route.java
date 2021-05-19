@@ -15,8 +15,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.regex.Pattern;
 
 import fnsb.macstransit.Activities.MapsActivity;
 
@@ -61,15 +59,15 @@ public class Route {
 	public Stop[] stops;
 
 	/**
+	 * Whether or not the route is enabled or disabled (to be shown or hidden). Default is false (disabled).
+	 */
+	public boolean enabled = false;
+
+	/**
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
 	 * TODO Explain why this is private!
 	 */
 	private LatLng[] polyLineCoordinates;
-
-	/**
-	 * Whether or not the route is enabled or disabled (to be shown or hidden). Default is false (disabled).
-	 */
-	public boolean enabled = false;
 
 	/**
 	 * The array of shared stops for this route.
@@ -92,7 +90,7 @@ public class Route {
 	 *
 	 * @param routeName The name of the route. Be sure this does <b>NOT</b>
 	 *                  contain any whitespace characters!
-	 * @throws RouteException TODO Documentation
+	 * @throws UnsupportedEncodingException TODO Documentation
 	 */
 	public Route(@NonNull String routeName) throws UnsupportedEncodingException {
 		this(routeName, 0);
@@ -111,7 +109,8 @@ public class Route {
 	 */
 	public Route(String routeName, int color) throws UnsupportedEncodingException {
 		this.routeName = routeName;
-		this.urlFormattedName = Pattern.compile("\\+").matcher(URLEncoder.encode(routeName, "UTF-8")).replaceAll("%20");
+		this.urlFormattedName = java.util.regex.Pattern.compile("\\+").matcher(java.net.URLEncoder.
+				encode(routeName, "UTF-8")).replaceAll("%20");
 		this.color = color;
 	}
 
@@ -173,7 +172,7 @@ public class Route {
 	 *
 	 * @param jsonObject The json object contain the data to create a new route object.
 	 * @return The newly created route object.
-	 * @throws RouteException Thrown if the json object is null, or if the route name is unable to be parsed.
+	 * @throws RouteException               Thrown if the json object is null, or if the route name is unable to be parsed.
 	 * @throws UnsupportedEncodingException TODO Documentation
 	 */
 	@NonNull
@@ -419,6 +418,7 @@ public class Route {
 
 	/**
 	 * TODO Documentation
+	 *
 	 * @return
 	 */
 	@Nullable

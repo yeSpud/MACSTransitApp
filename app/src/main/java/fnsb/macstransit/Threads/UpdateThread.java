@@ -5,7 +5,6 @@ import android.util.Log;
 
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.Bus;
-import fnsb.macstransit.RouteMatch.RouteMatch;
 
 /**
  * Created by Spud on 2019-10-13 for the project: MACS Transit.
@@ -18,16 +17,14 @@ import fnsb.macstransit.RouteMatch.RouteMatch;
 public class UpdateThread {
 
 	/**
-	 * Various states that the Update Thread operates in.
+	 * The default update frequency (every 10 seconds / every 10000 milliseconds).
 	 */
-	public enum STATE {
-		PAUSE, RUN, STOP
-	}
+	public static final long DEFAULT_FREQUENCY = 10 * 1000;
 
 	/**
-	 * The current state of the Update Thread. Default state is stopped.
+	 * Object used for synchronization between the maps activity and the update thread.
 	 */
-	public STATE state = STATE.STOP;
+	public final Object LOCK = new Object();
 
 	/**
 	 * How quickly the thread should loop after its completed.
@@ -40,11 +37,6 @@ public class UpdateThread {
 	private final long updateFrequency;
 
 	/**
-	 * The default update frequency (every 10 seconds / every 10000 milliseconds).
-	 */
-	public static final long DEFAULT_FREQUENCY = 10 * 1000;
-
-	/**
 	 * Handler used to update bus markers on the UI Thread (without memory leaks).
 	 */
 	private final Handler UIHandler;
@@ -55,9 +47,9 @@ public class UpdateThread {
 	private final UpdateBuses updateBuses = new UpdateBuses();
 
 	/**
-	 * Object used for synchronization between the maps activity and the update thread.
+	 * The current state of the Update Thread. Default state is stopped.
 	 */
-	public final Object LOCK = new Object();
+	public STATE state = STATE.STOP;
 
 	/**
 	 * Used to determine if the thread is locked without a specified timeout (waits for forever).
@@ -225,4 +217,10 @@ public class UpdateThread {
 		return this.isLockedForever;
 	}
 
+	/**
+	 * Various states that the Update Thread operates in.
+	 */
+	public enum STATE {
+		PAUSE, RUN, STOP
+	}
 }

@@ -47,6 +47,11 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	public static boolean loaded = false;
 
 	/**
+	 * TODO Documentation
+	 */
+	private final SplashActivityLock lockCallback = new SplashActivityLock();
+
+	/**
 	 * The TextView widget in the activity.
 	 */
 	private android.widget.TextView textView;
@@ -55,16 +60,11 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * The ProgressBar widget in the activity.
 	 */
 	private android.widget.ProgressBar progressBar;
-
+	
 	/**
 	 * The Button widget in the activity.
 	 */
 	private android.widget.Button button;
-
-	/**
-	 * TODO Documentation
-	 */
-	private final SplashActivityLock lockCallback = new SplashActivityLock();
 
 	/**
 	 * Called when the activity is starting.

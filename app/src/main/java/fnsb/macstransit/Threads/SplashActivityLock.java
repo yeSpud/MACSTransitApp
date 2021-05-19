@@ -2,7 +2,6 @@ package fnsb.macstransit.Threads;
 
 import android.util.Log;
 
-import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 
 import fnsb.macstransit.Activities.MapsActivity;
@@ -23,7 +22,7 @@ public class SplashActivityLock implements RequestQueue.RequestEventListener {
 	public static final Object LOCK = new Object();
 
 	@Override
-	public void onRequestEvent(Request<?> request, int event) {
+	public void onRequestEvent(com.android.volley.Request<?> request, int event) {
 		if (event == RequestQueue.RequestEvent.REQUEST_FINISHED) {
 			synchronized (SplashActivityLock.LOCK) {
 				Log.d("SplashActivityLock", "Notifying lock");

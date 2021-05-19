@@ -1,26 +1,18 @@
 package fnsb.macstransit.RouteMatch;
 
-import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response;
-import com.android.volley.RetryPolicy;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.util.regex.Pattern;
-
-import fnsb.macstransit.Threads.Network;
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
@@ -33,29 +25,30 @@ import fnsb.macstransit.Threads.Network;
 public class RouteMatch {
 
 	/**
+	 * TODO Documentation
+	 */
+	private static final com.android.volley.RetryPolicy RETRY_POLICY = new com.android.volley.
+			DefaultRetryPolicy(90000, 3, 1);
+
+	/**
+	 * TODO Documentation
+	 */
+	public final com.android.volley.RequestQueue networkQueue;
+
+	/**
 	 * The feed url to pull all the route data, bus data, and stop data from.
 	 */
 	private final String url;
 
 	/**
-	 * TODO Documentation
-	 */
-	public final RequestQueue networkQueue;
-
-	/**
-	 * TODO Documentation
-	 */
-	private static final RetryPolicy RETRY_POLICY = new DefaultRetryPolicy(90000, 3, 1);
-
-	/**
 	 * Constructor for the RouteMatch object.
 	 * Be sure that this is a valid url starting with {@code http(s):}, and ends with a {@code /}.
 	 *
-	 * @param url The feed url to pull data from (IE: https://fnsb.routematch.com/feed/).
-	 * @param context
+	 * @param url     The feed url to pull data from (IE: https://fnsb.routematch.com/feed/).
+	 * @param context TODO Documentation
 	 * @throws MalformedURLException Thrown if the url entered is not in a valid url format.
 	 */
-	public RouteMatch(String url, Context context) throws MalformedURLException {
+	public RouteMatch(String url, android.content.Context context) throws MalformedURLException {
 
 		// Create a regex pattern matcher to match the URL to.
 		final Pattern pattern = Pattern.compile("^https?://\\S+/$");
@@ -68,7 +61,7 @@ public class RouteMatch {
 		}
 
 		// TODO
-		this.networkQueue = Volley.newRequestQueue(context);
+		this.networkQueue = com.android.volley.toolbox.Volley.newRequestQueue(context);
 	}
 
 	/**
@@ -92,6 +85,7 @@ public class RouteMatch {
 
 	/**
 	 * TODO Documentation
+	 *
 	 * @param successCallback
 	 * @param onError
 	 * @param tag
@@ -102,6 +96,7 @@ public class RouteMatch {
 
 	/**
 	 * TODO Documentation
+	 *
 	 * @param route
 	 * @param successCallback
 	 * @param onError
@@ -113,6 +108,7 @@ public class RouteMatch {
 
 	/**
 	 * TODO Documentation
+	 *
 	 * @param stopName
 	 * @param successCallback
 	 * @param onError
@@ -124,7 +120,7 @@ public class RouteMatch {
 		try {
 			url = this.url + "departures/byStop/" + Pattern.compile("\\+").
 					matcher(java.net.URLEncoder.encode(stopName, "UTF-8")).replaceAll("%20");
-		} catch (UnsupportedEncodingException e) {
+		} catch (java.io.UnsupportedEncodingException e) {
 			Log.e("callDeparturesByStop", "Cannot encode URL", e);
 			return;
 		}
@@ -133,33 +129,8 @@ public class RouteMatch {
 	}
 
 	/**
-	 * Gets all the vehicles by an array of routes.
-	 *
-	 * @param routes The routes of the vehicles to be queried from the RouteMatch server.
-	 * @return The json object containing the data for all the vehicles that were retrieved by their respective routes.
-	 */
-	@Deprecated
-	public JSONObject getVehiclesByRoutes(@NonNull Route... routes) {
-
-		// Get the URL encoded separator for separating different routes.
-		final String separator = "%2C";
-
-		// Create a new string builder that will be used to store our final generated string from all the route names.
-		// Since we know that all routes will have a separator,
-		// set the initial length to the separator times the number of routes.
-		StringBuilder routesString = new StringBuilder(separator.length() * routes.length);
-
-		// Iterate through each route and append the route name plus the separator to our string builder.
-		for (Route route : routes) {
-			routesString.append(route.urlFormattedName).append(separator);
-		}
-
-		// Return the bus data from the url.
-		return Network.getJsonFromUrl(this.url + "vehicle/byRoutes/" + routesString, false);
-	}
-
-	/**
 	 * TODO Documentation
+	 *
 	 * @param successCallback
 	 * @param onError
 	 * @param tag
@@ -176,6 +147,7 @@ public class RouteMatch {
 
 	/**
 	 * TODO Documentation
+	 *
 	 * @param route
 	 * @param successCallback
 	 * @param onError
@@ -187,6 +159,7 @@ public class RouteMatch {
 
 	/**
 	 * TODO Documentation
+	 *
 	 * @param url
 	 * @param successCallback
 	 * @param onError

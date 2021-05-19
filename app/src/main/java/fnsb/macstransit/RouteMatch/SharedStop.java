@@ -23,6 +23,12 @@ import fnsb.macstransit.Activities.MapsActivity;
 public class SharedStop extends MarkedObject {
 
 	/**
+	 * The initial size to set the largest circle to.
+	 * Each of the subsequent circles are set to a smaller size dependent on this constant.
+	 */
+	public static final double INITIAL_CIRCLE_SIZE = 12.0d;
+
+	/**
 	 * Array of routes that share this one shared stop.
 	 */
 	public final Route[] routes;
@@ -41,12 +47,6 @@ public class SharedStop extends MarkedObject {
 	 * Location (as a LatLng object) of the shared stop.
 	 */
 	public final LatLng location;
-
-	/**
-	 * The initial size to set the largest circle to.
-	 * Each of the subsequent circles are set to a smaller size dependent on this constant.
-	 */
-	public static final double INITIAL_CIRCLE_SIZE = 12.0d;
 
 	/**
 	 * Constructor for SharedStop. This not only sets the location, route, and name,
@@ -226,17 +226,51 @@ public class SharedStop extends MarkedObject {
 	 */
 	public static boolean areEqual(@NonNull SharedStop sharedStop, @NonNull Stop stop) {
 
+		LatLng sharedLoc = sharedStop.circleOptions[0].getCenter(), stopLoc = stop.circleOptions.getCenter();
+
 		// Compare names.
 		boolean nameMatch = sharedStop.name.equals(stop.name),
 
 				// Compare latitude.
-				latitudeMatch = sharedStop.circleOptions[0].getCenter().latitude == stop.circleOptions.getCenter().latitude,
+				latitudeMatch = sharedLoc.latitude == stopLoc.latitude,
 
 				// Compare longitude.
-				longitudeMatch = sharedStop.circleOptions[0].getCenter().longitude == stop.circleOptions.getCenter().longitude;
+				longitudeMatch = sharedLoc.longitude == stopLoc.longitude;
 
 		// Return whether all three checks match.
 		return nameMatch && latitudeMatch && longitudeMatch;
+	}
+
+	/**
+	 * Creates a new circle with the specified circle options that is immediately visible.
+	 * <p>
+	 * This should be run on the UI thread.
+	 *
+	 * @param map        The map to add the circle to.
+	 * @param options    The specified circle options to apply to the circle.
+	 * @param sharedStop The shared stop this circle belongs to. This will be set as the circle's tag.
+	 * @param clickable  Whether or not the circle should be clickable.
+	 * @return The newly created circle.
+	 */
+	@NonNull
+	@UiThread
+	private static Circle createSharedStopCircle(@NonNull GoogleMap map, CircleOptions options,
+	                                             SharedStop sharedStop, boolean clickable) {
+
+		// Get the circle that was added to the map with the provided circle options.
+		Circle circle = map.addCircle(options);
+
+		// Set the tag of the circle to the provided shared stop object.
+		circle.setTag(sharedStop);
+
+		// Set the circle to be clickable depending on the clickable argument.
+		circle.setClickable(clickable);
+
+		// At this point set the circle to be visible.
+		circle.setVisible(true);
+
+		// Return our newly created circle.
+		return circle;
 	}
 
 	/**
@@ -325,38 +359,6 @@ public class SharedStop extends MarkedObject {
 				this.circles[i].setRadius(radiusSize);
 			}
 		}
-	}
-
-	/**
-	 * Creates a new circle with the specified circle options that is immediately visible.
-	 * <p>
-	 * This should be run on the UI thread.
-	 *
-	 * @param map        The map to add the circle to.
-	 * @param options    The specified circle options to apply to the circle.
-	 * @param sharedStop The shared stop this circle belongs to. This will be set as the circle's tag.
-	 * @param clickable  Whether or not the circle should be clickable.
-	 * @return The newly created circle.
-	 */
-	@NonNull
-	@UiThread
-	private static Circle createSharedStopCircle(@NonNull GoogleMap map, CircleOptions options,
-	                                             SharedStop sharedStop, boolean clickable) {
-
-		// Get the circle that was added to the map with the provided circle options.
-		Circle circle = map.addCircle(options);
-
-		// Set the tag of the circle to the provided shared stop object.
-		circle.setTag(sharedStop);
-
-		// Set the circle to be clickable depending on the clickable argument.
-		circle.setClickable(clickable);
-
-		// At this point set the circle to be visible.
-		circle.setVisible(true);
-
-		// Return our newly created circle.
-		return circle;
 	}
 
 	/**

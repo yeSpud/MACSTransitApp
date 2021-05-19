@@ -1,9 +1,6 @@
 package fnsb.macstransit.Activities;
 
-import android.content.Intent;
-import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,8 +13,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
-
-import org.json.JSONException;
 
 import java.util.ConcurrentModificationException;
 
@@ -81,7 +76,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * Handler used to update bus markers on the UI Thread from the Update Thread.
 	 */
-	private final Handler mainThreadHandler = new Handler(Looper.myLooper());
+	private final Handler mainThreadHandler = new Handler(android.os.Looper.myLooper());
 
 	/**
 	 * Create a variable to store our fare popup window instance.
@@ -348,7 +343,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 *                           in the event that there was an issue and the activity had to be destroyed.
 	 */
 	@Override
-	protected void onCreate(@Nullable Bundle savedInstanceState) {
+	protected void onCreate(@Nullable android.os.Bundle savedInstanceState) {
 		Log.v("onCreate", "onCreate has been called!");
 		super.onCreate(savedInstanceState);
 
@@ -358,7 +353,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Load in the current settings.
 		try {
 			CurrentSettings.loadSettings(this);
-		} catch (JSONException e) {
+		} catch (org.json.JSONException e) {
 			// If there was an exception loading the settings simply log it and return.
 			Log.e("onCreate", "Exception when loading settings", e);
 			return;
@@ -574,7 +569,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		} else if (item.getItemId() == R.id.settings) { // Check if the item that was selected was the settings button.
 
 			// Launch the settings activity
-			this.startActivity(new Intent(this, SettingsActivity.class));
+			this.startActivity(new android.content.Intent(this, SettingsActivity.class));
 		} else if (item.getItemId() == R.id.fares) { // Check if the item that was selected was the fares button.
 			this.farePopupWindow.showFarePopupWindow();
 		} else {
