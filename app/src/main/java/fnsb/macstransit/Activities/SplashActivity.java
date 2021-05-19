@@ -10,9 +10,9 @@ import androidx.annotation.AnyThread;
 
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.RouteMatch.RouteMatch;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
+import fnsb.macstransit.Threads.SplashActivityLock;
 
 /**
  * Created by Spud on 2019-11-04 for the project: MACS Transit.
@@ -31,13 +31,13 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * <ul>
 	 * <li>Downloading the master schedule (1)</li>
 	 * <li>Load bus routes (Route) (8) - average number of routes</li>
-	 * <li>Map the bus routes (Polyline) (8)</li>
-	 * <li>Map the bus stops (8)</li>
-	 * <li>Map the shared stops (1)</li>
-	 * <li>Validate the stops (1)</li>
+	 * <li>Map the bus routes (Polyline) (1)</li>
+	 * <li>Map the bus stops (1)</li>
+	 * <li>Map the shared stops (8)</li>
+	 * <li>Validate the stops (8)</li>
 	 * </ul>
 	 */
-	private static final double maxProgress = 1 + 8 + 8 + 8 + 1 + 1;
+	private static final double maxProgress = 1 + 8 + 1 + 1 + 8 + 8;
 
 	/**
 	 * Create a variable to check if the map activity has already been loaded
@@ -45,6 +45,11 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * or just needs to refresh the activity)
 	 */
 	public static boolean loaded = false;
+
+	/**
+	 * TODO Documentation
+	 */
+	private final SplashActivityLock lockCallback = new SplashActivityLock();
 
 	/**
 	 * The TextView widget in the activity.
@@ -55,7 +60,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * The ProgressBar widget in the activity.
 	 */
 	private android.widget.ProgressBar progressBar;
-
+	
 	/**
 	 * The Button widget in the activity.
 	 */
@@ -194,7 +199,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.setMessage(R.string.routematch_creation);
 			try {
 				MapsActivity.routeMatch = new fnsb.macstransit.RouteMatch.
-						RouteMatch("https://fnsb.routematch.com/feed/");
+						RouteMatch("https://fortsmith.routematch.com/feed/", this.getApplicationContext()); // TODO Revert me!
 			} catch (java.net.MalformedURLException e) {
 				Log.e("initializeApp", "", e);
 				this.setMessage(R.string.routematch_creation_fail);
@@ -205,23 +210,22 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			// Get the master schedule from the RouteMatch server
 			this.setProgressBar(-1);
 			this.setMessage(R.string.downloading_master_schedule);
-			org.json.JSONObject masterSchedule = MapsActivity.routeMatch.getMasterSchedule();
-			this.setProgressBar(1);
+			MapsActivity.routeMatch.callMasterSchedule(
+					new fnsb.macstransit.Threads.MasterScheduleCallback(this),
+					error -> {
+						Log.w("initializeApp", "MasterSchedule callback error", error);
+						this.setMessage(R.string.routematch_timeout);
+						this.showRetryButton();
+					}, this);
 
-			// Load the bus routes from the master schedule.
-			this.setMessage(R.string.loading_bus_routes);
-			org.json.JSONArray routes = RouteMatch.parseData(masterSchedule);
-
-			// Check if there are no routes for the day.
-			if (routes.length() == 0) {
-				this.setMessage(R.string.its_sunday);
-
-				// Also add a chance for the user to retry.
-				this.showRetryButton();
-				SplashActivity.loaded = true;
-				return;
+			// Wait for the callback to finish.
+			synchronized (SplashActivityLock.LOCK) {
+				try {
+					SplashActivityLock.LOCK.wait();
+				} catch (InterruptedException e) {
+					Log.e("initializeApp", "Interrupted!", e);
+				}
 			}
-			MapsActivity.allRoutes = Route.generateRoutes(routes);
 			this.setProgressBar(1 + 8);
 
 			// Map bus routes (map polyline coordinates).
@@ -310,7 +314,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	/**
 	 * Loads the polylines for each route. Also known as mapping the bus routes to the map.
 	 */
-	private void mapBusRoutes() {
+	public void mapBusRoutes() {
 
 		// Display that we are mapping bus routes to the user.
 		this.setMessage(R.string.mapping_bus_routes);
@@ -321,33 +325,21 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			return;
 		}
 
-		// Determine the progress step.
-		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 8;
-
 		// Iterate though each route, and try to load the polyline in each of them.
 		for (Route route : MapsActivity.allRoutes) {
-			try {
-				route.loadPolyLineCoordinates();
-			} catch (org.json.JSONException e) {
-
-				// If there is a JSONException while loading the polyline coordinates, just log it.
-				Log.e("mapBusRoutes", String.format("Unable to map route %s", route.routeName), e);
-			}
-
-			// Update the progress.
-			currentProgress += step;
-			this.setProgressBar(currentProgress);
+			route.loadPolyLineCoordinates();
+			this.lockCallback.waitForLock();
 		}
 
 		// Update the progress bar one final time for this method.
-		this.setProgressBar(1 + 8 + 8);
+		this.setProgressBar(1 + 8 + 1);
 	}
 
 	/**
 	 * Loads the bus stops for every route. At this point shared stops are not implemented,
 	 * so stops for separate routes will overlap.
 	 */
-	private void mapBusStops() {
+	public void mapBusStops() {
 
 		// Update the user that we are now mapping (calculating) bus stops.
 		this.setMessage(R.string.mapping_bus_stops);
@@ -358,20 +350,14 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			return;
 		}
 
-		// Determine the progress step.
-		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 8 + 8;
-
 		// Iterate thorough all the routes to load each stop.
 		for (Route route : MapsActivity.allRoutes) {
-			route.stops = route.loadStops();
-
-			// Update the progress.
-			currentProgress += step;
-			this.setProgressBar(currentProgress);
+			route.loadStops();
+			this.lockCallback.waitForLock();
 		}
 
 		// Update the progress one last time for this method.
-		this.setProgressBar(1 + 8 + 8 + 8);
+		this.setProgressBar(1 + 8 + 1 + 1);
 	}
 
 	/**
@@ -380,7 +366,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * If there are any found they will be added to all the routes the stop belongs to as a shared stop.
 	 * At this point the original stop is still present in the route.
 	 */
-	private void mapSharedStops() {
+	public void mapSharedStops() {
 
 		// Let the user know that we are checking for shared bus stops at this point.
 		this.setMessage(R.string.shared_bus_stop_check);
@@ -392,7 +378,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Set the current progress.
-		double step = 1.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 8 + 8 + 8;
+		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 8 + 1 + 1;
 
 		// Iterate though all the routes.
 		for (int routeIndex = 0; routeIndex < MapsActivity.allRoutes.length; routeIndex++) {
@@ -443,14 +429,14 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Update the progress bar one last time for this method.
-		this.setProgressBar(1 + 8 + 8 + 8 + 1);
+		this.setProgressBar(1 + 8 + 1 + 1 + 8);
 	}
 
 	/**
 	 * Validates the stops and shared stops.
 	 * Meaning this method removes the stops that are shared stops as to not duplicate the stop.
 	 */
-	private void validateStops() {
+	public void validateStops() {
 
 		// Let the user know that we are validating the stops (and shared stop) for each route.
 		this.setMessage(R.string.stop_validation);
@@ -462,7 +448,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Determine the progress step.
-		double step = 1.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 8 + 8 + 8 + 1;
+		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 8 + 1 + 1 + 8;
 
 		// Iterate though all the routes and recreate the stops for each route.
 		for (Route route : MapsActivity.allRoutes) {
@@ -481,19 +467,22 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Update the progress bar one last time for this method.
-		this.setProgressBar(1 + 8 + 8 + 8 + 1 + 1);
+		this.setProgressBar(1 + 8 + 1 + 1 + 8 + 8);
 	}
 
 	/**
 	 * Launches the maps activity.
 	 */
-	private void launchMapsActivity() {
+	public void launchMapsActivity() {
 
 		// Set the loaded state to true as everything was loaded (or should have been loaded).
 		SplashActivity.loaded = true;
 
 		// Set the selected favorites routes to be false for the maps activity.
 		MapsActivity.selectedFavorites = false;
+
+		// Remove our callback
+		MapsActivity.routeMatch.networkQueue.removeRequestEventListener(this.lockCallback);
 
 		/*
 		Suggest some garbage collection since we are done with a lot of heavy processing.
@@ -520,7 +509,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * @param resID The string ID of the message. This can be retrieved by calling R.string.STRING_ID.
 	 */
 	@AnyThread
-	private void setMessage(@androidx.annotation.StringRes final int resID) {
+	public void setMessage(@androidx.annotation.StringRes final int resID) {
 
 		// Since we are changing a TextView element, the following needs to be run on the UI thread.
 		this.runOnUiThread(() -> {
@@ -544,7 +533,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * @param progress The current progress out of SplashActivity.maxProgress.
 	 */
 	@AnyThread
-	private void setProgressBar(final double progress) {
+	public void setProgressBar(final double progress) {
 		Log.v("setProgressBar", String.format("Provided progress: %f", progress));
 
 		// Because we are updating UI elements we need to run the following on the UI thread.
@@ -588,7 +577,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * and by setting the click action of the button to launch the onResume() method once again.
 	 */
 	@AnyThread
-	private void showRetryButton() {
+	public void showRetryButton() {
 
 		// Since we are updating UI elements, run the following on the UI thread.
 		this.runOnUiThread(() -> {

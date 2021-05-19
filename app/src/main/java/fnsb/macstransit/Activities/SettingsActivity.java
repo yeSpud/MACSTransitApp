@@ -9,7 +9,6 @@ import com.google.android.gms.maps.GoogleMap;
 
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.Settings.CurrentSettings;
 import fnsb.macstransit.Settings.v2;
 
 /**
@@ -101,7 +100,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 		this.setContentView(R.layout.settings);
 
 		// Get the settings object.
-		v2 settings = (v2) CurrentSettings.settingsImplementation;
+		v2 settings = (v2) fnsb.macstransit.Settings.CurrentSettings.settingsImplementation;
 
 		// Setup the fixed checkboxes.
 		// Traffic box is used to determine whether or not to show the traffic overlay.

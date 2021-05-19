@@ -5,6 +5,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 
+import java.io.UnsupportedEncodingException;
+import java.net.UnknownServiceException;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -36,7 +38,7 @@ public class BusTest {
 			brown = new Route("Brown");
 			green = new Route("Green");
 			red = new Route("Red");
-		} catch (Route.RouteException e) {
+		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			fail();
 			return;
@@ -116,7 +118,7 @@ public class BusTest {
 			greenRoute = new Route("Green");
 			blueRoute = new Route("Blue");
 			otherGreen = new Route("Green");
-		} catch (Route.RouteException e) {
+		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			fail();
 			return;

@@ -24,6 +24,11 @@ import fnsb.macstransit.Activities.MapsActivity;
 public class Bus extends MarkedObject {
 
 	/**
+	 * Fallback constant in the event that we need to return an empty bus array.
+	 */
+	public static final Bus[] EMPTY_BUSES = new Bus[0];
+
+	/**
 	 * The latitude and longitude of the bus. Essentially making up its respective coordinates.
 	 * This is stored as a double as latitude and longitude values are floating points numbers.
 	 */
@@ -48,16 +53,11 @@ public class Bus extends MarkedObject {
 	 * This is optional, and may just be an empty string as a result.
 	 */
 	public String heading;
-
+	
 	/**
 	 * Variables to store the current bus speed in mph.
 	 */
 	public int speed;
-
-	/**
-	 * Fallback constant in the event that we need to return an empty bus array.
-	 */
-	public static final Bus[] EMPTY_BUSES = new Bus[0];
 
 	/**
 	 * Creates a new bus object. While the name, route,

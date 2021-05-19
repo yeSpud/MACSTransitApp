@@ -19,15 +19,15 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MarkedObject {
 
 	/**
+	 * The name / title / ID of the marked object.
+	 */
+	public final String name;
+
+	/**
 	 * The marker of the marker of the marked object.
 	 */
 	@androidx.annotation.Nullable
 	public Marker marker;
-
-	/**
-	 * The name / title / ID of the marked object.
-	 */
-	public final String name;
 
 	/**
 	 * Constructor for a marked object.

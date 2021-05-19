@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 import fnsb.macstransit.Activities.MapsActivity;
@@ -45,7 +46,7 @@ public class StopTest {
 		Route blueRoute = null;
 		try {
 			blueRoute = new Route("Blue");
-		} catch (Route.RouteException e) {
+		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			fail();
 		}
