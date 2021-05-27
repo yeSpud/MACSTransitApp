@@ -17,7 +17,7 @@ import org.json.JSONException;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 2.0.
+ * @version 2.1.
  * @since Beta 6.
  */
 public class Stop extends MarkedObject {

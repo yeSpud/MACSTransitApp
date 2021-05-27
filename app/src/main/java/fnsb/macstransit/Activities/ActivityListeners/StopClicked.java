@@ -25,7 +25,7 @@ import fnsb.macstransit.RouteMatch.Stop;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.4
+ * @version 1.5.
  * @since Beta 7.
  */
 public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCircleClickListener {

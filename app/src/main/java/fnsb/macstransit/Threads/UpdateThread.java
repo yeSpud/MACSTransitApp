@@ -11,7 +11,7 @@ import fnsb.macstransit.RouteMatch.Bus;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 4.0.
+ * @version 4.1.
  * @since Beta 3.
  */
 public class UpdateThread {
