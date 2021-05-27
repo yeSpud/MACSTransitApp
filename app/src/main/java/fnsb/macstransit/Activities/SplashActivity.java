@@ -199,7 +199,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.setMessage(R.string.routematch_creation);
 			try {
 				MapsActivity.routeMatch = new fnsb.macstransit.RouteMatch.
-						RouteMatch("https://fortsmith.routematch.com/feed/", this.getApplicationContext()); // TODO Revert me!
+						RouteMatch("https://fnsb.routematch.com/feed/", this.getApplicationContext());
 			} catch (java.net.MalformedURLException e) {
 				Log.e("initializeApp", "", e);
 				this.setMessage(R.string.routematch_creation_fail);
