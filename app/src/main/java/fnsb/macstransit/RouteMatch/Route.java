@@ -39,9 +39,9 @@ public class Route {
 	public final String routeName;
 
 	/**
-	 * TODO Documentation
+	 * The name of the route formatted to be parsed as a URL.
 	 */
-	public final String urlFormattedName;
+	public final String urlFormattedName; // TODO Add regex check
 
 	/**
 	 * The color of the route.
@@ -59,13 +59,14 @@ public class Route {
 	public Stop[] stops;
 
 	/**
-	 * Whether or not the route is enabled or disabled (to be shown or hidden). Default is false (disabled).
+	 * Whether or not the route is enabled or disabled (to be shown or hidden).
+	 * Default is false (disabled).
 	 */
 	public boolean enabled = false;
 
 	/**
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
-	 * TODO Explain why this is private!
+	 * This is private as we don't want this variable to be set outside the class.
 	 */
 	private LatLng[] polyLineCoordinates;
 
@@ -90,7 +91,7 @@ public class Route {
 	 *
 	 * @param routeName The name of the route. Be sure this does <b>NOT</b>
 	 *                  contain any whitespace characters!
-	 * @throws UnsupportedEncodingException TODO Documentation
+	 * @throws UnsupportedEncodingException Thrown if the route name cannot be formatted to a URL.
 	 */
 	public Route(@NonNull String routeName) throws UnsupportedEncodingException {
 		this(routeName, 0);
@@ -105,12 +106,19 @@ public class Route {
 	 * @param color     The route's color. This is optional,
 	 *                  and of the color is non-existent simply use the
 	 *                  {@code Route(String routeName)} constructor.
-	 * @throws UnsupportedEncodingException TODO Documentation
+	 * @throws UnsupportedEncodingException Thrown if the route name cannot be formatted to a URL.
 	 */
 	public Route(String routeName, int color) throws UnsupportedEncodingException {
+
+		// Set the route name.
 		this.routeName = routeName;
+
+		// Parse and set the url from the name.
+		// The URL encoding that the RouteMatch API uses is slightly different than that provided by the URL encoder
 		this.urlFormattedName = java.util.regex.Pattern.compile("\\+").matcher(java.net.URLEncoder.
 				encode(routeName, "UTF-8")).replaceAll("%20");
+
+		// Set the route color.
 		this.color = color;
 	}
 
@@ -173,7 +181,7 @@ public class Route {
 	 * @param jsonObject The json object contain the data to create a new route object.
 	 * @return The newly created route object.
 	 * @throws RouteException               Thrown if the json object is null, or if the route name is unable to be parsed.
-	 * @throws UnsupportedEncodingException TODO Documentation
+	 * @throws UnsupportedEncodingException Thrown if the route name cannot be formatted to a URL.
 	 */
 	@NonNull
 	private static Route generateRoute(JSONObject jsonObject) throws RouteException, UnsupportedEncodingException {
@@ -253,12 +261,11 @@ public class Route {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Starts an asynchronous process to fetch all the stops for the route from the RouteMatch API.
 	 */
 	public void loadStops() {
 
 		// Get all the stops for the route from the RouteMatch object.
-		//JSONObject allStopsObject = MapsActivity.routeMatch.getAllStops(this);
 		MapsActivity.routeMatch.callAllStops(this, result -> {
 
 			// Get the data from all the stops and store it in a JSONArray.
@@ -288,7 +295,7 @@ public class Route {
 			return;
 		}
 
-		// TODO Comments
+		// Get the land route from the routematch API using an asynchronous process.
 		MapsActivity.routeMatch.callLandRoute(this, response -> {
 
 			try {
@@ -417,9 +424,9 @@ public class Route {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Gets the LatLng object array for the polyline coordinates for the route.
 	 *
-	 * @return
+	 * @return The polyline coordinates for the route as a LatLng array.
 	 */
 	@Nullable
 	public LatLng[] getPolyLineCoordinates() {

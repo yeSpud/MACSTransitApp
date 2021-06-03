@@ -16,27 +16,32 @@ import fnsb.macstransit.R;
 public class MasterScheduleCallback implements com.android.volley.Response.Listener<JSONObject> {
 
 	/**
-	 * TODO Documentation
+	 * The activity this callback corresponds to.
+	 * This is deprecated because it is a potential memory leak.
 	 */
 	@Deprecated
 	private final SplashActivity activity;
 
 	/**
-	 * TODO Documentation
+	 * Constructor for the MasterScheduleCallback
 	 *
-	 * @param activity
+	 * @param activity The activity this callback belongs to.
 	 */
 	public MasterScheduleCallback(SplashActivity activity) {
 		this.activity = activity;
 	}
 
-	// TODO Comments
 	@Override
 	public void onResponse(JSONObject response) {
+
+		// Set the progress and message.
 		this.activity.setProgressBar(1);
 		this.activity.setMessage(R.string.loading_bus_routes);
 
+		// Get the routes from the JSONObject
 		org.json.JSONArray routes = fnsb.macstransit.RouteMatch.RouteMatch.parseData(response);
+
+		// If the routes length is 0, say that there are no buses for the day.
 		if (routes.length() == 0) {
 			this.activity.setMessage(R.string.its_sunday);
 
@@ -46,8 +51,10 @@ public class MasterScheduleCallback implements com.android.volley.Response.Liste
 			return;
 		}
 
+		// Set all the routes to the generated routes.
 		fnsb.macstransit.Activities.MapsActivity.allRoutes = fnsb.macstransit.RouteMatch.Route.generateRoutes(routes);
 
+		// Notify the activity to continue.
 		synchronized (SplashActivityLock.LOCK) {
 			SplashActivityLock.LOCK.notifyAll();
 		}

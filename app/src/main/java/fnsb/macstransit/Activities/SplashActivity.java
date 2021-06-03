@@ -47,7 +47,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	public static boolean loaded = false;
 
 	/**
-	 * TODO Documentation
+	 * Callback lock used to wait for async tasks to finish before continuing.
 	 */
 	private final SplashActivityLock lockCallback = new SplashActivityLock();
 
@@ -60,7 +60,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * The ProgressBar widget in the activity.
 	 */
 	private android.widget.ProgressBar progressBar;
-	
+
 	/**
 	 * The Button widget in the activity.
 	 */

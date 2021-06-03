@@ -53,7 +53,7 @@ public class Bus extends MarkedObject {
 	 * This is optional, and may just be an empty string as a result.
 	 */
 	public String heading;
-	
+
 	/**
 	 * Variables to store the current bus speed in mph.
 	 */
@@ -274,7 +274,8 @@ public class Bus extends MarkedObject {
 						potentialBuses[busSize] = oldBus;
 						busSize++;
 					} else {
-						Log.w("updateCurrentBuses", String.format("Marker is null for updated bus %s", oldBus.name));
+						Log.w("updateCurrentBuses", String.format("Marker is null for updated bus %s",
+								oldBus.name));
 					}
 				}
 			}

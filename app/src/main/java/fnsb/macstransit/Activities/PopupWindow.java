@@ -78,6 +78,7 @@ public class PopupWindow extends AlertDialog implements
 				instanceof fnsb.macstransit.RouteMatch.SharedStop) {
 			content.setText(PopupWindow.body);
 		} else if (marker.getTag() instanceof Bus) {
+
 			// Since the instance is that of a bus, set the content to the heading, speed,
 			// and current capacity.
 			Bus bus = (Bus) marker.getTag();

@@ -35,10 +35,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * <p>
 	 * This array is initialized in SplashActivity.
 	 * As such it has the possibility of being null (caused by Sunday bypass).
-	 * TODO Check for concurrent exceptions
 	 */
 	@Nullable
-	public static Route[] allRoutes;
+	public static Route[] allRoutes; // TODO Check for concurrent exceptions
 
 	/**
 	 * Create an array of all the buses that will be used
