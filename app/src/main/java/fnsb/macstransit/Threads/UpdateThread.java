@@ -11,22 +11,20 @@ import fnsb.macstransit.RouteMatch.Bus;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 4.0.
+ * @version 4.1.
  * @since Beta 3.
  */
 public class UpdateThread {
 
 	/**
-	 * Various states that the Update Thread operates in.
+	 * The default update frequency (every 10 seconds / every 10000 milliseconds).
 	 */
-	public enum STATE {
-		PAUSE, RUN, STOP
-	}
+	public static final long DEFAULT_FREQUENCY = 10 * 1000;
 
 	/**
-	 * The current state of the Update Thread. Default state is stopped.
+	 * Object used for synchronization between the maps activity and the update thread.
 	 */
-	public STATE state = STATE.STOP;
+	public final Object LOCK = new Object();
 
 	/**
 	 * How quickly the thread should loop after its completed.
@@ -39,11 +37,6 @@ public class UpdateThread {
 	private final long updateFrequency;
 
 	/**
-	 * The default update frequency (every 10 seconds / every 10000 milliseconds).
-	 */
-	public static final long DEFAULT_FREQUENCY = 10 * 1000;
-
-	/**
 	 * Handler used to update bus markers on the UI Thread (without memory leaks).
 	 */
 	private final Handler UIHandler;
@@ -54,9 +47,9 @@ public class UpdateThread {
 	private final UpdateBuses updateBuses = new UpdateBuses();
 
 	/**
-	 * Object used for synchronization between the maps activity and the update thread.
+	 * The current state of the Update Thread. Default state is stopped.
 	 */
-	public final Object LOCK = new Object();
+	public STATE state = STATE.STOP;
 
 	/**
 	 * Used to determine if the thread is locked without a specified timeout (waits for forever).
@@ -117,6 +110,8 @@ public class UpdateThread {
 
 						// Notify the developer that the thread is now looping.
 						Log.d("UpdateThread", "Looping...");
+
+						MapsActivity.routeMatch.networkQueue.cancelAll(this);
 
 						switch (this.state) {
 							case RUN:
@@ -192,26 +187,25 @@ public class UpdateThread {
 		}
 
 		// Get the buses from the RouteMatch server.
-		org.json.JSONObject returnedVehicles = MapsActivity.routeMatch.
-				getVehiclesByRoutes(MapsActivity.allRoutes);
-		org.json.JSONArray vehiclesJson = fnsb.macstransit.RouteMatch.RouteMatch.
-				parseData(returnedVehicles);
+		MapsActivity.routeMatch.callVehiclesByRoutes(response -> {
+			org.json.JSONArray vehiclesJson = fnsb.macstransit.RouteMatch.RouteMatch.parseData(response);
 
-		// Get the array of buses. This array will include current and new buses.
-		Bus[] buses;
-		try {
-			buses = Bus.getBuses(vehiclesJson);
-		} catch (fnsb.macstransit.RouteMatch.Route.RouteException e) {
+			// Get the array of buses. This array will include current and new buses.
+			Bus[] buses;
+			try {
+				buses = Bus.getBuses(vehiclesJson);
+			} catch (fnsb.macstransit.RouteMatch.Route.RouteException e) {
 
-			// If there was a route exception thrown just break early after logging it.
-			Log.e("UpdateThread", "Exception thrown while parsing buses", e);
-			return;
-		}
+				// If there was a route exception thrown just break early after logging it.
+				Log.e("UpdateThread", "Exception thrown while parsing buses", e);
+				return;
+			}
 
-		// Update the bus positions on the map on the UI thread.
-		// This must be executed on the UI thread or else the app will crash.
-		this.updateBuses.potentialNewBuses = buses;
-		this.UIHandler.post(this.updateBuses);
+			// Update the bus positions on the map on the UI thread.
+			// This must be executed on the UI thread or else the app will crash.
+			this.updateBuses.potentialNewBuses = buses;
+			this.UIHandler.post(this.updateBuses);
+		}, error -> Log.w("fetchBuses", "Unable to fetch buses", error), this, MapsActivity.allRoutes);
 	}
 
 	/**
@@ -223,4 +217,10 @@ public class UpdateThread {
 		return this.isLockedForever;
 	}
 
+	/**
+	 * Various states that the Update Thread operates in.
+	 */
+	public enum STATE {
+		PAUSE, RUN, STOP
+	}
 }

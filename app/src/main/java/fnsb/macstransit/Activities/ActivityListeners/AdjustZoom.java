@@ -16,7 +16,6 @@ import fnsb.macstransit.RouteMatch.SharedStop;
 @androidx.annotation.UiThread
 public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCameraIdleListener {
 
-
 	/**
 	 * Resizes the stop and shared stop circles on the map.
 	 * This works regardless of whether or not a particular route is enabled or disabled.

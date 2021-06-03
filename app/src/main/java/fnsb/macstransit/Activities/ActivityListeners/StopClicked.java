@@ -19,14 +19,13 @@ import fnsb.macstransit.RouteMatch.MarkedObject;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
-import fnsb.macstransit.Threads.StopTimeCallback;
 
 /**
  * Created by Spud on 2019-10-30 for the project: MACS Transit.
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.4
+ * @version 1.5.
  * @since Beta 7.
  */
 public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCircleClickListener {
@@ -418,17 +417,29 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		// Get the name of the stop.
 		String name = marker.getTitle();
 
+		// If the name is null return early.
+		if (name == null) {
+			return;
+		}
+
 		// For now just set the snippet text to "retrieving stop times" as a callback method gets the times.
 		marker.setSnippet(this.activity.getString(fnsb.macstransit.R.string.retrieving_stop_times));
 
-		// Create a method on how to handle the stop time once its retrieved.
-		StopTimeCallback.AsyncCallback callbackMethod = new GetStopTimeHandler(marker, this.activity);
-
-		// Setup a new stop callback to reset the info window.
-		StopTimeCallback callback = new StopTimeCallback(callbackMethod);
-
 		// Retrieve the stop times.
-		callback.retrieveStopTime(name);
+		MapsActivity.routeMatch.callDeparturesByStop(name, result -> {
+			// Be sure to run the following on the UI thread to avoid a crash.
+			this.activity.runOnUiThread(() -> {
+
+				// Update the snippet text of the marker's info window.
+				Log.v("showMarker", "Updating snippet");
+				marker.setSnippet(StopClicked.postStopTimes((fnsb.macstransit.RouteMatch.MarkedObject)
+						marker.getTag(), result, this.activity));
+
+				// Refresh the info window by calling showInfoWindow().
+				Log.v("showMarker", "Refreshing info window");
+				marker.showInfoWindow();
+			});
+		}, error -> Log.e("showMarker", "Unable to get departure times", error), this);
 
 		// For now though just show the info window.
 		marker.showInfoWindow();

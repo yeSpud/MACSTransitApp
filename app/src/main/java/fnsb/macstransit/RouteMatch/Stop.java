@@ -17,15 +17,10 @@ import org.json.JSONException;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 2.0.
+ * @version 2.1.
  * @since Beta 6.
  */
 public class Stop extends MarkedObject {
-
-	/**
-	 * The starting radius size of the circle for the stop on the map (in meters).
-	 */
-	private static final double STARTING_RADIUS = 50.0d;
 
 	/**
 	 * Fallback array used for returning an array of stops that is zero in length.
@@ -35,15 +30,14 @@ public class Stop extends MarkedObject {
 	public static final Stop[] EMPTY_STOPS_ARRAY = new Stop[0];
 
 	/**
+	 * The starting radius size of the circle for the stop on the map (in meters).
+	 */
+	private static final double STARTING_RADIUS = 50.0d;
+
+	/**
 	 * This is the route that the stop corresponds to.
 	 */
 	public final Route route;
-
-	/**
-	 * The circle marking the bus stop on the map
-	 * (be sure to check if this exists first as it may be null).
-	 */
-	public Circle circle;
 
 	/**
 	 * The options that apply to the circle representing the stop.
@@ -57,6 +51,12 @@ public class Stop extends MarkedObject {
 	 * ... and more!
 	 */
 	public final CircleOptions circleOptions;
+
+	/**
+	 * The circle marking the bus stop on the map
+	 * (be sure to check if this exists first as it may be null).
+	 */
+	public Circle circle;
 
 	/**
 	 * Creates a new Stop object using the name, coordinates on the map, and the route.
@@ -102,54 +102,6 @@ public class Stop extends MarkedObject {
 	public Stop(@NonNull org.json.JSONObject json, Route route) throws JSONException {
 		this(json.getString("stopId"), json.getDouble("latitude"),
 				json.getDouble("longitude"), route);
-	}
-
-	/**
-	 * Shows the stops for the given route.
-	 * If the stops weren't previously added to the map then this method will also see fit to add them to the map.
-	 * <p>
-	 * This should be run on the UI thread.
-	 *
-	 * @param map The google maps object that the stops will be drawn onto.
-	 *            Be sure this object has been initialized first.
-	 */
-	@UiThread
-	public void showStop(GoogleMap map) {
-
-		// Check if the circle for the stop needs to be created,
-		// or just set to visible if it already exists.
-		if (this.circle == null) {
-
-			// Create a new circle object.
-			Log.d("showStop", "Creating new stop for " + this.name);
-			this.circle = Stop.createStopCircle(map, this.circleOptions, this);
-		} else {
-
-			// Since the circle already exists simply set it to visible.
-			Log.d("showStop", "Showing stop " + this.name);
-			this.circle.setClickable(true);
-			this.circle.setVisible(true);
-		}
-	}
-
-	/**
-	 * Hides the objects on the map.
-	 * This doesn't dispose of the circle object, but rather sets it to invisible
-	 * (and also sets it to not be clickable in an attempt to disable its hit box from overriding other circles).
-	 * <p>
-	 * This should be run on the UI thread.
-	 */
-	@UiThread
-	public void hideStop() {
-
-		// If the circle is null this will simply return.
-		if (this.circle != null) {
-
-			// Since it exists, hide the circle.
-			Log.d("hideStop", "Hiding stop " + this.name);
-			this.circle.setClickable(false);
-			this.circle.setVisible(false);
-		}
 	}
 
 	/**
@@ -286,11 +238,14 @@ public class Stop extends MarkedObject {
 				return false;
 			}
 
+			// Get the latitude and longitudes of the circles.
+			LatLng loc1 = stop.circleOptions.getCenter(), loc2 = stopArrayItem.circleOptions.getCenter();
+
 			// Check if the following match.
 			boolean nameMatch = stop.name.equals(stopArrayItem.name),
 					routeMatch = stop.route.routeName.equals(stopArrayItem.route.routeName),
-					latitudeMatch = stop.circleOptions.getCenter().latitude == stopArrayItem.circleOptions.getCenter().latitude,
-					longitudeMatch = stop.circleOptions.getCenter().longitude == stopArrayItem.circleOptions.getCenter().longitude;
+					latitudeMatch = loc1.latitude == loc2.latitude,
+					longitudeMatch = loc1.longitude == loc2.longitude;
 
 			// If all of the following match, return true.
 			if (nameMatch && routeMatch && latitudeMatch && longitudeMatch) {
@@ -331,6 +286,54 @@ public class Stop extends MarkedObject {
 
 		// Return whether name and locations are the same.
 		return latMatch && longMatch && nameMatch;
+	}
+
+	/**
+	 * Shows the stops for the given route.
+	 * If the stops weren't previously added to the map then this method will also see fit to add them to the map.
+	 * <p>
+	 * This should be run on the UI thread.
+	 *
+	 * @param map The google maps object that the stops will be drawn onto.
+	 *            Be sure this object has been initialized first.
+	 */
+	@UiThread
+	public void showStop(GoogleMap map) {
+
+		// Check if the circle for the stop needs to be created,
+		// or just set to visible if it already exists.
+		if (this.circle == null) {
+
+			// Create a new circle object.
+			Log.d("showStop", "Creating new stop for " + this.name);
+			this.circle = Stop.createStopCircle(map, this.circleOptions, this);
+		} else {
+
+			// Since the circle already exists simply set it to visible.
+			Log.d("showStop", "Showing stop " + this.name);
+			this.circle.setClickable(true);
+			this.circle.setVisible(true);
+		}
+	}
+
+	/**
+	 * Hides the objects on the map.
+	 * This doesn't dispose of the circle object, but rather sets it to invisible
+	 * (and also sets it to not be clickable in an attempt to disable its hit box from overriding other circles).
+	 * <p>
+	 * This should be run on the UI thread.
+	 */
+	@UiThread
+	public void hideStop() {
+
+		// If the circle is null this will simply return.
+		if (this.circle != null) {
+
+			// Since it exists, hide the circle.
+			Log.d("hideStop", "Hiding stop " + this.name);
+			this.circle.setClickable(false);
+			this.circle.setVisible(false);
+		}
 	}
 
 	/**

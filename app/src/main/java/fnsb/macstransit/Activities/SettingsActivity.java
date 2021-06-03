@@ -3,11 +3,12 @@ package fnsb.macstransit.Activities;
 import android.os.Build;
 import android.widget.CheckBox;
 
+import androidx.annotation.NonNull;
+
 import com.google.android.gms.maps.GoogleMap;
 
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.Settings.CurrentSettings;
 import fnsb.macstransit.Settings.v2;
 
 /**
@@ -15,10 +16,15 @@ import fnsb.macstransit.Settings.v2;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 2.0.
+ * @version 2.1.
  * @since Beta 8.
  */
 public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
+
+	/**
+	 * Constant used to set the initial size of the text for the favorite routes check box.
+	 */
+	private static final int CHECKBOX_TEXT_SIZE = 15;
 
 	/**
 	 * Checkboxes that have already been manually defined in the settings layout.
@@ -38,9 +44,30 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 	public android.widget.LinearLayout favoriteContainer;
 
 	/**
-	 * Constant used to set the initial size of the text for the favorite routes check box.
+	 * Iterates though the provided route (favorited routes),
+	 * and returns if the provided route name matches any of them.
+	 *
+	 * @param routes    The favorited routes. This cannot be null.
+	 * @param routeName The route name. This cannot be null.
+	 * @return Whether the route name was found in the favorited routes.
 	 */
-	private static final int CHECKBOX_TEXT_SIZE = 15;
+	private static boolean isFavorited(@NonNull Route[] routes, @NonNull String routeName) {
+
+		// Iterate though all the routes provided.
+		for (Route savedRoute : routes) {
+
+			// If the route isn't null, and the name matches then return true.
+			// If not then keep iterating.
+			if (savedRoute != null) {
+				if (savedRoute.routeName.equals(routeName)) {
+					return true;
+				}
+			}
+		}
+
+		// Since no names match return false.
+		return false;
+	}
 
 	/**
 	 * Called when the activity is starting.
@@ -72,26 +99,29 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Set the layout view to the settings view.
 		this.setContentView(R.layout.settings);
 
+		// Get the settings object.
+		v2 settings = (v2) fnsb.macstransit.Settings.CurrentSettings.settingsImplementation;
+
 		// Setup the fixed checkboxes.
 		// Traffic box is used to determine whether or not to show the traffic overlay.
 		this.trafficBox = this.findViewById(R.id.traffic);
-		this.trafficBox.setChecked(((v2) CurrentSettings.settingsImplementation).getTraffic());
+		this.trafficBox.setChecked(settings.getTraffic());
 
 		// Dark theme box is used to determine whether or not to start the ap with a dark themed map.
 		this.darkthemeBox = this.findViewById(R.id.night_mode);
-		this.darkthemeBox.setChecked(((v2) CurrentSettings.settingsImplementation).getDarktheme());
+		this.darkthemeBox.setChecked(settings.getDarktheme());
 
 		// Polybox is used to determine whether or not to show polylines for routes.
 		this.polyBox = this.findViewById(R.id.polylines);
-		this.polyBox.setChecked(((v2) CurrentSettings.settingsImplementation).getPolylines());
+		this.polyBox.setChecked(settings.getPolylines());
 
 		// Streetview box would be used to activate the streetview easter egg if it were not deprecated.
 		this.streetviewBox = this.findViewById(R.id.VR);
-		this.streetviewBox.setChecked(((v2) CurrentSettings.settingsImplementation).getStreetView());
+		this.streetviewBox.setChecked(settings.getStreetView());
 
 		// Setup the radio buttons.
 		this.mapType = this.findViewById(R.id.map_group);
-		switch (((v2) CurrentSettings.settingsImplementation).getMaptype()) {
+		switch (settings.getMaptype()) {
 			case GoogleMap.MAP_TYPE_SATELLITE:
 				this.mapType.check(R.id.satellite_map);
 				break;
@@ -105,7 +135,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 
 		// Setup the favorites container.
 		this.favoriteContainer = this.findViewById(R.id.favorite_route_container);
-		this.addToFavoritesContainer();
+		this.addToFavoritesContainer(settings.getRoutes());
 
 		// Setup the buttons.
 		// The apply settings button should run the apply settings listener.
@@ -119,42 +149,45 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 	/**
 	 * Creates new favorite route checkboxes for all the routes that can be tracked,
 	 * and adds them to the favorite routes container.
+	 *
+	 * @param favoritedRoutes The array of favorited routes to enable.
 	 */
-	private void addToFavoritesContainer() {
+	private void addToFavoritesContainer(Route[] favoritedRoutes) {
 
-		// Iterate through all the routes (if there are any).
-		if (MapsActivity.allRoutes != null) {
-			for (Route route : MapsActivity.allRoutes) {
+		// Make sure there are routes to iterate though.
+		if (MapsActivity.allRoutes == null) {
+			return;
+		}
 
-				// Create a new checkbox.
-				CheckBox checkBox = new CheckBox(this);
+		// Iterate though all the routes.
+		for (Route route : MapsActivity.allRoutes) {
 
-				// Set the checkbox's text to the route name.
-				checkBox.setText(route.routeName);
+			// Create a new checkbox.
+			CheckBox checkBox = new CheckBox(this);
 
-				// Set the color and size of the text to constants.
-				checkBox.setTextSize(SettingsActivity.CHECKBOX_TEXT_SIZE);
-				checkBox.setTextColor(this.getResources().getColor(R.color.white));
+			// Set the checkbox's text to the route name.
+			checkBox.setText(route.routeName);
 
-				// Add button tint if the sdk supports it.
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-					checkBox.setButtonTintList(androidx.appcompat.content.res.AppCompatResources.
-							getColorStateList(this, R.color.white));
-				}
+			// Set the color and size of the text to constants.
+			checkBox.setTextSize(SettingsActivity.CHECKBOX_TEXT_SIZE);
+			checkBox.setTextColor(this.getResources().getColor(R.color.white));
 
-				checkBox.setTag(route);
-
-				// Determine if the box should be checked.
-				for (Route savedRoute : ((v2) CurrentSettings.settingsImplementation).getRoutes()) {
-					if (savedRoute.routeName.equals(route.routeName)) {
-						checkBox.setChecked(true);
-						break;
-					}
-				}
-
-				// Add the box to the favorites container.
-				this.favoriteContainer.addView(checkBox);
+			// Add button tint if the sdk supports it.
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+				checkBox.setButtonTintList(androidx.appcompat.content.res.AppCompatResources.
+						getColorStateList(this, R.color.white));
 			}
+
+			// Set the checkbox tag to the route object.
+			checkBox.setTag(route);
+
+			// If the favorited route object is not null, set the checkbox to its enabled value.
+			if (favoritedRoutes != null) {
+				checkBox.setChecked(isFavorited(favoritedRoutes, route.routeName));
+			}
+
+			// Add the box to the favorites container.
+			this.favoriteContainer.addView(checkBox);
 		}
 	}
 }
