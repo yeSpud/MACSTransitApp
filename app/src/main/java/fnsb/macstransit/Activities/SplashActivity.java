@@ -409,7 +409,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				}
 
 				// Get an array of shared routes.
-				Route[] sharedRoutes = SharedStop.getSharedRoutes(route, routeIndex, stop); // FIXME #72
+				Route[] sharedRoutes = SharedStop.getSharedRoutes(route, routeIndex, stop);
 
 				// If the shared routes array has more than one entry, create a new shared stop object.
 				if (sharedRoutes.length > 1) {

@@ -132,8 +132,13 @@ public class SharedStop extends MarkedObject {
 				continue;
 			}
 
+			// If there are no stops to iterate over just continue like above.
+			if (route2.stops == null) {
+				continue;
+			}
+
 			// Iterate though each stop in the second route and compare them to the provided stop.
-			for (Stop stop2 : route2.stops) { // FIXME &72
+			for (Stop stop2 : route2.stops) {
 				try {
 
 					// If the stops match, add the route to the potential routes array.
