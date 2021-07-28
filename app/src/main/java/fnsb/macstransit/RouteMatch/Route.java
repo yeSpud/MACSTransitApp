@@ -56,6 +56,7 @@ public class Route {
 	 * This may be empty / null if the route has not been initialized,
 	 * and the stops haven't been loaded.
 	 */
+	@Nullable
 	public Stop[] stops;
 
 	/**

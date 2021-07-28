@@ -133,7 +133,7 @@ public class SharedStop extends MarkedObject {
 			}
 
 			// Iterate though each stop in the second route and compare them to the provided stop.
-			for (Stop stop2 : route2.stops) {
+			for (Stop stop2 : route2.stops) { // FIXME &72
 				try {
 
 					// If the stops match, add the route to the potential routes array.

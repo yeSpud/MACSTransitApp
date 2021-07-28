@@ -235,7 +235,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			this.mapBusStops();
 
 			// Map shared stops.
-			this.mapSharedStops();
+			this.mapSharedStops(); // FIXME #70
 
 			// Validate stops.
 			this.validateStops();
@@ -387,7 +387,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			Route route = MapsActivity.allRoutes[routeIndex];
 
 			// Iterate through all the stops in our first comparison route.
-			for (Stop stop : route.stops) {
+			for (Stop stop : route.stops) { // FIXME #70
 
 				// Make sure our stop is not already in our shared stop.
 				SharedStop[] sharedStops = route.getSharedStops();
@@ -409,7 +409,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				}
 
 				// Get an array of shared routes.
-				Route[] sharedRoutes = SharedStop.getSharedRoutes(route, routeIndex, stop);
+				Route[] sharedRoutes = SharedStop.getSharedRoutes(route, routeIndex, stop); // FIXME #72
 
 				// If the shared routes array has more than one entry, create a new shared stop object.
 				if (sharedRoutes.length > 1) {

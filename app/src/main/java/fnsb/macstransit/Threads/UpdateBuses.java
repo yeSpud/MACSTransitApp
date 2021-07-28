@@ -39,7 +39,7 @@ public class UpdateBuses implements Runnable {
 		// Update the current position of our current buses.
 		// This also removes old buses from the array, but they still have markers on the map.
 		Log.d("UpdateBuses", "Updating current buses on map");
-		Bus[] currentBuses = Bus.updateCurrentBuses(MapsActivity.buses, this.potentialNewBuses);
+		Bus[] currentBuses = Bus.updateCurrentBuses(MapsActivity.buses, this.potentialNewBuses); // FIXME #71
 
 		// Remove the markers of the old buses that are no longer on the map.
 		Log.d("UpdateBuses", "Removing old buses from map");

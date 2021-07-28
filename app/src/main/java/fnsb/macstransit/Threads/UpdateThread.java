@@ -111,7 +111,7 @@ public class UpdateThread {
 						// Notify the developer that the thread is now looping.
 						Log.d("UpdateThread", "Looping...");
 
-						MapsActivity.routeMatch.networkQueue.cancelAll(this);
+						MapsActivity.routeMatch.networkQueue.cancelAll(this); // FIXME #69
 
 						switch (this.state) {
 							case RUN:
