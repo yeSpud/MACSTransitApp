@@ -271,7 +271,7 @@ public class Bus extends MarkedObject {
 						oldBus.speed = newBus.speed;
 
 						// Add the bus to the potential bus array.
-						potentialBuses[busSize] = oldBus; // FIXME #71
+						potentialBuses[busSize] = oldBus; // FIXME #71 - HOW???
 						busSize++;
 					} else {
 						Log.w("updateCurrentBuses", String.format("Marker is null for updated bus %s",
