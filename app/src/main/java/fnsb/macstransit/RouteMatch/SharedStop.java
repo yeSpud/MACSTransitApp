@@ -233,6 +233,11 @@ public class SharedStop extends MarkedObject {
 
 		LatLng sharedLoc = sharedStop.circleOptions[0].getCenter(), stopLoc = stop.circleOptions.getCenter();
 
+		// If there are no shared latitude or stops just return not equal.
+		if (sharedLoc == null || stopLoc == null) {
+			return false;
+		}
+
 		// Compare names.
 		boolean nameMatch = sharedStop.name.equals(stop.name),
 
