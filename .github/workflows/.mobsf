@@ -1,5 +1,10 @@
 ---
-- ignore-rules:
+- ignore-filenames:
+
+  ignore-paths:
+  - __MACOSX
+
+  ignore-rules:
   - android_logging
   - android_hidden_ui
   - android_kotlin_logging
