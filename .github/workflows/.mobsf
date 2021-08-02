@@ -1,0 +1,8 @@
+---
+  ignore-rules:
+  - android_kotlin_logging
+  - android_prevent_screenshot
+
+  severity-filter:
+  - WARNING
+  - ERROR
