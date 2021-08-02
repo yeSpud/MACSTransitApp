@@ -1,5 +1,7 @@
 ---
-  ignore-rules:
+- ignore-rules:
+  - android_logging
+  - android_hidden_ui
   - android_kotlin_logging
   - android_prevent_screenshot
 
