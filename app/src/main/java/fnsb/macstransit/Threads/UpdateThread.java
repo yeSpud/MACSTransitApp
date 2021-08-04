@@ -106,12 +106,17 @@ public class UpdateThread {
 
 				// Loop continuously while the thread has not been interrupted.
 				while (!Thread.interrupted() && this.state != STATE.STOP) {
+
+					// Notify the developer that the thread is now looping.
+					Log.d("UpdateThread", "Looping...");
+
 					try {
-
-						// Notify the developer that the thread is now looping.
-						Log.d("UpdateThread", "Looping...");
-
 						MapsActivity.routeMatch.networkQueue.cancelAll(this);
+					} catch (NullPointerException npe) {
+						Log.w("UpdateThread", "Nothing in queue to cancel");
+					}
+
+					try {
 
 						switch (this.state) {
 							case RUN:

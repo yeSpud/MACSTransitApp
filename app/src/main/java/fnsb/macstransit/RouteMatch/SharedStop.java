@@ -132,6 +132,11 @@ public class SharedStop extends MarkedObject {
 				continue;
 			}
 
+			// If there are no stops to iterate over just continue like above.
+			if (route2.stops == null) {
+				continue;
+			}
+
 			// Iterate though each stop in the second route and compare them to the provided stop.
 			for (Stop stop2 : route2.stops) {
 				try {
@@ -227,6 +232,11 @@ public class SharedStop extends MarkedObject {
 	public static boolean areEqual(@NonNull SharedStop sharedStop, @NonNull Stop stop) {
 
 		LatLng sharedLoc = sharedStop.circleOptions[0].getCenter(), stopLoc = stop.circleOptions.getCenter();
+
+		// If there are no shared latitude or stops just return not equal.
+		if (sharedLoc == null || stopLoc == null) {
+			return false;
+		}
 
 		// Compare names.
 		boolean nameMatch = sharedStop.name.equals(stop.name),

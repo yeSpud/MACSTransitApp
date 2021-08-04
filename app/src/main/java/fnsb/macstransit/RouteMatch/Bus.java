@@ -270,9 +270,16 @@ public class Bus extends MarkedObject {
 						oldBus.heading = newBus.heading;
 						oldBus.speed = newBus.speed;
 
-						// Add the bus to the potential bus array.
-						potentialBuses[busSize] = oldBus;
-						busSize++;
+						try {
+							// Add the bus to the potential bus array.
+							potentialBuses[busSize] = oldBus;
+							busSize++;
+						} catch (ArrayIndexOutOfBoundsException e) {
+
+							// If there was an ArrayIndexOutOfBoundsException log it and break out of the for loop because of suspicious behavior.
+							Log.w("updateCurrentBuses", "Potential bus array out of bounds... how?");
+							break;
+						}
 					} else {
 						Log.w("updateCurrentBuses", String.format("Marker is null for updated bus %s",
 								oldBus.name));
