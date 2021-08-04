@@ -13,42 +13,42 @@ import java.io.File
  */
 abstract class BaseSettings<R>(val FILENAME: String, val VERSION: Int) {
 
-    /*
-     * The name of the settings file.
-     */
+	/*
+	 * The name of the settings file.
+	 */
 
-    /*
-     * The version of the settings.
-     */
+	/*
+	 * The version of the settings.
+	 */
 
-    /**
-     * Writes the provided string to the settings file.
-     *
-     * @param string  The string to be written to the settings file.
-     * @param context The app context (for determining where the file is).
-     */
-    abstract fun writeSettingsToFile(string: String, context: Context)
+	/**
+	 * Writes the provided string to the settings file.
+	 *
+	 * @param string  The string to be written to the settings file.
+	 * @param context The app context (for determining where the file is).
+	 */
+	abstract fun writeSettingsToFile(string: String, context: Context)
 
-    /**
-     * Creates a new settings file with default values.
-     *
-     * @param context The app context used to determine the file location.
-     */
-    abstract fun createSettingsFile(context: Context)
+	/**
+	 * Creates a new settings file with default values.
+	 *
+	 * @param context The app context used to determine the file location.
+	 */
+	abstract fun createSettingsFile(context: Context)
 
-    /**
-     * Parses the settings from the settings file into booleans and ints.
-     *
-     * @param input TODO
-     */
-    abstract fun parseSettings(input: R)
+	/**
+	 * Parses the settings from the settings file into booleans and ints.
+	 *
+	 * @param input TODO
+	 */
+	abstract fun parseSettings(input: R)
 
-    /**
-     *  Reads the object from the settings file.
-     *
-     *  @param file The settings file.
-     *  @return TODO
-     */
-    abstract fun readFromSettingsFile(file: File): R
+	/**
+	 *  Reads the object from the settings file.
+	 *
+	 *  @param file The settings file.
+	 *  @return TODO
+	 */
+	abstract fun readFromSettingsFile(file: File): R
 
 }
