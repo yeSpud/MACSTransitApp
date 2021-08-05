@@ -55,7 +55,7 @@ object CurrentSettings {
 				}
 
 				// Check if the name matches an older settings file.
-				val oldSettings = v1()
+				val oldSettings = V1
 				if (name == oldSettings.FILENAME) {
 
 					// Since it matches the old file name, create a new file object using the name.
@@ -123,22 +123,18 @@ object CurrentSettings {
 	private fun convertSettings(oldFile: File, context: Context): JSONObject {
 
 		// Check if the old file name is that of v1.
-		val oldVersion = v1()
+		val oldVersion = V1
 		return if (oldFile.name == oldVersion.FILENAME) {
 
 			// Load the old settings.
 			Log.v("convertSettings", "Converting from v1")
-			val oldSettings = v1()
+			val oldSettings = V1
 			val oldSettingsValues = oldSettings.readFromSettingsFile(context)
-			if (oldSettingsValues != null) {
-				oldSettings.parseSettings(oldSettingsValues)
-			} else {
-				Log.w("convertSettings", "Old settings values were null!")
-			}
+			oldSettings.parseSettings(oldSettingsValues)
 			try {
 				// Carry over the old settings to the new format, and load in the defaults for unknown values.
-				val newSettings = (settingsImplementation as V2).formatSettingsToJsonString(v1.ENABLE_TRAFFIC_VIEW,
-						v1.DEFAULT_NIGHT_MODE, v1.SHOW_POLYLINES, v1.ENABLE_VR_OPTIONS, GoogleMap.MAP_TYPE_NORMAL)
+				val newSettings = (settingsImplementation as V2).formatSettingsToJsonString(V1.ENABLE_TRAFFIC_VIEW,
+						V1.DEFAULT_NIGHT_MODE, V1.SHOW_POLYLINES, V1.ENABLE_VR_OPTIONS, GoogleMap.MAP_TYPE_NORMAL)
 
 				// Write those settings to the new settings file.
 				settingsImplementation.writeSettingsToFile(newSettings.toString(), context)

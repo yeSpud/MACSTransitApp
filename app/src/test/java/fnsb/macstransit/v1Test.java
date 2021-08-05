@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import java.io.File;
 
-import fnsb.macstransit.Settings.v1;
+import fnsb.macstransit.Settings.V1;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -25,7 +25,7 @@ import static org.junit.Assert.assertTrue;
 @SuppressWarnings("deprecation")
 public class v1Test {
 
-	private final v1 settings = new v1();
+	private final V1 settings = new V1();
 
 	@Test
 	public void testName() {
@@ -59,9 +59,9 @@ public class v1Test {
 
 		// Not test the parse
 		settings.parseSettings(settings.readFromSettingsFile(Helper.OLD_SETTINGS_TXT));
-		assertTrue(v1.ENABLE_TRAFFIC_VIEW);
-		assertFalse(v1.DEFAULT_NIGHT_MODE);
-		assertFalse(v1.SHOW_POLYLINES);
-		assertFalse(v1.ENABLE_VR_OPTIONS);
+		assertTrue(V1.ENABLE_TRAFFIC_VIEW);
+		assertFalse(V1.DEFAULT_NIGHT_MODE);
+		assertFalse(V1.SHOW_POLYLINES);
+		assertFalse(V1.ENABLE_VR_OPTIONS);
 	}
 }
