@@ -64,7 +64,7 @@ public class ApplySettings implements View.OnClickListener {
 		// Format the options into a Json string.
 		org.json.JSONObject json;
 		try {
-			json = ((fnsb.macstransit.Settings.v2) CurrentSettings.settingsImplementation).
+			json = ((fnsb.macstransit.Settings.V2) CurrentSettings.settingsImplementation).
 					formatSettingsToJsonString(this.activity.trafficBox.isChecked(),
 							this.activity.darkthemeBox.isChecked(), this.activity.polyBox.isChecked(),
 							this.activity.streetviewBox.isChecked(), mapId, favoritedRoutes);

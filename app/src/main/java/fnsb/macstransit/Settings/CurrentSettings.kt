@@ -6,9 +6,7 @@ import com.google.android.gms.maps.GoogleMap
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.*
-import java.lang.StringBuilder
 import java.nio.charset.StandardCharsets
-import kotlin.Throws
 
 /**
  * Created by Spud on 6/22/20 for the project: MACS Transit.
@@ -23,7 +21,7 @@ object CurrentSettings {
 	 * The most current implementation of the settings class.
 	 * This is the class that you likely want to call when retrieving settings.
 	 */
-	val settingsImplementation: BaseSettings<JSONObject> = v2()
+	val settingsImplementation: BaseSettings<JSONObject> = V2
 
 	/**
 	 * Attempts to find the settings file on the device.
@@ -96,13 +94,9 @@ object CurrentSettings {
 				if (settingsFile.name == settingsImplementation.FILENAME) {
 
 					// Load the settings from the settings file.
-					val settingsValues = (settingsImplementation as v2).readFromSettingsFile(context)
-					if (settingsValues != null) {
-						Log.d("loadSettings", "Loading settings: ${settingsValues.toString(4)}")
-						settingsImplementation.parseSettings(settingsValues)
-					} else {
-						Log.w("loadSettings", "Settings values are null!")
-					}
+					val settingsValues = (settingsImplementation as V2).readFromSettingsFile(context)
+					Log.d("loadSettings", "Loading settings: ${settingsValues.toString(4)}")
+					settingsImplementation.parseSettings(settingsValues)
 				} else {
 
 					// Convert the settings file, and then parse the result.
@@ -143,7 +137,7 @@ object CurrentSettings {
 			}
 			try {
 				// Carry over the old settings to the new format, and load in the defaults for unknown values.
-				val newSettings = (settingsImplementation as v2).formatSettingsToJsonString(v1.ENABLE_TRAFFIC_VIEW,
+				val newSettings = (settingsImplementation as V2).formatSettingsToJsonString(v1.ENABLE_TRAFFIC_VIEW,
 						v1.DEFAULT_NIGHT_MODE, v1.SHOW_POLYLINES, v1.ENABLE_VR_OPTIONS, GoogleMap.MAP_TYPE_NORMAL)
 
 				// Write those settings to the new settings file.

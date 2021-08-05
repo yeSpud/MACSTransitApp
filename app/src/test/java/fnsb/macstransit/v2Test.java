@@ -9,7 +9,7 @@ import org.junit.Test;
 import java.io.File;
 
 import fnsb.macstransit.Settings.CurrentSettings;
-import fnsb.macstransit.Settings.v2;
+import fnsb.macstransit.Settings.V2;
 
 import static org.junit.Assert.*;
 
@@ -23,7 +23,7 @@ import static org.junit.Assert.*;
  */
 public class v2Test {
 
-	public v2 settings = new v2();
+	public V2 settings = new V2();
 
 	@Test
 	public void testRead() {
@@ -45,20 +45,20 @@ public class v2Test {
 	@Test
 	public void testFormat() {
 		try {
-			assertNotEquals(((v2)CurrentSettings.settingsImplementation).formatSettingsToJsonString(false,
+			assertNotEquals(((V2)CurrentSettings.settingsImplementation).formatSettingsToJsonString(false,
 					false, false, false, GoogleMap.MAP_TYPE_NORMAL),
 					new JSONObject());
 			assertEquals("{\"enable dark theme\":false,\"enable polylines\":false," +
 					"\"favorited routes\":[],\"enable traffic view\":false,\"map type\":1," +
 					"\"enable streetview\":false,\"version\":2}",
-					((v2)CurrentSettings.settingsImplementation).formatSettingsToJsonString(false,
+					((V2)CurrentSettings.settingsImplementation).formatSettingsToJsonString(false,
 							false, false, false,
 							GoogleMap.MAP_TYPE_NORMAL).toString());
 
 			assertEquals("{\"enable dark theme\":true,\"enable polylines\":true," +
 							"\"favorited routes\":[],\"enable traffic view\":true,\"map type\":1," +
 							"\"enable streetview\":true,\"version\":2}",
-					((v2)CurrentSettings.settingsImplementation).formatSettingsToJsonString(true,
+					((V2)CurrentSettings.settingsImplementation).formatSettingsToJsonString(true,
 							true, true, true,
 							GoogleMap.MAP_TYPE_NORMAL).toString());
 		} catch (JSONException e) {

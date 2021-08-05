@@ -1,7 +1,6 @@
 package fnsb.macstransit.Settings
 
 import android.content.Context
-import android.util.Log
 import java.io.File
 
 /**

@@ -23,7 +23,7 @@ import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
 import fnsb.macstransit.Settings.CurrentSettings;
-import fnsb.macstransit.Settings.v2;
+import fnsb.macstransit.Settings.V2;
 import fnsb.macstransit.Threads.UpdateThread;
 
 public class MapsActivity extends androidx.fragment.app.FragmentActivity implements
@@ -133,7 +133,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		MapsActivity.drawStops();
 
 		// (Re) draw the routes onto the map (if enabled).
-		if (((v2) CurrentSettings.settingsImplementation).getPolylines()) {
+		if (((V2) CurrentSettings.settingsImplementation).getPolylines()) {
 			MapsActivity.drawRoutes();
 		}
 
@@ -497,7 +497,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		}
 
 		// Check if night mode should be enabled by default, and set the checkbox to that value.
-		menu.findItem(R.id.night_mode).setChecked(((v2) CurrentSettings.settingsImplementation).getDarktheme());
+		menu.findItem(R.id.night_mode).setChecked(((V2) CurrentSettings.settingsImplementation).getDarktheme());
 
 		// Return true, otherwise the menu wont be displayed.
 		return true;
@@ -668,13 +668,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		if (MapsActivity.map != null) {
 
 			// Enable traffic overlay based on settings.
-			MapsActivity.map.setTrafficEnabled(((v2) CurrentSettings.settingsImplementation).getTraffic());
+			MapsActivity.map.setTrafficEnabled(((V2) CurrentSettings.settingsImplementation).getTraffic());
 
 			// Set the the type of map based on settings.
-			MapsActivity.map.setMapType(((v2) CurrentSettings.settingsImplementation).getMaptype());
+			MapsActivity.map.setMapType(((V2) CurrentSettings.settingsImplementation).getMaptype());
 
 			// Toggle night mode at this time if enabled.
-			this.toggleNightMode(((v2) CurrentSettings.settingsImplementation).getDarktheme());
+			this.toggleNightMode(((V2) CurrentSettings.settingsImplementation).getDarktheme());
 
 			// Enable street-view options based on settings.
 			/* - DEPRECATED -
@@ -685,7 +685,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			*/
 
 			// Get the favorited routes from the settings object.
-			Route[] favoritedRoutes = ((v2) CurrentSettings.settingsImplementation).getRoutes();
+			Route[] favoritedRoutes = ((V2) CurrentSettings.settingsImplementation).getRoutes();
 
 			if (!MapsActivity.selectedFavorites) {
 
@@ -713,7 +713,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			MapsActivity.drawStops();
 
 			// Draw the routes.
-			if (((v2) CurrentSettings.settingsImplementation).getPolylines()) {
+			if (((V2) CurrentSettings.settingsImplementation).getPolylines()) {
 				MapsActivity.drawRoutes();
 			}
 		} else {
