@@ -11,13 +11,13 @@ import androidx.annotation.AnyThread;
 import androidx.annotation.UiThread;
 
 import fnsb.macstransit.Activities.SplashScreenRunnables.MapBusRoutes;
+import fnsb.macstransit.Activities.SplashScreenRunnables.MapBusStops;
 import fnsb.macstransit.Activities.SplashScreenRunnables.MasterScheduleCallback;
 import fnsb.macstransit.Activities.SplashScreenRunnables.SplashListener;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
-import fnsb.macstransit.Threads.SplashActivityLock;
 
 /**
  * Created by Spud on 2019-11-04 for the project: MACS Transit.
@@ -50,6 +50,16 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	public static final int LOAD_BUS_ROUTES = 8;
 
 	/**
+	 * TODO Documentation
+	 */
+	public static final int DOWNLOAD_BUS_STOPS = 8;
+
+	/**
+	 * TODO Documentation
+	 */
+	public static final int LOAD_BUS_STOPS = 8;
+
+	/**
 	 * The max progress for the progress bar.
 	 * The progress is determined the following checks:
 	 * <ul>
@@ -59,10 +69,10 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * <li>Map the bus stops (1)</li>
 	 * <li>Map the shared stops (8)</li>
 	 * <li>Validate the stops (8)</li>
-	 * </ul>
+	 * </ul> FIXME Documentation
 	 */
 	private static final double MAX_PROGRESS = DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE
-			+ DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + 1 + 8 + 8;
+			+ DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS + 8 + 8;
 
 	/**
 	 * Create a variable to check if the map activity has already been loaded
@@ -70,11 +80,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * or just needs to refresh the activity)
 	 */
 	public static boolean loaded = false;
-
-	/**
-	 * Callback lock used to wait for async tasks to finish before continuing.
-	 */
-	private final SplashActivityLock lockCallback = new SplashActivityLock();
 
 	/**
 	 * The TextView widget in the activity.
@@ -95,6 +100,11 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * TODO Documentation
 	 */
 	private int mapBusProgress = 0;
+
+	/**
+	 * TODO Documentation
+	 */
+	private int mapStopProgress = 0;
 
 	/**
 	 * Called when the activity is starting.
@@ -242,12 +252,12 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 *
 	 * @return The thread that will run all the necessary initialization methods.
 	 */
+	@Deprecated
 	@androidx.annotation.NonNull
 	private Thread initializeApp() {
 		Thread thread = new Thread(() -> {
 
 			// Map bus stops.
-			this.mapBusStops();
 
 			// Map shared stops.
 			this.mapSharedStops();
@@ -265,7 +275,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	}
 
 	/**
-	 *  TODO Documentation & comments
+	 * TODO Documentation & comments
 	 */
 	public void downloadBusRoutes() {
 
@@ -278,14 +288,18 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 		final double step = (double) SplashActivity.LOAD_BUS_ROUTES / MapsActivity.allRoutes.length,
 				progress = SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE
-				+ SplashActivity.DOWNLOAD_BUS_ROUTES;
+						+ SplashActivity.DOWNLOAD_BUS_ROUTES;
 
 		MapBusRoutes mapBusRoutes = new MapBusRoutes();
 		for (Route route : MapsActivity.allRoutes) {
 			this.mapBusProgress--;
 			Pair<Route, SplashListener> pair = new Pair<>(route, () -> {
 				this.mapBusProgress++;
-				this.checkBusRouteDownloadState();
+
+				Log.v("downloadBusRoutes", "Map progress remaining: " + this.mapBusProgress);
+				if (this.mapBusProgress == 0) {
+					this.downloadBusStops();
+				}
 
 				// Update progress.
 				this.setProgressBar(progress + step + MapsActivity.allRoutes.length + this.mapBusProgress);
@@ -296,13 +310,53 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		mapBusRoutes.getBusRoutes(this);
 	}
 
-	private void checkBusRouteDownloadState() {
-		Log.v("checkRunnableState", "Map progress remaining: " + this.mapBusProgress);
-		if (this.mapBusProgress == 0) {
-			this.setProgressBar(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE
-					+ DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES );
-			// TODO Move on.
+	/**
+	 * Loads the bus stops for every route. At this point shared stops are not implemented,
+	 * so stops for separate routes will overlap.
+	 * <p>
+	 * TODO Documentation & comments
+	 */
+	private void downloadBusStops() {
+
+		// Verify that allRoutes is not null. If it is then log and return early.
+		if (MapsActivity.allRoutes == null) {
+			Log.w("mapBusStops", "All routes is null!");
+			return;
 		}
+
+		this.setMessage(R.string.loading_bus_stops);
+		this.setProgressBar(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE
+				+ DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES);
+
+		final double step = (double) SplashActivity.LOAD_BUS_STOPS / MapsActivity.allRoutes.length,
+				progress = SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE
+						+ SplashActivity.DOWNLOAD_BUS_ROUTES + SplashActivity.LOAD_BUS_ROUTES
+						+ SplashActivity.DOWNLOAD_BUS_STOPS;
+
+		MapBusStops mapBusStops = new MapBusStops();
+
+		// Iterate thorough all the routes to load each stop.
+		for (Route route : MapsActivity.allRoutes) {
+			this.mapStopProgress--;
+
+			Pair<Route, SplashListener> pair = new Pair<>(route, () -> {
+				this.mapStopProgress++;
+				// TODO Check bus stop state
+
+				Log.v("downloadBusStops", "Stop progress remaining: " + this.mapStopProgress);
+				if (this.mapStopProgress == 0) {
+					// TODO move on
+					Log.i("downloadBusStops", "Move on");
+				}
+
+				// Update progress.
+				this.setProgressBar(progress + step + MapsActivity.allRoutes.length + this.mapStopProgress);
+			});
+			mapBusStops.addListener(pair);
+		}
+
+		mapBusStops.getBusStops();
+
 	}
 
 	/**
@@ -323,7 +377,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Then setup the button to open the internet settings when clicked on, and make it visible.
 		this.button.setText(R.string.open_network_settings);
 		this.button.setOnClickListener((click) -> {
-			this.startActivityForResult(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS), 0);
+			this.startActivity(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS));
 
 			// Also, close this application when clicked
 			this.finish();
@@ -341,6 +395,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 *
 	 * @return Whether or not the device has an internet connection.
 	 */
+	@UiThread
 	private boolean isMissingInternet() {
 
 		// Get the connectivity manager for the device.
@@ -358,31 +413,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			// Since the connectivity manager is null return true.
 			return true;
 		}
-	}
-
-	/**
-	 * Loads the bus stops for every route. At this point shared stops are not implemented,
-	 * so stops for separate routes will overlap.
-	 */
-	public void mapBusStops() {
-
-		// Update the user that we are now mapping (calculating) bus stops.
-		this.setMessage(R.string.mapping_bus_stops);
-
-		// Verify that allRoutes is not null. If it is then log and return early.
-		if (MapsActivity.allRoutes == null) {
-			Log.w("mapBusStops", "All routes is null!");
-			return;
-		}
-
-		// Iterate thorough all the routes to load each stop.
-		for (Route route : MapsActivity.allRoutes) {
-			route.loadStops();
-			this.lockCallback.waitForLock();
-		}
-
-		// Update the progress one last time for this method.
-		this.setProgressBar(1 + 8 + 1 + 1);
 	}
 
 	/**
@@ -510,9 +540,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 		// Set the selected favorites routes to be false for the maps activity.
 		MapsActivity.selectedFavorites = false;
-
-		// Remove our callback
-		MapsActivity.routeMatch.networkQueue.removeRequestEventListener(this.lockCallback);
 
 		/*
 		Suggest some garbage collection since we are done with a lot of heavy processing.

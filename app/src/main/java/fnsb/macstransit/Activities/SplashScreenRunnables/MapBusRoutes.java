@@ -6,17 +6,11 @@ import android.util.Pair;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.Activities.SplashActivity;
-import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.RouteMatch.RouteMatch;
 
 /**
  * Created by Spud on 8/5/21 for the project: MACS Transit.
@@ -31,7 +25,7 @@ public class MapBusRoutes {
 	/**
 	 * TODO Documentation
 	 */
-	private final Collection<Pair<Route, SplashListener>> pairs = new ArrayList<>(); // TODO Don't use arrayList
+	private final java.util.Collection<Pair<Route, SplashListener>> pairs = new java.util.ArrayList<>(); // TODO Don't use arrayList
 
 	/**
 	 * TODO Documentation
@@ -72,12 +66,12 @@ public class MapBusRoutes {
 							error), this);
 
 			activity.setProgressBar(progress + step);
-			progress+=step;
+			progress += step;
 		}
 
 		// Update the progress bar one final time for this method.
 		activity.setProgressBar(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE
-		+ SplashActivity.DOWNLOAD_BUS_ROUTES);
+				+ SplashActivity.DOWNLOAD_BUS_ROUTES);
 
 	}
 
@@ -89,6 +83,7 @@ public class MapBusRoutes {
 		/**
 		 * TODO Documentation
 		 */
+		@Deprecated
 		private final SplashActivity activity;
 
 		/**
@@ -122,12 +117,12 @@ public class MapBusRoutes {
 			}
 
 			// Display that we are mapping bus routes to the user.
-			activity.setMessage(R.string.mapping_bus_routes);
+			activity.setMessage(fnsb.macstransit.R.string.mapping_bus_routes);
 
 			try {
 
 				// Get the land route data array from the land route object.
-				JSONArray landRouteData = RouteMatch.parseData(response);
+				JSONArray landRouteData = fnsb.macstransit.RouteMatch.RouteMatch.parseData(response);
 
 				// Get the land route points object from the land route data array.
 				JSONObject landRoutePoints = landRouteData.getJSONObject(0);
@@ -159,11 +154,11 @@ public class MapBusRoutes {
 				}
 
 				// Set the polyline coordinates array to the finished LatLng array.
-				route.polyLineCoordinates = coordinates;
+				this.route.polyLineCoordinates = coordinates;
 
-				listener.splashRunnableFinished();
+				this.listener.splashRunnableFinished();
 
-			} catch (JSONException exception) {
+			} catch (org.json.JSONException exception) {
 				Log.e("getBusRoutes", "Error parsing json", exception);
 			}
 		}

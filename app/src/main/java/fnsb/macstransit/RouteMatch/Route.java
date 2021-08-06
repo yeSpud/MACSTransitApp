@@ -210,28 +210,6 @@ public class Route {
 	}
 
 	/**
-	 * Starts an asynchronous process to fetch all the stops for the route from the RouteMatch API.
-	 */
-	public void loadStops() {
-
-		// Get all the stops for the route from the RouteMatch object.
-		MapsActivity.routeMatch.callAllStops(this, result -> {
-
-			// Get the data from all the stops and store it in a JSONArray.
-			JSONArray data = RouteMatch.parseData(result);
-
-			// Load in all the potential stops for the route.
-			// The reason why this is considered potential stops is because at this stage duplicate
-			// stops have not yet been handled.
-			Stop[] potentialStops = Stop.generateStops(data, this);
-
-			// At this point duplicate stops have now been handled and removed.
-			this.stops = Stop.validateGeneratedStops(potentialStops);
-
-		}, error -> Log.w("loadStops", "Unable to get stops from RouteMatch server", error), this);
-	}
-
-	/**
 	 * Returns the polyline that corresponds to the route.
 	 *
 	 * @return The polyline that corresponds to the route.
