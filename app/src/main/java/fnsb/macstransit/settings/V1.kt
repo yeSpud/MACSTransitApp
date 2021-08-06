@@ -1,8 +1,8 @@
-package fnsb.macstransit.Settings
+package fnsb.macstransit.settings
 
 import android.content.Context
 import android.util.Log
-import fnsb.macstransit.Settings.CurrentSettings.readFile
+import fnsb.macstransit.settings.CurrentSettings.readFile
 import java.io.File
 
 /**

@@ -1,4 +1,4 @@
-package fnsb.macstransit.Settings
+package fnsb.macstransit.settings
 
 import android.content.Context
 import android.util.Log

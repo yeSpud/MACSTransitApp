@@ -7,6 +7,7 @@ import org.json.JSONException;
 import org.junit.Test;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.Route;
@@ -84,8 +85,8 @@ public class RouteTest {
 
 		// TODO All
 		try {
-			MapsActivity.allRoutes = new Route[]{new Route("Foo"),
-					new Route("Bar"), new Route("Baz")};
+			MapsActivity.allRoutes = new Route[]{new Route("Foo"), new Route("Bar"),
+					new Route("Baz")};
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			fail();
@@ -103,7 +104,7 @@ public class RouteTest {
 		}
 
 		// Enable the favoriteRoutes.
-		Route.enableFavoriteRoutes(favoriteRoutes);
+		Route.enableFavoriteRoutes(Arrays.asList(favoriteRoutes));
 
 		// Check for expected values.
 		assertTrue(MapsActivity.allRoutes[0].enabled);

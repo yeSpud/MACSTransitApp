@@ -22,9 +22,9 @@ import fnsb.macstransit.RouteMatch.Bus;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
 import fnsb.macstransit.RouteMatch.Stop;
-import fnsb.macstransit.Settings.CurrentSettings;
-import fnsb.macstransit.Settings.V2;
 import fnsb.macstransit.Threads.UpdateThread;
+import fnsb.macstransit.settings.CurrentSettings;
+import fnsb.macstransit.settings.V2;
 
 public class MapsActivity extends androidx.fragment.app.FragmentActivity implements
 		com.google.android.gms.maps.OnMapReadyCallback {
@@ -84,12 +84,17 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	private FarePopupWindow farePopupWindow;
 
 	/**
+	 * TODO Documentation
+	 */
+	private final CurrentSettings currentSettings = CurrentSettings.INSTANCE;
+
+	/**
 	 * Checks the selected item and enables or disables the specific route depending in its checked status.
 	 *
 	 * @param item The menu item that should belong to a route. This value cannot be null.
 	 * @throws Route.RouteException Thrown if the route to be toggled is not found within allRoutes.
 	 */
-	private static void onRouteItemToggled(@NonNull MenuItem item) throws Route.RouteException {
+	private void onRouteItemToggled(@NonNull MenuItem item) throws Route.RouteException {
 		Log.v("onRouteItemSelected", "onRouteItemSelected bas been called!");
 
 		// Make sure there are routes to iterate though by checking to see if allRoutes isn't null.
@@ -133,7 +138,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		MapsActivity.drawStops();
 
 		// (Re) draw the routes onto the map (if enabled).
-		if (((V2) CurrentSettings.settingsImplementation).getPolylines()) {
+		if (((V2) this.currentSettings.getSettingsImplementation()).getPolylines()) {
 			MapsActivity.drawRoutes();
 		}
 
@@ -351,7 +356,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Load in the current settings.
 		try {
-			CurrentSettings.loadSettings(this);
+			this.currentSettings.loadSettings(this);
 		} catch (org.json.JSONException e) {
 			// If there was an exception loading the settings simply log it and return.
 			Log.e("onCreate", "Exception when loading settings", e);
@@ -383,6 +388,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			MapsActivity.updateThread = new UpdateThread(this.mainThreadHandler);
 		}
 
+		// TODO Comments
 		MapsActivity.updateThread.state = UpdateThread.STATE.RUN;
 	}
 
@@ -497,7 +503,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		}
 
 		// Check if night mode should be enabled by default, and set the checkbox to that value.
-		menu.findItem(R.id.night_mode).setChecked(((V2) CurrentSettings.settingsImplementation).getDarktheme());
+		menu.findItem(R.id.night_mode).setChecked(((V2) this.currentSettings.getSettingsImplementation())
+				.getDarktheme());
 
 		// Return true, otherwise the menu wont be displayed.
 		return true;
@@ -526,7 +533,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			this.onOtherOptionsItemSelected(item);
 		} else if (item.getGroupId() == R.id.routes) { // Check if the item that was selected belongs to the routes group.
 			try {
-				MapsActivity.onRouteItemToggled(item);
+				this.onRouteItemToggled(item);
 			} catch (Route.RouteException e) {
 				Toast.makeText(this, "An error occurred while toggling that route",
 						Toast.LENGTH_LONG).show();
@@ -667,14 +674,17 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Make sure to only execute the following if the maps object is not null (map has been setup).
 		if (MapsActivity.map != null) {
 
+			// TODO Comments
+			V2 settings = (V2) this.currentSettings.getSettingsImplementation();
+
 			// Enable traffic overlay based on settings.
-			MapsActivity.map.setTrafficEnabled(((V2) CurrentSettings.settingsImplementation).getTraffic());
+			MapsActivity.map.setTrafficEnabled(settings.getTraffic());
 
 			// Set the the type of map based on settings.
-			MapsActivity.map.setMapType(((V2) CurrentSettings.settingsImplementation).getMaptype());
+			MapsActivity.map.setMapType(settings.getMaptype());
 
 			// Toggle night mode at this time if enabled.
-			this.toggleNightMode(((V2) CurrentSettings.settingsImplementation).getDarktheme());
+			this.toggleNightMode(settings.getDarktheme());
 
 			// Enable street-view options based on settings.
 			/* - DEPRECATED -
@@ -685,18 +695,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			*/
 
 			// Get the favorited routes from the settings object.
-			Route[] favoritedRoutes = ((V2) CurrentSettings.settingsImplementation).getRoutes();
+			java.util.List<Route> favoritedRoutes = settings.getRoutes();
 
 			if (!MapsActivity.selectedFavorites) {
 
 				// If the favorited routes is not null, enable them.
-				if (favoritedRoutes != null) {
-					Route.enableFavoriteRoutes(favoritedRoutes);
-				} else {
-
-					// Log if the favorited routes are null.
-					Log.w("updateMapSettings", "Favorite routes array is null");
-				}
+				Route.enableFavoriteRoutes(favoritedRoutes);
 			}
 
 			// Try redrawing the buses.
@@ -705,15 +709,14 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			try {
 				MapsActivity.drawBuses();
 			} catch (ConcurrentModificationException e) {
-				Log.e("updateMapSettings",
-						"Unable to draw all buses due to concurrent modification", e);
+				Log.e("updateMapSettings", "Unable to draw all buses due to concurrent modification", e);
 			}
 
 			// Draw the stops.
 			MapsActivity.drawStops();
 
 			// Draw the routes.
-			if (((V2) CurrentSettings.settingsImplementation).getPolylines()) {
+			if (settings.getPolylines()) {
 				MapsActivity.drawRoutes();
 			}
 		} else {

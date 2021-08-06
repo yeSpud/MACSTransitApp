@@ -1,4 +1,4 @@
-package fnsb.macstransit.Settings
+package fnsb.macstransit.settings
 
 import android.content.Context
 import android.util.Log
@@ -6,7 +6,7 @@ import android.widget.Toast
 import com.google.android.gms.maps.GoogleMap
 import fnsb.macstransit.Activities.MapsActivity
 import fnsb.macstransit.RouteMatch.Route
-import fnsb.macstransit.Settings.CurrentSettings.readFile
+import fnsb.macstransit.settings.CurrentSettings.readFile
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject

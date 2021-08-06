@@ -228,7 +228,7 @@ public class Route {
 	 *
 	 * @param favoritedRoutes The selected routes to be enabled from MapsActivity.allRoutes.
 	 */
-	public static void enableFavoriteRoutes(Route[] favoritedRoutes) {
+	public static void enableFavoriteRoutes(Iterable<Route> favoritedRoutes) {
 
 		// Make sure there are routes to iterate over.
 		if (MapsActivity.allRoutes == null || favoritedRoutes == null) {

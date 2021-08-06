@@ -7,12 +7,11 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 
-import org.json.JSONException;
+import org.json.JSONObject;
 
 import fnsb.macstransit.Activities.SettingsActivity;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.Settings.CurrentSettings;
 
 /**
  * Created by Spud on 6/23/20 for the project: MACS Transit.
@@ -40,6 +39,12 @@ public class ApplySettings implements View.OnClickListener {
 	}
 
 	/**
+	 * TODO Documentation
+	 */
+	private final fnsb.macstransit.settings.BaseSettings<JSONObject> settings = fnsb.macstransit.
+			settings.CurrentSettings.INSTANCE.getSettingsImplementation();
+
+	/**
 	 * Called when a view has been clicked.
 	 *
 	 * @param v The view that was clicked.
@@ -64,28 +69,22 @@ public class ApplySettings implements View.OnClickListener {
 		// Format the options into a Json string.
 		org.json.JSONObject json;
 		try {
-			json = ((fnsb.macstransit.Settings.V2) CurrentSettings.settingsImplementation).
-					formatSettingsToJsonString(this.activity.trafficBox.isChecked(),
-							this.activity.darkthemeBox.isChecked(), this.activity.polyBox.isChecked(),
-							this.activity.streetviewBox.isChecked(), mapId, favoritedRoutes);
-		} catch (JSONException e) {
-			e.printStackTrace();
+			json = ((fnsb.macstransit.settings.V2) settings).formatSettingsToJsonString(
+					this.activity.trafficBox.isChecked(), this.activity.darkthemeBox.isChecked(),
+					this.activity.polyBox.isChecked(), this.activity.streetviewBox.isChecked(),
+					mapId, favoritedRoutes);
+		} catch (org.json.JSONException e) {
+			Log.e("ApplySettings", "Exception on settings button click", e);
 			Toast.makeText(v.getContext(), "An exception occurred while applying settings",
 					Toast.LENGTH_LONG).show();
 			return;
 		}
 
 		// Write that string to the file
-		CurrentSettings.settingsImplementation.writeSettingsToFile(json.toString(), this.activity);
+		settings.writeSettingsToFile(json.toString(), this.activity);
 
 		// Reload the settings.
-		try {
-			CurrentSettings.settingsImplementation.parseSettings(json);
-		} catch (JSONException e) {
-			e.printStackTrace();
-			Toast.makeText(v.getContext(), "An exception occurred while reloading settings",
-					Toast.LENGTH_LONG).show();
-		}
+		settings.parseSettings(json);
 
 		// Close the activity.
 		this.activity.finish();

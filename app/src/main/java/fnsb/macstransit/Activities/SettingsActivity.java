@@ -1,6 +1,5 @@
 package fnsb.macstransit.Activities;
 
-import android.os.Build;
 import android.widget.CheckBox;
 
 import androidx.annotation.NonNull;
@@ -9,7 +8,7 @@ import com.google.android.gms.maps.GoogleMap;
 
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.Settings.V2;
+import fnsb.macstransit.settings.V2;
 
 /**
  * Created by Spud on 2019-11-24 for the project: MACS Transit.
@@ -51,7 +50,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * @param routeName The route name. This cannot be null.
 	 * @return Whether the route name was found in the favorited routes.
 	 */
-	private static boolean isFavorited(@NonNull Route[] routes, @NonNull String routeName) {
+	private static boolean isFavorited(@NonNull Iterable<Route> routes, @NonNull String routeName) {
 
 		// Iterate though all the routes provided.
 		for (Route savedRoute : routes) {
@@ -100,7 +99,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 		this.setContentView(R.layout.settings);
 
 		// Get the settings object.
-		V2 settings = (V2) fnsb.macstransit.Settings.CurrentSettings.settingsImplementation;
+		V2 settings = (V2) fnsb.macstransit.settings.CurrentSettings.INSTANCE.getSettingsImplementation();
 
 		// Setup the fixed checkboxes.
 		// Traffic box is used to determine whether or not to show the traffic overlay.
@@ -152,7 +151,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 	 *
 	 * @param favoritedRoutes The array of favorited routes to enable.
 	 */
-	private void addToFavoritesContainer(Route[] favoritedRoutes) {
+	private void addToFavoritesContainer(Iterable<Route> favoritedRoutes) {
 
 		// Make sure there are routes to iterate though.
 		if (MapsActivity.allRoutes == null) {
@@ -173,17 +172,14 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 			checkBox.setTextColor(this.getResources().getColor(R.color.white));
 
 			// Add button tint if the sdk supports it.
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-				checkBox.setButtonTintList(androidx.appcompat.content.res.AppCompatResources.
-						getColorStateList(this, R.color.white));
-			}
+			checkBox.setButtonTintList(androidx.appcompat.content.res.AppCompatResources.getColorStateList(this, R.color.white));
 
 			// Set the checkbox tag to the route object.
 			checkBox.setTag(route);
 
 			// If the favorited route object is not null, set the checkbox to its enabled value.
 			if (favoritedRoutes != null) {
-				checkBox.setChecked(isFavorited(favoritedRoutes, route.routeName));
+				checkBox.setChecked(SettingsActivity.isFavorited(favoritedRoutes, route.routeName));
 			}
 
 			// Add the box to the favorites container.

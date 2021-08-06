@@ -5,12 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 
-import java.io.File;
-import java.net.MalformedURLException;
-
-import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
-import fnsb.macstransit.Settings.CurrentSettings;
 
 import static org.junit.Assert.*;
 
