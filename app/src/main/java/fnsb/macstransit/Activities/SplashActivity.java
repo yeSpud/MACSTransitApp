@@ -7,7 +7,9 @@ import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.AnyThread;
+import androidx.annotation.UiThread;
 
+import fnsb.macstransit.Activities.SplashScreenRunnables.MasterScheduleCallback;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
@@ -22,7 +24,6 @@ import fnsb.macstransit.Threads.SplashActivityLock;
  * @version 2.1.
  * @since Beta 7.
  */
-@SuppressWarnings("MagicNumber")
 public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 	/**
@@ -31,13 +32,13 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * <ul>
 	 * <li>Downloading the master schedule (1)</li>
 	 * <li>Load bus routes (Route) (8) - average number of routes</li>
-	 * <li>Map the bus routes (Polyline) (1)</li>
+	 * <li>Map the bus routes (Polyline) (8)</li>
 	 * <li>Map the bus stops (1)</li>
 	 * <li>Map the shared stops (8)</li>
 	 * <li>Validate the stops (8)</li>
 	 * </ul>
 	 */
-	private static final double maxProgress = 1 + 8 + 1 + 1 + 8 + 8;
+	private static final double maxProgress = 1 + 8 + 8 + 1 + 8 + 8;
 
 	/**
 	 * Create a variable to check if the map activity has already been loaded
@@ -134,8 +135,36 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Make sure the dynamic button is invisible.
 		this.button.setVisibility(View.INVISIBLE);
 
+		// Check if the user has internet before continuing.
+		this.setMessage(R.string.internet_check);
+		if (this.isMissingInternet()) {
+			this.noInternet();
+			return;
+		}
+
+		// Create the RouteMatch object.
+		this.setMessage(R.string.routematch_creation);
+		try {
+			MapsActivity.routeMatch = new fnsb.macstransit.RouteMatch.RouteMatch("https://fnsb.routematch.com/feed/", this.getApplicationContext());
+		} catch (java.net.MalformedURLException e) {
+			Log.e("initializeApp", "Bad URL provided", e);
+			this.setMessage(R.string.routematch_creation_fail);
+			this.progressBar.setVisibility(View.INVISIBLE);
+			return;
+		}
+
+		// Get the master schedule from the RouteMatch server
+		this.setProgressBar(-1);
+		this.setMessage(R.string.downloading_master_schedule);
+		MapsActivity.routeMatch.callMasterSchedule(new MasterScheduleCallback(this),
+				error -> {
+					Log.w("initializeApp", "MasterSchedule callback error", error);
+					this.setMessage(R.string.routematch_timeout);
+					this.showRetryButton();
+				}, this);
+
 		// Run the initialization on a new thread as to not hang the app.
-		this.initializeApp().start();
+		//this.initializeApp().start();
 	}
 
 	/**
@@ -188,48 +217,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	private Thread initializeApp() {
 		Thread thread = new Thread(() -> {
 
-			// Check if the user has internet before continuing.
-			this.setMessage(R.string.internet_check);
-			if (this.isMissingInternet()) {
-				this.noInternet();
-				return;
-			}
-
-			// Create the RouteMatch object.
-			this.setMessage(R.string.routematch_creation);
-			try {
-				MapsActivity.routeMatch = new fnsb.macstransit.RouteMatch.
-						RouteMatch("https://fnsb.routematch.com/feed/", this.getApplicationContext());
-			} catch (java.net.MalformedURLException e) {
-				Log.e("initializeApp", "", e);
-				this.setMessage(R.string.routematch_creation_fail);
-				this.progressBar.setVisibility(View.INVISIBLE);
-				return;
-			}
-
-			// Get the master schedule from the RouteMatch server
-			this.setProgressBar(-1);
-			this.setMessage(R.string.downloading_master_schedule);
-			MapsActivity.routeMatch.callMasterSchedule(
-					new fnsb.macstransit.Threads.MasterScheduleCallback(this),
-					error -> {
-						Log.w("initializeApp", "MasterSchedule callback error", error);
-						this.setMessage(R.string.routematch_timeout);
-						this.showRetryButton();
-					}, this);
-
-			// Wait for the callback to finish.
-			synchronized (SplashActivityLock.LOCK) {
-				try {
-					SplashActivityLock.LOCK.wait();
-				} catch (InterruptedException e) {
-					Log.e("initializeApp", "Interrupted!", e);
-				}
-			}
-			this.setProgressBar(1 + 8);
-
 			// Map bus routes (map polyline coordinates).
-			this.mapBusRoutes();
 
 			// Map bus stops.
 			this.mapBusStops();
@@ -255,33 +243,26 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * and setting the button to launch the wireless settings.
 	 * It will also close the application when the button is clicked (as to force a restart of the app).
 	 */
-	@AnyThread
+	@UiThread
 	private void noInternet() {
 
-		// The following needs to run on the UI thread.
-		this.runOnUiThread(() -> {
+		// First, hide the progress bar.
+		this.progressBar.setVisibility(View.INVISIBLE);
 
-			// First, hide the progress bar.
-			this.progressBar.setVisibility(View.INVISIBLE);
+		// Then, set the message of the text view to notify the user that there is no internet connection.
+		this.setMessage(R.string.cannot_connect_internet);
 
-			// Then, set the message of the text view to notify the user that there is no internet connection.
+		// Then setup the button to open the internet settings when clicked on, and make it visible.
+		this.button.setText(R.string.open_network_settings);
+		this.button.setOnClickListener((click) -> {
+			this.startActivityForResult(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS), 0);
 
-			//this.setMessage(R.string.cannot_connect_internet);
-			this.textView.setText(R.string.cannot_connect_internet);
-
-			// Then setup the button to open the internet settings when clicked on, and make it visible.
-			this.button.setText(R.string.open_network_settings);
-			this.button.setOnClickListener((click) -> {
-				this.startActivityForResult(new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS),
-						0);
-
-				// Also, close this application when clicked
-				this.finish();
-			});
-
-			// Set the button to invisible.
-			this.button.setVisibility(View.VISIBLE);
+			// Also, close this application when clicked
+			this.finish();
 		});
+
+		// Set the button to invisible.
+		this.button.setVisibility(View.VISIBLE);
 
 		// Since technically everything (which is nothing) has been loaded, set the variable as so
 		SplashActivity.loaded = true;
@@ -309,30 +290,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			// Since the connectivity manager is null return true.
 			return true;
 		}
-	}
-
-	/**
-	 * Loads the polylines for each route. Also known as mapping the bus routes to the map.
-	 */
-	public void mapBusRoutes() {
-
-		// Display that we are mapping bus routes to the user.
-		this.setMessage(R.string.mapping_bus_routes);
-
-		// Verify that allRoutes is not null. If it is then log and return early.
-		if (MapsActivity.allRoutes == null) {
-			Log.w("mapBusRoutes", "All routes is null!");
-			return;
-		}
-
-		// Iterate though each route, and try to load the polyline in each of them.
-		for (Route route : MapsActivity.allRoutes) {
-			route.loadPolyLineCoordinates();
-			this.lockCallback.waitForLock();
-		}
-
-		// Update the progress bar one final time for this method.
-		this.setProgressBar(1 + 8 + 1);
 	}
 
 	/**
@@ -513,23 +470,19 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 *
 	 * @param resID The string ID of the message. This can be retrieved by calling R.string.STRING_ID.
 	 */
-	@AnyThread
+	@UiThread
 	public void setMessage(@androidx.annotation.StringRes final int resID) {
 
-		// Since we are changing a TextView element, the following needs to be run on the UI thread.
-		this.runOnUiThread(() -> {
+		// Make sure the text view is not null.
+		if (this.textView != null) {
 
-			// Make sure the text view is not null.
-			if (this.textView != null) {
+			// Set the TextView text to that of the message.
+			this.textView.setText(resID);
+		} else {
 
-				// Set the TextView text to that of the message.
-				this.textView.setText(resID);
-			} else {
-
-				// Since the TextView is null, log that it hasn't been initialized yet.
-				Log.w("setMessage", "TextView has not been initialized yet");
-			}
-		});
+			// Since the TextView is null, log that it hasn't been initialized yet.
+			Log.w("setMessage", "TextView has not been initialized yet");
+		}
 	}
 
 	/**

@@ -69,7 +69,7 @@ public class Route {
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
 	 * This is private as we don't want this variable to be set outside the class.
 	 */
-	private LatLng[] polyLineCoordinates;
+	public LatLng[] polyLineCoordinates;
 
 	/**
 	 * The array of shared stops for this route.
@@ -288,6 +288,7 @@ public class Route {
 	 * This method will either set the polyline coordinates for the route,
 	 * or will return early if the route match object is null.
 	 */
+	@Deprecated
 	public void loadPolyLineCoordinates() {
 
 		// Make sure the RouteMatch object exists.
@@ -422,16 +423,6 @@ public class Route {
 	@Nullable
 	public SharedStop[] getSharedStops() {
 		return this.sharedStops;
-	}
-
-	/**
-	 * Gets the LatLng object array for the polyline coordinates for the route.
-	 *
-	 * @return The polyline coordinates for the route as a LatLng array.
-	 */
-	@Nullable
-	public LatLng[] getPolyLineCoordinates() {
-		return this.polyLineCoordinates;
 	}
 
 	/**

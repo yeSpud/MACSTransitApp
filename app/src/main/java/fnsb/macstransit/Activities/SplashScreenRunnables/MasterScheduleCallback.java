@@ -1,9 +1,14 @@
-package fnsb.macstransit.Threads;
+package fnsb.macstransit.Activities.SplashScreenRunnables;
+
+import android.util.Log;
+import android.util.Pair;
 
 import org.json.JSONObject;
 
+import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.Activities.SplashActivity;
 import fnsb.macstransit.R;
+import fnsb.macstransit.RouteMatch.Route;
 
 /**
  * Created by Spud on 5/17/21 for the project: MACS Transit.
@@ -23,6 +28,11 @@ public class MasterScheduleCallback implements com.android.volley.Response.Liste
 	private final SplashActivity activity;
 
 	/**
+	 * TODO Documentation
+	 */
+	private int mapBusProgress = 0;
+
+	/**
 	 * Constructor for the MasterScheduleCallback
 	 *
 	 * @param activity The activity this callback belongs to.
@@ -32,7 +42,7 @@ public class MasterScheduleCallback implements com.android.volley.Response.Liste
 	}
 
 	@Override
-	public void onResponse(JSONObject response) {
+	public void onResponse(JSONObject response) { // TODO Comments
 
 		// Set the progress and message.
 		this.activity.setProgressBar(1);
@@ -54,9 +64,27 @@ public class MasterScheduleCallback implements com.android.volley.Response.Liste
 		// Set all the routes to the generated routes.
 		fnsb.macstransit.Activities.MapsActivity.allRoutes = fnsb.macstransit.RouteMatch.Route.generateRoutes(routes);
 
-		// Notify the activity to continue.
-		synchronized (SplashActivityLock.LOCK) {
-			SplashActivityLock.LOCK.notifyAll();
+		this.activity.setProgressBar(1 + 8);
+
+		MapBusRoutes mapBusRoutes = new MapBusRoutes();
+		for (Route route : MapsActivity.allRoutes) {
+			this.mapBusProgress++;
+			Pair<Route, SplashListener> pair = new Pair<>(route, () -> {
+				this.activity.setProgressBar(1 + 8 + 1);
+				this.mapBusProgress--;
+				this.checkRunnableState();
+			});
+			mapBusRoutes.addListener(pair);
+		}
+		mapBusRoutes.getBusRoutes();
+
+	}
+
+	private void checkRunnableState() {
+		Log.v("checkRunnableState", "Map progress remaining: " + this.mapBusProgress);
+		if (this.mapBusProgress == 0) {
+			// TODO Move on.
 		}
 	}
+
 }

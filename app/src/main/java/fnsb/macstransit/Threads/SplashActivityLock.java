@@ -14,6 +14,7 @@ import fnsb.macstransit.Activities.MapsActivity;
  * @version 1.0.
  * @since Release 1.2.6.
  */
+@Deprecated
 public class SplashActivityLock implements RequestQueue.RequestEventListener {
 
 	/**
