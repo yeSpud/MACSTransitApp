@@ -1,7 +1,6 @@
 package fnsb.macstransit.Activities.SplashScreenRunnables;
 
 import android.util.Log;
-import android.util.Pair;
 
 import org.json.JSONObject;
 
@@ -28,11 +27,6 @@ public class MasterScheduleCallback implements com.android.volley.Response.Liste
 	private final SplashActivity activity;
 
 	/**
-	 * TODO Documentation
-	 */
-	private int mapBusProgress = 0;
-
-	/**
 	 * Constructor for the MasterScheduleCallback
 	 *
 	 * @param activity The activity this callback belongs to.
@@ -45,14 +39,15 @@ public class MasterScheduleCallback implements com.android.volley.Response.Liste
 	public void onResponse(JSONObject response) { // TODO Comments
 
 		// Set the progress and message.
-		this.activity.setProgressBar(1);
+		this.activity.setProgressBar(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS);
 		this.activity.setMessage(R.string.loading_bus_routes);
 
 		// Get the routes from the JSONObject
 		org.json.JSONArray routes = fnsb.macstransit.RouteMatch.RouteMatch.parseData(response);
 
 		// If the routes length is 0, say that there are no buses for the day.
-		if (routes.length() == 0) {
+		int count = routes.length();
+		if (count == 0) {
 			this.activity.setMessage(R.string.its_sunday);
 
 			// Also add a chance for the user to retry.
@@ -61,30 +56,44 @@ public class MasterScheduleCallback implements com.android.volley.Response.Liste
 			return;
 		}
 
-		// Set all the routes to the generated routes.
-		fnsb.macstransit.Activities.MapsActivity.allRoutes = fnsb.macstransit.RouteMatch.Route.generateRoutes(routes);
+		// Create an array to store all the generated routes.
+		Route[] potentialRoutes = new Route[count];
+		int routeCount = 0;
+		final double step = (double) SplashActivity.PARSE_MASTER_SCHEDULE / count;
+		this.activity.setMessage(R.string.parsing_master_schedule);
 
-		this.activity.setProgressBar(1 + 8);
+		// Iterate though each route in the master schedule.
+		for (int index = 0; index < count; index++) {
+			Log.d("MasterScheduleCallback", String.format("Parsing route %d/%d", index + 1, count));
 
-		MapBusRoutes mapBusRoutes = new MapBusRoutes();
-		for (Route route : MapsActivity.allRoutes) {
-			this.mapBusProgress++;
-			Pair<Route, SplashListener> pair = new Pair<>(route, () -> {
-				this.activity.setProgressBar(1 + 8 + 1);
-				this.mapBusProgress--;
-				this.checkRunnableState();
-			});
-			mapBusRoutes.addListener(pair);
+			// Try to get the route data from the array.
+			// If there's an issue parsing the data simply continue to the next iteration of the loop.
+			JSONObject routeData;
+			try {
+				routeData = routes.getJSONObject(index);
+			} catch (org.json.JSONException e) {
+				Log.w("MasterScheduleCallback", "Issue retrieving the route data", e);
+				continue;
+			}
+
+			// Try to create the route using the route data obtained above.
+			// If there was a route exception thrown simply log it.
+			try {
+				Route route = Route.generateRoute(routeData);
+				potentialRoutes[routeCount] = route;
+				routeCount++;
+			} catch (Route.RouteException | java.io.UnsupportedEncodingException e) {
+				Log.w("MasterScheduleCallback", "Issue creating route from route data", e);
+			}
+
+			this.activity.setProgressBar(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + step);
 		}
-		mapBusRoutes.getBusRoutes();
 
+		// Down size our potential routes array to fit the actual number of routes.
+		MapsActivity.allRoutes = new Route[routeCount];
+		System.arraycopy(potentialRoutes, 0, MapsActivity.allRoutes, 0, routeCount);
+
+		// Map bus routes (map polyline coordinates).
+		this.activity.downloadBusRoutes();
 	}
-
-	private void checkRunnableState() {
-		Log.v("checkRunnableState", "Map progress remaining: " + this.mapBusProgress);
-		if (this.mapBusProgress == 0) {
-			// TODO Move on.
-		}
-	}
-
 }

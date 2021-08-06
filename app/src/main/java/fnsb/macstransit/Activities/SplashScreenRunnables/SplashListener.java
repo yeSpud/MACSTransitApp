@@ -8,7 +8,7 @@ package fnsb.macstransit.Activities.SplashScreenRunnables;
  * @version 1.0.
  * @since Release 1.3.
  */
-interface SplashListener {
+public interface SplashListener {
 
 	/**
 	 * TODO Documentation

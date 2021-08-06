@@ -4,12 +4,15 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.Build;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 
 import androidx.annotation.AnyThread;
 import androidx.annotation.UiThread;
 
+import fnsb.macstransit.Activities.SplashScreenRunnables.MapBusRoutes;
 import fnsb.macstransit.Activities.SplashScreenRunnables.MasterScheduleCallback;
+import fnsb.macstransit.Activities.SplashScreenRunnables.SplashListener;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
@@ -27,6 +30,26 @@ import fnsb.macstransit.Threads.SplashActivityLock;
 public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 	/**
+	 * TODO Documentation
+	 */
+	public static final int DOWNLOAD_MASTER_SCHEDULE_PROGRESS = 1;
+
+	/**
+	 * TODO Documentation
+	 */
+	public static final int PARSE_MASTER_SCHEDULE = 8;
+
+	/**
+	 * TODO Documentation
+	 */
+	public static final int DOWNLOAD_BUS_ROUTES = 8;
+
+	/**
+	 * TODO Documentation
+	 */
+	public static final int LOAD_BUS_ROUTES = 8;
+
+	/**
 	 * The max progress for the progress bar.
 	 * The progress is determined the following checks:
 	 * <ul>
@@ -38,7 +61,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * <li>Validate the stops (8)</li>
 	 * </ul>
 	 */
-	private static final double maxProgress = 1 + 8 + 8 + 1 + 8 + 8;
+	private static final double MAX_PROGRESS = DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE
+			+ DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + 1 + 8 + 8;
 
 	/**
 	 * Create a variable to check if the map activity has already been loaded
@@ -66,6 +90,11 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * The Button widget in the activity.
 	 */
 	private android.widget.Button button;
+
+	/**
+	 * TODO Documentation
+	 */
+	private int mapBusProgress = 0;
 
 	/**
 	 * Called when the activity is starting.
@@ -217,8 +246,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	private Thread initializeApp() {
 		Thread thread = new Thread(() -> {
 
-			// Map bus routes (map polyline coordinates).
-
 			// Map bus stops.
 			this.mapBusStops();
 
@@ -235,6 +262,43 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Set the name of the thread, and finally return it.
 		thread.setName("Initialization thread");
 		return thread;
+	}
+
+	/**
+	 *  TODO Documentation & comments
+	 */
+	public void downloadBusRoutes() {
+
+		if (MapsActivity.allRoutes == null) {
+			return; // TODO Log
+		}
+
+		this.setMessage(R.string.loading_bus_routes);
+		this.setProgressBar(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE);
+
+		final double step = (double) SplashActivity.DOWNLOAD_BUS_ROUTES / MapsActivity.allRoutes.length;
+		Log.d("downloadBusRoutes", "Step value: " + step);
+
+		MapBusRoutes mapBusRoutes = new MapBusRoutes();
+		for (Route route : MapsActivity.allRoutes) {
+			this.mapBusProgress++;
+			Pair<Route, SplashListener> pair = new Pair<>(route, () -> {
+				this.setProgressBar(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE + step);
+				this.mapBusProgress--;
+				this.checkBusRouteDownloadState();
+			});
+			mapBusRoutes.addListener(pair);
+		}
+
+		//mapBusRoutes.getBusRoutes(this);
+	}
+
+	private void checkBusRouteDownloadState() {
+		Log.v("checkRunnableState", "Map progress remaining: " + this.mapBusProgress);
+		if (this.mapBusProgress == 0) {
+			this.setProgressBar(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.DOWNLOAD_BUS_ROUTES + SplashActivity.LOAD_BUS_ROUTES);
+			// TODO Move on.
+		}
 	}
 
 	/**
@@ -498,7 +562,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		this.runOnUiThread(() -> {
 
 			// Convert the progress to be an int out of 100.
-			int p = (int) Math.round((progress / SplashActivity.maxProgress) * 100);
+			int p = (int) Math.round((progress / SplashActivity.MAX_PROGRESS) * 100);
 
 			/* Validate that that the progress is between 0 and 100.
 			This is the equivalent of:
