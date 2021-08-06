@@ -276,27 +276,31 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		this.setMessage(R.string.loading_bus_routes);
 		this.setProgressBar(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE);
 
-		final double step = (double) SplashActivity.DOWNLOAD_BUS_ROUTES / MapsActivity.allRoutes.length;
-		Log.d("downloadBusRoutes", "Step value: " + step);
+		final double step = (double) SplashActivity.LOAD_BUS_ROUTES / MapsActivity.allRoutes.length,
+				progress = SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE
+				+ SplashActivity.DOWNLOAD_BUS_ROUTES;
 
 		MapBusRoutes mapBusRoutes = new MapBusRoutes();
 		for (Route route : MapsActivity.allRoutes) {
-			this.mapBusProgress++;
+			this.mapBusProgress--;
 			Pair<Route, SplashListener> pair = new Pair<>(route, () -> {
-				this.setProgressBar(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE + step);
-				this.mapBusProgress--;
+				this.mapBusProgress++;
 				this.checkBusRouteDownloadState();
+
+				// Update progress.
+				this.setProgressBar(progress + step + MapsActivity.allRoutes.length + this.mapBusProgress);
 			});
 			mapBusRoutes.addListener(pair);
 		}
 
-		//mapBusRoutes.getBusRoutes(this);
+		mapBusRoutes.getBusRoutes(this);
 	}
 
 	private void checkBusRouteDownloadState() {
 		Log.v("checkRunnableState", "Map progress remaining: " + this.mapBusProgress);
 		if (this.mapBusProgress == 0) {
-			this.setProgressBar(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.DOWNLOAD_BUS_ROUTES + SplashActivity.LOAD_BUS_ROUTES);
+			this.setProgressBar(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE
+					+ DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES );
 			// TODO Move on.
 		}
 	}

@@ -60,6 +60,7 @@ public class MasterScheduleCallback implements com.android.volley.Response.Liste
 		Route[] potentialRoutes = new Route[count];
 		int routeCount = 0;
 		final double step = (double) SplashActivity.PARSE_MASTER_SCHEDULE / count;
+		double progress = SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS;
 		this.activity.setMessage(R.string.parsing_master_schedule);
 
 		// Iterate though each route in the master schedule.
@@ -86,7 +87,8 @@ public class MasterScheduleCallback implements com.android.volley.Response.Liste
 				Log.w("MasterScheduleCallback", "Issue creating route from route data", e);
 			}
 
-			this.activity.setProgressBar(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + step);
+			this.activity.setProgressBar(progress + step);
+			progress += step;
 		}
 
 		// Down size our potential routes array to fit the actual number of routes.
