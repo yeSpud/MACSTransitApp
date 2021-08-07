@@ -43,13 +43,7 @@ public class StopTest {
 
 		JSONArray blueStopJsonArray = RouteMatch.parseData(blueStopJson);
 
-		Route blueRoute = null;
-		try {
-			blueRoute = new Route("Blue");
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			fail();
-		}
+		Route blueRoute = new Route("Blue");
 
 		long startTime = System.nanoTime();
 		Stop[] blueStops = Stop.generateStops(blueStopJsonArray, blueRoute);
@@ -149,7 +143,7 @@ public class StopTest {
 			for (int i = 0; i < loadedFiles; i++) {
 				Stop[] stops = stopsWithDuplicates.get(i);
 				System.out.println(String.format("Number of stops for %s (with potential duplicates): %d",
-						stops[0].route.routeName, stops.length));
+						stops[0].route.getRouteName(), stops.length));
 				assertEquals(validDuplicateStopCounts[i], stops.length);
 			}
 
@@ -159,9 +153,9 @@ public class StopTest {
 			for (int i = 0; i < loadedFiles; i++) {
 				Stop[] stops = stopsWithDuplicates.get(i);
 				Stop[] vStops = Stop.validateGeneratedStops(stops);
-				System.out.println(String.format("Number of stops for %s: %d", vStops[0].route.routeName, vStops.length));
+				System.out.printf("Number of stops for %s: %d%n", vStops[0].route.getRouteName(), vStops.length);
 				assertEquals(validateStopCounts[i], vStops.length);
-				routes[i].stops = vStops;
+				routes[i].setStops(vStops);
 			}
 
 
@@ -175,11 +169,11 @@ public class StopTest {
 				Route route = routes[routeIndex];
 
 				// Iterate through all the stops in our first comparison route.
-				for (Stop stop : route.stops) {
+				for (Stop stop : route.getStops()) {
 
 					// Make sure our stop is not already in our shared stop.
 					SharedStop[] sharedStops = route.getSharedStops();
-					if (sharedStops != null) {
+					if (sharedStops.length != 0) {
 						boolean found = false;
 
 						// Iterate though the shared stops in the route.
@@ -216,10 +210,10 @@ public class StopTest {
 			final int[] sharedStopsCount = new int[]{14, 3, 10, 10, 12, 17};
 			for (int i = 0; i < loadedFiles; i++) {
 				Route route = routes[i];
-				System.out.println(String.format("%s route stops: %d", route.routeName, route.stops.length));
+				System.out.printf("%s route stops: %d%n", route.getRouteName(), route.getStops().length);
 				SharedStop[] sharedStops = route.getSharedStops();
-				if (sharedStops != null) {
-					System.out.println(String.format("%s route shared stops: %d", route.routeName, sharedStops.length));
+				if (sharedStops.length != 0) {
+					System.out.printf("%s route shared stops: %d%n", route.getRouteName(), sharedStops.length);
 					assertEquals(sharedStopsCount[i], sharedStops.length);
 				} else {
 					fail();
@@ -232,9 +226,9 @@ public class StopTest {
 			// Test removal of stops that have shared stops.
 			ArrayList<Stop[]> finalStops = new ArrayList<>(loadedFiles);
 			for (Route route : routes) {
-				Stop[] stops = SharedStop.removeStopsWithSharedStops(route.stops, route.getSharedStops());
-				System.out.println(String.format("Going from %d stops to %d stops for route %s", route.stops.length,
-						stops.length, route.routeName));
+				Stop[] stops = SharedStop.removeStopsWithSharedStops(route.getStops(), route.getSharedStops());
+				System.out.printf("Going from %d stops to %d stops for route %s%n", route.getStops().length,
+						stops.length, route.getRouteName());
 				finalStops.add(stops);
 			}
 
@@ -243,10 +237,11 @@ public class StopTest {
 				Stop[] stops = finalStops.get(i);
 				assertEquals(finalStopCount[i], stops.length);
 			}
-		} catch (Exception e) {
+		} catch (JSONException | RuntimeException e) {
 			// If anything goes wrong, print and then fail.
 			e.printStackTrace();
 			fail();
 		}
+
 	}
 }

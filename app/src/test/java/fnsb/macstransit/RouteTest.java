@@ -27,7 +27,6 @@ import fnsb.macstransit.RouteMatch.Route;
  */
 public class RouteTest {
 
-	@SuppressWarnings("ResultOfObjectAllocationIgnored")
 	@Test
 	public void routeTest() {
 
@@ -37,58 +36,43 @@ public class RouteTest {
 		//assertThrows(Route.RouteException.class, () -> new Route("multiline\nroute"));
 		//assertThrows(Route.RouteException.class, () -> new Route("t a   b   s"));
 
-		try {
-			Route fineRoute = new Route("fine"), blue = new Route("Blue", Color.BLUE);
-			assertEquals("fine", fineRoute.routeName);
-			assertEquals("Blue", blue.routeName);
-			assertEquals(Color.BLUE, blue.color);
-			assertNotEquals(Color.GRAY, blue.color);
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			fail();
-		}
+		Route fineRoute = new Route("fine"), blue = new Route("Blue", Color.BLUE);
+		assertEquals("fine", fineRoute.getRouteName());
+		assertEquals("Blue", blue.getRouteName());
+		assertEquals(Color.BLUE, blue.getColor());
+		assertNotEquals(Color.GRAY, blue.getColor());
 	}
 
+	/*
 	@Test
 	public void generateRoutesTest() {
 
 		// Test bad arguments first.
-		assertThrows(Route.RouteException.class, () -> Route.generateRoute(null));
+		// TODO
 
 		// TODO Test Master route.
 
 	}
+	*/
 
 	@Test
 	public void enableFavoriteRoutesTest() {
 
 		// TODO All
-		try {
-			MapsActivity.allRoutes = new Route[]{new Route("Foo"), new Route("Bar"),
-					new Route("Baz")};
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			fail();
-			return;
-		}
+		MapsActivity.allRoutes = new Route[]{new Route("Foo"), new Route("Bar"),
+				new Route("Baz")};
 
 		// TODO Fav
 		Route[] favoriteRoutes;
-		try {
-			favoriteRoutes = new Route[]{new Route("Foo")};
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			fail();
-			return;
-		}
+		favoriteRoutes = new Route[]{new Route("Foo")};
 
 		// Enable the favoriteRoutes.
 		Route.enableFavoriteRoutes(Arrays.asList(favoriteRoutes));
 
 		// Check for expected values.
-		assertTrue(MapsActivity.allRoutes[0].enabled);
-		assertFalse(MapsActivity.allRoutes[1].enabled);
-		assertFalse(MapsActivity.allRoutes[2].enabled);
+		assertTrue(MapsActivity.allRoutes[0].getEnabled());
+		assertFalse(MapsActivity.allRoutes[1].getEnabled());
+		assertFalse(MapsActivity.allRoutes[2].getEnabled());
 
 		try {
 			Route.enableFavoriteRoutes(null);

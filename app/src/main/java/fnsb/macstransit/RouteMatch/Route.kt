@@ -41,7 +41,7 @@ class Route(val routeName: String, color: Int) {
 	 * This may be empty / null if the route has not been initialized,
 	 * and the stops haven't been loaded.
 	 */
-	var stops: Array<Stop> = emptyArray()
+	var stops: Array<Stop> = emptyArray() // TODO Test length of 0 instead of null for iteration
 
 	/**
 	 * Whether or not the route is enabled or disabled (to be shown or hidden).
@@ -60,7 +60,7 @@ class Route(val routeName: String, color: Int) {
 	 * This may be empty if the route has not been initialized,
 	 * and the the shared stops haven't been loaded, or if there are no shared stops for the route.
 	 */
-	var sharedStops: Array<SharedStop> = emptyArray()
+	var sharedStops: Array<SharedStop> = emptyArray() // TODO Test length of 0 instead of null for iteration
 		private set
 
 	/**
