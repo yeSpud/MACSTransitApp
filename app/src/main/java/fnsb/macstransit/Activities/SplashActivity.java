@@ -24,7 +24,7 @@ import fnsb.macstransit.RouteMatch.Stop;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 2.1.
+ * @version 2.2.
  * @since Beta 7.
  */
 public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
@@ -571,6 +571,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	@AnyThread
 	public void setMessage(@androidx.annotation.StringRes final int resID) {
 
+		// Since we are changing a TextView element, the following needs to be run on the UI thread.
 		this.runOnUiThread(() -> {
 
 			// Make sure the text view is not null.

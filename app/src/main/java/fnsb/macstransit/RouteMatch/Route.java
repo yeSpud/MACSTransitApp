@@ -6,12 +6,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 
@@ -22,7 +20,7 @@ import fnsb.macstransit.Activities.MapsActivity;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 2.7.
+ * @version 2.8.
  * @since Beta 3.
  */
 public class Route {
@@ -63,7 +61,7 @@ public class Route {
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
 	 * This is private as we don't want this variable to be set outside the class.
 	 */
-	public LatLng[] polyLineCoordinates;
+	public com.google.android.gms.maps.model.LatLng[] polyLineCoordinates;
 
 	/**
 	 * The array of shared stops for this route.
@@ -127,7 +125,7 @@ public class Route {
 	 * @throws UnsupportedEncodingException Thrown if the route name cannot be formatted to a URL.
 	 */
 	@NonNull
-	public static Route generateRoute(JSONObject jsonObject) throws RouteException, UnsupportedEncodingException {
+	public static Route generateRoute(org.json.JSONObject jsonObject) throws RouteException, UnsupportedEncodingException {
 
 		// Make sure the provided json object is not null.
 		if (jsonObject == null) {
