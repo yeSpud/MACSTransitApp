@@ -10,7 +10,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -27,11 +26,6 @@ import fnsb.macstransit.Activities.MapsActivity;
  * @since Beta 3.
  */
 public class Route {
-
-	/**
-	 * Fallback empty route array used as a way to circumvent potential exceptions.
-	 */
-	public static final Route[] EMPTY_ROUTE = new Route[0];
 
 	/**
 	 * The name of the route.
