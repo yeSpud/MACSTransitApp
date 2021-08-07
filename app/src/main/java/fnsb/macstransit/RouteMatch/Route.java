@@ -6,13 +6,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 
@@ -23,15 +20,10 @@ import fnsb.macstransit.Activities.MapsActivity;
  * <p>
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 2.7.
+ * @version 2.8.
  * @since Beta 3.
  */
 public class Route {
-
-	/**
-	 * Fallback empty route array used as a way to circumvent potential exceptions.
-	 */
-	public static final Route[] EMPTY_ROUTE = new Route[0];
 
 	/**
 	 * The name of the route.
@@ -69,7 +61,7 @@ public class Route {
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
 	 * This is private as we don't want this variable to be set outside the class.
 	 */
-	private LatLng[] polyLineCoordinates;
+	public com.google.android.gms.maps.model.LatLng[] polyLineCoordinates;
 
 	/**
 	 * The array of shared stops for this route.
@@ -124,58 +116,6 @@ public class Route {
 	}
 
 	/**
-	 * Generates the array of routes from the master schedule json array.
-	 * If a null array is provided then an empty array will be returned.
-	 *
-	 * @param masterSchedule The json array containing the master schedule containing all the routes.
-	 * @return The routes derived from the master schedule.
-	 */
-	@NonNull
-	public static Route[] generateRoutes(JSONArray masterSchedule) {
-
-		// Make sure the master schedule is not null. If it is, return an empty route array.
-		if (masterSchedule == null) {
-			Log.w("generateRoutes", "Master schedule is null!");
-			return Route.EMPTY_ROUTE;
-		}
-
-		// Create an array to store all the generated routes.
-		int count = masterSchedule.length();
-		Route[] potentialRoutes = new Route[count];
-		int routeCount = 0;
-
-		// Iterate though each route in the master schedule.
-		for (int index = 0; index < count; index++) {
-			Log.d("generateRoutes", String.format("Parsing route %d/%d", index + 1, count));
-
-			// Try to get the route data from the array.
-			// If there's an issue parsing the data simply continue to the next iteration of the loop.
-			JSONObject routeData;
-			try {
-				routeData = masterSchedule.getJSONObject(index);
-			} catch (JSONException e) {
-				Log.w("generateRoutes", "Issue retrieving the route data", e);
-				continue;
-			}
-
-			// Try to create the route using the route data obtained above.
-			// If there was a route exception thrown simply log it.
-			try {
-				Route route = Route.generateRoute(routeData);
-				potentialRoutes[routeCount] = route;
-				routeCount++;
-			} catch (RouteException | UnsupportedEncodingException e) {
-				Log.w("generateRoutes", "Issue creating route from route data", e);
-			}
-		}
-
-		// Down size our potential routes array to fit the actual number of routes.
-		Route[] routes = new Route[routeCount];
-		System.arraycopy(potentialRoutes, 0, routes, 0, routeCount);
-		return routes;
-	}
-
-	/**
 	 * Creates a new route object from the provided json object.
 	 * If the json object is null then a RouteException will be thrown.
 	 *
@@ -185,7 +125,7 @@ public class Route {
 	 * @throws UnsupportedEncodingException Thrown if the route name cannot be formatted to a URL.
 	 */
 	@NonNull
-	private static Route generateRoute(JSONObject jsonObject) throws RouteException, UnsupportedEncodingException {
+	public static Route generateRoute(org.json.JSONObject jsonObject) throws RouteException, UnsupportedEncodingException {
 
 		// Make sure the provided json object is not null.
 		if (jsonObject == null) {
@@ -259,88 +199,6 @@ public class Route {
 
 		// Set the selectedFavorites variable to be true as to not run again.
 		MapsActivity.selectedFavorites = true;
-	}
-
-	/**
-	 * Starts an asynchronous process to fetch all the stops for the route from the RouteMatch API.
-	 */
-	public void loadStops() {
-
-		// Get all the stops for the route from the RouteMatch object.
-		MapsActivity.routeMatch.callAllStops(this, result -> {
-
-			// Get the data from all the stops and store it in a JSONArray.
-			JSONArray data = RouteMatch.parseData(result);
-
-			// Load in all the potential stops for the route.
-			// The reason why this is considered potential stops is because at this stage duplicate
-			// stops have not yet been handled.
-			Stop[] potentialStops = Stop.generateStops(data, this);
-
-			// At this point duplicate stops have now been handled and removed.
-			this.stops = Stop.validateGeneratedStops(potentialStops);
-
-		}, error -> Log.w("loadStops", "Unable to get stops from RouteMatch server", error), this);
-	}
-
-	/**
-	 * Loads the polyline coordinates for the route object by retrieving the array from the RouteMatch server.
-	 * This method will either set the polyline coordinates for the route,
-	 * or will return early if the route match object is null.
-	 */
-	public void loadPolyLineCoordinates() {
-
-		// Make sure the RouteMatch object exists.
-		if (MapsActivity.routeMatch == null) {
-			Log.w("loadPolyLineCoordinates", "RouteMatch object is null!");
-			return;
-		}
-
-		// Get the land route from the routematch API using an asynchronous process.
-		MapsActivity.routeMatch.callLandRoute(this, response -> {
-
-			try {
-				// Get the land route data array from the land route object.
-				JSONArray landRouteData = RouteMatch.parseData(response);
-
-				// Get the land route points object from the land route data array.
-				JSONObject landRoutePoints = landRouteData.getJSONObject(0);
-
-				// Get the land route points array from the land route points object.
-				JSONArray landRoutePointsArray = landRoutePoints.getJSONArray("points");
-
-				// Get the number of points in the array.
-				int count = landRoutePointsArray.length();
-
-				// Create a new LatLng array to store all the coordinates.
-				LatLng[] coordinates = new LatLng[count];
-
-				// Initialize the array of coordinates by iterating through the land route points array.
-				for (int i = 0; i < count; i++) {
-
-					// Get the land route point object from the land route points array.
-					JSONObject landRoutePoint = landRoutePointsArray.getJSONObject(i);
-
-					// Get the latitude and longitude from the land route point.
-					double latitude = landRoutePoint.getDouble("latitude"),
-							longitude = landRoutePoint.getDouble("longitude");
-
-					// Create a new LatLng object using the latitude and longitude.
-					LatLng latLng = new LatLng(latitude, longitude);
-
-					// Add the newly created LatLng object to the LatLng array.
-					coordinates[i] = latLng;
-				}
-
-				// Set the polyline coordinates array to the finished LatLng array.
-				this.polyLineCoordinates = coordinates;
-
-			} catch (JSONException exception) {
-				Log.e("loadPolyLineCoordinates", "Error parsing json", exception);
-			}
-		}, error -> Log.w("loadPolyLineCoordinates",
-				"Unable to get polyline from routematch server", error), this);
-
 	}
 
 	/**
@@ -422,16 +280,6 @@ public class Route {
 	@Nullable
 	public SharedStop[] getSharedStops() {
 		return this.sharedStops;
-	}
-
-	/**
-	 * Gets the LatLng object array for the polyline coordinates for the route.
-	 *
-	 * @return The polyline coordinates for the route as a LatLng array.
-	 */
-	@Nullable
-	public LatLng[] getPolyLineCoordinates() {
-		return this.polyLineCoordinates;
 	}
 
 	/**

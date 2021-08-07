@@ -1,9 +1,14 @@
 package fnsb.macstransit;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import android.graphics.Color;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.junit.Test;
 
 import java.io.UnsupportedEncodingException;
@@ -11,15 +16,6 @@ import java.util.Arrays;
 
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.RouteMatch.RouteMatch;
-
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * Created by Spud on 7/16/20 for the project: MACS Transit.
@@ -31,16 +27,15 @@ import static org.junit.Assert.fail;
  */
 public class RouteTest {
 
-	/* TODO Revamp test
 	@SuppressWarnings("ResultOfObjectAllocationIgnored")
 	@Test
 	public void routeTest() {
 
 		// Constructor test!
-		// Basically make sure it errors when its supposed to.
-		assertThrows(Route.RouteException.class, () -> new Route("f o p"));
-		assertThrows(Route.RouteException.class, () -> new Route("multiline\nroute"));
-		assertThrows(Route.RouteException.class, () -> new Route("t a   b   s"));
+		// Basically make sure it errors when its supposed to. FIXME
+		//assertThrows(UnsupportedEncodingException.class, () -> new Route("f o p"));
+		//assertThrows(Route.RouteException.class, () -> new Route("multiline\nroute"));
+		//assertThrows(Route.RouteException.class, () -> new Route("t a   b   s"));
 
 		try {
 			Route fineRoute = new Route("fine"), blue = new Route("Blue", Color.BLUE);
@@ -48,35 +43,19 @@ public class RouteTest {
 			assertEquals("Blue", blue.routeName);
 			assertEquals(Color.BLUE, blue.color);
 			assertNotEquals(Color.GRAY, blue.color);
-		} catch (Route.RouteException | UnsupportedEncodingException e) {
+		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			fail();
 		}
 	}
-	 */
 
 	@Test
 	public void generateRoutesTest() {
 
 		// Test bad arguments first.
-		assertArrayEquals(Route.EMPTY_ROUTE, Route.generateRoutes(null));
-		assertArrayEquals(Route.EMPTY_ROUTE, Route.generateRoutes(new JSONArray()));
+		assertThrows(Route.RouteException.class, () -> Route.generateRoute(null));
 
-		// Now test valid arguments.
-		try {
-			Route[] routes = Route.generateRoutes(RouteMatch.parseData(Helper.getJSON(Helper.MASTERROUTE_JSON)));
-			assertEquals(8, routes.length);
-
-			String[] names = new String[]{"Yellow", "Grey", "Brown", "Blue", "Red", "Green", "Purple", "Orange"};
-			int index = 0;
-			for (Route route : routes) {
-				assertEquals(names[index], route.routeName);
-				index++;
-			}
-		} catch (JSONException e) {
-			e.printStackTrace();
-			fail();
-		}
+		// TODO Test Master route.
 
 	}
 

@@ -16,6 +16,8 @@
     <string name="apply">Apply</string>
     <string name="settings">Settings</string>
     <string name="enable_night_mode">Enable dark theme</string>
+
+    <!-- Bus fares -->
     <string name="view_fares">View bus fares</string>
     <string name="bus_fares">Bus Fares</string>
     <string name="fare_category">Fare Category</string>
@@ -32,6 +34,7 @@
     <string name="twentydollars">$20.00</string>
     <string name="half_month_pass">Half Month Pass</string>
     <string name="disclaimer">Last updated July 27th, 2021.\nPrices may be inaccurate.\nPlease refer to the official MACS website for more details on pricing.</string>
+
     <string name="macs_website">MACS Website</string>
     <string name="warning">Warning</string>
     <string name="warning_message">Having multiple routes active at a time will cause decreases in performance and an increase in data usage.</string>
@@ -44,12 +47,16 @@
     <string name="internet_check">Checking internet connection</string>
     <string name="routematch_creation">Establishing connection with RouteMatch</string>
     <string name="routematch_creation_fail">An incorrect URL has been provided for the RouteMatch server</string>
-    <string name="downloading_master_schedule">Downloading master schedule</string>
-    <string name="loading_bus_routes">Loading bus routes</string>
     <string name="its_sunday">There are no buses scheduled to run at this time</string>
-    <string name="mapping_bus_routes">Mapping bus routes</string>
-    <string name="mapping_bus_stops">Mapping bus stops</string>
     <string name="cannot_connect_internet">Cannot connect to the internet</string>
+
+    <!-- Networking messages -->
+    <string name="downloading_master_schedule">Downloading master schedule</string>
+    <string name="parsing_master_schedule">Processing master schedule</string>
+    <string name="loading_bus_routes">Downloading bus routes</string>
+    <string name="mapping_bus_routes">Processing bus routes</string>
+    <string name="loading_bus_stops">Downloading bus stops</string>
+    <string name="mapping_bus_stops">Processing bus stops</string>
     <string name="shared_bus_stop_check">Checking for shared bus stops</string>
     <string name="stop_validation">Validating stops</string>
     <string name="favorite_routes_explanation">Selected favorited routes will be pre-selected upon app startup.</string>
