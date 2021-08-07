@@ -57,7 +57,17 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	/**
 	 * TODO Documentation
 	 */
-	public static final int LOAD_BUS_STOPS = 8;
+	private static final int LOAD_BUS_STOPS = 8;
+
+	/**
+	 * TODO Documentation
+	 */
+	private static final int LOAD_SHARED_STOPS = 8;
+
+	/**
+	 * TODO Documentation
+	 */
+	private static final int VALIDATE_STOPS = 8;
 
 	/**
 	 * The max progress for the progress bar.
@@ -72,7 +82,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * </ul> FIXME Documentation
 	 */
 	private static final double MAX_PROGRESS = DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE
-			+ DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS + 8 + 8;
+			+ DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS
+			+ LOAD_SHARED_STOPS + VALIDATE_STOPS;
 
 	/**
 	 * Create a variable to check if the map activity has already been loaded
@@ -184,7 +195,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Create the RouteMatch object.
 		this.setMessage(R.string.routematch_creation);
 		try {
-			MapsActivity.routeMatch = new fnsb.macstransit.RouteMatch.RouteMatch("https://fnsb.routematch.com/feed/", this.getApplicationContext());
+			MapsActivity.routeMatch = new fnsb.macstransit.RouteMatch.
+					RouteMatch("https://fnsb.routematch.com/feed/", this.getApplicationContext());
 		} catch (java.net.MalformedURLException e) {
 			Log.e("initializeApp", "Bad URL provided", e);
 			this.setMessage(R.string.routematch_creation_fail);
@@ -201,9 +213,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 					this.setMessage(R.string.routematch_timeout);
 					this.showRetryButton();
 				}, this);
-
-		// Run the initialization on a new thread as to not hang the app.
-		//this.initializeApp().start();
 	}
 
 	/**
@@ -252,12 +261,9 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 *
 	 * @return The thread that will run all the necessary initialization methods.
 	 */
-	@Deprecated
 	@androidx.annotation.NonNull
-	private Thread initializeApp() {
+	private Thread cleanupThread() {
 		Thread thread = new Thread(() -> {
-
-			// Map bus stops.
 
 			// Map shared stops.
 			this.mapSharedStops();
@@ -267,10 +273,11 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 			// Finally, launch the maps activity.
 			this.launchMapsActivity();
+
 		});
 
 		// Set the name of the thread, and finally return it.
-		thread.setName("Initialization thread");
+		thread.setName("Cleanup thread");
 		return thread;
 	}
 
@@ -296,12 +303,12 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			Pair<Route, SplashListener> pair = new Pair<>(route, () -> {
 				this.mapBusProgress++;
 
-				Log.v("downloadBusRoutes", "Map progress remaining: " + this.mapBusProgress);
+				Log.v("downloadBusRoutes", String.format("Map progress remaining: %d", this.mapBusProgress));
 				if (this.mapBusProgress == 0) {
 					this.downloadBusStops();
 				}
 
-				// Update progress.
+				// Update progress. FIXME There is an issue with this getting called one last time from MapBusStops!
 				this.setProgressBar(progress + step + MapsActivity.allRoutes.length + this.mapBusProgress);
 			});
 			mapBusRoutes.addListener(pair);
@@ -338,15 +345,13 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Iterate thorough all the routes to load each stop.
 		for (Route route : MapsActivity.allRoutes) {
 			this.mapStopProgress--;
-
 			Pair<Route, SplashListener> pair = new Pair<>(route, () -> {
 				this.mapStopProgress++;
-				// TODO Check bus stop state
-
-				Log.v("downloadBusStops", "Stop progress remaining: " + this.mapStopProgress);
+				Log.v("downloadBusStops", String.format("Stop progress remaining: %d", this.mapStopProgress));
 				if (this.mapStopProgress == 0) {
-					// TODO move on
-					Log.i("downloadBusStops", "Move on");
+
+					cleanupThread().start();
+
 				}
 
 				// Update progress.
@@ -355,7 +360,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			mapBusStops.addListener(pair);
 		}
 
-		mapBusStops.getBusStops();
+		mapBusStops.getBusStops(this);
 
 	}
 
@@ -433,7 +438,9 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Set the current progress.
-		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 8 + 1 + 1;
+		final double step = (double) SplashActivity.LOAD_SHARED_STOPS / MapsActivity.allRoutes.length;
+		double currentProgress = DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE
+						+ DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS;
 
 		// Iterate though all the routes.
 		for (int routeIndex = 0; routeIndex < MapsActivity.allRoutes.length; routeIndex++) {
@@ -487,9 +494,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			currentProgress += step;
 			this.setProgressBar(currentProgress);
 		}
-
-		// Update the progress bar one last time for this method.
-		this.setProgressBar(1 + 8 + 1 + 1 + 8);
 	}
 
 	/**
@@ -508,7 +512,10 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		}
 
 		// Determine the progress step.
-		double step = 8.0d / MapsActivity.allRoutes.length, currentProgress = 1 + 8 + 1 + 1 + 8;
+		final double step = (double) SplashActivity.VALIDATE_STOPS / MapsActivity.allRoutes.length;
+		double currentProgress = SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE
+				+ SplashActivity.DOWNLOAD_BUS_ROUTES + SplashActivity.LOAD_BUS_ROUTES + SplashActivity.DOWNLOAD_BUS_STOPS
+				+ SplashActivity.LOAD_BUS_STOPS + SplashActivity.LOAD_SHARED_STOPS;
 
 		// Iterate though all the routes and recreate the stops for each route.
 		for (Route route : MapsActivity.allRoutes) {
@@ -525,9 +532,6 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			currentProgress += step;
 			this.setProgressBar(currentProgress);
 		}
-
-		// Update the progress bar one last time for this method.
-		this.setProgressBar(1 + 8 + 1 + 1 + 8 + 8);
 	}
 
 	/**
@@ -565,19 +569,23 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 *
 	 * @param resID The string ID of the message. This can be retrieved by calling R.string.STRING_ID.
 	 */
-	@UiThread
+	@AnyThread
 	public void setMessage(@androidx.annotation.StringRes final int resID) {
 
-		// Make sure the text view is not null.
-		if (this.textView != null) {
+		this.runOnUiThread(() -> {
 
-			// Set the TextView text to that of the message.
-			this.textView.setText(resID);
-		} else {
+			// Make sure the text view is not null.
+			if (this.textView != null) {
 
-			// Since the TextView is null, log that it hasn't been initialized yet.
-			Log.w("setMessage", "TextView has not been initialized yet");
-		}
+				// Set the TextView text to that of the message.
+				this.textView.setText(resID);
+			} else {
+
+				// Since the TextView is null, log that it hasn't been initialized yet.
+				Log.w("setMessage", "TextView has not been initialized yet");
+			}
+
+		});
 	}
 
 	/**

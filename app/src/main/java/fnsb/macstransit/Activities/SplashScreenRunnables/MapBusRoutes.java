@@ -53,7 +53,7 @@ public class MapBusRoutes {
 
 		final double step = (double) SplashActivity.DOWNLOAD_BUS_ROUTES / MapsActivity.allRoutes.length;
 		double progress = SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE;
-		Log.d("downloadBusRoutes", "Step value: " + step);
+		Log.d("getBusRoutes", "Step value: " + step);
 
 		// Iterate though each route, and try to load the polyline in each of them.
 		for (final Pair<Route, SplashListener> pair : pairs) {
@@ -65,13 +65,9 @@ public class MapBusRoutes {
 					Log.w("getBusRoutes", "Unable to get polyline from routematch server",
 							error), this);
 
-			activity.setProgressBar(progress + step);
 			progress += step;
+			activity.setProgressBar(progress);
 		}
-
-		// Update the progress bar one final time for this method.
-		activity.setProgressBar(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE
-				+ SplashActivity.DOWNLOAD_BUS_ROUTES);
 
 	}
 

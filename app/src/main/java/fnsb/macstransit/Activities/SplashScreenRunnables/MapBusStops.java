@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import fnsb.macstransit.Activities.MapsActivity;
+import fnsb.macstransit.Activities.SplashActivity;
+import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.RouteMatch;
 import fnsb.macstransit.RouteMatch.Stop;
@@ -40,21 +42,39 @@ public class MapBusStops {
 	/**
 	 * TODO Documentation & comments
 	 */
-	public void getBusStops() {
+	public void getBusStops(SplashActivity activity) {
 
-		// TODO Get progress and step
-
-		for (final Pair<Route, SplashListener> pair : pairs) {
-			BusStopCallback callback = new BusStopCallback(pair.second, pair.first);
-			MapsActivity.routeMatch.callAllStops(pair.first, callback, error -> Log.w("loadStops",
-					"Unable to get stops from RouteMatch server", error), this);
+		// Verify that allRoutes is not null. If it is then log and return early.
+		if (MapsActivity.allRoutes == null) {
+			Log.w("getBusRoutes", "All routes is null!");
+			return;
 		}
 
-		// TODO Update progress
+		final double step = (double) SplashActivity.DOWNLOAD_BUS_STOPS / MapsActivity.allRoutes.length;
+		double progress =  SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE
+				+ SplashActivity.DOWNLOAD_BUS_ROUTES + SplashActivity.LOAD_BUS_ROUTES;
+		Log.d("getBusStops", "Step value: " + step);
+
+		for (final Pair<Route, SplashListener> pair : pairs) {
+			BusStopCallback callback = new BusStopCallback(pair.second, pair.first, activity);
+			MapsActivity.routeMatch.callAllStops(pair.first, callback, error -> Log.w("loadStops",
+					"Unable to get stops from RouteMatch server", error), this);
+
+			progress += step;
+			activity.setProgressBar(progress);
+		}
+
+		activity.setProgressBar(progress);
 
 	}
 
 	class BusStopCallback implements com.android.volley.Response.Listener<JSONObject> {
+
+		/**
+		 * TODO Documentation
+		 */
+		@Deprecated
+		private final SplashActivity activity;
 
 		/**
 		 * TODO Documentation
@@ -71,13 +91,17 @@ public class MapBusStops {
 		 * @param listener TODO
 		 * @param route TODO
 		 */
-		BusStopCallback(SplashListener listener, Route route) {
+		BusStopCallback(SplashListener listener, Route route, SplashActivity activity) {
+			this.activity = activity;
 			this.listener = listener;
 			this.route = route;
 		}
 
 		@Override
 		public void onResponse(JSONObject response) {
+
+			// Display that we are mapping bus stops to the user.
+			activity.setMessage(R.string.mapping_bus_stops);
 
 			// Get the data from all the stops and store it in a JSONArray.
 			JSONArray data = RouteMatch.parseData(response);
@@ -120,5 +144,4 @@ public class MapBusStops {
 
 		}
 	}
-
 }
