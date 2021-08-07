@@ -74,7 +74,7 @@ class MapBusStops {
 			// Load in all the potential stops for the route.
 			// The reason why this is considered potential stops is because at this stage duplicate
 			// stops have not yet been handled.
-			val potentialStops: Array<Stop> = Stop.generateStops(data, route)
+			val potentialStops: Array<Stop?> = Stop.generateStops(data, route)
 
 			// Create a variable to store the true size of the stops that have been validated.
 			var validatedSize = 0
@@ -85,7 +85,11 @@ class MapBusStops {
 			val validatedStops = arrayOfNulls<Stop>(potentialStops.size)
 
 			// Iterate through each stop in our array of potential stops.
-			for (stop: Stop in potentialStops) {
+			for (stop: Stop? in potentialStops) {
+
+				if (stop == null) {
+					continue
+				}
 
 				// Check to see if the stop is in our array of validated stops. If its not,
 				// add it to the array and add 1 to the true index size of stops that have been validated.

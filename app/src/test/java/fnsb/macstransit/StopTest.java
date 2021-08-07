@@ -18,6 +18,7 @@ import fnsb.macstransit.RouteMatch.Stop;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
 /**
@@ -67,10 +68,10 @@ public class StopTest {
 
 	@Test
 	public void isDuplicateCheck() {
-		assertFalse(Stop.isDuplicate(null, null));
-		assertFalse(Stop.isDuplicate(new Stop("", 0.0d, 0.0d, null), null));
-		assertFalse(Stop.isDuplicate(null, new Stop[0]));
-		assertFalse(Stop.isDuplicate(null, new Stop[]{null}));
+		assertThrows(NullPointerException.class, () -> Stop.isDuplicate(null, null));
+		assertThrows(NullPointerException.class, () -> Stop.isDuplicate(new Stop("", 0.0d, 0.0d, null), null));
+		assertThrows(NullPointerException.class, () -> Stop.isDuplicate(null, new Stop[0]));
+		assertThrows(NullPointerException.class, () -> Stop.isDuplicate(null, new Stop[]{null}));
 	}
 
 	@Test
@@ -142,8 +143,8 @@ public class StopTest {
 			final int[] validDuplicateStopCounts = new int[]{233, 24, 144, 78, 176, 145};
 			for (int i = 0; i < loadedFiles; i++) {
 				Stop[] stops = stopsWithDuplicates.get(i);
-				System.out.println(String.format("Number of stops for %s (with potential duplicates): %d",
-						stops[0].route.getRouteName(), stops.length));
+				System.out.printf("Number of stops for %s (with potential duplicates): %d%n",
+						stops[0].getRoute().getRouteName(), stops.length);
 				assertEquals(validDuplicateStopCounts[i], stops.length);
 			}
 
@@ -153,7 +154,7 @@ public class StopTest {
 			for (int i = 0; i < loadedFiles; i++) {
 				Stop[] stops = stopsWithDuplicates.get(i);
 				Stop[] vStops = Stop.validateGeneratedStops(stops);
-				System.out.printf("Number of stops for %s: %d%n", vStops[0].route.getRouteName(), vStops.length);
+				System.out.printf("Number of stops for %s: %d%n", vStops[0].getRoute().getRouteName(), vStops.length);
 				assertEquals(validateStopCounts[i], vStops.length);
 				routes[i].setStops(vStops);
 			}
@@ -195,7 +196,7 @@ public class StopTest {
 
 					// If the shared routes array has more than one entry, create a new shared stop object.
 					if (sharedRoutes.length > 1) {
-						SharedStop sharedStop = new SharedStop(stop.circleOptions.getCenter(), stop.name,
+						SharedStop sharedStop = new SharedStop(stop.getCircleOptions().getCenter(), stop.name,
 								sharedRoutes);
 
 						// Iterate though all the routes in the shared route, and add our newly created shared stop.
@@ -212,12 +213,8 @@ public class StopTest {
 				Route route = routes[i];
 				System.out.printf("%s route stops: %d%n", route.getRouteName(), route.getStops().length);
 				SharedStop[] sharedStops = route.getSharedStops();
-				if (sharedStops.length != 0) {
-					System.out.printf("%s route shared stops: %d%n", route.getRouteName(), sharedStops.length);
-					assertEquals(sharedStopsCount[i], sharedStops.length);
-				} else {
-					fail();
-				}
+				System.out.printf("%s route shared stops: %d%n", route.getRouteName(), sharedStops.length);
+				assertEquals(sharedStopsCount[i], sharedStops.length);
 			}
 			// Reset all routes.
 			MapsActivity.allRoutes = null;

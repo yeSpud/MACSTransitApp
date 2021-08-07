@@ -141,15 +141,11 @@ public class SharedStop extends MarkedObject {
 
 			// Iterate though each stop in the second route and compare them to the provided stop.
 			for (Stop stop2 : route2Stops) {
-				try {
 
-					// If the stops match, add the route to the potential routes array.
-					if (Stop.doStopsMatch(stop, stop2)) {
-						potentialRoutes[potentialRouteIndex] = route2;
-						potentialRouteIndex++;
-					}
-				} catch (NullPointerException e) {
-					Log.e("mapSharedStops", "Stop may not have circle options set!", e);
+				// If the stops match, add the route to the potential routes array.
+				if (stop == stop2) {
+					potentialRoutes[potentialRouteIndex] = route2;
+					potentialRouteIndex++;
 				}
 			}
 		}
@@ -205,7 +201,7 @@ public class SharedStop extends MarkedObject {
 					Log.e("remvStpsWthShredStps",
 							String.format("Failed to add stop %s from route %s to array\n" +
 											"Final stops array is too small!", stop.name,
-									stop.route.getRouteName()), e);
+									stop.getRoute().getRouteName()), e);
 				}
 			}
 		}
@@ -233,7 +229,7 @@ public class SharedStop extends MarkedObject {
 	 */
 	public static boolean areEqual(@NonNull SharedStop sharedStop, @NonNull Stop stop) {
 
-		LatLng sharedLoc = sharedStop.circleOptions[0].getCenter(), stopLoc = stop.circleOptions.getCenter();
+		LatLng sharedLoc = sharedStop.circleOptions[0].getCenter(), stopLoc = stop.getCircleOptions().getCenter();
 
 		// If there are no shared latitude or stops just return not equal.
 		if (sharedLoc == null || stopLoc == null) {

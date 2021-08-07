@@ -74,7 +74,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		// Try setting the routes array to either enabled routes (shared stop) or our single route (stop).
 		Route[] routes;
 		try {
-			routes = isSharedStop ? StopClicked.getEnabledRoutesForStop(((SharedStop) stop).routes) : new Route[]{((Stop) stop).route};
+			routes = isSharedStop ? StopClicked.getEnabledRoutesForStop(((SharedStop) stop).routes) : new Route[]{((Stop) stop).getRoute()};
 		} catch (ClassCastException e) {
 
 			// If there was an issue casting from classes log the error and return the current content of the string.
@@ -384,8 +384,8 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 				// Get the location and color of our stop.
 				Stop stop = (Stop) markedObject;
-				location = stop.circleOptions.getCenter();
-				color = stop.route.getColor();
+				location = stop.getCircleOptions().getCenter();
+				color = stop.getRoute().getColor();
 			} else {
 
 				// Since our marked object was neither a shared stop nor a regular stop log it as a warning,
