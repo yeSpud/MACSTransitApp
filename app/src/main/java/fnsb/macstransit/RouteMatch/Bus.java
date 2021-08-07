@@ -79,7 +79,7 @@ public class Bus extends MarkedObject {
 
 		// Since the route is not null, set the bus route and color.
 		this.route = route;
-		this.color = route.color;
+		this.color = route.getColor();
 
 		// Set the position of the bus.
 		this.latitude = latitude;
@@ -132,7 +132,7 @@ public class Bus extends MarkedObject {
 			// Add the bus to the buses array.
 			Log.d("getBuses",
 					String.format("Adding bus %s belonging to the %s route to the bus array", bus.name,
-							bus.route.routeName));
+							bus.route.getRouteName()));
 			buses[i] = bus;
 		}
 
@@ -178,7 +178,7 @@ public class Bus extends MarkedObject {
 		for (Route r : MapsActivity.allRoutes) {
 
 			// If the route name matches that of our bus route, then that's our route object.
-			if (r.routeName.equals(routeName)) {
+			if (r.getRouteName().equals(routeName)) {
 				route = r;
 				break;
 			}
@@ -330,7 +330,7 @@ public class Bus extends MarkedObject {
 							new LatLng(newBus.latitude, newBus.longitude), newBus.color);
 
 					// Determine whether or not to show the bus marker.
-					busMarker.setVisible(newBus.route.enabled);
+					busMarker.setVisible(newBus.route.getEnabled());
 
 					// Set the bus marker.
 					newBus.marker = busMarker;
@@ -368,7 +368,7 @@ public class Bus extends MarkedObject {
 				Log.d("noBusMatch", "Vehicle IDs match");
 
 				// Check if the routes for the bus also match. If they do, return false (found).
-				if (bus.route.routeName.equals(iteratorBus.route.routeName)) {
+				if (bus.route.getRouteName().equals(iteratorBus.route.getRouteName())) {
 					Log.d("noBusMatch", "Objects match!");
 					return false;
 				}

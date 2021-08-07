@@ -116,8 +116,8 @@ public class ApplySettings implements View.OnClickListener {
 			// Add the route to the array if its checked.
 			if (box.isChecked()) {
 				potentialRoutes[routesPosition] = (Route) box.getTag();
-				//noinspection ObjectAllocationInLoop
-				Log.d("getFavoritedRoutes", "Adding route " + potentialRoutes[routesPosition].routeName);
+				Log.d("getFavoritedRoutes", String.format("Adding route %s",
+						potentialRoutes[routesPosition].getRouteName()));
 
 				// Add one to a tally of verified favorite routes.
 				routesPosition++;

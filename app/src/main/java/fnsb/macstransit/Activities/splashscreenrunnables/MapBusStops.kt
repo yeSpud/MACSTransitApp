@@ -103,7 +103,7 @@ class MapBusStops {
 			System.arraycopy(validatedStops, 0, actualStops, 0, actualStops.size)
 
 			// At this point duplicate stops have now been handled and removed.
-			this.route.stops = actualStops
+			this.route.stops = actualStops.requireNoNulls()
 			this.listener.splashRunnableFinished()
 		}
 	}

@@ -115,7 +115,7 @@ class MapBusRoutes {
 				}
 
 				// Set the polyline coordinates array to the finished LatLng array.
-				this.route.polyLineCoordinates = coordinates
+				this.route.polyLineCoordinates = coordinates.requireNoNulls()
 				this.listener.splashRunnableFinished()
 			} catch (exception: org.json.JSONException) {
 				Log.e("getBusRoutes", "Error parsing json", exception)

@@ -79,9 +79,10 @@ public class SharedStop extends MarkedObject {
 
 			// If the route has a color, set circle color.
 			Route route = routes[i];
-			if (route.color != 0) {
-				this.circleOptions[i].fillColor(route.color);
-				this.circleOptions[i].strokeColor(route.color);
+			int color = route.getColor();
+			if (color != 0) {
+				this.circleOptions[i].fillColor(color);
+				this.circleOptions[i].strokeColor(color);
 			}
 		}
 
@@ -133,12 +134,13 @@ public class SharedStop extends MarkedObject {
 			}
 
 			// If there are no stops to iterate over just continue like above.
-			if (route2.stops == null) {
+			Stop[] route2Stops = route2.getStops();
+			if (route2Stops.length == 0) {
 				continue;
 			}
 
 			// Iterate though each stop in the second route and compare them to the provided stop.
-			for (Stop stop2 : route2.stops) {
+			for (Stop stop2 : route2Stops) {
 				try {
 
 					// If the stops match, add the route to the potential routes array.
@@ -203,7 +205,7 @@ public class SharedStop extends MarkedObject {
 					Log.e("remvStpsWthShredStps",
 							String.format("Failed to add stop %s from route %s to array\n" +
 											"Final stops array is too small!", stop.name,
-									stop.route.routeName), e);
+									stop.route.getRouteName()), e);
 				}
 			}
 		}
@@ -329,7 +331,7 @@ public class SharedStop extends MarkedObject {
 		for (Route route : this.routes) {
 
 			// If any route is still enabled, return early.
-			if (route.enabled) {
+			if (route.getEnabled()) {
 				return;
 			}
 		}

@@ -51,7 +51,7 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 			for (fnsb.macstransit.RouteMatch.Route route : MapsActivity.allRoutes) {
 
 				// Start by resizing the stop circles first.
-				for (fnsb.macstransit.RouteMatch.Stop stop : route.stops) {
+				for (fnsb.macstransit.RouteMatch.Stop stop : route.getStops()) {
 					if (stop.circle != null) {
 						stop.circle.setRadius(size);
 					}
@@ -59,7 +59,7 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 
 				// Then resize the route's shared stop circles.
 				SharedStop[] sharedStops = route.getSharedStops();
-				if (sharedStops != null) {
+				if (sharedStops.length != 0) {
 					for (SharedStop sharedStop : sharedStops) {
 						sharedStop.setCircleSizes(size);
 					}

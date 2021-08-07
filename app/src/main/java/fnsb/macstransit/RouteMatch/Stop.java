@@ -85,9 +85,10 @@ public class Stop extends MarkedObject {
 
 		// Add the route color if it has one.
 		if (this.route != null) {
-			if (this.route.color != 0) {
-				this.circleOptions.fillColor(this.route.color);
-				this.circleOptions.strokeColor(this.route.color);
+			int color = this.route.getColor();
+			if (color != 0) {
+				this.circleOptions.fillColor(color);
+				this.circleOptions.strokeColor(color);
 			}
 		}
 	}
@@ -243,7 +244,7 @@ public class Stop extends MarkedObject {
 
 			// Check if the following match.
 			boolean nameMatch = stop.name.equals(stopArrayItem.name),
-					routeMatch = stop.route.routeName.equals(stopArrayItem.route.routeName),
+					routeMatch = stop.route.getRouteName().equals(stopArrayItem.route.getRouteName()),
 					latitudeMatch = loc1.latitude == loc2.latitude,
 					longitudeMatch = loc1.longitude == loc2.longitude;
 

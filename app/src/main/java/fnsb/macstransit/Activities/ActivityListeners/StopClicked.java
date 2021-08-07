@@ -127,7 +127,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 			// If the route is enabled add it to our verified routes array,
 			// and increase the verified count.
-			if (route.enabled) {
+			if (route.getEnabled()) {
 				potentialRoutes[routeCount] = route;
 				routeCount++;
 			}
@@ -175,7 +175,8 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// Iterate though each of our active routes. If the route is one that is listed,
 			// append the time to the string builder.
 			for (Route route : routes) {
-				if (route.routeName.equals(object.getString("routeId"))) {
+				String routeName = route.getRouteName();
+				if (routeName.equals(object.getString("routeId"))) {
 
 					// Set the arrival and departure time to the arrival and departure time in the JSONObject.
 					// At this point this is stored in 24-hour time.
@@ -191,8 +192,8 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 					// Append the route name if there is one.
 					if (includeRouteName) {
-						Log.d("generateTimeString", String.format("Adding route: %s", route.routeName));
-						snippetText.append(String.format("Route: %s\n", route.routeName));
+						Log.d("generateTimeString", String.format("Adding route: %s", routeName));
+						snippetText.append(String.format("Route: %s\n", routeName));
 					}
 
 					// Append the arrival and departure times to the snippet text.
@@ -378,13 +379,13 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 				// Get the location and color of the largest circle of our shared stop.
 				SharedStop sharedStop = (SharedStop) markedObject;
 				location = sharedStop.location;
-				color = sharedStop.routes[0].color;
+				color = sharedStop.routes[0].getColor();
 			} else if (markedObject instanceof Stop) {
 
 				// Get the location and color of our stop.
 				Stop stop = (Stop) markedObject;
 				location = stop.circleOptions.getCenter();
-				color = stop.route.color;
+				color = stop.route.getColor();
 			} else {
 
 				// Since our marked object was neither a shared stop nor a regular stop log it as a warning,

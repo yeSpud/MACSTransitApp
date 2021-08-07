@@ -448,30 +448,29 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			Route route = MapsActivity.allRoutes[routeIndex];
 
 			// If there are no stops to iterate over just continue with the next iteration.
-			if (route.stops == null) {
+			Stop[] stops = route.getStops();
+			if (stops.length == 0) {
 				continue;
 			}
 
 			// Iterate through all the stops in our first comparison route.
-			for (Stop stop : route.stops) {
+			for (Stop stop : stops) {
 
 				// Make sure our stop is not already in our shared stop.
 				SharedStop[] sharedStops = route.getSharedStops();
-				if (sharedStops != null) {
-					boolean found = false;
+				boolean found = false;
 
-					// Iterate though the shared stops in the route.
-					for (SharedStop sharedStop : sharedStops) {
+				// Iterate though the shared stops in the route.
+				for (SharedStop sharedStop : sharedStops) {
 
-						// If the route was found, continue.
-						if (SharedStop.areEqual(sharedStop, stop)) {
-							found = true;
-							break;
-						}
+					// If the route was found, continue.
+					if (SharedStop.areEqual(sharedStop, stop)) {
+						found = true;
+						break;
 					}
-					if (found) {
-						continue;
-					}
+				}
+				if (found) {
+					continue;
 				}
 
 				// Get an array of shared routes.
@@ -520,12 +519,12 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		for (Route route : MapsActivity.allRoutes) {
 
 			// Get the final stop count for each route by removing stops that are taken care of by the shared route object.
-			final Stop[] finalStops = SharedStop.removeStopsWithSharedStops(route.stops, route.getSharedStops());
+			final Stop[] finalStops = SharedStop.removeStopsWithSharedStops(route.getStops(), route.getSharedStops());
 			Log.d("validateStops", String.format("Final stop count: %d", finalStops.length));
 
 			// Set the stops array for the route to the final determined stop array.
 			// This array no longer contains the stops that are shared stops.
-			route.stops = finalStops;
+			route.setStops(finalStops);
 
 			// Update the progress.
 			currentProgress += step;

@@ -58,7 +58,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 			// If the route isn't null, and the name matches then return true.
 			// If not then keep iterating.
 			if (savedRoute != null) {
-				if (savedRoute.routeName.equals(routeName)) {
+				if (savedRoute.getRouteName().equals(routeName)) {
 					return true;
 				}
 			}
@@ -165,7 +165,8 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 			CheckBox checkBox = new CheckBox(this);
 
 			// Set the checkbox's text to the route name.
-			checkBox.setText(route.routeName);
+			String routeName = route.getRouteName();
+			checkBox.setText(routeName);
 
 			// Set the color and size of the text to constants.
 			checkBox.setTextSize(SettingsActivity.CHECKBOX_TEXT_SIZE);
@@ -179,7 +180,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 
 			// If the favorited route object is not null, set the checkbox to its enabled value.
 			if (favoritedRoutes != null) {
-				checkBox.setChecked(SettingsActivity.isFavorited(favoritedRoutes, route.routeName));
+				checkBox.setChecked(SettingsActivity.isFavorited(favoritedRoutes, routeName));
 			}
 
 			// Add the box to the favorites container.

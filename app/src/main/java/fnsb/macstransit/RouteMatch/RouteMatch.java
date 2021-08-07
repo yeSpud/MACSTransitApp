@@ -105,7 +105,7 @@ public class RouteMatch {
 	 * @param tag             The tag of the request (used to identify requests for canceling).
 	 */
 	public void callAllStops(@NonNull Route route, Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError, Object tag) {
-		this.executeNetworkRequest(this.url + "stops/" + route.urlFormattedName, successCallback, onError, tag);
+		this.executeNetworkRequest(this.url + "stops/" + route.getUrlFormattedName(), successCallback, onError, tag);
 	}
 
 	/**
@@ -149,7 +149,7 @@ public class RouteMatch {
 		for (Route route : routes) {
 
 			// Add the route URL to the URL string.
-			routesString.append(route.urlFormattedName).append(separator);
+			routesString.append(route.getUrlFormattedName()).append(separator);
 		}
 		this.executeNetworkRequest(this.url + "vehicle/byRoutes/" + routesString, successCallback, onError, tag);
 	}
@@ -164,7 +164,7 @@ public class RouteMatch {
 	 * @param tag             The tag of the request (used to identify requests for canceling).
 	 */
 	public void callLandRoute(@NonNull Route route, Response.Listener<JSONObject> successCallback, @Nullable Response.ErrorListener onError, Object tag) {
-		this.executeNetworkRequest(this.url + "landRoute/byRoute/" + route.urlFormattedName, successCallback, onError, tag);
+		this.executeNetworkRequest(this.url + "landRoute/byRoute/" + route.getUrlFormattedName(), successCallback, onError, tag);
 	}
 
 	/**

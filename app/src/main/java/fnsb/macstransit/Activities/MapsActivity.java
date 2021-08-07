@@ -110,7 +110,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Determine which route from all the routes was just selected.
 		Route selectedRoute = null;
 		for (Route route : MapsActivity.allRoutes) {
-			if (route.routeName.equals(item.getTitle().toString())) {
+			if (route.getRouteName().equals(item.getTitle().toString())) {
 				selectedRoute = route;
 				break;
 			}
@@ -122,7 +122,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		}
 
 		// Updated the selected route's boolean.
-		selectedRoute.enabled = enabled;
+		selectedRoute.setEnabled(enabled);
 
 		// Try to (re)draw the buses onto the map.
 		// Because we are iterating a static variable that is modified on a different thread
@@ -161,13 +161,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		for (Route route : MapsActivity.allRoutes) {
 
 			// Iterate though the stops in the route before getting to the shared stops.
-			for (Stop stop : route.stops) {
+			for (Stop stop : route.getStops()) {
 
 				// Check that the stop isn't null
 				// as calling any functions of a null object would result in a crash.
 				if (stop != null) {
 
-					if (route.enabled) {
+					if (route.getEnabled()) {
 
 						// Show the stop on the map.
 						stop.showStop(MapsActivity.map);
@@ -187,21 +187,19 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 			// Check that there are shared stops to hide in the route.
 			SharedStop[] sharedStops = route.getSharedStops();
-			if (sharedStops != null) {
 
-				// Iterate though the shared stops in the route.
-				for (SharedStop sharedStop : sharedStops) {
+			// Iterate though the shared stops in the route.
+			for (SharedStop sharedStop : sharedStops) {
 
-					if (route.enabled) {
+				if (route.getEnabled()) {
 
-						// Show the shared stops.
-						sharedStop.showSharedStop(MapsActivity.map);
-					} else {
+					// Show the shared stops.
+					sharedStop.showSharedStop(MapsActivity.map);
+				} else {
 
-						// Hide the shared stops on the map.
-						// Note that the stops should be hidden - not destroyed.
-						sharedStop.hideStop();
-					}
+					// Hide the shared stops on the map.
+					// Note that the stops should be hidden - not destroyed.
+					sharedStop.hideStop();
 				}
 			}
 		}
@@ -232,12 +230,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 					}
 
 					// Set the polyline's visibility to whether the route is enabled or not.
-					route.getPolyline().setVisible(route.enabled);
+					route.getPolyline().setVisible(route.getEnabled());
 				} catch (NullPointerException e) {
 
 					// If the polyline was still null after being created, log it as a warning.
 					Log.w("drawRoutes", String.format("Polyline for route %s was not created successfully!",
-							route.routeName));
+							route.getRouteName()));
 				}
 			}
 		}
@@ -259,16 +257,16 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			if (bus.marker != null) {
 
 				// Set the bus marker visibility based on if the bus's route is enabled or not.
-				bus.marker.setVisible(bus.route.enabled);
+				bus.marker.setVisible(bus.route.getEnabled());
 			} else {
 
-				if (bus.route.enabled) {
+				if (bus.route.getEnabled()) {
 
 					if (MapsActivity.map != null) {
 
 						// Try creating a new marker for the bus (if its enabled).
-						bus.marker = bus.addMarker(MapsActivity.map,
-								new LatLng(bus.latitude, bus.longitude), bus.color);
+						bus.marker = bus.addMarker(MapsActivity.map, new LatLng(bus.latitude, bus.longitude),
+								bus.color);
 
 						bus.marker.setVisible(true);
 
@@ -282,7 +280,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 					// If the marker was null simply log it as a warning.
 					Log.w("drawBuses", String.format("Bus doesn't have a marker for route %s!",
-							bus.route.routeName));
+							bus.route.getRouteName()));
 				}
 			}
 		}
@@ -405,7 +403,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 				// Iterate though each stop.
 				Log.d("onDestroy", "Removing stop circles");
-				for (Stop stop : route.stops) {
+				for (Stop stop : route.getStops()) {
 
 					// Remove the stop's circle.
 					stop.removeStopCircle();
@@ -418,16 +416,14 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				Log.d("onDestroy", "Removing shared stop circles");
 				SharedStop[] sharedStops = route.getSharedStops();
 
-				// If the shared stops isn't null then iterate though each shared stop.
-				if (sharedStops != null) {
-					for (SharedStop sharedStop : sharedStops) {
+				// Iterate though each shared stop.
+				for (SharedStop sharedStop : sharedStops) {
 
-						// Remove each shared stop circles.
-						sharedStop.removeSharedStopCircles();
+					// Remove each shared stop circles.
+					sharedStop.removeSharedStopCircles();
 
-						// Remove the shared stop's marker.
-						sharedStop.removeMarker();
-					}
+					// Remove the shared stop's marker.
+					sharedStop.removeMarker();
 				}
 
 				// Remove route polylines.
@@ -492,13 +488,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				Route route = MapsActivity.allRoutes[i];
 
 				// Create the menu item that corresponds to the route object.
-				MenuItem menuItem = menu.add(R.id.routes, Menu.NONE, 0, route.routeName);
+				MenuItem menuItem = menu.add(R.id.routes, Menu.NONE, 0, route.getRouteName());
 
 				// Make sure the item is checkable.
 				menuItem.setCheckable(true);
 
 				// Determine whether or not the menu item should be checked before hand.
-				menuItem.setChecked(route.enabled);
+				menuItem.setChecked(route.getEnabled());
 			}
 		}
 
