@@ -3,6 +3,8 @@ package fnsb.macstransit.Activities;
 import android.app.AlertDialog;
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+
 import com.google.android.gms.maps.model.Marker;
 
 import java.util.Locale;
@@ -47,7 +49,7 @@ public class PopupWindow extends AlertDialog implements
 	 * @param marker The marker of the info window that was clicked.
 	 */
 	@Override
-	public void onInfoWindowClick(Marker marker) {
+	public void onInfoWindowClick(@NonNull Marker marker) {
 		this.showDialog(marker.getTitle(), marker);
 	}
 
@@ -57,7 +59,7 @@ public class PopupWindow extends AlertDialog implements
 	 * @param marker The marker this popup dialog belongs to. This cannot be null.
 	 * @param title  The title of the popup.
 	 */
-	private void showDialog(CharSequence title, @androidx.annotation.NonNull Marker marker) {
+	private void showDialog(CharSequence title, @NonNull Marker marker) {
 
 		Context context = this.getContext();
 

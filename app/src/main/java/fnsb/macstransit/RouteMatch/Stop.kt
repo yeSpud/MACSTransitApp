@@ -181,7 +181,7 @@ class Stop(stopName: String, latitude: Double, longitude: Double, val route: Rou
 		 * @return The stop array created from the json array.
 		 */
 		@JvmStatic
-		fun generateStops(array: JSONArray, route: Route): Array<Stop?> {
+		fun generateStops(array: JSONArray, route: Route): Array<Stop?> { // TODO Test me with empty array
 
 			// Create an array of stops that will be filled using the information from the json array.
 			val count = array.length()
@@ -214,7 +214,7 @@ class Stop(stopName: String, latitude: Double, longitude: Double, val route: Rou
 		 * @return The validated stops array (or an empty stop array if the provided potential stops is null).
 		 */
 		@JvmStatic
-		fun validateGeneratedStops(potentialStops: Array<Stop>): Array<Stop?> { // TODO Test with empty array
+		fun validateGeneratedStops(potentialStops: Array<Stop>): Array<Stop> { // TODO Test with empty array
 
 			// Create a variable to store the true size of the stops that have been validated.
 			var validatedSize = 0
@@ -241,7 +241,7 @@ class Stop(stopName: String, latitude: Double, longitude: Double, val route: Rou
 
 			// Copy our validated stops into our smaller actual stops array, and return it.
 			System.arraycopy(validatedStops, 0, actualStops, 0, actualStops.size)
-			return actualStops
+			return actualStops.requireNoNulls()
 		}
 
 		/**
@@ -280,17 +280,6 @@ class Stop(stopName: String, latitude: Double, longitude: Double, val route: Rou
 		}
 	}
 
-	/**
-	 * Creates a new Stop object using the name, coordinates on the map, and the route.
-	 * Important note: While this sets up the circle options and the name and route,
-	 * it does not create the actual circle object as that requires the map object to be loaded.
-	 * The circle for the stop is created when its called to be shown on the map.
-	 *
-	 * @param stopName  The name (or ID) of the stop.
-	 * @param latitude  The latitude position of the stop on the map.
-	 * @param longitude The longitude position of the stop on the map.
-	 * @param route     The route that the stop corresponds to.
-	 */
 	init {
 
 		// Add the route color if it has one.

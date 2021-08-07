@@ -5,6 +5,8 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.google.android.gms.maps.model.Marker;
 
 /**
@@ -50,7 +52,7 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 	 */
 	@androidx.annotation.Nullable
 	@Override
-	public View getInfoWindow(Marker marker) {
+	public View getInfoWindow(@NonNull Marker marker) {
 		return null;
 	}
 
@@ -75,7 +77,7 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 	 * or null to use the default content rendering instead.
 	 */
 	@Override
-	public View getInfoContents(@androidx.annotation.NonNull Marker marker) {
+	public View getInfoContents(@NonNull Marker marker) {
 
 		// Create the info section of the info window, and make sure its orientation is set to vertical
 		LinearLayout info = new LinearLayout(this.activity);

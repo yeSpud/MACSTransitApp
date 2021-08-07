@@ -2,6 +2,7 @@ package fnsb.macstransit.Activities.ActivityListeners;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
@@ -398,8 +399,15 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			markedObject.marker = markedObject.addMarker(MapsActivity.map, location, color);
 		}
 
-		// Show our marker.
-		this.showMarker(markedObject.marker);
+		if (markedObject.marker != null) {
+
+			// Show our marker.
+			this.showMarker(markedObject.marker);
+		} else {
+
+			// TODO Comments
+			Toast.makeText(this.activity, markedObject.name, Toast.LENGTH_LONG).show();
+		}
 	}
 
 	/**
@@ -428,18 +436,15 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 		// Retrieve the stop times.
 		MapsActivity.routeMatch.callDeparturesByStop(name, result -> {
-			// Be sure to run the following on the UI thread to avoid a crash.
-			this.activity.runOnUiThread(() -> {
 
-				// Update the snippet text of the marker's info window.
-				Log.v("showMarker", "Updating snippet");
-				marker.setSnippet(StopClicked.postStopTimes((fnsb.macstransit.RouteMatch.MarkedObject)
-						marker.getTag(), result, this.activity));
+			// Update the snippet text of the marker's info window.
+			Log.v("showMarker", "Updating snippet");
+			marker.setSnippet(StopClicked.postStopTimes((fnsb.macstransit.RouteMatch.MarkedObject)
+					marker.getTag(), result, this.activity));
 
-				// Refresh the info window by calling showInfoWindow().
-				Log.v("showMarker", "Refreshing info window");
-				marker.showInfoWindow();
-			});
+			// Refresh the info window by calling showInfoWindow().
+			Log.v("showMarker", "Refreshing info window");
+			marker.showInfoWindow();
 		}, error -> Log.e("showMarker", "Unable to get departure times", error), this);
 
 		// For now though just show the info window.

@@ -1,11 +1,11 @@
 package fnsb.macstransit.RouteMatch
 
 import android.util.Log
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.CircleOptions
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Circle
+import com.google.android.gms.maps.model.CircleOptions
+import com.google.android.gms.maps.model.LatLng
 import fnsb.macstransit.Activities.MapsActivity
 
 /**
@@ -20,7 +20,7 @@ class SharedStop(val location: LatLng, stopName: String, val routes: Array<Route
 	/**
 	 * Array of circle options for each circle that represents a route.
 	 */
-	val circleOptions: Array<CircleOptions> = Array(this.routes.size) {
+	private val circleOptions: Array<CircleOptions> = Array(this.routes.size) {
 		val route = routes[it]
 		val color = route.color
 		if (color != 0) {
@@ -37,6 +37,8 @@ class SharedStop(val location: LatLng, stopName: String, val routes: Array<Route
 
 	/**
 	 * TODO Documentation
+	 *
+	 * @param other TODO
 	 */
 	override fun equals(other: Any?): Boolean {
 
@@ -261,21 +263,14 @@ class SharedStop(val location: LatLng, stopName: String, val routes: Array<Route
 		 * @return Returns an array of stops that are unique to the route (not shared by any other routes or shared stops).
 		 */
 		@JvmStatic
-		fun removeStopsWithSharedStops(stops: Array<Stop?>?, sharedStops: Array<SharedStop>?): Array<Stop?>? {
-
-			// Check if either the stops or shared stops array are null.
-			// If they are just return the original stops array (which may be null - which is fun).
-			if (stops == null || sharedStops == null) {
-				Log.w("remvStpsWthShredStps", "Arguments are null!")
-				return stops
-			}
+		fun removeStopsWithSharedStops(stops: Array<Stop>, sharedStops: Array<SharedStop>): Array<Stop> {
 
 			// Create an of potential stops with a maximum size of the original stop array.
 			val potentialStops = arrayOfNulls<Stop>(stops.size)
 			var finalIndex = 0
 
 			// Iterate though each stop in the provided stop array.
-			for (stop: Stop? in stops) {
+			for (stop: Stop in stops) {
 
 				// Check if the stop matches the shared stop (same name, location).
 				var noMatch = true
@@ -294,7 +289,7 @@ class SharedStop(val location: LatLng, stopName: String, val routes: Array<Route
 					} catch (e: ArrayIndexOutOfBoundsException) {
 
 						// If the array was out of bounds then log it (catastrophic if left unchecked).
-						Log.e("remvStpsWthShredStps","Failed to add stop ${stop!!.name} "
+						Log.e("remvStpsWthShredStps","Failed to add stop ${stop.name} "
 								+ "from route ${stop.route.routeName} to array\n"
 								+ "Final stops array is too small!", e)
 					}
@@ -308,9 +303,10 @@ class SharedStop(val location: LatLng, stopName: String, val routes: Array<Route
 				Log.i("remvStpsWthShredStps","Final index differs from standard number! "
 						+ "(${stops.size - sharedStops.size}d vs $finalIndex)")
 			}
+
 			val finalStops = arrayOfNulls<Stop>(finalIndex)
 			System.arraycopy(potentialStops, 0, finalStops, 0, finalIndex)
-			return finalStops
+			return finalStops.requireNoNulls()
 		}
 
 		/**
@@ -344,26 +340,7 @@ class SharedStop(val location: LatLng, stopName: String, val routes: Array<Route
 		}
 	}
 
-	/**
-	 * Constructor for SharedStop. This not only sets the location, route, and name,
-	 * but also initializes the circle options for the shared stop.
-	 *
-	 *
-	 * It should be noted that while the circle options are set the circles are not initialized at this point.
-	 *
-	 * @param latLng   The location of the shared stop.
-	 * @param stopName The name of the shared stop.
-	 * @param routes   The routes that share this one stop (as an array). This cannot be null.
-	 */
 	init {
-
-		// Set the location of the stop.
-
-		// Set the routes that share this stop.
-
-		// Using the routes set the size of the circle options and circles.
-
-		// Populate the circle options.
 
 		// Set the initial circle size.
 		setCircleSizes(INITIAL_CIRCLE_SIZE)

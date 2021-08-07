@@ -23,16 +23,6 @@ import java.io.IOException
  */
 object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 
-	/*
-	 * Constructor for v2.
-	 * Because this class extends BaseSettings, the file and version need to be passed.
-	 */
-
-	/**
-	 * Gets the traffic variable.
-	 *
-	 * @return The traffic boolean (if the traffic view should be shown).
-	 */
 	/**
 	 * Settings variables used by the app.
 	 */
@@ -40,50 +30,36 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 		private set
 
 	/**
-	 * Gets the dark theme variable.
-	 *
-	 * @return The dark theme boolean (if dark theme should be set on launch).
+	 * The dark theme boolean (if dark theme should be set on launch).
 	 */
 	var darktheme = false
 		private set
 
 	/**
-	 * Gets the polyline variable.
-	 *
-	 * @return The polyline boolean (if they should be shown or not).
+	 * The polyline boolean (if they should be shown or not).
 	 */
 	var polylines = false
 		private set
 
 	/**
-	 * Gets the streetview variable.
-	 *
 	 * @return The streetview boolean.
 	 */
 	var streetView = false
 		private set
-	/**
-	 * Gets the map type variable.
-	 *
-	 * @return The map type value.
-	 */
+
+
 	/**
 	 * Settings variable used by the app. This variable corresponds with what map type should be used.
 	 */
 	var maptype = GoogleMap.MAP_TYPE_NORMAL
 		private set
-	/**
-	 * Gets the favorited routes variable.
-	 * This may be null if there was an issue parsing favorited routes from settings.
-	 *
-	 * @return The favorite routes defined by the user.
-	 */
+
 	/**
 	 * Favorite routes set by the user.
 	 * These routes should be enabled / selected as soon as the app has finished initialization.
 	 * This is null as it should not be set by any other method except ones defined by this class.
 	 */
-	var routes: MutableList<Route> = mutableListOf()
+	var routes: MutableList<Route> = mutableListOf() // TODO Convert me to array
 		private set
 
 	/**

@@ -73,15 +73,8 @@ public class RouteTest {
 		assertTrue(MapsActivity.allRoutes[0].getEnabled());
 		assertFalse(MapsActivity.allRoutes[1].getEnabled());
 		assertFalse(MapsActivity.allRoutes[2].getEnabled());
+		MapsActivity.allRoutes = null;
 
-		try {
-			Route.enableFavoriteRoutes(null);
-			MapsActivity.allRoutes = null;
-			Route.enableFavoriteRoutes(null);
-		} catch (NullPointerException e) {
-			e.printStackTrace();
-			fail();
-		}
 	}
 
 }

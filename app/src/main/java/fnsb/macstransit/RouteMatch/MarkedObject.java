@@ -3,6 +3,7 @@ package fnsb.macstransit.RouteMatch;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
 import com.google.android.gms.maps.model.Marker;
@@ -26,7 +27,7 @@ public class MarkedObject {
 	/**
 	 * The marker of the marker of the marked object.
 	 */
-	@androidx.annotation.Nullable
+	@Nullable
 	public Marker marker;
 
 	/**
@@ -64,6 +65,7 @@ public class MarkedObject {
 	 * @return The newly added marker.
 	 */
 	@UiThread
+	@Nullable
 	public Marker addMarker(@NonNull com.google.android.gms.maps.GoogleMap map,
 	                        com.google.android.gms.maps.model.LatLng coordinates, int color) {
 
@@ -81,13 +83,16 @@ public class MarkedObject {
 		Log.d("addMarker", "Adding marker to the map");
 		Marker marker = map.addMarker(options);
 
-		// Set the marker title.
-		Log.d("addMarker", "Setting marker title to: " + this.name);
-		marker.setTitle(this.name);
+		if (marker != null) {
 
-		// Set the marker's tag.
-		Log.d("addMarker", "Setting the markers tag to: " + this.getClass());
-		marker.setTag(this);
+			// Set the marker title.
+			Log.d("addMarker", "Setting marker title to: " + this.name);
+			marker.setTitle(this.name);
+
+			// Set the marker's tag.
+			Log.d("addMarker", "Setting the markers tag to: " + this.getClass());
+			marker.setTag(this);
+		}
 
 		// Return the generated marker.
 		return marker;

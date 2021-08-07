@@ -329,11 +329,16 @@ public class Bus extends MarkedObject {
 					Marker busMarker = newBus.addMarker(MapsActivity.map,
 							new LatLng(newBus.latitude, newBus.longitude), newBus.color);
 
-					// Determine whether or not to show the bus marker.
-					busMarker.setVisible(newBus.route.getEnabled());
+					if (busMarker != null) {
 
-					// Set the bus marker.
-					newBus.marker = busMarker;
+						// Determine whether or not to show the bus marker.
+						busMarker.setVisible(newBus.route.getEnabled());
+
+						// Set the bus marker.
+						newBus.marker = busMarker;
+					} else {
+						Log.w("addNewBus", "Unable to add bus marker!");
+					}
 				} else {
 					Log.w("addNewBus", "Map is not yet ready!");
 				}

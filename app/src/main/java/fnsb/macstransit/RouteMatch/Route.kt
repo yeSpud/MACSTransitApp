@@ -222,10 +222,10 @@ class Route(val routeName: String, color: Int) {
 		 * @param favoritedRoutes The selected routes to be enabled from MapsActivity.allRoutes.
 		 */
 		@JvmStatic
-		fun enableFavoriteRoutes(favoritedRoutes: Iterable<Route>?) {
+		fun enableFavoriteRoutes(favoritedRoutes: Iterable<Route>) {
 
 			// Make sure there are routes to iterate over.
-			if (MapsActivity.allRoutes == null || favoritedRoutes == null) {
+			if (MapsActivity.allRoutes == null) {
 				return
 			}
 
@@ -253,13 +253,6 @@ class Route(val routeName: String, color: Int) {
 		}
 	}
 
-	/**
-	 * Constructor for the route. The name of the route is the only thing that is required.
-	 * Be sure that the provided route name does **NOT** contain any whitespace characters!
-	 *
-	 * @param color The route's color. This is optional,
-	 * and of the color is non-existent simply use the `Route(String routeName)` constructor.
-	 */
 	init {
 
 		// Set the route color.
