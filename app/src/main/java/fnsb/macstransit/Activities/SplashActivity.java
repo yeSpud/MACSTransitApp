@@ -464,7 +464,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				for (SharedStop sharedStop : sharedStops) {
 
 					// If the route was found, continue.
-					if (SharedStop.areEqual(sharedStop, stop)) {
+					if (sharedStop.equals(stop)) {
 						found = true;
 						break;
 					}

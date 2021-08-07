@@ -112,6 +112,9 @@ class Stop(stopName: String, latitude: Double, longitude: Double, val route: Rou
 		}
 	}
 
+	/**
+	 * TODO Documentation
+	 */
 	override fun equals(other: Any?): Boolean {
 
 		if (other == null) {

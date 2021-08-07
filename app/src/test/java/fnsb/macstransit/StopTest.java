@@ -181,7 +181,7 @@ public class StopTest {
 						for (SharedStop ssCheck : sharedStops) {
 
 							// If the route was found, continue.
-							if (SharedStop.areEqual(ssCheck, stop)) {
+							if (ssCheck.equals(stop)) {
 								found = true;
 								break;
 							}
