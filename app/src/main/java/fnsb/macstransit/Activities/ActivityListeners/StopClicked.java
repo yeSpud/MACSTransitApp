@@ -368,7 +368,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		}
 
 		// If the marker for our marked object is null, create a new marker.
-		if (markedObject.marker == null) {
+		if (markedObject.getMarker() == null) {
 
 			// Get the location and color of the object
 			// (this is different depending on whether or not its a shared stop or a regular stop).
@@ -396,17 +396,17 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			}
 
 			// Create a new marker for our marked object using the newly determined location and color.
-			markedObject.marker = markedObject.addMarker(MapsActivity.map, location, color);
+			markedObject.addMarker(MapsActivity.map, location, color);
 		}
 
-		if (markedObject.marker != null) {
+		if (markedObject.getMarker() != null) {
 
 			// Show our marker.
-			this.showMarker(markedObject.marker);
+			this.showMarker(markedObject.getMarker());
 		} else {
 
 			// TODO Comments
-			Toast.makeText(this.activity, markedObject.name, Toast.LENGTH_LONG).show();
+			Toast.makeText(this.activity, markedObject.getName(), Toast.LENGTH_LONG).show();
 		}
 	}
 

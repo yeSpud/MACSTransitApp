@@ -131,8 +131,8 @@ public class Bus extends MarkedObject {
 
 			// Add the bus to the buses array.
 			Log.d("getBuses",
-					String.format("Adding bus %s belonging to the %s route to the bus array", bus.name,
-							bus.route.getRouteName()));
+					String.format("Adding bus %s belonging to the %s route to the bus array",
+							bus.getName(), bus.route.getRouteName()));
 			buses[i] = bus;
 		}
 
@@ -223,15 +223,8 @@ public class Bus extends MarkedObject {
 
 			// If the bus was not found, remove the marker.
 			if (notFound) {
-				if (oldBus.marker != null) {
-					Log.d("removeOldBuses", String.format("Removing bus %s from map", oldBus.name));
-					try {
-						oldBus.marker.remove();
-					} catch (NullPointerException e) {
-						Log.w("removeOldBuses", "Marker already null!");
-					}
-					oldBus.marker = null;
-				}
+				Log.d("removeOldBuses", String.format("Removing bus %s from map", oldBus.getName()));
+				oldBus.removeMarker();
 			}
 		}
 	}
@@ -260,29 +253,22 @@ public class Bus extends MarkedObject {
 			// Compare the new bus to the oldBuses.
 			// If they match, then add it to the potential bus array and update its position.
 			for (Bus oldBus : oldBuses) {
-				if (newBus.name.equals(oldBus.name)) {
+				if (newBus.getName().equals(oldBus.getName())) {
 
 					// Update the buses position, heading, and speed.
-					Marker marker = oldBus.marker;
-					if (marker != null) {
-						marker.setPosition(new LatLng(newBus.latitude, newBus.longitude));
-						oldBus.marker = marker;
-						oldBus.heading = newBus.heading;
-						oldBus.speed = newBus.speed;
+					oldBus.updateLocation(newBus.latitude, newBus.longitude);
+					oldBus.heading = newBus.heading;
+					oldBus.speed = newBus.speed;
 
-						try {
-							// Add the bus to the potential bus array.
-							potentialBuses[busSize] = oldBus;
-							busSize++;
-						} catch (ArrayIndexOutOfBoundsException e) {
+					try {
+						// Add the bus to the potential bus array.
+						potentialBuses[busSize] = oldBus;
+						busSize++;
+					} catch (ArrayIndexOutOfBoundsException e) {
 
-							// If there was an ArrayIndexOutOfBoundsException log it and break out of the for loop because of suspicious behavior.
-							Log.w("updateCurrentBuses", "Potential bus array out of bounds... how?");
-							break;
-						}
-					} else {
-						Log.w("updateCurrentBuses", String.format("Marker is null for updated bus %s",
-								oldBus.name));
+						// If there was an ArrayIndexOutOfBoundsException log it and break out of the for loop because of suspicious behavior.
+						Log.w("updateCurrentBuses", "Potential bus array out of bounds... how?");
+						break;
 					}
 				}
 			}
@@ -320,22 +306,20 @@ public class Bus extends MarkedObject {
 			boolean notFound = Bus.isBusNotInArray(newBus, oldBuses);
 
 			if (notFound) {
-				Log.d("addNewBuses", String.format("Adding new bus to map: %s", newBus.name));
+				Log.d("addNewBuses", String.format("Adding new bus to map: %s", newBus.getName()));
 
 				// Make sure the map is not null before creating the new bus marker.
 				if (MapsActivity.map != null) {
 
 					// Create the bus marker.
-					Marker busMarker = newBus.addMarker(MapsActivity.map,
-							new LatLng(newBus.latitude, newBus.longitude), newBus.color);
+					newBus.addMarker(MapsActivity.map, new LatLng(newBus.latitude, newBus.longitude),
+							newBus.color);
 
-					if (busMarker != null) {
+					if (newBus.getMarker() != null) {
 
 						// Determine whether or not to show the bus marker.
-						busMarker.setVisible(newBus.route.getEnabled());
+						newBus.getMarker().setVisible(newBus.route.getEnabled());
 
-						// Set the bus marker.
-						newBus.marker = busMarker;
 					} else {
 						Log.w("addNewBus", "Unable to add bus marker!");
 					}
@@ -368,8 +352,8 @@ public class Bus extends MarkedObject {
 		for (Bus iteratorBus : buses) {
 
 			// Check of the bus we are searching for matches our current bus.
-			Log.v("noBusMatch", String.format("Comparing %s to %s", bus.name, iteratorBus.name));
-			if (bus.name.equals(iteratorBus.name)) {
+			Log.v("noBusMatch", String.format("Comparing %s to %s", bus.getName(), iteratorBus.getName()));
+			if (bus.getName().equals(iteratorBus.getName())) {
 				Log.d("noBusMatch", "Vehicle IDs match");
 
 				// Check if the routes for the bus also match. If they do, return false (found).

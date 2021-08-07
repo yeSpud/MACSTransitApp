@@ -254,10 +254,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Start by iterating though all the buses on the map.
 		for (Bus bus : MapsActivity.buses) {
 
-			if (bus.marker != null) {
+			if (bus.getMarker() != null) {
 
 				// Set the bus marker visibility based on if the bus's route is enabled or not.
-				bus.marker.setVisible(bus.route.getEnabled());
+				bus.getMarker().setVisible(bus.route.getEnabled());
 			} else {
 
 				if (bus.route.getEnabled()) {
@@ -265,10 +265,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 					if (MapsActivity.map != null) {
 
 						// Try creating a new marker for the bus (if its enabled).
-						bus.marker = bus.addMarker(MapsActivity.map, new LatLng(bus.latitude, bus.longitude),
+						bus.addMarker(MapsActivity.map, new LatLng(bus.latitude, bus.longitude),
 								bus.color);
 
-						bus.marker.setVisible(true);
+						bus.getMarker().setVisible(true);
 
 					} else {
 

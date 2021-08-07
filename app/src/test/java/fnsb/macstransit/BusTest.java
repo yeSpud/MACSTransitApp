@@ -107,7 +107,7 @@ public class BusTest {
 			double[] lon = new double[]{-147.7141876220703, -147.61318969726562, -147.71914672851562};
 			for (int i = 0; i < buses.length; i++) {
 				Bus bus = buses[i];
-				assertEquals(ids[i], bus.name);
+				assertEquals(ids[i], bus.getName());
 				assertSame(Objects.requireNonNull(MapsActivity.allRoutes)[i], bus.route);
 				assertEquals(lat[i], bus.latitude, 0.0);
 				assertEquals(lon[i], bus.longitude, 0.0);
@@ -135,7 +135,7 @@ public class BusTest {
 
 			for (int i = 0; i < busArray.length(); i++) {
 				Bus bus = Bus.createNewBus(busArray.getJSONObject(i));
-				assertEquals(ids[i], bus.name);
+				assertEquals(ids[i], bus.getName());
 				assertSame(Objects.requireNonNull(MapsActivity.allRoutes)[i], bus.route);
 				assertEquals(lat[i], bus.latitude, 0.0);
 				assertEquals(lon[i], bus.longitude, 0.0);
