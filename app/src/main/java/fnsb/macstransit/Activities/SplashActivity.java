@@ -10,10 +10,10 @@ import android.view.View;
 import androidx.annotation.AnyThread;
 import androidx.annotation.UiThread;
 
-import fnsb.macstransit.Activities.SplashScreenRunnables.MapBusRoutes;
-import fnsb.macstransit.Activities.SplashScreenRunnables.MapBusStops;
-import fnsb.macstransit.Activities.SplashScreenRunnables.MasterScheduleCallback;
-import fnsb.macstransit.Activities.SplashScreenRunnables.SplashListener;
+import fnsb.macstransit.Activities.splashscreenrunnables.MapBusRoutes;
+import fnsb.macstransit.Activities.splashscreenrunnables.MapBusStops;
+import fnsb.macstransit.Activities.splashscreenrunnables.MasterScheduleCallback;
+import fnsb.macstransit.Activities.splashscreenrunnables.SplashListener;
 import fnsb.macstransit.R;
 import fnsb.macstransit.RouteMatch.Route;
 import fnsb.macstransit.RouteMatch.SharedStop;
@@ -32,42 +32,42 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	/**
 	 * TODO Documentation
 	 */
-	public static final int DOWNLOAD_MASTER_SCHEDULE_PROGRESS = 1;
+	public static final short DOWNLOAD_MASTER_SCHEDULE_PROGRESS = 1;
 
 	/**
 	 * TODO Documentation
 	 */
-	public static final int PARSE_MASTER_SCHEDULE = 8;
+	public static final short PARSE_MASTER_SCHEDULE = 8;
 
 	/**
 	 * TODO Documentation
 	 */
-	public static final int DOWNLOAD_BUS_ROUTES = 8;
+	public static final short DOWNLOAD_BUS_ROUTES = 8;
 
 	/**
 	 * TODO Documentation
 	 */
-	public static final int LOAD_BUS_ROUTES = 8;
+	public static final short LOAD_BUS_ROUTES = 8;
 
 	/**
 	 * TODO Documentation
 	 */
-	public static final int DOWNLOAD_BUS_STOPS = 8;
+	public static final short DOWNLOAD_BUS_STOPS = 8;
 
 	/**
 	 * TODO Documentation
 	 */
-	private static final int LOAD_BUS_STOPS = 8;
+	private static final short LOAD_BUS_STOPS = 8;
 
 	/**
 	 * TODO Documentation
 	 */
-	private static final int LOAD_SHARED_STOPS = 8;
+	private static final short LOAD_SHARED_STOPS = 8;
 
 	/**
 	 * TODO Documentation
 	 */
-	private static final int VALIDATE_STOPS = 8;
+	private static final short VALIDATE_STOPS = 1;
 
 	/**
 	 * The max progress for the progress bar.
@@ -81,7 +81,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * <li>Validate the stops (8)</li>
 	 * </ul> FIXME Documentation
 	 */
-	private static final double MAX_PROGRESS = DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE
+	private static final short MAX_PROGRESS = DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE
 			+ DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS
 			+ LOAD_SHARED_STOPS + VALIDATE_STOPS;
 
@@ -207,8 +207,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Get the master schedule from the RouteMatch server
 		this.setProgressBar(-1);
 		this.setMessage(R.string.downloading_master_schedule);
-		MapsActivity.routeMatch.callMasterSchedule(new MasterScheduleCallback(this),
-				error -> {
+		MapsActivity.routeMatch.callMasterSchedule(new MasterScheduleCallback(this), error -> {
 					Log.w("initializeApp", "MasterSchedule callback error", error);
 					this.setMessage(R.string.routematch_timeout);
 					this.showRetryButton();
