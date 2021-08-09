@@ -1,4 +1,4 @@
-package fnsb.macstransit.RouteMatch
+package fnsb.macstransit.routematch
 
 import android.graphics.Color
 import android.util.Log

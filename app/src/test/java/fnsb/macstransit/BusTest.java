@@ -5,15 +5,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 
-import java.io.UnsupportedEncodingException;
-import java.net.UnknownServiceException;
 import java.util.ArrayList;
 import java.util.Objects;
 
 import fnsb.macstransit.Activities.MapsActivity;
-import fnsb.macstransit.RouteMatch.Bus;
-import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.RouteMatch.RouteMatch;
+import fnsb.macstransit.routematch.Bus;
+import fnsb.macstransit.routematch.Route;
+import fnsb.macstransit.routematch.RouteMatch;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;

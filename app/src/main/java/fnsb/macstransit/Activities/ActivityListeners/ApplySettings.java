@@ -11,7 +11,7 @@ import org.json.JSONObject;
 
 import fnsb.macstransit.Activities.SettingsActivity;
 import fnsb.macstransit.R;
-import fnsb.macstransit.RouteMatch.Route;
+import fnsb.macstransit.routematch.Route;
 
 /**
  * Created by Spud on 6/23/20 for the project: MACS Transit.

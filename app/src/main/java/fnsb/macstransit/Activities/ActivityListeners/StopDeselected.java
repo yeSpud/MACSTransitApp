@@ -1,6 +1,6 @@
 package fnsb.macstransit.Activities.ActivityListeners;
 
-import fnsb.macstransit.RouteMatch.MarkedObject;
+import fnsb.macstransit.routematch.MarkedObject;
 
 /**
  * Created by Spud on 2019-11-11 for the project: MACS Transit.
@@ -27,8 +27,8 @@ public class StopDeselected implements com.google.android.gms.maps.GoogleMap.OnI
 		MarkedObject potentialStop = (MarkedObject) marker.getTag();
 
 		// Check if it was a stop info window that was closed.
-		if (potentialStop instanceof fnsb.macstransit.RouteMatch.Stop ||
-				potentialStop instanceof fnsb.macstransit.RouteMatch.SharedStop) {
+		if (potentialStop instanceof fnsb.macstransit.routematch.Stop ||
+				potentialStop instanceof fnsb.macstransit.routematch.SharedStop) {
 
 			// Just hide the marker, since we don't want to destroy it just yet.
 			marker.setVisible(false);

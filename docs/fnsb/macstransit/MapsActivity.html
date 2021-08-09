@@ -184,13 +184,13 @@ implements com.google.android.gms.maps.OnMapReadyCallback</pre>
 <th class="colLast" scope="col">Field and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>static <a href="../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.RouteMatch">Route</a>[]</code></td>
+<td class="colFirst"><code>static <a href="../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.routematch">Route</a>[]</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../fnsb/macstransit/MapsActivity.html#allRoutes">allRoutes</a></span></code>
 <div class="block">Create an array of all the routes that are used by the transit system.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>java.util.ArrayList&lt;<a href="../../fnsb/macstransit/RouteMatch/Bus.html" title="class in fnsb.macstransit.RouteMatch">Bus</a>&gt;</code></td>
+<td class="colFirst"><code>java.util.ArrayList&lt;<a href="../../fnsb/macstransit/RouteMatch/Bus.html" title="class in fnsb.macstransit.routematch">Bus</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../fnsb/macstransit/MapsActivity.html#buses">buses</a></span></code>
 <div class="block">Create an array of all the buses that will end up being tracked.</div>
 </td>
@@ -202,19 +202,19 @@ implements com.google.android.gms.maps.OnMapReadyCallback</pre>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>static <a href="../../fnsb/macstransit/RouteMatch/RouteMatch.html" title="class in fnsb.macstransit.RouteMatch">RouteMatch</a></code></td>
+<td class="colFirst"><code>static <a href="../../fnsb/macstransit/RouteMatch/RouteMatch.html" title="class in fnsb.macstransit.routematch">RouteMatch</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../fnsb/macstransit/MapsActivity.html#routeMatch">routeMatch</a></span></code>
 <div class="block">Create an instance of the route match object that will be used for this app.</div>
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>java.util.ArrayList&lt;<a href="../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.RouteMatch">Route</a>&gt;</code></td>
+<td class="colFirst"><code>java.util.ArrayList&lt;<a href="../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.routematch">Route</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../fnsb/macstransit/MapsActivity.html#selectedRoutes">selectedRoutes</a></span></code>
 <div class="block">Create an array list to determine which routes have been selected from the menu to track.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>java.util.ArrayList&lt;<a href="../../fnsb/macstransit/RouteMatch/SharedStop.html" title="class in fnsb.macstransit.RouteMatch">SharedStop</a>&gt;</code></td>
+<td class="colFirst"><code>java.util.ArrayList&lt;<a href="../../fnsb/macstransit/RouteMatch/SharedStop.html" title="class in fnsb.macstransit.routematch">SharedStop</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../fnsb/macstransit/MapsActivity.html#sharedStops">sharedStops</a></span></code>
 <div class="block">Create an array of all the Shared Stops (stops that share a location).</div>
 </td>
@@ -423,7 +423,7 @@ implements com.google.android.gms.maps.OnMapReadyCallback</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>allRoutes</h4>
-<pre>public static&nbsp;<a href="../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.RouteMatch">Route</a>[] allRoutes</pre>
+<pre>public static&nbsp;<a href="../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.routematch">Route</a>[] allRoutes</pre>
 <div class="block">Create an array of all the routes that are used by the transit system. For now leave it uninitialized,
  as it will be dynamically generated in the onCreate method.</div>
 </li>
@@ -434,7 +434,7 @@ implements com.google.android.gms.maps.OnMapReadyCallback</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>routeMatch</h4>
-<pre>public static&nbsp;<a href="../../fnsb/macstransit/RouteMatch/RouteMatch.html" title="class in fnsb.macstransit.RouteMatch">RouteMatch</a> routeMatch</pre>
+<pre>public static&nbsp;<a href="../../fnsb/macstransit/RouteMatch/RouteMatch.html" title="class in fnsb.macstransit.routematch">RouteMatch</a> routeMatch</pre>
 <div class="block">Create an instance of the route match object that will be used for this app.</div>
 </li>
 </ul>
@@ -444,7 +444,7 @@ implements com.google.android.gms.maps.OnMapReadyCallback</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>selectedRoutes</h4>
-<pre>public&nbsp;java.util.ArrayList&lt;<a href="../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.RouteMatch">Route</a>&gt; selectedRoutes</pre>
+<pre>public&nbsp;java.util.ArrayList&lt;<a href="../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.routematch">Route</a>&gt; selectedRoutes</pre>
 <div class="block">Create an array list to determine which routes have been selected from the menu to track.</div>
 </li>
 </ul>
@@ -454,7 +454,7 @@ implements com.google.android.gms.maps.OnMapReadyCallback</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>buses</h4>
-<pre>public&nbsp;java.util.ArrayList&lt;<a href="../../fnsb/macstransit/RouteMatch/Bus.html" title="class in fnsb.macstransit.RouteMatch">Bus</a>&gt; buses</pre>
+<pre>public&nbsp;java.util.ArrayList&lt;<a href="../../fnsb/macstransit/RouteMatch/Bus.html" title="class in fnsb.macstransit.routematch">Bus</a>&gt; buses</pre>
 <div class="block">Create an array of all the buses that will end up being tracked.</div>
 </li>
 </ul>
@@ -464,7 +464,7 @@ implements com.google.android.gms.maps.OnMapReadyCallback</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>sharedStops</h4>
-<pre>public&nbsp;java.util.ArrayList&lt;<a href="../../fnsb/macstransit/RouteMatch/SharedStop.html" title="class in fnsb.macstransit.RouteMatch">SharedStop</a>&gt; sharedStops</pre>
+<pre>public&nbsp;java.util.ArrayList&lt;<a href="../../fnsb/macstransit/RouteMatch/SharedStop.html" title="class in fnsb.macstransit.routematch">SharedStop</a>&gt; sharedStops</pre>
 <div class="block">Create an array of all the Shared Stops (stops that share a location).</div>
 </li>
 </ul>

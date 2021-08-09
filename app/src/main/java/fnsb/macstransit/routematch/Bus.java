@@ -1,4 +1,4 @@
-package fnsb.macstransit.RouteMatch;
+package fnsb.macstransit.routematch;
 
 import android.util.Log;
 
@@ -6,7 +6,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 
 import org.json.JSONException;
 import org.json.JSONObject;

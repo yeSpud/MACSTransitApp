@@ -15,9 +15,9 @@ import fnsb.macstransit.Activities.splashscreenrunnables.MapBusStops;
 import fnsb.macstransit.Activities.splashscreenrunnables.MasterScheduleCallback;
 import fnsb.macstransit.Activities.splashscreenrunnables.SplashListener;
 import fnsb.macstransit.R;
-import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.RouteMatch.SharedStop;
-import fnsb.macstransit.RouteMatch.Stop;
+import fnsb.macstransit.routematch.Route;
+import fnsb.macstransit.routematch.SharedStop;
+import fnsb.macstransit.routematch.Stop;
 
 /**
  * Created by Spud on 2019-11-04 for the project: MACS Transit.
@@ -195,7 +195,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Create the RouteMatch object.
 		this.setMessage(R.string.routematch_creation);
 		try {
-			MapsActivity.routeMatch = new fnsb.macstransit.RouteMatch.
+			MapsActivity.routeMatch = new fnsb.macstransit.routematch.
 					RouteMatch("https://fnsb.routematch.com/feed/", this.getApplicationContext());
 		} catch (java.net.MalformedURLException e) {
 			Log.e("initializeApp", "Bad URL provided", e);

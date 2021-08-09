@@ -5,7 +5,7 @@ import android.util.Log
 import android.widget.Toast
 import com.google.android.gms.maps.GoogleMap
 import fnsb.macstransit.Activities.MapsActivity
-import fnsb.macstransit.RouteMatch.Route
+import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.CurrentSettings.readFile
 import org.json.JSONArray
 import org.json.JSONException

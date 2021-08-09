@@ -10,7 +10,7 @@ import com.google.android.gms.maps.model.Marker;
 import java.util.Locale;
 
 import fnsb.macstransit.R;
-import fnsb.macstransit.RouteMatch.Bus;
+import fnsb.macstransit.routematch.Bus;
 
 /**
  * Created by Spud on 2019-11-23 for the project: MACS Transit.
@@ -76,8 +76,8 @@ public class PopupWindow extends AlertDialog implements
 
 		// Check the marker instance to determine the content text.
 		// If its a stop or shared stop, just set it to the body.
-		if (marker.getTag() instanceof fnsb.macstransit.RouteMatch.Stop || marker.getTag()
-				instanceof fnsb.macstransit.RouteMatch.SharedStop) {
+		if (marker.getTag() instanceof fnsb.macstransit.routematch.Stop || marker.getTag()
+				instanceof fnsb.macstransit.routematch.SharedStop) {
 			content.setText(PopupWindow.body);
 		} else if (marker.getTag() instanceof Bus) {
 

@@ -5,7 +5,7 @@ import android.util.Pair
 import com.google.android.gms.maps.model.LatLng
 import fnsb.macstransit.Activities.MapsActivity
 import fnsb.macstransit.Activities.SplashActivity
-import fnsb.macstransit.RouteMatch.Route
+import fnsb.macstransit.routematch.Route
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
@@ -83,7 +83,7 @@ class MapBusRoutes {
 			try {
 
 				// Get the land route data array from the land route object.
-				val landRouteData: JSONArray = fnsb.macstransit.RouteMatch.RouteMatch.parseData(response)
+				val landRouteData: JSONArray = fnsb.macstransit.routematch.RouteMatch.parseData(response)
 
 				// Get the land route points object from the land route data array.
 				val landRoutePoints: JSONObject = landRouteData.getJSONObject(0)

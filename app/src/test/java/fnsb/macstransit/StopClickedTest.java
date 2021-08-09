@@ -6,7 +6,7 @@ import org.json.JSONObject;
 import org.junit.Test;
 
 import fnsb.macstransit.Activities.ActivityListeners.StopClicked;
-import fnsb.macstransit.RouteMatch.RouteMatch;
+import fnsb.macstransit.routematch.RouteMatch;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;

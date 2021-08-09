@@ -4,7 +4,7 @@ import android.os.Handler;
 import android.util.Log;
 
 import fnsb.macstransit.Activities.MapsActivity;
-import fnsb.macstransit.RouteMatch.Bus;
+import fnsb.macstransit.routematch.Bus;
 
 /**
  * Created by Spud on 2019-10-13 for the project: MACS Transit.
@@ -193,13 +193,13 @@ public class UpdateThread {
 
 		// Get the buses from the RouteMatch server.
 		MapsActivity.routeMatch.callVehiclesByRoutes(response -> {
-			org.json.JSONArray vehiclesJson = fnsb.macstransit.RouteMatch.RouteMatch.parseData(response);
+			org.json.JSONArray vehiclesJson = fnsb.macstransit.routematch.RouteMatch.parseData(response);
 
 			// Get the array of buses. This array will include current and new buses.
 			Bus[] buses;
 			try {
 				buses = Bus.getBuses(vehiclesJson);
-			} catch (fnsb.macstransit.RouteMatch.Route.RouteException e) {
+			} catch (fnsb.macstransit.routematch.Route.RouteException e) {
 
 				// If there was a route exception thrown just break early after logging it.
 				Log.e("UpdateThread", "Exception thrown while parsing buses", e);

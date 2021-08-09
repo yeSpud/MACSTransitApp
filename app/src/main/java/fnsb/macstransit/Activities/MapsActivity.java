@@ -18,10 +18,10 @@ import java.util.ConcurrentModificationException;
 
 import fnsb.macstransit.Activities.ActivityListeners.AdjustZoom;
 import fnsb.macstransit.R;
-import fnsb.macstransit.RouteMatch.Bus;
-import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.RouteMatch.SharedStop;
-import fnsb.macstransit.RouteMatch.Stop;
+import fnsb.macstransit.routematch.Bus;
+import fnsb.macstransit.routematch.Route;
+import fnsb.macstransit.routematch.SharedStop;
+import fnsb.macstransit.routematch.Stop;
 import fnsb.macstransit.Threads.UpdateThread;
 import fnsb.macstransit.settings.CurrentSettings;
 import fnsb.macstransit.settings.V2;
@@ -49,7 +49,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * Create an instance of the RouteMatch object that will be used for this app.
 	 */
-	public static fnsb.macstransit.RouteMatch.RouteMatch routeMatch;
+	public static fnsb.macstransit.routematch.RouteMatch routeMatch;
 
 	/**
 	 * Create the map object. This will be null until the map is ready to be used.

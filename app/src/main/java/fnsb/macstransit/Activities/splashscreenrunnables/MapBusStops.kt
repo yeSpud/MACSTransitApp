@@ -4,8 +4,8 @@ import android.util.Log
 import android.util.Pair
 import fnsb.macstransit.Activities.MapsActivity
 import fnsb.macstransit.Activities.SplashActivity
-import fnsb.macstransit.RouteMatch.Route
-import fnsb.macstransit.RouteMatch.Stop
+import fnsb.macstransit.routematch.Route
+import fnsb.macstransit.routematch.Stop
 import org.json.JSONObject
 import java.util.*
 
@@ -69,7 +69,7 @@ class MapBusStops {
 			this.activity.setMessage(fnsb.macstransit.R.string.mapping_bus_stops)
 
 			// Get the data from all the stops and store it in a JSONArray.
-			val data: org.json.JSONArray = fnsb.macstransit.RouteMatch.RouteMatch.parseData(response)
+			val data: org.json.JSONArray = fnsb.macstransit.routematch.RouteMatch.parseData(response)
 
 			// Load in all the potential stops for the route.
 			// The reason why this is considered potential stops is because at this stage duplicate

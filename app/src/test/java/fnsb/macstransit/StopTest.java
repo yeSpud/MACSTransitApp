@@ -6,14 +6,13 @@ import org.json.JSONObject;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 import fnsb.macstransit.Activities.MapsActivity;
-import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.RouteMatch.RouteMatch;
-import fnsb.macstransit.RouteMatch.SharedStop;
-import fnsb.macstransit.RouteMatch.Stop;
+import fnsb.macstransit.routematch.Route;
+import fnsb.macstransit.routematch.RouteMatch;
+import fnsb.macstransit.routematch.SharedStop;
+import fnsb.macstransit.routematch.Stop;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -235,6 +234,7 @@ public class StopTest {
 				assertEquals(finalStopCount[i], stops.length);
 			}
 		} catch (JSONException | RuntimeException e) {
+			
 			// If anything goes wrong, print and then fail.
 			e.printStackTrace();
 			fail();

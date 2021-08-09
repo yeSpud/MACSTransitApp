@@ -5,7 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 
-import fnsb.macstransit.RouteMatch.RouteMatch;
+import fnsb.macstransit.routematch.RouteMatch;
 
 import static org.junit.Assert.*;
 

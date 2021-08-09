@@ -16,10 +16,10 @@ import java.util.Locale;
 
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.R;
-import fnsb.macstransit.RouteMatch.MarkedObject;
-import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.RouteMatch.SharedStop;
-import fnsb.macstransit.RouteMatch.Stop;
+import fnsb.macstransit.routematch.MarkedObject;
+import fnsb.macstransit.routematch.Route;
+import fnsb.macstransit.routematch.SharedStop;
+import fnsb.macstransit.routematch.Stop;
 
 /**
  * Created by Spud on 2019-10-30 for the project: MACS Transit.
@@ -62,7 +62,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	public static String postStopTimes(MarkedObject stop, JSONObject json, Context context) {
 
 		// Get the stop data from the retrieved json.
-		JSONArray stopData = fnsb.macstransit.RouteMatch.RouteMatch.parseData(json);
+		JSONArray stopData = fnsb.macstransit.routematch.RouteMatch.parseData(json);
 
 		// Get the times for the stop.
 		// Since the method arguments are slightly different for a shared stop compared to a regular stop,
@@ -439,7 +439,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 			// Update the snippet text of the marker's info window.
 			Log.v("showMarker", "Updating snippet");
-			marker.setSnippet(StopClicked.postStopTimes((fnsb.macstransit.RouteMatch.MarkedObject)
+			marker.setSnippet(StopClicked.postStopTimes((fnsb.macstransit.routematch.MarkedObject)
 					marker.getTag(), result, this.activity));
 
 			// Refresh the info window by calling showInfoWindow().

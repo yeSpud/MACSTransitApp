@@ -3,7 +3,7 @@ package fnsb.macstransit.Activities.ActivityListeners;
 import android.util.Log;
 
 import fnsb.macstransit.Activities.MapsActivity;
-import fnsb.macstransit.RouteMatch.SharedStop;
+import fnsb.macstransit.routematch.SharedStop;
 
 /**
  * Created by Spud on 2019-10-28 for the project: MACS Transit.
@@ -48,10 +48,10 @@ public class AdjustZoom implements com.google.android.gms.maps.GoogleMap.OnCamer
 			Log.d("resizeStops", String.format("Setting circle size to: %f", metersPerPixel * 4));
 
 			// Iterate though each route.
-			for (fnsb.macstransit.RouteMatch.Route route : MapsActivity.allRoutes) {
+			for (fnsb.macstransit.routematch.Route route : MapsActivity.allRoutes) {
 
 				// Start by resizing the stop circles first.
-				for (fnsb.macstransit.RouteMatch.Stop stop : route.getStops()) {
+				for (fnsb.macstransit.routematch.Stop stop : route.getStops()) {
 					if (stop.circle != null) {
 						stop.circle.setRadius(size);
 					}

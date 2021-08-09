@@ -4,7 +4,7 @@ import android.util.Log
 import fnsb.macstransit.Activities.MapsActivity
 import fnsb.macstransit.Activities.SplashActivity
 import fnsb.macstransit.R
-import fnsb.macstransit.RouteMatch.Route
+import fnsb.macstransit.routematch.Route
 import org.json.JSONObject
 
 /**
@@ -23,7 +23,7 @@ class MasterScheduleCallback (private val activity: SplashActivity) : com.androi
 		this.activity.setMessage(R.string.loading_bus_routes)
 
 		// Get the routes from the JSONObject
-		val routes = fnsb.macstransit.RouteMatch.RouteMatch.parseData(response)
+		val routes = fnsb.macstransit.routematch.RouteMatch.parseData(response)
 
 		// If the routes length is 0, say that there are no buses for the day.
 		val count = routes.length()

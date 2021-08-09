@@ -3,7 +3,7 @@ package fnsb.macstransit.Threads;
 import android.util.Log;
 
 import fnsb.macstransit.Activities.MapsActivity;
-import fnsb.macstransit.RouteMatch.Bus;
+import fnsb.macstransit.routematch.Bus;
 
 /**
  * Created by Spud on 2021-04-01 for the project: MACS Transit.

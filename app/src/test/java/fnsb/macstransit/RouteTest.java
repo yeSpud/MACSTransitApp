@@ -11,11 +11,10 @@ import android.graphics.Color;
 
 import org.junit.Test;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 import fnsb.macstransit.Activities.MapsActivity;
-import fnsb.macstransit.RouteMatch.Route;
+import fnsb.macstransit.routematch.Route;
 
 /**
  * Created by Spud on 7/16/20 for the project: MACS Transit.

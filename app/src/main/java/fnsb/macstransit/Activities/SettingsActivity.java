@@ -7,7 +7,7 @@ import androidx.annotation.NonNull;
 import com.google.android.gms.maps.GoogleMap;
 
 import fnsb.macstransit.R;
-import fnsb.macstransit.RouteMatch.Route;
+import fnsb.macstransit.routematch.Route;
 import fnsb.macstransit.settings.V2;
 
 /**

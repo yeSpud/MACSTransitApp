@@ -182,7 +182,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static com.google.android.gms.maps.model.Polyline</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../fnsb/macstransit/Activities/ActivityListeners/Helpers.html#createPolyLine-fnsb.macstransit.RouteMatch.Route-com.google.android.gms.maps.GoogleMap-">createPolyLine</a></span>(<a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.RouteMatch">Route</a>&nbsp;route,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../fnsb/macstransit/Activities/ActivityListeners/Helpers.html#createPolyLine-fnsb.macstransit.RouteMatch.Route-com.google.android.gms.maps.GoogleMap-">createPolyLine</a></span>(<a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.routematch">Route</a>&nbsp;route,
               com.google.android.gms.maps.GoogleMap&nbsp;map)</code>
 <div class="block">Helper function that creates the polyline for the specified route.</div>
 </td>
@@ -199,8 +199,8 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i4" class="altColor">
-<td class="colFirst"><code>static <a href="../../../../fnsb/macstransit/RouteMatch/Stop.html" title="class in fnsb.macstransit.RouteMatch">Stop</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../fnsb/macstransit/Activities/ActivityListeners/Helpers.html#findStopInSharedStop-fnsb.macstransit.RouteMatch.SharedStop-">findStopInSharedStop</a></span>(<a href="../../../../fnsb/macstransit/RouteMatch/SharedStop.html" title="class in fnsb.macstransit.RouteMatch">SharedStop</a>&nbsp;sharedStop)</code>
+<td class="colFirst"><code>static <a href="../../../../fnsb/macstransit/RouteMatch/Stop.html" title="class in fnsb.macstransit.routematch">Stop</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../fnsb/macstransit/Activities/ActivityListeners/Helpers.html#findStopInSharedStop-fnsb.macstransit.RouteMatch.SharedStop-">findStopInSharedStop</a></span>(<a href="../../../../fnsb/macstransit/RouteMatch/SharedStop.html" title="class in fnsb.macstransit.routematch">SharedStop</a>&nbsp;sharedStop)</code>
 <div class="block">Helper function that finds the stop within a shared stop based on the route in common.</div>
 </td>
 </tr>
@@ -217,7 +217,7 @@ extends java.lang.Object</pre>
                   java.lang.String&nbsp;expectedArrivalString,
                   java.lang.String&nbsp;expectedDepartureString,
                   boolean&nbsp;is24Hour,
-                  <a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.RouteMatch">Route</a>[]&nbsp;routes,
+                  <a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.routematch">Route</a>[]&nbsp;routes,
                   boolean&nbsp;includeRouteName)</code>
 <div class="block">Helper function that formats a string containing the arrival and departure times that is to be used in the body section of a stop info window.</div>
 </td>
@@ -243,8 +243,8 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i10" class="altColor">
-<td class="colFirst"><code>static <a href="../../../../fnsb/macstransit/RouteMatch/BasicStop.html" title="class in fnsb.macstransit.RouteMatch">BasicStop</a>[]</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../fnsb/macstransit/Activities/ActivityListeners/Helpers.html#loadAllStops-fnsb.macstransit.RouteMatch.Route:A-">loadAllStops</a></span>(<a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.RouteMatch">Route</a>[]&nbsp;routes)</code>
+<td class="colFirst"><code>static <a href="../../../../fnsb/macstransit/RouteMatch/BasicStop.html" title="class in fnsb.macstransit.routematch">BasicStop</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../fnsb/macstransit/Activities/ActivityListeners/Helpers.html#loadAllStops-fnsb.macstransit.RouteMatch.Route:A-">loadAllStops</a></span>(<a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.routematch">Route</a>[]&nbsp;routes)</code>
 <div class="block">Loads all the stops from the provided routes.</div>
 </td>
 </tr>
@@ -304,13 +304,13 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="loadAllStops-fnsb.macstransit.RouteMatch.Route:A-">
+<a name="loadAllStops-fnsb.macstransit.routematch.Route:A-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>loadAllStops</h4>
-<pre>public static&nbsp;<a href="../../../../fnsb/macstransit/RouteMatch/BasicStop.html" title="class in fnsb.macstransit.RouteMatch">BasicStop</a>[]&nbsp;loadAllStops(<a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.RouteMatch">Route</a>[]&nbsp;routes)</pre>
+<pre>public static&nbsp;<a href="../../../../fnsb/macstransit/RouteMatch/BasicStop.html" title="class in fnsb.macstransit.routematch">BasicStop</a>[]&nbsp;loadAllStops(<a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.routematch">Route</a>[]&nbsp;routes)</pre>
 <div class="block">Loads all the stops from the provided routes.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -373,7 +373,7 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="generateTimeString-org.json.JSONArray-int-java.lang.String-java.lang.String-boolean-fnsb.macstransit.RouteMatch.Route:A-boolean-">
+<a name="generateTimeString-org.json.JSONArray-int-java.lang.String-java.lang.String-boolean-fnsb.macstransit.routematch.Route:A-boolean-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -384,7 +384,7 @@ extends java.lang.Object</pre>
                                                   java.lang.String&nbsp;expectedArrivalString,
                                                   java.lang.String&nbsp;expectedDepartureString,
                                                   boolean&nbsp;is24Hour,
-                                                  <a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.RouteMatch">Route</a>[]&nbsp;routes,
+                                                  <a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.routematch">Route</a>[]&nbsp;routes,
                                                   boolean&nbsp;includeRouteName)
                                            throws org.json.JSONException</pre>
 <div class="block">Helper function that formats a string containing the arrival and departure times that is to be used in the body section of a stop info window.</div>
@@ -440,13 +440,13 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="findStopInSharedStop-fnsb.macstransit.RouteMatch.SharedStop-">
+<a name="findStopInSharedStop-fnsb.macstransit.routematch.SharedStop-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>findStopInSharedStop</h4>
-<pre>public static&nbsp;<a href="../../../../fnsb/macstransit/RouteMatch/Stop.html" title="class in fnsb.macstransit.RouteMatch">Stop</a>&nbsp;findStopInSharedStop(<a href="../../../../fnsb/macstransit/RouteMatch/SharedStop.html" title="class in fnsb.macstransit.RouteMatch">SharedStop</a>&nbsp;sharedStop)</pre>
+<pre>public static&nbsp;<a href="../../../../fnsb/macstransit/RouteMatch/Stop.html" title="class in fnsb.macstransit.routematch">Stop</a>&nbsp;findStopInSharedStop(<a href="../../../../fnsb/macstransit/RouteMatch/SharedStop.html" title="class in fnsb.macstransit.routematch">SharedStop</a>&nbsp;sharedStop)</pre>
 <div class="block">Helper function that finds the stop within a shared stop based on the route in common.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -500,13 +500,13 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="createPolyLine-fnsb.macstransit.RouteMatch.Route-com.google.android.gms.maps.GoogleMap-">
+<a name="createPolyLine-fnsb.macstransit.routematch.Route-com.google.android.gms.maps.GoogleMap-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>createPolyLine</h4>
-<pre>public static&nbsp;com.google.android.gms.maps.model.Polyline&nbsp;createPolyLine(<a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.RouteMatch">Route</a>&nbsp;route,
+<pre>public static&nbsp;com.google.android.gms.maps.model.Polyline&nbsp;createPolyLine(<a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.routematch">Route</a>&nbsp;route,
                                                                         com.google.android.gms.maps.GoogleMap&nbsp;map)</pre>
 <div class="block">Helper function that creates the polyline for the specified route.</div>
 <dl>
