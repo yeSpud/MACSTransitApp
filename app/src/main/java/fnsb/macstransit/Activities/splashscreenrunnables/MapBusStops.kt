@@ -53,7 +53,7 @@ class MapBusStops {
 			val callback = BusStopCallback(pair.second, pair.first, activity)
 			MapsActivity.routeMatch.callAllStops(pair.first, callback, { error: com.android.volley.VolleyError ->
 				Log.w("loadStops", "Unable to get stops from RouteMatch server", error)
-			}, this)
+			})
 			progress += step
 			activity.setProgressBar(progress)
 		}

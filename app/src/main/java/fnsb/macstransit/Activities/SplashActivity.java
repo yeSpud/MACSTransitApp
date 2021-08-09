@@ -194,15 +194,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 		// Create the RouteMatch object.
 		this.setMessage(R.string.routematch_creation);
-		try {
-			MapsActivity.routeMatch = new fnsb.macstransit.routematch.
-					RouteMatch("https://fnsb.routematch.com/feed/", this.getApplicationContext());
-		} catch (java.net.MalformedURLException e) {
-			Log.e("initializeApp", "Bad URL provided", e);
-			this.setMessage(R.string.routematch_creation_fail);
-			this.progressBar.setVisibility(View.INVISIBLE);
-			return;
-		}
+		MapsActivity.routeMatch = new fnsb.macstransit.routematch.
+				RouteMatch("https://fnsb.routematch.com/feed/", this);
 
 		// Get the master schedule from the RouteMatch server
 		this.setProgressBar(-1);
@@ -211,7 +204,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 					Log.w("initializeApp", "MasterSchedule callback error", error);
 					this.setMessage(R.string.routematch_timeout);
 					this.showRetryButton();
-				}, this);
+				});
 	}
 
 	@Override

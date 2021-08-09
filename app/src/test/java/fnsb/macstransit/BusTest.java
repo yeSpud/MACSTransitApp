@@ -46,7 +46,7 @@ public class BusTest {
 
 		for (int i = 0; i < vehicles.length(); i++) {
 			try {
-				Bus bus = Bus.createNewBus(vehicles.getJSONObject(i));
+				Bus bus = new Bus(vehicles.getJSONObject(i));
 				buses.add(bus);
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -67,7 +67,7 @@ public class BusTest {
 
 		for (int i = 0; i < vehicles.length(); i++) {
 			try {
-				Bus bus = Bus.createNewBus(vehicles.getJSONObject(i));
+				Bus bus = new Bus(vehicles.getJSONObject(i));
 				potentialBuses[i] = bus;
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -84,18 +84,15 @@ public class BusTest {
 	@SuppressWarnings("MagicNumber")
 	@Test
 	public void getBusesTest() {
+
 		// First test bad arguments,
-		try {
-			assertArrayEquals(Bus.EMPTY_BUSES, Bus.getBuses(new JSONArray()));
-			assertArrayEquals(Bus.EMPTY_BUSES, Bus.getBuses(null));
-		} catch (Route.RouteException e) {
-			e.printStackTrace();
-			fail();
-		}
+		Bus[] empty = new Bus[0];
+		assertArrayEquals(empty, Bus.getBuses(new JSONArray()));
+		//assertArrayEquals(empty, Bus.getBuses(null));
 
 		// Now test valid buses.
 		try {
-			assertArrayEquals(Bus.EMPTY_BUSES, Bus.getBuses(RouteMatch.parseData(Helper.getJSON(Helper.ALL_VEHICLES_EMPTY_JSON))));
+			assertArrayEquals(empty, Bus.getBuses(RouteMatch.parseData(Helper.getJSON(Helper.ALL_VEHICLES_EMPTY_JSON))));
 			Bus[] buses = Bus.getBuses(RouteMatch.parseData(Helper.getJSON(Helper.ALL_VEHICLES_JSON)));
 			assertEquals(3, buses.length);
 
@@ -106,11 +103,11 @@ public class BusTest {
 			for (int i = 0; i < buses.length; i++) {
 				Bus bus = buses[i];
 				assertEquals(ids[i], bus.getName());
-				assertSame(Objects.requireNonNull(MapsActivity.allRoutes)[i], bus.route);
-				assertEquals(lat[i], bus.latitude, 0.0);
-				assertEquals(lon[i], bus.longitude, 0.0);
+				assertSame(Objects.requireNonNull(MapsActivity.allRoutes)[i], bus.getRoute());
+				assertEquals(lat[i], bus.getLatitude(), 0.0);
+				assertEquals(lon[i], bus.getLongitude(), 0.0);
 			}
-		} catch (JSONException | Route.RouteException | NullPointerException e) {
+		} catch (JSONException | NullPointerException e) {
 			e.printStackTrace();
 			fail();
 		}
@@ -121,8 +118,8 @@ public class BusTest {
 	public void createNewBusTest() {
 
 		// Test against bad arguments.
-		assertThrows(NullPointerException.class, () -> Bus.createNewBus(null));
-		assertThrows(JSONException.class, () -> Bus.createNewBus(new JSONObject()));
+		assertThrows(NullPointerException.class, () -> new Bus(null));
+		assertThrows(JSONException.class, () -> new Bus(new JSONObject()));
 
 		// Test with valid arguments.
 		String[] ids = new String[]{"Bus 142", "Bus 131", "Bus 71"};
@@ -132,11 +129,11 @@ public class BusTest {
 			JSONArray busArray = RouteMatch.parseData(Helper.getJSON(Helper.ALL_VEHICLES_JSON));
 
 			for (int i = 0; i < busArray.length(); i++) {
-				Bus bus = Bus.createNewBus(busArray.getJSONObject(i));
+				Bus bus = new Bus(busArray.getJSONObject(i));
 				assertEquals(ids[i], bus.getName());
-				assertSame(Objects.requireNonNull(MapsActivity.allRoutes)[i], bus.route);
-				assertEquals(lat[i], bus.latitude, 0.0);
-				assertEquals(lon[i], bus.longitude, 0.0);
+				assertSame(Objects.requireNonNull(MapsActivity.allRoutes)[i], bus.getRoute());
+				assertEquals(lat[i], bus.getLatitude(), 0.0);
+				assertEquals(lon[i], bus.getLongitude(), 0.0);
 			}
 		} catch (JSONException | Route.RouteException | NullPointerException e) {
 			e.printStackTrace();
@@ -153,29 +150,23 @@ public class BusTest {
 
 		// Create various dummy buses.
 		Bus bus0, bus1, bus2, bus3, bus2Blue, bus0OG;
-		try {
-			bus0 = new Bus("0", greenRoute, 0.0, 0.0);
-			bus1 = new Bus("1", greenRoute, 0.0, 0.0);
-			bus2 = new Bus("2", greenRoute, 0.0, 0.0);
-			bus3 = new Bus("3", greenRoute, 0.0, 0.0);
-			bus2Blue = new Bus("2", blueRoute, 0.0, 0.0);
-			bus0OG = new Bus("0", otherGreen, 0.0, 0.0);
-		} catch (Route.RouteException e) {
-			e.printStackTrace();
-			fail();
-			return;
-		}
+		bus0 = new Bus("0", greenRoute, 0.0, 0.0);
+		bus1 = new Bus("1", greenRoute, 0.0, 0.0);
+		bus2 = new Bus("2", greenRoute, 0.0, 0.0);
+		bus3 = new Bus("3", greenRoute, 0.0, 0.0);
+		bus2Blue = new Bus("2", blueRoute, 0.0, 0.0);
+		bus0OG = new Bus("0", otherGreen, 0.0, 0.0);
 
 		// Load most of the dummy buses into a test array.
 		Bus[] testBusArray = new Bus[]{bus0, bus1, bus2};
 
 		// Test the noBusMatch method.
-		assertFalse(Bus.isBusNotInArray(bus0, testBusArray));
-		assertFalse(Bus.isBusNotInArray(bus1, testBusArray));
-		assertFalse(Bus.isBusNotInArray(bus2, testBusArray));
-		assertTrue(Bus.isBusNotInArray(bus3, testBusArray));
-		assertTrue(Bus.isBusNotInArray(bus2Blue, testBusArray));
-		assertFalse(Bus.isBusNotInArray(bus0OG, testBusArray));
+		assertFalse(bus0.isBusNotInArray(testBusArray));
+		assertFalse(bus1.isBusNotInArray(testBusArray));
+		assertFalse(bus2.isBusNotInArray(testBusArray));
+		assertTrue(bus3.isBusNotInArray(testBusArray));
+		assertTrue(bus2Blue.isBusNotInArray(testBusArray));
+		assertFalse(bus0OG.isBusNotInArray(testBusArray));
 
 	}
 

@@ -111,7 +111,7 @@ public class UpdateThread {
 					Log.d("UpdateThread", "Looping...");
 
 					try {
-						MapsActivity.routeMatch.networkQueue.cancelAll(this);
+						MapsActivity.routeMatch.getNetworkQueue().cancelAll(this);
 					} catch (NullPointerException npe) {
 						Log.w("UpdateThread", "Nothing in queue to cancel");
 					}
