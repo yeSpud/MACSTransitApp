@@ -197,14 +197,7 @@ public class UpdateThread {
 
 			// Get the array of buses. This array will include current and new buses.
 			Bus[] buses;
-			try {
-				buses = Bus.getBuses(vehiclesJson);
-			} catch (fnsb.macstransit.routematch.Route.RouteException e) {
-
-				// If there was a route exception thrown just break early after logging it.
-				Log.e("UpdateThread", "Exception thrown while parsing buses", e);
-				return;
-			}
+			buses = Bus.getBuses(vehiclesJson);
 
 			// Update the bus positions on the map on the UI thread.
 			// This must be executed on the UI thread or else the app will crash.

@@ -84,18 +84,19 @@ public class PopupWindow extends AlertDialog implements
 			// Since the instance is that of a bus, set the content to the heading, speed,
 			// and current capacity.
 			Bus bus = (Bus) marker.getTag();
-			StringBuilder builder = new StringBuilder(bus.speed);
+			StringBuilder builder = new StringBuilder();
 
 			// Make sure to set the heading if it exists, and format it to be all lower case,
 			// except the first character.
-			if (bus.heading != null && !"".equals(bus.heading)) {
-				String lowercaseHeading = bus.heading.toLowerCase(Locale.US);
-				builder.append(String.format("Heading: %s\n", lowercaseHeading.substring(0, 1).toUpperCase(Locale.US) + lowercaseHeading.substring(1)));
+			String heading = bus.getHeading();
+			if (heading != null && heading.isEmpty()) {
+				heading = heading.toLowerCase(Locale.US);
+				builder.append(String.format("Heading: %s\n", heading.substring(0, 1).toUpperCase(Locale.US) + heading.substring(1)));
 			}
 
 			// Append the speed in mph if its not 0.
-			if (bus.speed != 0) {
-				builder.append(String.format(Locale.ENGLISH, "Speed: %d mph\n", bus.speed));
+			if (bus.getSpeed() != 0) {
+				builder.append(String.format(Locale.ENGLISH, "Speed: %d mph\n", bus.getSpeed()));
 			}
 
 			// Then set the text to the determined content.
