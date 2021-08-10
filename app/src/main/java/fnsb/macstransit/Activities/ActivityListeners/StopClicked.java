@@ -2,9 +2,12 @@ package fnsb.macstransit.Activities.ActivityListeners;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
+
+import com.google.android.gms.maps.GoogleMap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -15,10 +18,10 @@ import java.util.Locale;
 
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.R;
-import fnsb.macstransit.RouteMatch.MarkedObject;
-import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.RouteMatch.SharedStop;
-import fnsb.macstransit.RouteMatch.Stop;
+import fnsb.macstransit.routematch.MarkedObject;
+import fnsb.macstransit.routematch.Route;
+import fnsb.macstransit.routematch.SharedStop;
+import fnsb.macstransit.routematch.Stop;
 
 /**
  * Created by Spud on 2019-10-30 for the project: MACS Transit.
@@ -39,12 +42,20 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	private final MapsActivity activity;
 
 	/**
+	 * Documentation
+	 */
+	private final GoogleMap map;
+
+	/**
 	 * Constructor the the StopClicked listener.
 	 *
 	 * @param activity The activity that this listener corresponds to.
+	 * @param map TODO
 	 */
-	public StopClicked(MapsActivity activity) {
+	@org.jetbrains.annotations.Contract(pure = true)
+	public StopClicked(MapsActivity activity, GoogleMap map) {
 		this.activity = activity;
+		this.map = map;
 	}
 
 	/**
@@ -61,7 +72,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	public static String postStopTimes(MarkedObject stop, JSONObject json, Context context) {
 
 		// Get the stop data from the retrieved json.
-		JSONArray stopData = fnsb.macstransit.RouteMatch.RouteMatch.parseData(json);
+		JSONArray stopData = fnsb.macstransit.routematch.RouteMatch.parseData(json);
 
 		// Get the times for the stop.
 		// Since the method arguments are slightly different for a shared stop compared to a regular stop,
@@ -74,7 +85,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		// Try setting the routes array to either enabled routes (shared stop) or our single route (stop).
 		Route[] routes;
 		try {
-			routes = isSharedStop ? StopClicked.getEnabledRoutesForStop(((SharedStop) stop).routes) : new Route[]{((Stop) stop).route};
+			routes = isSharedStop ? StopClicked.getEnabledRoutesForStop(((SharedStop) stop).getRoutes()) : new Route[]{((Stop) stop).getRoute()};
 		} catch (ClassCastException e) {
 
 			// If there was an issue casting from classes log the error and return the current content of the string.
@@ -127,7 +138,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 			// If the route is enabled add it to our verified routes array,
 			// and increase the verified count.
-			if (route.enabled) {
+			if (route.getEnabled()) {
 				potentialRoutes[routeCount] = route;
 				routeCount++;
 			}
@@ -175,7 +186,8 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			// Iterate though each of our active routes. If the route is one that is listed,
 			// append the time to the string builder.
 			for (Route route : routes) {
-				if (route.routeName.equals(object.getString("routeId"))) {
+				String routeName = route.getRouteName();
+				if (routeName.equals(object.getString("routeId"))) {
 
 					// Set the arrival and departure time to the arrival and departure time in the JSONObject.
 					// At this point this is stored in 24-hour time.
@@ -191,8 +203,8 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 					// Append the route name if there is one.
 					if (includeRouteName) {
-						Log.d("generateTimeString", String.format("Adding route: %s", route.routeName));
-						snippetText.append(String.format("Route: %s\n", route.routeName));
+						Log.d("generateTimeString", String.format("Adding route: %s", routeName));
+						snippetText.append(String.format("Route: %s\n", routeName));
 					}
 
 					// Append the arrival and departure times to the snippet text.
@@ -360,13 +372,13 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		}
 
 		// Make sure the map is not null either.
-		if (MapsActivity.map == null) {
+		if (this.map == null) {
 			Log.w("onCircleClick", "Map is not ready!");
 			return;
 		}
 
 		// If the marker for our marked object is null, create a new marker.
-		if (markedObject.marker == null) {
+		if (markedObject.getMarker() == null) {
 
 			// Get the location and color of the object
 			// (this is different depending on whether or not its a shared stop or a regular stop).
@@ -377,14 +389,14 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 				// Get the location and color of the largest circle of our shared stop.
 				SharedStop sharedStop = (SharedStop) markedObject;
-				location = sharedStop.location;
-				color = sharedStop.routes[0].color;
+				location = sharedStop.getLocation();
+				color = sharedStop.getRoutes()[0].getColor();
 			} else if (markedObject instanceof Stop) {
 
 				// Get the location and color of our stop.
 				Stop stop = (Stop) markedObject;
-				location = stop.circleOptions.getCenter();
-				color = stop.route.color;
+				location = stop.getCircleOptions().getCenter();
+				color = stop.getRoute().getColor();
 			} else {
 
 				// Since our marked object was neither a shared stop nor a regular stop log it as a warning,
@@ -394,11 +406,18 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			}
 
 			// Create a new marker for our marked object using the newly determined location and color.
-			markedObject.marker = markedObject.addMarker(MapsActivity.map, location, color);
+			markedObject.addMarker(this.map, location, color);
 		}
 
-		// Show our marker.
-		this.showMarker(markedObject.marker);
+		if (markedObject.getMarker() != null) {
+
+			// Show our marker.
+			this.showMarker(markedObject.getMarker());
+		} else {
+
+			// Comments
+			Toast.makeText(this.activity, markedObject.getName(), Toast.LENGTH_LONG).show();
+		}
 	}
 
 	/**
@@ -427,18 +446,15 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 
 		// Retrieve the stop times.
 		MapsActivity.routeMatch.callDeparturesByStop(name, result -> {
-			// Be sure to run the following on the UI thread to avoid a crash.
-			this.activity.runOnUiThread(() -> {
 
-				// Update the snippet text of the marker's info window.
-				Log.v("showMarker", "Updating snippet");
-				marker.setSnippet(StopClicked.postStopTimes((fnsb.macstransit.RouteMatch.MarkedObject)
-						marker.getTag(), result, this.activity));
+			// Update the snippet text of the marker's info window.
+			Log.v("showMarker", "Updating snippet");
+			marker.setSnippet(StopClicked.postStopTimes((fnsb.macstransit.routematch.MarkedObject)
+					marker.getTag(), result, this.activity));
 
-				// Refresh the info window by calling showInfoWindow().
-				Log.v("showMarker", "Refreshing info window");
-				marker.showInfoWindow();
-			});
+			// Refresh the info window by calling showInfoWindow().
+			Log.v("showMarker", "Refreshing info window");
+			marker.showInfoWindow();
 		}, error -> Log.e("showMarker", "Unable to get departure times", error), this);
 
 		// For now though just show the info window.

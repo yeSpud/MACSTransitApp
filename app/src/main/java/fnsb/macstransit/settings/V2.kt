@@ -5,7 +5,7 @@ import android.util.Log
 import android.widget.Toast
 import com.google.android.gms.maps.GoogleMap
 import fnsb.macstransit.Activities.MapsActivity
-import fnsb.macstransit.RouteMatch.Route
+import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.CurrentSettings.readFile
 import org.json.JSONArray
 import org.json.JSONException
@@ -23,16 +23,6 @@ import java.io.IOException
  */
 object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 
-	/*
-	 * Constructor for v2.
-	 * Because this class extends BaseSettings, the file and version need to be passed.
-	 */
-
-	/**
-	 * Gets the traffic variable.
-	 *
-	 * @return The traffic boolean (if the traffic view should be shown).
-	 */
 	/**
 	 * Settings variables used by the app.
 	 */
@@ -40,50 +30,36 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 		private set
 
 	/**
-	 * Gets the dark theme variable.
-	 *
-	 * @return The dark theme boolean (if dark theme should be set on launch).
+	 * The dark theme boolean (if dark theme should be set on launch).
 	 */
 	var darktheme = false
 		private set
 
 	/**
-	 * Gets the polyline variable.
-	 *
-	 * @return The polyline boolean (if they should be shown or not).
+	 * The polyline boolean (if they should be shown or not).
 	 */
 	var polylines = false
 		private set
 
 	/**
-	 * Gets the streetview variable.
-	 *
 	 * @return The streetview boolean.
 	 */
 	var streetView = false
 		private set
-	/**
-	 * Gets the map type variable.
-	 *
-	 * @return The map type value.
-	 */
+
+
 	/**
 	 * Settings variable used by the app. This variable corresponds with what map type should be used.
 	 */
 	var maptype = GoogleMap.MAP_TYPE_NORMAL
 		private set
-	/**
-	 * Gets the favorited routes variable.
-	 * This may be null if there was an issue parsing favorited routes from settings.
-	 *
-	 * @return The favorite routes defined by the user.
-	 */
+
 	/**
 	 * Favorite routes set by the user.
 	 * These routes should be enabled / selected as soon as the app has finished initialization.
 	 * This is null as it should not be set by any other method except ones defined by this class.
 	 */
-	var routes: MutableList<Route> = mutableListOf()
+	var routes: Array<Route> = emptyArray()
 		private set
 
 	/**
@@ -204,8 +180,9 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 		Log.i("createSettingsFile", "Creating new settings file")
 		try {
 			// Create a new JSON object with all the default settings.
-			val json = formatSettingsToJsonString(false, false, false,
-					false, GoogleMap.MAP_TYPE_NORMAL)
+			val json = formatSettingsToJsonString(bTraffic = false, bDarktheme = false,
+			                                      bPolylines = false, bStreetview = false,
+			                                      iMapType = GoogleMap.MAP_TYPE_NORMAL)
 
 			// Write those settings to the file.
 			writeSettingsToFile(json.toString(), context)
@@ -223,11 +200,11 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 
 		// Parse the simpler JSON objects from the settings file first.
 		try {
-			traffic = input.getBoolean("enable traffic view")
-			darktheme = input.getBoolean("enable dark theme")
-			polylines = input.getBoolean("enable polylines")
-			streetView = input.getBoolean("enable streetview")
-			maptype = input.getInt("map type")
+			this.traffic = input.getBoolean("enable traffic view")
+			this.darktheme = input.getBoolean("enable dark theme")
+			this.polylines = input.getBoolean("enable polylines")
+			this.streetView = input.getBoolean("enable streetview")
+			this.maptype = input.getInt("map type")
 
 			// Make sure all routes is not null before loading favorite routes.
 			if (MapsActivity.allRoutes == null) {
@@ -236,20 +213,30 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 			}
 
 			// Now try to parse the more dynamic content (favorited routes array).
-			val favoritedRoutes = input.getJSONArray("favorited routes")
+			val favoritedRoutes: JSONArray = input.getJSONArray("favorited routes")
+			val count: Int = favoritedRoutes.length()
+
+			// Create a temp array to store our routes.
+			val potentialRoutes: Array<Route?> = arrayOfNulls(count)
+			var verifiedCount = 0
 
 			// Iterate through the JSON array and try to match the names of the routes.
-			for (i in 0 until favoritedRoutes.length()) {
+			for (i in 0 until count) {
 				val routeName = favoritedRoutes.getString(i)
 				for (route in MapsActivity.allRoutes!!) {
 
 					// If the route names match, add it to the list of routes.
 					if (routeName == route.routeName) {
-						routes.add(route)
+						potentialRoutes[verifiedCount] = route
+						verifiedCount++
 						break
 					}
 				}
 			}
+
+			// Copy the verified potential routes to our confirmed routes array.
+			System.arraycopy(potentialRoutes, 0, this.routes, 0, verifiedCount)
+
 		} catch (e: JSONException) {
 			Log.e("parseSettings", "Cannot parse settings", e)
 		}

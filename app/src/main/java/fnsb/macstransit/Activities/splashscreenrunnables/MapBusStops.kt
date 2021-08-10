@@ -4,8 +4,8 @@ import android.util.Log
 import android.util.Pair
 import fnsb.macstransit.Activities.MapsActivity
 import fnsb.macstransit.Activities.SplashActivity
-import fnsb.macstransit.RouteMatch.Route
-import fnsb.macstransit.RouteMatch.Stop
+import fnsb.macstransit.routematch.Route
+import fnsb.macstransit.routematch.Stop
 import org.json.JSONObject
 import java.util.*
 
@@ -19,12 +19,12 @@ import java.util.*
 class MapBusStops {
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	private val pairs: MutableCollection<Pair<Route, SplashListener>> = ArrayList() // TODO Don't use arrayList
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 * @param pair TODO
 	 */
 	fun addListener(pair: Pair<Route, SplashListener>) {
@@ -32,7 +32,8 @@ class MapBusStops {
 	}
 
 	/**
-	 * TODO Documentation & comments
+	 * Documentation
+	 * Comments
 	 * @param activity TODO
 	 */
 	fun getBusStops(activity: SplashActivity) {
@@ -53,7 +54,7 @@ class MapBusStops {
 			val callback = BusStopCallback(pair.second, pair.first, activity)
 			MapsActivity.routeMatch.callAllStops(pair.first, callback, { error: com.android.volley.VolleyError ->
 				Log.w("loadStops", "Unable to get stops from RouteMatch server", error)
-			}, this)
+			})
 			progress += step
 			activity.setProgressBar(progress)
 		}
@@ -69,7 +70,7 @@ class MapBusStops {
 			this.activity.setMessage(fnsb.macstransit.R.string.mapping_bus_stops)
 
 			// Get the data from all the stops and store it in a JSONArray.
-			val data: org.json.JSONArray = fnsb.macstransit.RouteMatch.RouteMatch.parseData(response)
+			val data: org.json.JSONArray = fnsb.macstransit.routematch.RouteMatch.parseData(response)
 
 			// Load in all the potential stops for the route.
 			// The reason why this is considered potential stops is because at this stage duplicate
@@ -85,7 +86,11 @@ class MapBusStops {
 			val validatedStops = arrayOfNulls<Stop>(potentialStops.size)
 
 			// Iterate through each stop in our array of potential stops.
-			for (stop: Stop in potentialStops) {
+			for (stop: Stop? in potentialStops) {
+
+				if (stop == null) {
+					continue
+				}
 
 				// Check to see if the stop is in our array of validated stops. If its not,
 				// add it to the array and add 1 to the true index size of stops that have been validated.
@@ -103,7 +108,7 @@ class MapBusStops {
 			System.arraycopy(validatedStops, 0, actualStops, 0, actualStops.size)
 
 			// At this point duplicate stops have now been handled and removed.
-			this.route.stops = actualStops
+			this.route.stops = actualStops.requireNoNulls()
 			this.listener.splashRunnableFinished()
 		}
 	}

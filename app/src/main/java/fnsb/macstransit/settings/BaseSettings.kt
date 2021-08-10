@@ -1,7 +1,6 @@
 package fnsb.macstransit.settings
 
 import android.content.Context
-import java.io.File
 
 /**
  * Created by Spud on 3/13/21 for the project: MACS Transit.
@@ -11,14 +10,6 @@ import java.io.File
  * @since Release 1.2.
  */
 abstract class BaseSettings<R>(val FILENAME: String, val VERSION: Int) {
-
-	/*
-	 * The name of the settings file.
-	 */
-
-	/*
-	 * The version of the settings.
-	 */
 
 	/**
 	 * Writes the provided string to the settings file.
@@ -48,6 +39,6 @@ abstract class BaseSettings<R>(val FILENAME: String, val VERSION: Int) {
 	 *  @param file The settings file.
 	 *  @return TODO
 	 */
-	abstract fun readFromSettingsFile(file: File): R
+	abstract fun readFromSettingsFile(file: java.io.File): R
 
 }

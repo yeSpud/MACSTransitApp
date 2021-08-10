@@ -10,7 +10,7 @@ package fnsb.macstransit.Activities.splashscreenrunnables
 interface SplashListener {
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	fun splashRunnableFinished()
 }

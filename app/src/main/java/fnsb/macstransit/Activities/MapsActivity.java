@@ -18,10 +18,10 @@ import java.util.ConcurrentModificationException;
 
 import fnsb.macstransit.Activities.ActivityListeners.AdjustZoom;
 import fnsb.macstransit.R;
-import fnsb.macstransit.RouteMatch.Bus;
-import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.RouteMatch.SharedStop;
-import fnsb.macstransit.RouteMatch.Stop;
+import fnsb.macstransit.routematch.Bus;
+import fnsb.macstransit.routematch.Route;
+import fnsb.macstransit.routematch.SharedStop;
+import fnsb.macstransit.routematch.Stop;
 import fnsb.macstransit.Threads.UpdateThread;
 import fnsb.macstransit.settings.CurrentSettings;
 import fnsb.macstransit.settings.V2;
@@ -49,15 +49,14 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * Create an instance of the RouteMatch object that will be used for this app.
 	 */
-	public static fnsb.macstransit.RouteMatch.RouteMatch routeMatch;
+	public static fnsb.macstransit.routematch.RouteMatch routeMatch;
 
 	/**
 	 * Create the map object. This will be null until the map is ready to be used.
-	 * Deprecated because this leaks memory in the static form.
+	 * Deprecated because this leaks memory in the static form. Use as dependency injection.
 	 */
-	@Deprecated
 	@Nullable
-	public static GoogleMap map;
+	private GoogleMap map;
 
 	/**
 	 * Bool used to check if we have selected favorited routes from all routes.
@@ -84,7 +83,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	private FarePopupWindow farePopupWindow;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	private final CurrentSettings currentSettings = CurrentSettings.INSTANCE;
 
@@ -110,7 +109,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Determine which route from all the routes was just selected.
 		Route selectedRoute = null;
 		for (Route route : MapsActivity.allRoutes) {
-			if (route.routeName.equals(item.getTitle().toString())) {
+			if (route.getRouteName().equals(item.getTitle().toString())) {
 				selectedRoute = route;
 				break;
 			}
@@ -122,24 +121,24 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		}
 
 		// Updated the selected route's boolean.
-		selectedRoute.enabled = enabled;
+		selectedRoute.setEnabled(enabled);
 
 		// Try to (re)draw the buses onto the map.
 		// Because we are iterating a static variable that is modified on a different thread
 		// there is a possibility of a concurrent modification.
 		try {
-			MapsActivity.drawBuses();
+			this.drawBuses();
 		} catch (ConcurrentModificationException e) {
 			Log.e("onRouteItemToggled",
 					"Unable to redraw all buses due to concurrent modification", e);
 		}
 
 		// (Re) draw the stops onto the map.
-		MapsActivity.drawStops();
+		this.drawStops();
 
 		// (Re) draw the routes onto the map (if enabled).
 		if (((V2) this.currentSettings.getSettingsImplementation()).getPolylines()) {
-			MapsActivity.drawRoutes();
+			this.drawRoutes();
 		}
 
 		// Set the menu item's checked value to that of the enabled value
@@ -149,7 +148,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	/**
 	 * Draws the stops and shared stops onto the map, and adjusts the stop sizes based on the zoom level.
 	 */
-	private static void drawStops() {
+	private void drawStops() {
 
 		// First, make sure that allRoutes isn't null. If it is, return early.
 		if (MapsActivity.allRoutes == null) {
@@ -161,16 +160,16 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		for (Route route : MapsActivity.allRoutes) {
 
 			// Iterate though the stops in the route before getting to the shared stops.
-			for (Stop stop : route.stops) {
+			for (Stop stop : route.getStops()) {
 
 				// Check that the stop isn't null
 				// as calling any functions of a null object would result in a crash.
 				if (stop != null) {
 
-					if (route.enabled) {
+					if (route.getEnabled()) {
 
 						// Show the stop on the map.
-						stop.showStop(MapsActivity.map);
+						stop.showStop(this.map);
 					} else {
 
 						// Hide the stop from the map.
@@ -187,34 +186,32 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 			// Check that there are shared stops to hide in the route.
 			SharedStop[] sharedStops = route.getSharedStops();
-			if (sharedStops != null) {
 
-				// Iterate though the shared stops in the route.
-				for (SharedStop sharedStop : sharedStops) {
+			// Iterate though the shared stops in the route.
+			for (SharedStop sharedStop : sharedStops) {
 
-					if (route.enabled) {
+				if (route.getEnabled()) {
 
-						// Show the shared stops.
-						sharedStop.showSharedStop(MapsActivity.map);
-					} else {
+					// Show the shared stops.
+					sharedStop.showSharedStop(this.map);
+				} else {
 
-						// Hide the shared stops on the map.
-						// Note that the stops should be hidden - not destroyed.
-						sharedStop.hideStop();
-					}
+					// Hide the shared stops on the map.
+					// Note that the stops should be hidden - not destroyed.
+					sharedStop.hideStop();
 				}
 			}
 		}
 
 		// Adjust the circle sizes of the stops on the map given the current zoom.
-		AdjustZoom.resizeStops();
+		AdjustZoom.resizeStops(this.map);
 	}
 
 	/**
 	 * Draws the route's polylines to the map.
 	 * While all polylines are drawn they will only be shown if the route that they belong to is enabled.
 	 */
-	private static void drawRoutes() {
+	private void drawRoutes() {
 
 		// Make sure there are routes to iterate through (check if the routes are not null).
 		if (MapsActivity.allRoutes != null) {
@@ -228,16 +225,16 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 					if (route.getPolyline() == null) {
 
 						// Create a new polyline for the route since it didn't have one before.
-						route.createPolyline();
+						route.createPolyline(this.map);
 					}
 
 					// Set the polyline's visibility to whether the route is enabled or not.
-					route.getPolyline().setVisible(route.enabled);
+					route.getPolyline().setVisible(route.getEnabled());
 				} catch (NullPointerException e) {
 
 					// If the polyline was still null after being created, log it as a warning.
 					Log.w("drawRoutes", String.format("Polyline for route %s was not created successfully!",
-							route.routeName));
+							route.getRouteName()));
 				}
 			}
 		}
@@ -251,26 +248,29 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 *                                         as it iterates through the bus list,
 	 *                                         which may be modified at the time of iteration.
 	 */
-	private static void drawBuses() throws ConcurrentModificationException {
+	private void drawBuses() throws ConcurrentModificationException {
 
 		// Start by iterating though all the buses on the map.
 		for (Bus bus : MapsActivity.buses) {
 
-			if (bus.marker != null) {
+			// Comments
+			Route route = bus.getRoute();
+
+			if (bus.getMarker() != null) {
 
 				// Set the bus marker visibility based on if the bus's route is enabled or not.
-				bus.marker.setVisible(bus.route.enabled);
+				bus.getMarker().setVisible(route.getEnabled());
 			} else {
 
-				if (bus.route.enabled) {
+				if (route.getEnabled()) {
 
-					if (MapsActivity.map != null) {
+					if (this.map != null) {
 
 						// Try creating a new marker for the bus (if its enabled).
-						bus.marker = bus.addMarker(MapsActivity.map,
-								new LatLng(bus.latitude, bus.longitude), bus.color);
+						bus.addMarker(this.map, new LatLng(bus.getLatitude(), bus.getLongitude()),
+								bus.getColor());
 
-						bus.marker.setVisible(true);
+						bus.getMarker().setVisible(true);
 
 					} else {
 
@@ -282,7 +282,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 					// If the marker was null simply log it as a warning.
 					Log.w("drawBuses", String.format("Bus doesn't have a marker for route %s!",
-							bus.route.routeName));
+							route.getRouteName()));
 				}
 			}
 		}
@@ -364,7 +364,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		}
 
 		// Set the map to null for now. It will be set when the callback is ready.
-		MapsActivity.map = null;
+		this.map = null;
 
 		// Obtain the SupportMapFragment and get notified when the map is ready to be used.
 		SupportMapFragment mapFragment = (SupportMapFragment) this.getSupportFragmentManager()
@@ -382,14 +382,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		if (this.farePopupWindow == null) {
 			this.farePopupWindow = new FarePopupWindow(this);
 		}
-
-		// Setup the actual thread object for the update thread if it didn't exist previously.
-		if (MapsActivity.updateThread == null) {
-			MapsActivity.updateThread = new UpdateThread(this.mainThreadHandler);
-		}
-
-		// TODO Comments
-		MapsActivity.updateThread.state = UpdateThread.STATE.RUN;
 	}
 
 	@Override
@@ -405,7 +397,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 				// Iterate though each stop.
 				Log.d("onDestroy", "Removing stop circles");
-				for (Stop stop : route.stops) {
+				for (Stop stop : route.getStops()) {
 
 					// Remove the stop's circle.
 					stop.removeStopCircle();
@@ -418,16 +410,14 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				Log.d("onDestroy", "Removing shared stop circles");
 				SharedStop[] sharedStops = route.getSharedStops();
 
-				// If the shared stops isn't null then iterate though each shared stop.
-				if (sharedStops != null) {
-					for (SharedStop sharedStop : sharedStops) {
+				// Iterate though each shared stop.
+				for (SharedStop sharedStop : sharedStops) {
 
-						// Remove each shared stop circles.
-						sharedStop.removeSharedStopCircles();
+					// Remove each shared stop circles.
+					sharedStop.removeSharedStopCircles();
 
-						// Remove the shared stop's marker.
-						sharedStop.removeMarker();
-					}
+					// Remove the shared stop's marker.
+					sharedStop.removeMarker();
 				}
 
 				// Remove route polylines.
@@ -452,31 +442,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		}
 
 		// Be sure to clear the map.
-		if (MapsActivity.map != null) {
-			MapsActivity.map.clear();
+		if (this.map != null) {
+			this.map.clear();
 		}
 	}
 
-	/**
-	 * Initialize the contents of the Activity's standard options menu.
-	 * You should place your menu items in to menu.
-	 * <p>
-	 * This is only called once, the first time the options menu is displayed.
-	 * To update the menu every time it is displayed, see onPrepareOptionsMenu(Menu).
-	 * <p>
-	 * The default implementation populates the menu with standard system menu items.
-	 * These are placed in the Menu#CATEGORY_SYSTEM group so that they will be correctly ordered with application-defined menu items.
-	 * Deriving classes should always call through to the base implementation.
-	 * <p>
-	 * You can safely hold on to menu (and any items created from it),
-	 * making modifications to it as desired, until the next time onCreateOptionsMenu() is called.
-	 * <p>
-	 * When you add items to the menu,
-	 * you can implement the Activity's onOptionsItemSelected(MenuItem) method to handle them there.
-	 *
-	 * @param menu The options menu in which you place your items.
-	 * @return You must return true for the menu to be displayed; if you return false it will not be shown.
-	 */
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		Log.v("onCreateOptionsMenu", "onCreateOptionsMenu has been called!");
@@ -492,13 +462,13 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 				Route route = MapsActivity.allRoutes[i];
 
 				// Create the menu item that corresponds to the route object.
-				MenuItem menuItem = menu.add(R.id.routes, Menu.NONE, 0, route.routeName);
+				MenuItem menuItem = menu.add(R.id.routes, Menu.NONE, 0, route.getRouteName());
 
 				// Make sure the item is checkable.
 				menuItem.setCheckable(true);
 
 				// Determine whether or not the menu item should be checked before hand.
-				menuItem.setChecked(route.enabled);
+				menuItem.setChecked(route.getEnabled());
 			}
 		}
 
@@ -585,10 +555,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		}
 	}
 
-	/**
-	 * Called when the activity will start interacting with the user.
-	 * At this point your activity is at the top of its activity stack, with user input going to it.
-	 */
 	@Override
 	protected void onResume() {
 		Log.v("onResume", "onResume has been called!");
@@ -634,34 +600,41 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		Log.v("onMapReady", "onMapReady has been called!");
 
 		// Setup the map object at this point as it is finally initialized and ready.
-		MapsActivity.map = googleMap;
+		this.map = googleMap;
 
 		// Move the camera to the 'home' position
 		//noinspection MagicNumber
-		MapsActivity.map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory
-				.newLatLngZoom(new com.google.android.gms.maps.model
-						.LatLng(64.8391975, -147.7684709), 11.0f));
+		this.map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.
+				newLatLngZoom(new LatLng(64.8391975, -147.7684709), 11.0f));
 
 		// Add a listener for when the camera has become idle (ie was moving isn't anymore).
-		MapsActivity.map.setOnCameraIdleListener(new AdjustZoom());
+		this.map.setOnCameraIdleListener(new AdjustZoom(this.map));
 
 		// Add a listener for when a stop icon (circle) is clicked.
-		MapsActivity.map.setOnCircleClickListener(new fnsb.macstransit.Activities.ActivityListeners
-				.StopClicked(this));
+		this.map.setOnCircleClickListener(new fnsb.macstransit.Activities.ActivityListeners
+				.StopClicked(this, this.map));
 
 		// Add a custom info window adapter, to add support for multiline snippets.
-		MapsActivity.map.setInfoWindowAdapter(new InfoWindowAdapter(this));
+		this.map.setInfoWindowAdapter(new InfoWindowAdapter(this));
 
 		// Set it so that if the info window was closed for a Stop marker,
 		// make that marker invisible, so its just the dot.
-		MapsActivity.map.setOnInfoWindowCloseListener(new fnsb.macstransit.Activities.ActivityListeners
+		this.map.setOnInfoWindowCloseListener(new fnsb.macstransit.Activities.ActivityListeners
 				.StopDeselected());
 
 		// Set it so that when an info window is clicked on, it launches a popup window
-		MapsActivity.map.setOnInfoWindowClickListener(new PopupWindow(this));
+		this.map.setOnInfoWindowClickListener(new PopupWindow(this));
 
 		// Update the map's dynamic settings.
 		this.updateMapSettings();
+
+		// Setup the actual thread object for the update thread if it didn't exist previously.
+		if (MapsActivity.updateThread == null) {
+			MapsActivity.updateThread = new UpdateThread(this.mainThreadHandler, this.map);
+		}
+
+		// Comments
+		MapsActivity.updateThread.state = UpdateThread.STATE.RUN;
 	}
 
 	/**
@@ -672,16 +645,16 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	private void updateMapSettings() {
 
 		// Make sure to only execute the following if the maps object is not null (map has been setup).
-		if (MapsActivity.map != null) {
+		if (this.map != null) {
 
-			// TODO Comments
+			// Comments
 			V2 settings = (V2) this.currentSettings.getSettingsImplementation();
 
 			// Enable traffic overlay based on settings.
-			MapsActivity.map.setTrafficEnabled(settings.getTraffic());
+			this.map.setTrafficEnabled(settings.getTraffic());
 
 			// Set the the type of map based on settings.
-			MapsActivity.map.setMapType(settings.getMaptype());
+			this.map.setMapType(settings.getMaptype());
 
 			// Toggle night mode at this time if enabled.
 			this.toggleNightMode(settings.getDarktheme());
@@ -695,7 +668,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			*/
 
 			// Get the favorited routes from the settings object.
-			java.util.List<Route> favoritedRoutes = settings.getRoutes();
+			Route[] favoritedRoutes = settings.getRoutes();
 
 			if (!MapsActivity.selectedFavorites) {
 
@@ -707,17 +680,17 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			// Because we are iterating a static variable that is modified on a different thread
 			// there is a possibility of a concurrent modification.
 			try {
-				MapsActivity.drawBuses();
+				this.drawBuses();
 			} catch (ConcurrentModificationException e) {
 				Log.e("updateMapSettings", "Unable to draw all buses due to concurrent modification", e);
 			}
 
 			// Draw the stops.
-			MapsActivity.drawStops();
+			this.drawStops();
 
 			// Draw the routes.
 			if (settings.getPolylines()) {
-				MapsActivity.drawRoutes();
+				this.drawRoutes();
 			}
 		} else {
 			Log.w("updateMapSettings", "Map is not yet ready!");
@@ -730,8 +703,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	 * @param enabled Whether to toggle the maps night mode
 	 */
 	public void toggleNightMode(boolean enabled) {
-		if (MapsActivity.map != null) {
-			MapsActivity.map.setMapStyle(enabled ?
+		if (this.map != null) {
+			this.map.setMapStyle(enabled ?
 					MapStyleOptions.loadRawResourceStyle(this, R.raw.nightmode) :
 					MapStyleOptions.loadRawResourceStyle(this, R.raw.standard));
 		} else {

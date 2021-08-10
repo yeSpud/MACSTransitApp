@@ -16,11 +16,6 @@ import java.io.File
 object V1 : BaseSettings<Collection<String>>("settings.txt", 1) {
 
 	/**
-	 * Constructor for v1.
-	 * Because this class extends BaseSettings, the file and version need to be passed.
-	 */
-
-	/**
 	 * Strings used to parse the key:value pairs in the old settings file.
 	 */
 	private const val TRAFFIC_KEY = "Enable Traffic View"
@@ -56,9 +51,11 @@ object V1 : BaseSettings<Collection<String>>("settings.txt", 1) {
 		val content = readFile(file)
 		Log.d("readFromSettingsFile", "Content: $content")
 
-		// If the content of the file isn't null, then return the array of strings that was split
-		// along the new line
-		return content.split("\n")
+		// If the content of the file isn't null or empty then return the array of strings that was split
+		// along the new line.
+		val strings: MutableList<String> = content.split("\n").toMutableList()
+		strings.remove("")
+		return strings
 	}
 
 	/**

@@ -7,7 +7,7 @@ import androidx.annotation.NonNull;
 import com.google.android.gms.maps.GoogleMap;
 
 import fnsb.macstransit.R;
-import fnsb.macstransit.RouteMatch.Route;
+import fnsb.macstransit.routematch.Route;
 import fnsb.macstransit.settings.V2;
 
 /**
@@ -50,7 +50,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * @param routeName The route name. This cannot be null.
 	 * @return Whether the route name was found in the favorited routes.
 	 */
-	private static boolean isFavorited(@NonNull Iterable<Route> routes, @NonNull String routeName) {
+	private static boolean isFavorited(@NonNull Route[] routes, @NonNull String routeName) {
 
 		// Iterate though all the routes provided.
 		for (Route savedRoute : routes) {
@@ -58,7 +58,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 			// If the route isn't null, and the name matches then return true.
 			// If not then keep iterating.
 			if (savedRoute != null) {
-				if (savedRoute.routeName.equals(routeName)) {
+				if (savedRoute.getRouteName().equals(routeName)) {
 					return true;
 				}
 			}
@@ -151,7 +151,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 	 *
 	 * @param favoritedRoutes The array of favorited routes to enable.
 	 */
-	private void addToFavoritesContainer(Iterable<Route> favoritedRoutes) {
+	private void addToFavoritesContainer(Route[] favoritedRoutes) {
 
 		// Make sure there are routes to iterate though.
 		if (MapsActivity.allRoutes == null) {
@@ -165,7 +165,8 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 			CheckBox checkBox = new CheckBox(this);
 
 			// Set the checkbox's text to the route name.
-			checkBox.setText(route.routeName);
+			String routeName = route.getRouteName();
+			checkBox.setText(routeName);
 
 			// Set the color and size of the text to constants.
 			checkBox.setTextSize(SettingsActivity.CHECKBOX_TEXT_SIZE);
@@ -179,7 +180,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 
 			// If the favorited route object is not null, set the checkbox to its enabled value.
 			if (favoritedRoutes != null) {
-				checkBox.setChecked(SettingsActivity.isFavorited(favoritedRoutes, route.routeName));
+				checkBox.setChecked(SettingsActivity.isFavorited(favoritedRoutes, routeName));
 			}
 
 			// Add the box to the favorites container.

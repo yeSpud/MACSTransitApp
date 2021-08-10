@@ -168,8 +168,8 @@ implements com.google.android.gms.maps.GoogleMap.OnCircleClickListener</pre>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>static <a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.RouteMatch">Route</a>[]</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../fnsb/macstransit/Activities/ActivityListeners/StopClicked.html#getEnabledRoutesForStop-fnsb.macstransit.RouteMatch.Route:A-">getEnabledRoutesForStop</a></span>(<a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.RouteMatch">Route</a>[]&nbsp;allRoutesForStop)</code>
+<td class="colFirst"><code>static <a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.routematch">Route</a>[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../fnsb/macstransit/Activities/ActivityListeners/StopClicked.html#getEnabledRoutesForStop-fnsb.macstransit.RouteMatch.Route:A-">getEnabledRoutesForStop</a></span>(<a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.routematch">Route</a>[]&nbsp;allRoutesForStop)</code>
 <div class="block">Returns an array of routes that are enabled from all the routes in the shared stop.</div>
 </td>
 </tr>
@@ -195,7 +195,7 @@ implements com.google.android.gms.maps.GoogleMap.OnCircleClickListener</pre>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>static <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../fnsb/macstransit/Activities/ActivityListeners/StopClicked.html#postStopTimes-fnsb.macstransit.RouteMatch.MarkedObject-org.json.JSONObject-android.content.Context-">postStopTimes</a></span>(<a href="../../../../fnsb/macstransit/RouteMatch/MarkedObject.html" title="class in fnsb.macstransit.RouteMatch">MarkedObject</a>&nbsp;stop,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../fnsb/macstransit/Activities/ActivityListeners/StopClicked.html#postStopTimes-fnsb.macstransit.RouteMatch.MarkedObject-org.json.JSONObject-android.content.Context-">postStopTimes</a></span>(<a href="../../../../fnsb/macstransit/RouteMatch/MarkedObject.html" title="class in fnsb.macstransit.routematch">MarkedObject</a>&nbsp;stop,
              <a href="https://developer.android.com/reference/org/json/JSONObject.html?is-external=true" title="class or interface in org.json">JSONObject</a>&nbsp;json,
              <a href="https://developer.android.com/reference/android/content/Context.html?is-external=true" title="class or interface in android.content">Context</a>&nbsp;context)</code>
 <div class="block">Posts the time string for the selected stop,
@@ -246,13 +246,13 @@ implements com.google.android.gms.maps.GoogleMap.OnCircleClickListener</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="postStopTimes-fnsb.macstransit.RouteMatch.MarkedObject-org.json.JSONObject-android.content.Context-">
+<a name="postStopTimes-fnsb.macstransit.routematch.MarkedObject-org.json.JSONObject-android.content.Context-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>postStopTimes</h4>
-<pre>public static&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;postStopTimes(<a href="../../../../fnsb/macstransit/RouteMatch/MarkedObject.html" title="class in fnsb.macstransit.RouteMatch">MarkedObject</a>&nbsp;stop,
+<pre>public static&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang">String</a>&nbsp;postStopTimes(<a href="../../../../fnsb/macstransit/RouteMatch/MarkedObject.html" title="class in fnsb.macstransit.routematch">MarkedObject</a>&nbsp;stop,
                                    <a href="https://developer.android.com/reference/org/json/JSONObject.html?is-external=true" title="class or interface in org.json">JSONObject</a>&nbsp;json,
                                    <a href="https://developer.android.com/reference/android/content/Context.html?is-external=true" title="class or interface in android.content">Context</a>&nbsp;context)</pre>
 <div class="block">Posts the time string for the selected stop,
@@ -269,15 +269,15 @@ implements com.google.android.gms.maps.GoogleMap.OnCircleClickListener</pre>
 </dl>
 </li>
 </ul>
-<a name="getEnabledRoutesForStop-fnsb.macstransit.RouteMatch.Route:A-">
+<a name="getEnabledRoutesForStop-fnsb.macstransit.routematch.Route:A-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getEnabledRoutesForStop</h4>
 <pre>@NonNull
-public static&nbsp;<a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.RouteMatch">Route</a>[]&nbsp;getEnabledRoutesForStop(@NonNull
-                                                       <a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.RouteMatch">Route</a>[]&nbsp;allRoutesForStop)</pre>
+public static&nbsp;<a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.routematch">Route</a>[]&nbsp;getEnabledRoutesForStop(@NonNull
+                                                       <a href="../../../../fnsb/macstransit/RouteMatch/Route.html" title="class in fnsb.macstransit.routematch">Route</a>[]&nbsp;allRoutesForStop)</pre>
 <div class="block">Returns an array of routes that are enabled from all the routes in the shared stop.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>

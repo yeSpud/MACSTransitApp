@@ -5,7 +5,7 @@ import android.util.Pair
 import com.google.android.gms.maps.model.LatLng
 import fnsb.macstransit.Activities.MapsActivity
 import fnsb.macstransit.Activities.SplashActivity
-import fnsb.macstransit.RouteMatch.Route
+import fnsb.macstransit.routematch.Route
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
@@ -22,12 +22,12 @@ import java.util.*
 class MapBusRoutes {
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	private val pairs: MutableCollection<Pair<Route, SplashListener>> = ArrayList() // TODO Don't use arrayList
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 *
 	 * @param pair TODO
 	 */
@@ -42,7 +42,7 @@ class MapBusRoutes {
 	 *
 	 * @param activity TODO
 	 */
-	fun getBusRoutes(activity: SplashActivity) { // TODO Comments
+	fun getBusRoutes(activity: SplashActivity) { // Comments
 
 		// Verify that allRoutes is not null. If it is then log and return early.
 		if (MapsActivity.allRoutes == null) {
@@ -72,7 +72,7 @@ class MapBusRoutes {
 	internal inner class BusRoutesCallback(private val listener: SplashListener, private val route: Route,
 		private val activity: SplashActivity) : com.android.volley.Response.Listener<JSONObject> {
 
-		override fun onResponse(response: JSONObject) { // TODO Comments
+		override fun onResponse(response: JSONObject) { // Comments
 
 			if (MapsActivity.allRoutes == null) {
 				return  // TODO Log
@@ -83,7 +83,7 @@ class MapBusRoutes {
 			try {
 
 				// Get the land route data array from the land route object.
-				val landRouteData: JSONArray = fnsb.macstransit.RouteMatch.RouteMatch.parseData(response)
+				val landRouteData: JSONArray = fnsb.macstransit.routematch.RouteMatch.parseData(response)
 
 				// Get the land route points object from the land route data array.
 				val landRoutePoints: JSONObject = landRouteData.getJSONObject(0)
@@ -115,7 +115,7 @@ class MapBusRoutes {
 				}
 
 				// Set the polyline coordinates array to the finished LatLng array.
-				this.route.polyLineCoordinates = coordinates
+				this.route.polyLineCoordinates = coordinates.requireNoNulls()
 				this.listener.splashRunnableFinished()
 			} catch (exception: org.json.JSONException) {
 				Log.e("getBusRoutes", "Error parsing json", exception)

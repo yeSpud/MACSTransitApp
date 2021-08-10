@@ -15,9 +15,9 @@ import fnsb.macstransit.Activities.splashscreenrunnables.MapBusStops;
 import fnsb.macstransit.Activities.splashscreenrunnables.MasterScheduleCallback;
 import fnsb.macstransit.Activities.splashscreenrunnables.SplashListener;
 import fnsb.macstransit.R;
-import fnsb.macstransit.RouteMatch.Route;
-import fnsb.macstransit.RouteMatch.SharedStop;
-import fnsb.macstransit.RouteMatch.Stop;
+import fnsb.macstransit.routematch.Route;
+import fnsb.macstransit.routematch.SharedStop;
+import fnsb.macstransit.routematch.Stop;
 
 /**
  * Created by Spud on 2019-11-04 for the project: MACS Transit.
@@ -30,42 +30,42 @@ import fnsb.macstransit.RouteMatch.Stop;
 public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	public static final short DOWNLOAD_MASTER_SCHEDULE_PROGRESS = 1;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	public static final short PARSE_MASTER_SCHEDULE = 8;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	public static final short DOWNLOAD_BUS_ROUTES = 8;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	public static final short LOAD_BUS_ROUTES = 8;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	public static final short DOWNLOAD_BUS_STOPS = 8;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	private static final short LOAD_BUS_STOPS = 8;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	private static final short LOAD_SHARED_STOPS = 8;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	private static final short VALIDATE_STOPS = 1;
 
@@ -79,7 +79,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * <li>Map the bus stops (1)</li>
 	 * <li>Map the shared stops (8)</li>
 	 * <li>Validate the stops (8)</li>
-	 * </ul> FIXME Documentation
+	 * </ul> Documentation
 	 */
 	private static final short MAX_PROGRESS = DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE
 			+ DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS
@@ -108,12 +108,12 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	private android.widget.Button button;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	private int mapBusProgress = 0;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	private int mapStopProgress = 0;
 
@@ -194,15 +194,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 		// Create the RouteMatch object.
 		this.setMessage(R.string.routematch_creation);
-		try {
-			MapsActivity.routeMatch = new fnsb.macstransit.RouteMatch.
-					RouteMatch("https://fnsb.routematch.com/feed/", this.getApplicationContext());
-		} catch (java.net.MalformedURLException e) {
-			Log.e("initializeApp", "Bad URL provided", e);
-			this.setMessage(R.string.routematch_creation_fail);
-			this.progressBar.setVisibility(View.INVISIBLE);
-			return;
-		}
+		MapsActivity.routeMatch = new fnsb.macstransit.routematch.
+				RouteMatch("https://fnsb.routematch.com/feed/", this);
 
 		// Get the master schedule from the RouteMatch server
 		this.setProgressBar(-1);
@@ -211,38 +204,9 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 					Log.w("initializeApp", "MasterSchedule callback error", error);
 					this.setMessage(R.string.routematch_timeout);
 					this.showRetryButton();
-				}, this);
+				});
 	}
 
-	/**
-	 * Called as part of the activity lifecycle when the user no longer actively interacts with the activity,
-	 * but it is still visible on screen. The counterpart to onResume().
-	 * <p>
-	 * When activity B is launched in front of activity A, this callback will be invoked on A.
-	 * B will not be created until A's onPause() returns, so be sure to not do anything lengthy here.
-	 * <p>
-	 * This callback is mostly used for saving any persistent state the activity is editing,
-	 * to present a "edit in place" model to the user and making sure nothing is lost if there are
-	 * not enough resources to start the new activity without first killing this one.
-	 * This is also a good place to stop things that consume a noticeable amount of CPU in order to
-	 * make the switch to the next activity as fast as possible.
-	 * <p>
-	 * On platform versions prior to Build.VERSION_CODES.Q this is also a good place to try to close
-	 * exclusive-access devices or to release access to singleton resources.
-	 * Starting with Build.VERSION_CODES.Q there can be multiple resumed activities in the system
-	 * at the same time, so onTopResumedActivityChanged(boolean) should be used for that purpose instead.
-	 * <p>
-	 * If an activity is launched on top,
-	 * after receiving this call you will usually receive a following call to onStop()
-	 * (after the next activity has been resumed and displayed above).
-	 * However in some cases there will be a direct call back to onResume()
-	 * without going through the stopped state.
-	 * An activity can also rest in paused state in some cases when in multi-window mode,
-	 * still visible to user.
-	 * <p>
-	 * Derived classes must call through to the super class's implementation of this method.
-	 * If they do not, an exception will be thrown.
-	 */
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -281,7 +245,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	}
 
 	/**
-	 * TODO Documentation & comments
+	 * Documentation
+	 * Comments
 	 */
 	public void downloadBusRoutes() {
 
@@ -320,7 +285,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * Loads the bus stops for every route. At this point shared stops are not implemented,
 	 * so stops for separate routes will overlap.
 	 * <p>
-	 * TODO Documentation & comments
+	 * Documentation
+	 * Comments
 	 */
 	private void downloadBusStops() {
 
@@ -448,30 +414,29 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			Route route = MapsActivity.allRoutes[routeIndex];
 
 			// If there are no stops to iterate over just continue with the next iteration.
-			if (route.stops == null) {
+			Stop[] stops = route.getStops();
+			if (stops.length == 0) {
 				continue;
 			}
 
 			// Iterate through all the stops in our first comparison route.
-			for (Stop stop : route.stops) {
+			for (Stop stop : stops) {
 
 				// Make sure our stop is not already in our shared stop.
 				SharedStop[] sharedStops = route.getSharedStops();
-				if (sharedStops != null) {
-					boolean found = false;
+				boolean found = false;
 
-					// Iterate though the shared stops in the route.
-					for (SharedStop sharedStop : sharedStops) {
+				// Iterate though the shared stops in the route.
+				for (SharedStop sharedStop : sharedStops) {
 
-						// If the route was found, continue.
-						if (SharedStop.areEqual(sharedStop, stop)) {
-							found = true;
-							break;
-						}
+					// If the route was found, continue.
+					if (sharedStop.equals(stop)) {
+						found = true;
+						break;
 					}
-					if (found) {
-						continue;
-					}
+				}
+				if (found) {
+					continue;
 				}
 
 				// Get an array of shared routes.
@@ -479,8 +444,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 				// If the shared routes array has more than one entry, create a new shared stop object.
 				if (sharedRoutes.length > 1) {
-					SharedStop sharedStop = new SharedStop(stop.circleOptions.getCenter(), stop.name,
-							sharedRoutes);
+					SharedStop sharedStop = new SharedStop(stop.getCircleOptions().getCenter(),
+							stop.getName(), sharedRoutes);
 
 					// Iterate though all the routes in the shared route, and add our newly created shared stop.
 					for (Route sharedRoute : sharedRoutes) {
@@ -520,12 +485,12 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		for (Route route : MapsActivity.allRoutes) {
 
 			// Get the final stop count for each route by removing stops that are taken care of by the shared route object.
-			final Stop[] finalStops = SharedStop.removeStopsWithSharedStops(route.stops, route.getSharedStops());
+			final Stop[] finalStops = SharedStop.removeStopsWithSharedStops(route.getStops(), route.getSharedStops());
 			Log.d("validateStops", String.format("Final stop count: %d", finalStops.length));
 
 			// Set the stops array for the route to the final determined stop array.
 			// This array no longer contains the stops that are shared stops.
-			route.stops = finalStops;
+			route.setStops(finalStops);
 
 			// Update the progress.
 			currentProgress += step;
