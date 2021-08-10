@@ -129,8 +129,7 @@ class Stop(stopName: String, latitude: Double, longitude: Double, val route: Rou
 			}
 
 			return this.circleOptions.center!!.latitude == latlng.latitude &&
-					this.circleOptions.center!!.longitude == latlng.longitude &&
-					this.name.equals(other.name)
+			       this.circleOptions.center!!.longitude == latlng.longitude && this.name == other.name
 
 		} else {
 			return false

@@ -3,8 +3,6 @@ package fnsb.macstransit
 import fnsb.macstransit.Helper.OLD_SETTINGS_TXT
 import fnsb.macstransit.settings.V1
 import org.junit.Assert
-import org.junit.Assert.assertArrayEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 import java.io.File
 
@@ -29,7 +27,7 @@ class V1Test {
 	}
 
 	@Test
-	fun testRead() { // FIXME
+	fun testRead() {
 
 		// First, verify the old settings file exists
 		println(OLD_SETTINGS_TXT.absolutePath)
@@ -39,11 +37,11 @@ class V1Test {
 		// Now test the read function
 		val out: Collection<String> = this.settings.readFromSettingsFile(OLD_SETTINGS_TXT)
 		Assert.assertNotNull(out)
-		assertArrayEquals(arrayOf("Enable Traffic View:true", "Enable Dark Theme:false",
-				"Show Polylines:false", "Show VR Options:false"), out.toTypedArray());
+		Assert.assertArrayEquals(arrayOf("Enable Traffic View:true", "Enable Dark Theme:false",
+				"Show Polylines:false", "Show VR Options:false"), out.toTypedArray())
 
 		// Test a bad file
-		assertNull(settings.readFromSettingsFile(File("")));
+		Assert.assertEquals(emptyList<String>(), settings.readFromSettingsFile(File("")));
 	}
 
 	@Test

@@ -240,7 +240,7 @@ class SharedStop(val location: LatLng, stopName: String, val routes: Array<Route
 				for (stop2 in route2Stops) {
 
 					// If the stops match, add the route to the potential routes array.
-					if (stop === stop2) { // TODO only == ?
+					if (stop == stop2) {
 						potentialRoutes[potentialRouteIndex] = route2
 						potentialRouteIndex++
 					}

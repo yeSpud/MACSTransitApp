@@ -191,7 +191,7 @@ class StopTest {
 				println("${route.routeName} route stops: ${route.stops.size}\n")
 				val sharedStops: Array<SharedStop> = route.sharedStops
 				println("${route.routeName} route shared stops: ${sharedStops.size}\n")
-				Assert.assertEquals(sharedStopsCount[i], sharedStops.size.toLong())
+				Assert.assertEquals(sharedStopsCount[i], sharedStops.size)
 			}
 
 			// Reset all routes.
@@ -208,7 +208,7 @@ class StopTest {
 			val finalStopCount = intArrayOf(66 - 14, 24 - 3, 104 - 10, 39 - 10, 58 - 12, 56 - 17)
 			for (i in 0 until loadedFiles) {
 				val stops: Array<Stop> = finalStops[i]
-				Assert.assertEquals(finalStopCount[i], stops.size.toLong())
+				Assert.assertEquals(finalStopCount[i], stops.size)
 			}
 		} catch (e: JSONException) {
 
