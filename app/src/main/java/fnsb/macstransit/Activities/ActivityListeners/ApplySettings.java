@@ -39,7 +39,7 @@ public class ApplySettings implements View.OnClickListener {
 	}
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	private final fnsb.macstransit.settings.BaseSettings<JSONObject> settings = fnsb.macstransit.
 			settings.CurrentSettings.INSTANCE.getSettingsImplementation();

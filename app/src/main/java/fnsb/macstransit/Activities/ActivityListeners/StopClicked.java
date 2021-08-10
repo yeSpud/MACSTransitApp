@@ -7,6 +7,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
 
+import com.google.android.gms.maps.GoogleMap;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,12 +42,20 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 	private final MapsActivity activity;
 
 	/**
+	 * Documentation
+	 */
+	private final GoogleMap map;
+
+	/**
 	 * Constructor the the StopClicked listener.
 	 *
 	 * @param activity The activity that this listener corresponds to.
+	 * @param map TODO
 	 */
-	public StopClicked(MapsActivity activity) {
+	@org.jetbrains.annotations.Contract(pure = true)
+	public StopClicked(MapsActivity activity, GoogleMap map) {
 		this.activity = activity;
+		this.map = map;
 	}
 
 	/**
@@ -362,7 +372,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 		}
 
 		// Make sure the map is not null either.
-		if (MapsActivity.map == null) {
+		if (this.map == null) {
 			Log.w("onCircleClick", "Map is not ready!");
 			return;
 		}
@@ -396,7 +406,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			}
 
 			// Create a new marker for our marked object using the newly determined location and color.
-			markedObject.addMarker(MapsActivity.map, location, color);
+			markedObject.addMarker(this.map, location, color);
 		}
 
 		if (markedObject.getMarker() != null) {
@@ -405,7 +415,7 @@ public class StopClicked implements com.google.android.gms.maps.GoogleMap.OnCirc
 			this.showMarker(markedObject.getMarker());
 		} else {
 
-			// TODO Comments
+			// Comments
 			Toast.makeText(this.activity, markedObject.getName(), Toast.LENGTH_LONG).show();
 		}
 	}

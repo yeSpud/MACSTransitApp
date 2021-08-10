@@ -50,7 +50,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * @param routeName The route name. This cannot be null.
 	 * @return Whether the route name was found in the favorited routes.
 	 */
-	private static boolean isFavorited(@NonNull Iterable<Route> routes, @NonNull String routeName) {
+	private static boolean isFavorited(@NonNull Route[] routes, @NonNull String routeName) {
 
 		// Iterate though all the routes provided.
 		for (Route savedRoute : routes) {
@@ -151,7 +151,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 	 *
 	 * @param favoritedRoutes The array of favorited routes to enable.
 	 */
-	private void addToFavoritesContainer(Iterable<Route> favoritedRoutes) {
+	private void addToFavoritesContainer(Route[] favoritedRoutes) {
 
 		// Make sure there are routes to iterate though.
 		if (MapsActivity.allRoutes == null) {

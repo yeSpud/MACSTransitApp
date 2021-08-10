@@ -17,17 +17,17 @@ import org.json.JSONObject
 class Bus : MarkedObject {
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	val route: Route
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	val latitude: Double
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	val longitude: Double
 
@@ -52,19 +52,17 @@ class Bus : MarkedObject {
 	var speed = 0
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	constructor(vehicleId: String, route: Route, latitude: Double, longitude: Double): super("Bus $vehicleId") {
-
 		this.route = route
 		this.latitude = latitude
 		this.longitude = longitude
 		this.color = route.color
-
 	}
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	@Throws(JSONException::class, RouteException::class)
 	constructor(jsonObject: JSONObject) : super("Bus ${jsonObject.getString("vehicleId")}") {
@@ -90,7 +88,7 @@ class Bus : MarkedObject {
 			}
 		}
 
-		// TODO Comments
+		// Comments
 		if (route == null) {
 			throw RouteException("Bus route not found in all routes")
 		}
@@ -125,7 +123,7 @@ class Bus : MarkedObject {
 	fun isBusNotInArray(buses: Array<Bus>): Boolean {
 
 		// Iterate though each bus.
-		for (bus in buses) {
+		for (bus: Bus in buses) {
 
 			// Check of the bus we are searching for matches our current bus.
 			Log.v("isBusNotInArray", "Comparing ${this.name} to ${bus.name}")
@@ -153,45 +151,23 @@ class Bus : MarkedObject {
 		 *
 		 * @param vehiclesJson The json array containing the bus information.
 		 * @return An array of buses created from the information in the json array.
-		 * @throws Route.RouteException Thrown if there are no routes to track
+		 * @throws JSONException Thrown if there are no routes to track FIXME
 		 * (either MapsActivity.allRoutes is null or is 0 in length).
 		 */
 		@JvmStatic
+		@Throws(JSONException::class)
 		fun getBuses(vehiclesJson: org.json.JSONArray): Array<Bus> {
 
-			// Create an array to store all the buses that are in the json array.
-			val buses = arrayOfNulls<Bus>(vehiclesJson.length())
-
-			// Loop through the json array and get the json object corresponding to the bus.
-			for (i in 0 until vehiclesJson.length()) {
+			// Return the bus array.
+			return Array(vehiclesJson.length()) { // Comments
 
 				// Try to get the json object corresponding to the bus. If unsuccessful then log it,
 				// and continue the loop without executing any of the lower code.
-				val busObject: JSONObject = try {
-					vehiclesJson.getJSONObject(i)
-				} catch (e: JSONException) {
-					Log.e("getBuses", "Could not get individual bus object from loop", e)
-					continue
-				}
+				val busObject: JSONObject = vehiclesJson.getJSONObject(it)
 
 				// Try to create a new bus object using the content in the json object.
-				val bus: Bus = try {
-					Bus(busObject)
-				} catch (e: JSONException) {
-					Log.e("getBuses", "Could not create new bus object from json", e)
-					continue
-				} catch (e: RouteException) {
-					Log.e("getBuses", "Could not create new bus object from json", e)
-					continue
-				}
-
-				// Add the bus to the buses array.
-				Log.d("getBuses", "Adding bus ${bus.name} belonging to the ${bus.route.routeName} route to the bus array")
-				buses[i] = bus
+				Bus(busObject)
 			}
-
-			// Return the bus array.
-			return buses.requireNoNulls()
 		}
 
 		/**
@@ -275,7 +251,8 @@ class Bus : MarkedObject {
 		 */
 		@JvmStatic
 		@UiThread
-		fun addNewBuses(oldBuses: Array<Bus>, newBuses: Array<Bus>): Array<Bus> {
+		fun addNewBuses(oldBuses: Array<Bus>, newBuses: Array<Bus>,
+		                map: com.google.android.gms.maps.GoogleMap): Array<Bus> {
 
 			// Create an array with the maximum size of the size of our new buses.
 			// We will resize the array later,
@@ -292,22 +269,15 @@ class Bus : MarkedObject {
 				if (newBus.isBusNotInArray(oldBuses)) {
 					Log.d("addNewBuses", "Adding new bus to map: ${newBus.name}")
 
-					// Make sure the map is not null before creating the new bus marker.
-					if (MapsActivity.map != null) {
+					// Create the bus marker.
+					newBus.addMarker(map, com.google.android.gms.maps.model.LatLng(newBus.latitude,
+					                                                               newBus.longitude), newBus.color)
+					if (newBus.marker != null) {
 
-						// Create the bus marker.
-						newBus.addMarker(MapsActivity.map!!,
-							com.google.android.gms.maps.model.LatLng(newBus.latitude, newBus.longitude),
-							newBus.color)
-						if (newBus.marker != null) {
-
-							// Determine whether or not to show the bus marker.
-							newBus.marker!!.isVisible = newBus.route.enabled
-						} else {
-							Log.w("addNewBus", "Unable to add bus marker!")
-						}
+						// Determine whether or not to show the bus marker.
+						newBus.marker!!.isVisible = newBus.route.enabled
 					} else {
-						Log.w("addNewBus", "Map is not yet ready!")
+						Log.w("addNewBus", "Unable to add bus marker!")
 					}
 
 					// Add the bus to the bus array.

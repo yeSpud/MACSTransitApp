@@ -82,20 +82,17 @@ class Route(val routeName: String, color: Int) {
 	/**
 	 * Creates and sets the polyline for the route.
 	 * If there are no polyline coordinates for the route then this simply returns early and does not create the polyline.
+	 *
+	 * @param map TODO
 	 */
 	@UiThread
-	fun createPolyline() {
+	fun createPolyline(map: com.google.android.gms.maps.GoogleMap) {
 		Log.v("createPolyline", "Creating route polyline")
 
 		// Make sure the polyline coordinates is not null or 0. If it is then return early.
 		if (this.polyLineCoordinates.isEmpty()) {
 			Log.w("createPolyline", "There are no polyline coordinates to work with!")
 			return
-		}
-
-		// Make sure the map isn't null.
-		if (MapsActivity.map == null) {
-			Log.w("createPolyline", "Map is not yet ready!")
 		}
 
 		// Create new polyline options from the array of polyline coordinates stored for the route.
@@ -111,7 +108,7 @@ class Route(val routeName: String, color: Int) {
 		options.visible(false)
 
 		// Add the polyline to the map, and set it for the object.
-		polyline = MapsActivity.map!!.addPolyline(options)
+		this.polyline = map.addPolyline(options)
 	}
 
 	/**
@@ -121,8 +118,6 @@ class Route(val routeName: String, color: Int) {
 	 */
 	fun addSharedStop(sharedStop: SharedStop) {
 
-		// Create a new shared stop array that will contain our current shared stop array + the new shared stop.
-		val newSharedStops: Array<SharedStop?>
 		if (this.sharedStops.isEmpty()) {
 
 			// If there was no shared stop array before then simply set the array to just contain our shared stop.
@@ -130,11 +125,12 @@ class Route(val routeName: String, color: Int) {
 			return
 		} else {
 
+			// Create a new shared stop array that will contain our current shared stop array + the new shared stop.
 			// Since our current array of shared stops has content
 			// simply insert our shared stop to the array and copy the rest using System.arraycopy.
-			newSharedStops = arrayOfNulls(this.sharedStops.size + 1)
+			val newSharedStops: Array<SharedStop?> = arrayOfNulls(this.sharedStops.size + 1)
 			newSharedStops[0] = sharedStop
-			System.arraycopy(sharedStops, 0, newSharedStops, 1, sharedStops.size)
+			System.arraycopy(this.sharedStops, 0, newSharedStops, 1, sharedStops.size)
 
 			// Set the routes shared stop array to the newly created shared stop array.
 			this.sharedStops = newSharedStops.requireNoNulls()
@@ -216,13 +212,12 @@ class Route(val routeName: String, color: Int) {
 		 * Iterates though all the routes in MapsActivity.allRoutes
 		 * and enables those that have been favorited (as determined by being in the favoritedRoutes array).
 		 *
-		 *
 		 * This should only be run once.
 		 *
 		 * @param favoritedRoutes The selected routes to be enabled from MapsActivity.allRoutes.
 		 */
 		@JvmStatic
-		fun enableFavoriteRoutes(favoritedRoutes: Iterable<Route>) { // TODO Convert to Array
+		fun enableFavoriteRoutes(favoritedRoutes: Array<Route>) {
 
 			// Make sure there are routes to iterate over.
 			if (MapsActivity.allRoutes == null) {

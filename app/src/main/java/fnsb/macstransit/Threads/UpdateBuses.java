@@ -2,6 +2,8 @@ package fnsb.macstransit.Threads;
 
 import android.util.Log;
 
+import com.google.android.gms.maps.GoogleMap;
+
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.routematch.Bus;
 
@@ -23,6 +25,20 @@ public class UpdateBuses implements Runnable {
 	public Bus[] potentialNewBuses;
 
 	/**
+	 * Documentation
+	 */
+	private final GoogleMap map;
+
+	/**
+	 * Documentation
+	 * @param map TODO
+	 */
+	@org.jetbrains.annotations.Contract(pure = true)
+	UpdateBuses(GoogleMap map) {
+		this.map = map;
+	}
+
+	/**
 	 * The runnable method that updates the buses on the map. This must be run on the UI thread.
 	 * Be sure to update potentialNewBuses before calling this method,
 	 * or else it will iterate though the old bus array - thus not changing anything.
@@ -34,7 +50,7 @@ public class UpdateBuses implements Runnable {
 		// Get the array of new buses.
 		// These buses are buses that were not previously on the map until now.
 		Log.d("UpdateBuses", "Adding new buses to map");
-		Bus[] newBuses = Bus.addNewBuses(MapsActivity.buses, this.potentialNewBuses);
+		Bus[] newBuses = Bus.addNewBuses(MapsActivity.buses, this.potentialNewBuses, this.map);
 
 		// Update the current position of our current buses.
 		// This also removes old buses from the array, but they still have markers on the map.

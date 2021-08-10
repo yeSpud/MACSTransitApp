@@ -21,7 +21,7 @@ class RouteTest {
 
 		// Constructor test!
 		// Basically make sure it errors when its supposed to.
-		Assert.assertThrows(java.io.UnsupportedEncodingException::class.java) { Route("f o p") }
+		Assert.assertThrows(RouteException::class.java) { Route("f o p") }
 		Assert.assertThrows(RouteException::class.java) { Route("multiline\nroute") }
 		Assert.assertThrows(RouteException::class.java) { Route("t a   b   s") }
 
@@ -55,7 +55,7 @@ class RouteTest {
 		val favoriteRoutes: Array<Route> = arrayOf(Route("Foo"))
 
 		// Enable the favoriteRoutes.
-		Route.enableFavoriteRoutes(listOf(*favoriteRoutes))
+		Route.enableFavoriteRoutes(favoriteRoutes)
 
 		// Check for expected values.
 		Assert.assertTrue(MapsActivity.allRoutes!![0].enabled)

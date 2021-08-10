@@ -30,6 +30,8 @@ public class StopDeselected implements com.google.android.gms.maps.GoogleMap.OnI
 		if (potentialStop instanceof fnsb.macstransit.routematch.Stop ||
 				potentialStop instanceof fnsb.macstransit.routematch.SharedStop) {
 
+			// TODO Cancel the network request
+
 			// Just hide the marker, since we don't want to destroy it just yet.
 			marker.setVisible(false);
 		} else {

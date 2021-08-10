@@ -16,7 +16,7 @@ import org.json.JSONObject
  */
 class MasterScheduleCallback (private val activity: SplashActivity) : com.android.volley.Response.Listener<JSONObject> {
 
-	override fun onResponse(response: JSONObject) { // TODO Comments
+	override fun onResponse(response: JSONObject) { // Comments
 
 		// Set the progress and message.
 		this.activity.setProgressBar(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble())

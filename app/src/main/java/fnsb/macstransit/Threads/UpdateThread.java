@@ -3,6 +3,10 @@ package fnsb.macstransit.Threads;
 import android.os.Handler;
 import android.util.Log;
 
+import com.google.android.gms.maps.GoogleMap;
+
+import org.json.JSONException;
+
 import fnsb.macstransit.Activities.MapsActivity;
 import fnsb.macstransit.routematch.Bus;
 
@@ -44,7 +48,7 @@ public class UpdateThread {
 	/**
 	 * The runner that updates the buses on the map. This must be run on the UI Thread.
 	 */
-	private final UpdateBuses updateBuses = new UpdateBuses();
+	private final UpdateBuses updateBuses;
 
 	/**
 	 * The current state of the Update Thread. Default state is stopped.
@@ -67,9 +71,10 @@ public class UpdateThread {
 	 * Lazy constructor for the UpdateThread.
 	 *
 	 * @param handler Handler used to update buses on the UI Thread.
+	 * @param map TODO
 	 */
-	public UpdateThread(Handler handler) {
-		this(handler, UpdateThread.DEFAULT_FREQUENCY);
+	public UpdateThread(Handler handler, GoogleMap map) {
+		this(handler, UpdateThread.DEFAULT_FREQUENCY, map);
 	}
 
 	/**
@@ -78,10 +83,12 @@ public class UpdateThread {
 	 * @param handler         Handler used to update buses on the UI Thread.
 	 * @param updateFrequency How frequently (in milliseconds) the thread should loop.
 	 *                        If this is omitted, it will default to 4000 milliseconds (4 seconds).
+	 * @param map TODO
 	 */
-	public UpdateThread(Handler handler, long updateFrequency) {
+	public UpdateThread(Handler handler, long updateFrequency, GoogleMap map) {
 		this.UIHandler = handler;
 		this.updateFrequency = updateFrequency;
+		this.updateBuses = new UpdateBuses(map);
 	}
 
 	/**
@@ -135,7 +142,7 @@ public class UpdateThread {
 
 								// Notify the developer that we are going to pause the thread
 								// (as to reuse it when resuming later).
-								Log.i("UpdateThread", "Waiting for thread to be unpaused...");
+								Log.i("UpdateThread", "Waiting for thread to be resumed...");
 
 								// Wait for notify to be called from the MapsActivity, and lock the thread.
 								this.isLockedForever = true;
@@ -197,7 +204,12 @@ public class UpdateThread {
 
 			// Get the array of buses. This array will include current and new buses.
 			Bus[] buses;
-			buses = Bus.getBuses(vehiclesJson);
+			try {
+				buses = Bus.getBuses(vehiclesJson);
+			} catch (JSONException e) {
+				Log.e("fetchBuses", "Could not parse bus json", e);
+				return;
+			}
 
 			// Update the bus positions on the map on the UI thread.
 			// This must be executed on the UI thread or else the app will crash.

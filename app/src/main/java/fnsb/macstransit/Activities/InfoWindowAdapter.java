@@ -35,6 +35,7 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 	 *
 	 * @param activity The maps activity that this info window adapter corresponds to.
 	 */
+	@org.jetbrains.annotations.Contract(pure = true)
 	public InfoWindowAdapter(MapsActivity activity) {
 		this.activity = activity;
 	}

@@ -22,7 +22,7 @@ open class MarkedObject(val name: String) {
 		private set
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	@UiThread
 	fun updateLocation(latitude: Double, longitude: Double) {

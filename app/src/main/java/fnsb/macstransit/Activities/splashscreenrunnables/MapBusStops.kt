@@ -19,12 +19,12 @@ import java.util.*
 class MapBusStops {
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	private val pairs: MutableCollection<Pair<Route, SplashListener>> = ArrayList() // TODO Don't use arrayList
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 * @param pair TODO
 	 */
 	fun addListener(pair: Pair<Route, SplashListener>) {
@@ -32,7 +32,8 @@ class MapBusStops {
 	}
 
 	/**
-	 * TODO Documentation & comments
+	 * Documentation
+	 * Comments
 	 * @param activity TODO
 	 */
 	fun getBusStops(activity: SplashActivity) {

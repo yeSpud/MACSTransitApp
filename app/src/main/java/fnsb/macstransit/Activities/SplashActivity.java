@@ -30,42 +30,42 @@ import fnsb.macstransit.routematch.Stop;
 public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	public static final short DOWNLOAD_MASTER_SCHEDULE_PROGRESS = 1;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	public static final short PARSE_MASTER_SCHEDULE = 8;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	public static final short DOWNLOAD_BUS_ROUTES = 8;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	public static final short LOAD_BUS_ROUTES = 8;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	public static final short DOWNLOAD_BUS_STOPS = 8;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	private static final short LOAD_BUS_STOPS = 8;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	private static final short LOAD_SHARED_STOPS = 8;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	private static final short VALIDATE_STOPS = 1;
 
@@ -79,7 +79,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * <li>Map the bus stops (1)</li>
 	 * <li>Map the shared stops (8)</li>
 	 * <li>Validate the stops (8)</li>
-	 * </ul> FIXME Documentation
+	 * </ul> Documentation
 	 */
 	private static final short MAX_PROGRESS = DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE
 			+ DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS
@@ -108,12 +108,12 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	private android.widget.Button button;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	private int mapBusProgress = 0;
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	private int mapStopProgress = 0;
 
@@ -245,7 +245,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	}
 
 	/**
-	 * TODO Documentation & comments
+	 * Documentation
+	 * Comments
 	 */
 	public void downloadBusRoutes() {
 
@@ -284,7 +285,8 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	 * Loads the bus stops for every route. At this point shared stops are not implemented,
 	 * so stops for separate routes will overlap.
 	 * <p>
-	 * TODO Documentation & comments
+	 * Documentation
+	 * Comments
 	 */
 	private void downloadBusStops() {
 

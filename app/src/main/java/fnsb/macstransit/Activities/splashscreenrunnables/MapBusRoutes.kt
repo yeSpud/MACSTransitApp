@@ -22,12 +22,12 @@ import java.util.*
 class MapBusRoutes {
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 */
 	private val pairs: MutableCollection<Pair<Route, SplashListener>> = ArrayList() // TODO Don't use arrayList
 
 	/**
-	 * TODO Documentation
+	 * Documentation
 	 *
 	 * @param pair TODO
 	 */
@@ -42,7 +42,7 @@ class MapBusRoutes {
 	 *
 	 * @param activity TODO
 	 */
-	fun getBusRoutes(activity: SplashActivity) { // TODO Comments
+	fun getBusRoutes(activity: SplashActivity) { // Comments
 
 		// Verify that allRoutes is not null. If it is then log and return early.
 		if (MapsActivity.allRoutes == null) {
@@ -72,7 +72,7 @@ class MapBusRoutes {
 	internal inner class BusRoutesCallback(private val listener: SplashListener, private val route: Route,
 		private val activity: SplashActivity) : com.android.volley.Response.Listener<JSONObject> {
 
-		override fun onResponse(response: JSONObject) { // TODO Comments
+		override fun onResponse(response: JSONObject) { // Comments
 
 			if (MapsActivity.allRoutes == null) {
 				return  // TODO Log
