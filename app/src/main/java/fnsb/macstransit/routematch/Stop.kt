@@ -181,7 +181,7 @@ class Stop(stopName: String, latitude: Double, longitude: Double, val route: Rou
 		 * @return The stop array created from the json array.
 		 */
 		@JvmStatic
-		fun generateStops(array: JSONArray, route: Route): Array<Stop?> { // TODO Test me with empty array
+		fun generateStops(array: JSONArray, route: Route): Array<Stop> { // TODO Test me with empty array
 
 			// Create an array of stops that will be filled using the information from the json array.
 			val count = array.length()
@@ -203,7 +203,7 @@ class Stop(stopName: String, latitude: Double, longitude: Double, val route: Rou
 			}
 
 			// Return the stop array.
-			return uncheckedStops
+			return uncheckedStops.requireNoNulls()
 		}
 
 		/**

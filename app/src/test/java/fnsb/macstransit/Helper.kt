@@ -50,29 +50,29 @@ internal object Helper {
 	 * @return
 	 */
 	@JvmStatic
-	fun getText(file: File): String? {
+	fun getText(file: File): String {
 
 		// Try to create a file input stream in order to read the data from the file.
 		val input: FileInputStream = try {
 			FileInputStream(file)
 		} catch (e: java.io.FileNotFoundException) {
 			Log.e("readFile", "No file found for path: " + file.absolutePath)
-			return null
+			return ""
 		}
 
 		// If the file input stream was created successfully, execute the following:
 		val stringBuilder = StringBuilder()
 		try {
-			java.io.BufferedReader(java.io.InputStreamReader(input, java.nio.charset.StandardCharsets.UTF_8))
+			java.io.BufferedReader(
+					java.io.InputStreamReader(input, java.nio.charset.StandardCharsets.UTF_8))
 					.use { reader ->
-				var line = reader.readLine()
-				while (line != null) {
-					stringBuilder.append(line).append("\n")
-					line = reader.readLine()
-				}
-			}
-		} catch (e: java.io.IOException) {
-			// Error occurred when opening raw file for reading.
+						var line = reader.readLine()
+						while (line != null) {
+							stringBuilder.append(line).append("\n")
+							line = reader.readLine()
+						}
+					}
+		} catch (e: java.io.IOException) {			// Error occurred when opening raw file for reading.
 			e.printStackTrace()
 		}
 		return stringBuilder.toString()

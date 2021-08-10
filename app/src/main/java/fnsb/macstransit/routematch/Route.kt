@@ -222,7 +222,7 @@ class Route(val routeName: String, color: Int) {
 		 * @param favoritedRoutes The selected routes to be enabled from MapsActivity.allRoutes.
 		 */
 		@JvmStatic
-		fun enableFavoriteRoutes(favoritedRoutes: Iterable<Route>) {
+		fun enableFavoriteRoutes(favoritedRoutes: Iterable<Route>) { // TODO Convert to Array
 
 			// Make sure there are routes to iterate over.
 			if (MapsActivity.allRoutes == null) {
