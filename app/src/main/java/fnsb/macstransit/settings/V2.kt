@@ -235,7 +235,9 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 			}
 
 			// Copy the verified potential routes to our confirmed routes array.
-			System.arraycopy(potentialRoutes, 0, this.routes, 0, verifiedCount)
+			val newRoutes: Array<Route?> = arrayOfNulls(verifiedCount)
+			System.arraycopy(potentialRoutes, 0, newRoutes, 0, verifiedCount)
+			this.routes = newRoutes.requireNoNulls()
 
 		} catch (e: JSONException) {
 			Log.e("parseSettings", "Cannot parse settings", e)

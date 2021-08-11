@@ -613,6 +613,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Comments
 		MapsActivity.updateThread.state = UpdateThread.STATE.RUN;
+		MapsActivity.manageUpdateThread();
 	}
 
 	/**
