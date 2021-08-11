@@ -1,4 +1,4 @@
-package fnsb.macstransit.Activities.activitylisteners
+package fnsb.macstransit.activities.activitylisteners
 
 import android.util.Log
 import android.view.View
@@ -16,7 +16,7 @@ import fnsb.macstransit.routematch.Route
  * @since Release 1.2.
  */
 @androidx.annotation.UiThread
-class ApplySettings(private val activity: fnsb.macstransit.Activities.SettingsActivity) :
+class ApplySettings(private val activity: fnsb.macstransit.activities.SettingsActivity) :
 		View.OnClickListener {
 
 	/**

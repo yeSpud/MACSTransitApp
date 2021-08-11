@@ -1,25 +1,24 @@
-package fnsb.macstransit.Activities.splashscreenrunnables
+package fnsb.macstransit.activities.splashscreenrunnables
 
 import android.util.Log
 import android.util.Pair
 import com.google.android.gms.maps.model.LatLng
-import fnsb.macstransit.Activities.MapsActivity
-import fnsb.macstransit.Activities.SplashActivity
+import fnsb.macstransit.activities.MapsActivity
+import fnsb.macstransit.activities.SplashActivity
 import fnsb.macstransit.routematch.Route
+import fnsb.macstransit.routematch.RouteMatch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
 
 /**
  * Created by Spud on 8/5/21 for the project: MACS Transit.
- *
- *
  * For the license, view the file titled LICENSE at the root of the project.
  *
  * @version 1.0.
  * @since Release 1.3.
  */
-class MapBusRoutes {
+class MapBusRoutes(private val routeMatch: RouteMatch) {
 
 	/**
 	 * Documentation
@@ -60,7 +59,7 @@ class MapBusRoutes {
 			val callback = BusRoutesCallback(pair.second, pair.first, activity)
 
 			// Get the land route from the routematch API using an asynchronous process.
-			MapsActivity.routeMatch.callLandRoute(pair.first, callback, { error: com.android.volley.VolleyError ->
+			this.routeMatch.callLandRoute(pair.first, callback, { error: com.android.volley.VolleyError ->
 				Log.w("getBusRoutes", "Unable to get polyline from routematch server", error)
 			}, this)
 			progress += step
@@ -83,7 +82,7 @@ class MapBusRoutes {
 			try {
 
 				// Get the land route data array from the land route object.
-				val landRouteData: JSONArray = fnsb.macstransit.routematch.RouteMatch.parseData(response)
+				val landRouteData: JSONArray = RouteMatch.parseData(response)
 
 				// Get the land route points object from the land route data array.
 				val landRoutePoints: JSONObject = landRouteData.getJSONObject(0)

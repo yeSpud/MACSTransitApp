@@ -1,6 +1,6 @@
 package fnsb.macstransit
 
-import fnsb.macstransit.Activities.MapsActivity
+import fnsb.macstransit.activities.MapsActivity
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.routematch.SharedStop

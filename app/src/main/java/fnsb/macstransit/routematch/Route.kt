@@ -6,7 +6,7 @@ import androidx.annotation.UiThread
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
-import fnsb.macstransit.Activities.MapsActivity
+import fnsb.macstransit.activities.MapsActivity
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException

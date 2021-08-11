@@ -6,7 +6,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
-import fnsb.macstransit.Activities.MapsActivity
+import fnsb.macstransit.activities.MapsActivity
 
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.

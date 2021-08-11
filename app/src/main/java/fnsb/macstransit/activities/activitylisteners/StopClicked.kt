@@ -1,11 +1,11 @@
-package fnsb.macstransit.Activities.activitylisteners
+package fnsb.macstransit.activities.activitylisteners
 
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
-import fnsb.macstransit.Activities.MapsActivity
+import fnsb.macstransit.activities.MapsActivity
 import fnsb.macstransit.R
 import fnsb.macstransit.routematch.MarkedObject
 import fnsb.macstransit.routematch.Route
@@ -104,7 +104,7 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 		marker.snippet = this.activity.getString(R.string.retrieving_stop_times)
 
 		// Retrieve the stop times.
-		MapsActivity.routeMatch.callDeparturesByStop(name, { result: JSONObject ->
+		this.activity.routeMatch.callDeparturesByStop(name, { result: JSONObject ->
 
 			// Update the snippet text of the marker's info window.
 			Log.v("showMarker", "Updating snippet")
@@ -177,12 +177,12 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 			}
 
 			// Load the times string into a popup window for when its clicked on.
-			fnsb.macstransit.Activities.PopupWindow.body = string
+			fnsb.macstransit.activities.PopupWindow.body = string
 
 			// Check to see how many new lines there are in the display.
 			// If there are more than the maximum lines allowed bu the info window adapter,
 			// display "Click to view all the arrival and departure times.".
-			return if (getNewlineOccurrence(string) <= fnsb.macstransit.Activities.InfoWindowAdapter.MAX_LINES) {
+			return if (getNewlineOccurrence(string) <= fnsb.macstransit.activities.InfoWindowAdapter.MAX_LINES) {
 				string
 			} else {
 				context.getString(

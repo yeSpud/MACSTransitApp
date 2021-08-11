@@ -1,4 +1,4 @@
-package fnsb.macstransit.Activities
+package fnsb.macstransit.activities
 
 import android.content.Intent
 import android.view.View

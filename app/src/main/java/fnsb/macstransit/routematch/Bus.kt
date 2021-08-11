@@ -2,7 +2,7 @@ package fnsb.macstransit.routematch
 
 import android.util.Log
 import androidx.annotation.UiThread
-import fnsb.macstransit.Activities.MapsActivity
+import fnsb.macstransit.activities.MapsActivity
 import fnsb.macstransit.routematch.Route.RouteException
 import org.json.JSONException
 import org.json.JSONObject

@@ -1,10 +1,11 @@
-package fnsb.macstransit.Activities.splashscreenrunnables
+package fnsb.macstransit.activities.splashscreenrunnables
 
 import android.util.Log
 import android.util.Pair
-import fnsb.macstransit.Activities.MapsActivity
-import fnsb.macstransit.Activities.SplashActivity
+import fnsb.macstransit.activities.MapsActivity
+import fnsb.macstransit.activities.SplashActivity
 import fnsb.macstransit.routematch.Route
+import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.routematch.Stop
 import org.json.JSONObject
 import java.util.*
@@ -16,7 +17,7 @@ import java.util.*
  * @version 1.0.
  * @since Release 1.3.
  */
-class MapBusStops {
+class MapBusStops(private val routeMatch: RouteMatch) {
 
 	/**
 	 * Documentation
@@ -52,7 +53,7 @@ class MapBusStops {
 
 		for (pair: Pair<Route, SplashListener> in pairs) {
 			val callback = BusStopCallback(pair.second, pair.first, activity)
-			MapsActivity.routeMatch.callAllStops(pair.first, callback, { error: com.android.volley.VolleyError ->
+			this.routeMatch.callAllStops(pair.first, callback, { error: com.android.volley.VolleyError ->
 				Log.w("loadStops", "Unable to get stops from RouteMatch server", error)
 			})
 			progress += step
@@ -70,7 +71,7 @@ class MapBusStops {
 			this.activity.setMessage(fnsb.macstransit.R.string.mapping_bus_stops)
 
 			// Get the data from all the stops and store it in a JSONArray.
-			val data: org.json.JSONArray = fnsb.macstransit.routematch.RouteMatch.parseData(response)
+			val data: org.json.JSONArray = RouteMatch.parseData(response)
 
 			// Load in all the potential stops for the route.
 			// The reason why this is considered potential stops is because at this stage duplicate

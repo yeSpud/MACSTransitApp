@@ -4,7 +4,7 @@ import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
 
-import fnsb.macstransit.Activities.MapsActivity;
+import fnsb.macstransit.activities.MapsActivity;
 import fnsb.macstransit.routematch.Bus;
 
 /**

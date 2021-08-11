@@ -2,7 +2,7 @@ package fnsb.macstransit
 
 import fnsb.macstransit.routematch.Bus
 import fnsb.macstransit.routematch.RouteMatch
-import fnsb.macstransit.Activities.MapsActivity
+import fnsb.macstransit.activities.MapsActivity
 import fnsb.macstransit.routematch.Route.RouteException
 import fnsb.macstransit.routematch.Route
 import org.json.JSONArray

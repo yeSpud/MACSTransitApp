@@ -1,4 +1,4 @@
-package fnsb.macstransit.Activities.splashscreenrunnables
+package fnsb.macstransit.activities.splashscreenrunnables
 
 /**
  * Created by Spud on 8/5/21 for the project: MACS Transit.

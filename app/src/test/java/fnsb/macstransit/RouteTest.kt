@@ -2,8 +2,7 @@ package fnsb.macstransit
 
 import android.graphics.Color
 import fnsb.macstransit.routematch.Route
-import fnsb.macstransit.routematch.Route.RouteException
-import fnsb.macstransit.Activities.MapsActivity
+import fnsb.macstransit.activities.MapsActivity
 import org.junit.Assert
 import org.junit.Test
 

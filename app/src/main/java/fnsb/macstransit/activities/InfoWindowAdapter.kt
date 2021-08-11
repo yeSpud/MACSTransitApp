@@ -1,4 +1,4 @@
-package fnsb.macstransit.Activities
+package fnsb.macstransit.activities
 
 import android.graphics.Color
 import android.view.View

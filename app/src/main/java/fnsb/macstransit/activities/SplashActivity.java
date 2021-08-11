@@ -1,4 +1,4 @@
-package fnsb.macstransit.Activities;
+package fnsb.macstransit.activities;
 
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -10,12 +10,13 @@ import android.view.View;
 import androidx.annotation.AnyThread;
 import androidx.annotation.UiThread;
 
-import fnsb.macstransit.Activities.splashscreenrunnables.MapBusRoutes;
-import fnsb.macstransit.Activities.splashscreenrunnables.MapBusStops;
-import fnsb.macstransit.Activities.splashscreenrunnables.MasterScheduleCallback;
-import fnsb.macstransit.Activities.splashscreenrunnables.SplashListener;
+import fnsb.macstransit.activities.splashscreenrunnables.MapBusRoutes;
+import fnsb.macstransit.activities.splashscreenrunnables.MapBusStops;
+import fnsb.macstransit.activities.splashscreenrunnables.MasterScheduleCallback;
+import fnsb.macstransit.activities.splashscreenrunnables.SplashListener;
 import fnsb.macstransit.R;
 import fnsb.macstransit.routematch.Route;
+import fnsb.macstransit.routematch.RouteMatch;
 import fnsb.macstransit.routematch.SharedStop;
 import fnsb.macstransit.routematch.Stop;
 
@@ -118,19 +119,10 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 	private int mapStopProgress = 0;
 
 	/**
-	 * Called when the activity is starting.
-	 * This is where most initialization should go: calling setContentView(int) to inflate the activity's UI,
-	 * using findViewById(int) to programmatically interact with widgets in the UI,
-	 * calling managedQuery(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[],
-	 * java.lang.String) to retrieve cursors for data being displayed, etc.
-	 * <p>
-	 * You can call finish() from within this function,
-	 * in which case onDestroy() will be immediately called after onCreate(Bundle)
-	 * without any of the rest of the activity lifecycle (onStart(), onResume(), onPause(), etc) executing.
-	 *
-	 * @param savedInstanceState If the activity is being re-initialized after previously being shut down then this Bundle contains the data it most recently supplied in onSaveInstanceState(Bundle).
-	 *                           Note: Otherwise it is null. This value may be null.
+	 * Documentation
 	 */
+	private RouteMatch routeMatch;
+
 	@Override
 	protected void onCreate(android.os.Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -142,6 +134,9 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		this.textView = this.findViewById(R.id.textView);
 		this.progressBar = this.findViewById(R.id.progressBar);
 		this.button = this.findViewById(R.id.button);
+
+		// Comments
+		this.routeMatch = new RouteMatch("https://fnsb.routematch.com/feed/", this);
 
 		// Psst. Hey. Wanna know a secret?
 		// In the debug build you can click on the logo to launch right into the maps activity.
@@ -192,15 +187,10 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 			return;
 		}
 
-		// Create the RouteMatch object.
-		this.setMessage(R.string.routematch_creation);
-		MapsActivity.routeMatch = new fnsb.macstransit.routematch.
-				RouteMatch("https://fnsb.routematch.com/feed/", this);
-
 		// Get the master schedule from the RouteMatch server
 		this.setProgressBar(-1);
 		this.setMessage(R.string.downloading_master_schedule);
-		MapsActivity.routeMatch.callMasterSchedule(new MasterScheduleCallback(this), error -> {
+		this.routeMatch.callMasterSchedule(new MasterScheduleCallback(this), error -> {
 					Log.w("initializeApp", "MasterSchedule callback error", error);
 					this.setMessage(R.string.routematch_timeout);
 					this.showRetryButton();
@@ -261,7 +251,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 				progress = SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE
 						+ SplashActivity.DOWNLOAD_BUS_ROUTES;
 
-		MapBusRoutes mapBusRoutes = new MapBusRoutes();
+		MapBusRoutes mapBusRoutes = new MapBusRoutes(this.routeMatch);
 		for (Route route : MapsActivity.allRoutes) {
 			this.mapBusProgress--;
 			Pair<Route, SplashListener> pair = new Pair<>(route, () -> {
@@ -305,7 +295,7 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 						+ SplashActivity.DOWNLOAD_BUS_ROUTES + SplashActivity.LOAD_BUS_ROUTES
 						+ SplashActivity.DOWNLOAD_BUS_STOPS;
 
-		MapBusStops mapBusStops = new MapBusStops();
+		MapBusStops mapBusStops = new MapBusStops(this.routeMatch);
 
 		// Iterate thorough all the routes to load each stop.
 		for (Route route : MapsActivity.allRoutes) {
@@ -523,8 +513,11 @@ public class SplashActivity extends androidx.appcompat.app.AppCompatActivity {
 		that it should be re-enabled for testing, but that's about it - a testing use case.
 		*/
 
+		Intent mapsIntent = new Intent(this, MapsActivity.class);
+		mapsIntent.putExtra("RouteMatch", this.routeMatch.getUrl());
+
 		// Start the MapsActivity, and close this splash activity.
-		this.startActivity(new Intent(this, MapsActivity.class));
+		this.startActivity(mapsIntent);
 		this.finishAfterTransition();
 	}
 

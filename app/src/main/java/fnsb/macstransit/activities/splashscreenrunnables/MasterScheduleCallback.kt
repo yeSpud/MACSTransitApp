@@ -1,8 +1,8 @@
-package fnsb.macstransit.Activities.splashscreenrunnables
+package fnsb.macstransit.activities.splashscreenrunnables
 
 import android.util.Log
-import fnsb.macstransit.Activities.MapsActivity
-import fnsb.macstransit.Activities.SplashActivity
+import fnsb.macstransit.activities.MapsActivity
+import fnsb.macstransit.activities.SplashActivity
 import fnsb.macstransit.R
 import fnsb.macstransit.routematch.Route
 import org.json.JSONObject

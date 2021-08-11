@@ -1,4 +1,4 @@
-package fnsb.macstransit.Activities
+package fnsb.macstransit.activities
 
 import android.app.AlertDialog
 import android.widget.TextView

@@ -1,4 +1,4 @@
-package fnsb.macstransit.Activities;
+package fnsb.macstransit.activities;
 
 import android.os.Handler;
 import android.util.Log;
@@ -16,10 +16,11 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 
 import java.util.ConcurrentModificationException;
 
-import fnsb.macstransit.Activities.activitylisteners.AdjustZoom;
+import fnsb.macstransit.activities.activitylisteners.AdjustZoom;
 import fnsb.macstransit.R;
 import fnsb.macstransit.routematch.Bus;
 import fnsb.macstransit.routematch.Route;
+import fnsb.macstransit.routematch.RouteMatch;
 import fnsb.macstransit.routematch.SharedStop;
 import fnsb.macstransit.routematch.Stop;
 import fnsb.macstransit.Threads.UpdateThread;
@@ -47,9 +48,9 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 	public static Bus[] buses = new Bus[0];
 
 	/**
-	 * Create an instance of the RouteMatch object that will be used for this app.
+	 * Documentation
 	 */
-	public static fnsb.macstransit.routematch.RouteMatch routeMatch;
+	public RouteMatch routeMatch;
 
 	/**
 	 * Create the map object. This will be null until the map is ready to be used.
@@ -343,6 +344,10 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		// Set the activity view to the map activity layout.
 		this.setContentView(R.layout.activity_maps);
 
+		// Comments
+		String url = this.getIntent().getExtras().getString("RouteMatch");
+		this.routeMatch = new RouteMatch(url, this);
+
 		// Load in the current settings.
 		try {
 			this.currentSettings.loadSettings(this);
@@ -589,7 +594,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.map.setOnCameraIdleListener(new AdjustZoom(this.map));
 
 		// Add a listener for when a stop icon (circle) is clicked.
-		this.map.setOnCircleClickListener(new fnsb.macstransit.Activities.activitylisteners
+		this.map.setOnCircleClickListener(new fnsb.macstransit.activities.activitylisteners
 				.StopClicked(this, this.map));
 
 		// Add a custom info window adapter, to add support for multiline snippets.
@@ -597,8 +602,8 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Set it so that if the info window was closed for a Stop marker,
 		// make that marker invisible, so its just the dot.
-		this.map.setOnInfoWindowCloseListener(new fnsb.macstransit.Activities.activitylisteners
-				.StopDeselected());
+		this.map.setOnInfoWindowCloseListener(new fnsb.macstransit.activities.activitylisteners
+				.StopDeselected(this.routeMatch.getNetworkQueue()));
 
 		// Set it so that when an info window is clicked on, it launches a popup window
 		this.map.setOnInfoWindowClickListener(new PopupWindow(this));
@@ -608,7 +613,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Setup the actual thread object for the update thread if it didn't exist previously.
 		if (MapsActivity.updateThread == null) {
-			MapsActivity.updateThread = new UpdateThread(this.mainThreadHandler, this.map);
+			MapsActivity.updateThread = new UpdateThread(this.mainThreadHandler, this.routeMatch, this.map);
 		}
 
 		// Comments

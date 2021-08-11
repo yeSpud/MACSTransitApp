@@ -1,5 +1,6 @@
-package fnsb.macstransit.Activities.activitylisteners
+package fnsb.macstransit.activities.activitylisteners
 
+import com.android.volley.RequestQueue
 import fnsb.macstransit.routematch.MarkedObject
 
 /**
@@ -10,7 +11,7 @@ import fnsb.macstransit.routematch.MarkedObject
  * @since Beta 7.
  */
 @androidx.annotation.UiThread
-class StopDeselected : com.google.android.gms.maps.GoogleMap.OnInfoWindowCloseListener {
+class StopDeselected(private val networkQueue: RequestQueue) : com.google.android.gms.maps.GoogleMap.OnInfoWindowCloseListener {
 
 	/**
 	 * Called when the marker's info window is closed.
@@ -27,7 +28,7 @@ class StopDeselected : com.google.android.gms.maps.GoogleMap.OnInfoWindowCloseLi
 		if (potentialStop is fnsb.macstransit.routematch.Stop || potentialStop is fnsb.macstransit.routematch.SharedStop) {
 
 			// Cancel the network request.
-			fnsb.macstransit.Activities.MapsActivity.routeMatch.networkQueue.cancelAll(marker)
+			this.networkQueue.cancelAll(marker)
 
 			// Just hide the marker, since we don't want to destroy it just yet.
 			marker.isVisible = false

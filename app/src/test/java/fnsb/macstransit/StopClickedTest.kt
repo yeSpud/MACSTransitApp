@@ -1,6 +1,6 @@
 package fnsb.macstransit
 
-import fnsb.macstransit.Activities.activitylisteners.StopClicked
+import fnsb.macstransit.activities.activitylisteners.StopClicked
 import fnsb.macstransit.Helper.getJSON
 import fnsb.macstransit.routematch.RouteMatch.Companion.parseData
 import org.json.JSONObject

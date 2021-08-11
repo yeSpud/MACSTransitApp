@@ -7,8 +7,9 @@ import com.google.android.gms.maps.GoogleMap;
 
 import org.json.JSONException;
 
-import fnsb.macstransit.Activities.MapsActivity;
+import fnsb.macstransit.activities.MapsActivity;
 import fnsb.macstransit.routematch.Bus;
+import fnsb.macstransit.routematch.RouteMatch;
 
 /**
  * Created by Spud on 2019-10-13 for the project: MACS Transit.
@@ -67,14 +68,16 @@ public class UpdateThread {
 	 */
 	public final Thread runner = this.getNewThread();
 
+	private final RouteMatch routeMatch;
+
 	/**
 	 * Lazy constructor for the UpdateThread.
 	 *
 	 * @param handler Handler used to update buses on the UI Thread.
 	 * @param map TODO
 	 */
-	public UpdateThread(Handler handler, GoogleMap map) {
-		this(handler, UpdateThread.DEFAULT_FREQUENCY, map);
+	public UpdateThread(Handler handler, RouteMatch routeMatch, GoogleMap map) {
+		this(handler, UpdateThread.DEFAULT_FREQUENCY, routeMatch, map);
 	}
 
 	/**
@@ -85,9 +88,10 @@ public class UpdateThread {
 	 *                        If this is omitted, it will default to 4000 milliseconds (4 seconds).
 	 * @param map TODO
 	 */
-	public UpdateThread(Handler handler, long updateFrequency, GoogleMap map) {
+	public UpdateThread(Handler handler, long updateFrequency, RouteMatch routeMatch, GoogleMap map) {
 		this.UIHandler = handler;
 		this.updateFrequency = updateFrequency;
+		this.routeMatch = routeMatch;
 		this.updateBuses = new UpdateBuses(map);
 	}
 
@@ -118,7 +122,7 @@ public class UpdateThread {
 					Log.d("UpdateThread", "Looping...");
 
 					try {
-						MapsActivity.routeMatch.getNetworkQueue().cancelAll(this);
+						this.routeMatch.getNetworkQueue().cancelAll(this);
 					} catch (NullPointerException npe) {
 						Log.w("UpdateThread", "Nothing in queue to cancel");
 					}
@@ -199,7 +203,7 @@ public class UpdateThread {
 		}
 
 		// Get the buses from the RouteMatch server.
-		MapsActivity.routeMatch.callVehiclesByRoutes(response -> {
+		this.routeMatch.callVehiclesByRoutes(response -> {
 			org.json.JSONArray vehiclesJson = fnsb.macstransit.routematch.RouteMatch.parseData(response);
 
 			// Get the array of buses. This array will include current and new buses.

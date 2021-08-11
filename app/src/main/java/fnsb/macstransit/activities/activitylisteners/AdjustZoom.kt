@@ -1,8 +1,8 @@
-package fnsb.macstransit.Activities.activitylisteners
+package fnsb.macstransit.activities.activitylisteners
 
 import android.util.Log
 import com.google.android.gms.maps.GoogleMap
-import fnsb.macstransit.Activities.MapsActivity
+import fnsb.macstransit.activities.MapsActivity
 import kotlin.math.pow
 
 /**
