@@ -1,4 +1,4 @@
-package fnsb.macstransit.Threads;
+package fnsb.macstransit.threads;
 
 import android.os.Handler;
 import android.util.Log;
@@ -217,7 +217,7 @@ public class UpdateThread {
 
 			// Update the bus positions on the map on the UI thread.
 			// This must be executed on the UI thread or else the app will crash.
-			this.updateBuses.potentialNewBuses = buses;
+			this.updateBuses.setPotentialNewBuses(buses);
 			this.UIHandler.post(this.updateBuses);
 		}, error -> Log.w("fetchBuses", "Unable to fetch buses", error), this, MapsActivity.allRoutes);
 	}

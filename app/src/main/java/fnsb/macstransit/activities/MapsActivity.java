@@ -23,7 +23,7 @@ import fnsb.macstransit.routematch.Route;
 import fnsb.macstransit.routematch.RouteMatch;
 import fnsb.macstransit.routematch.SharedStop;
 import fnsb.macstransit.routematch.Stop;
-import fnsb.macstransit.Threads.UpdateThread;
+import fnsb.macstransit.threads.UpdateThread;
 import fnsb.macstransit.settings.CurrentSettings;
 import fnsb.macstransit.settings.V2;
 
@@ -157,6 +157,11 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 			return;
 		}
 
+		// Comments
+		if (this.map == null) {
+			return;
+		}
+
 		// Iterate though all the routes as we know at this point that they are not null.
 		for (Route route : MapsActivity.allRoutes) {
 
@@ -225,8 +230,12 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 					// Check if the route has a polyline to set visible.
 					if (route.getPolyline() == null) {
 
-						// Create a new polyline for the route since it didn't have one before.
-						route.createPolyline(this.map);
+						// Comments
+						if (this.map != null) {
+
+							// Create a new polyline for the route since it didn't have one before.
+							route.createPolyline(this.map);
+						}
 					}
 
 					// Set the polyline's visibility to whether the route is enabled or not.
