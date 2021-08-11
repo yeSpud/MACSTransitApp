@@ -1,44 +1,21 @@
-package fnsb.macstransit.Activities;
+package fnsb.macstransit.Activities
 
-import android.graphics.Color;
-import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-
-import androidx.annotation.NonNull;
-
-import com.google.android.gms.maps.model.Marker;
+import android.graphics.Color
+import android.view.View
+import android.widget.LinearLayout
+import android.widget.TextView
+import com.google.android.gms.maps.model.Marker
 
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.
- * <p>
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 1.2
+ * @version 2.0.
  * @since Beta 7.
  */
 @androidx.annotation.UiThread
-public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.InfoWindowAdapter {
-
-	/**
-	 * The maximum number of lines (new lines) allowed in the info window's snippet section.
-	 */
-	public static final int MAX_LINES = 12;
-
-	/**
-	 * The maps activity that this adapter corresponds to.
-	 */
-	private final MapsActivity activity;
-
-	/**
-	 * Constructor for the info window adapter.
-	 *
-	 * @param activity The maps activity that this info window adapter corresponds to.
-	 */
-	@org.jetbrains.annotations.Contract(pure = true)
-	public InfoWindowAdapter(MapsActivity activity) {
-		this.activity = activity;
-	}
+class InfoWindowAdapter(private val activity: MapsActivity) :
+		com.google.android.gms.maps.GoogleMap.InfoWindowAdapter {
 
 	/**
 	 * Provides a custom info window for a marker. If this method returns a view,
@@ -51,10 +28,8 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 	 * @return A custom info window for marker, or null to use the default info window frame with custom contents.
 	 * (In this case its always going to be null, sorry).
 	 */
-	@androidx.annotation.Nullable
-	@Override
-	public View getInfoWindow(@NonNull Marker marker) {
-		return null;
+	override fun getInfoWindow(marker: Marker): View? {
+		return null
 	}
 
 	/**
@@ -64,12 +39,11 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 	 * If you change this view after this method is called,
 	 * those changes will not necessarily be reflected in the rendered info window.
 	 * If this method returns null, the default rendering will be used instead.
-	 * <p><br >
-	 * <p>
+	 * <br></br>
 	 * Credit where credits due:
 	 * this custom implementation was modified off of a stackoverflow post
 	 * by user Hiren Patel - https://stackoverflow.com/users/4233197/hiren-patel.
-	 * <p>
+	 *<br></br>
 	 * The original post can be found at this link:
 	 * https://stackoverflow.com/questions/13904651/android-google-maps-v2-how-to-add-marker-with-multiline-snippet.
 	 *
@@ -77,39 +51,46 @@ public class InfoWindowAdapter implements com.google.android.gms.maps.GoogleMap.
 	 * @return A custom view to display as contents in the info window for marker,
 	 * or null to use the default content rendering instead.
 	 */
-	@Override
-	public View getInfoContents(@NonNull Marker marker) {
+	override fun getInfoContents(marker: Marker): View {
 
 		// Create the info section of the info window, and make sure its orientation is set to vertical
-		LinearLayout info = new LinearLayout(this.activity);
-		info.setOrientation(LinearLayout.VERTICAL);
+		val info = LinearLayout(this.activity)
+		info.orientation = LinearLayout.VERTICAL
 
 		// Create the title portion of the info window, and make sure its in a bold font and centered.
-		TextView title = new TextView(this.activity);
-		title.setTextColor(Color.BLACK);
-		title.setGravity(android.view.Gravity.CENTER);
-		title.setTypeface(null, android.graphics.Typeface.BOLD);
+		val title = TextView(this.activity)
+		title.setTextColor(Color.BLACK)
+		title.gravity = android.view.Gravity.CENTER
+		title.setTypeface(null, android.graphics.Typeface.BOLD)
 
 		// Set the titles text to the markers title.
-		title.setText(marker.getTitle());
+		title.text = marker.title
 
 		// Create the actual snippet view and set it the text ot the marker's snippet text.
-		TextView snippet = new TextView(this.activity);
-		snippet.setTextColor(Color.GRAY);
-		snippet.setText(marker.getSnippet());
+		val snippet = TextView(activity)
+		snippet.setTextColor(Color.GRAY)
+		snippet.text = marker.snippet
 
 		// Be sure to set the maximum number of lines for the snippet.
-		snippet.setMaxLines(InfoWindowAdapter.MAX_LINES);
+		snippet.maxLines = MAX_LINES
 
 		// Add the title to the info window.
-		info.addView(title);
+		info.addView(title)
 
 		// If the snippet is not null or empty, add it to the info window as well.
-		if (!snippet.getText().equals("") && snippet.getText() != null) {
-			info.addView(snippet);
+		if (snippet.text != "" && snippet.text != null) {
+			info.addView(snippet)
 		}
 
 		// Finally, return the info window.
-		return info;
+		return info
+	}
+
+	companion object {
+
+		/**
+		 * The maximum number of lines (new lines) allowed in the info window's snippet section.
+		 */
+		const val MAX_LINES = 12
 	}
 }
