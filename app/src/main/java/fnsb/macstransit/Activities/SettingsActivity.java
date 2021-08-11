@@ -139,7 +139,7 @@ public class SettingsActivity extends androidx.appcompat.app.AppCompatActivity {
 		// Setup the buttons.
 		// The apply settings button should run the apply settings listener.
 		this.findViewById(R.id.apply).setOnClickListener(new fnsb.macstransit.Activities.
-				ActivityListeners.ApplySettings(this));
+				activitylisteners.ApplySettings(this));
 
 		// The cancel button should just finish the class and return.
 		this.findViewById(R.id.cancel).setOnClickListener((v) -> this.finish());

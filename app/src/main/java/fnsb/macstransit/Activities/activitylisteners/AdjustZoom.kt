@@ -1,4 +1,4 @@
-package fnsb.macstransit.Activities.ActivityListeners
+package fnsb.macstransit.Activities.activitylisteners
 
 import android.util.Log
 import com.google.android.gms.maps.GoogleMap

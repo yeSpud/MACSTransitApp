@@ -16,7 +16,7 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 
 import java.util.ConcurrentModificationException;
 
-import fnsb.macstransit.Activities.ActivityListeners.AdjustZoom;
+import fnsb.macstransit.Activities.activitylisteners.AdjustZoom;
 import fnsb.macstransit.R;
 import fnsb.macstransit.routematch.Bus;
 import fnsb.macstransit.routematch.Route;
@@ -335,17 +335,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		}
 	}
 
-	/**
-	 * This is where the activity is initialized. Most importantly,
-	 * here is where setContentView(int) is usually called with a layout resource defining the UI,
-	 * and using findViewById(int) to retrieve the widgets in that UI that need to interacted with programmatically.
-	 * <p>
-	 * More importantly, this is where I want to obtain the SupportMapFragment,
-	 * and get notified when the map has finished initializing and is ready to be used.
-	 *
-	 * @param savedInstanceState The previous state of the activity,
-	 *                           in the event that there was an issue and the activity had to be destroyed.
-	 */
 	@Override
 	protected void onCreate(@Nullable android.os.Bundle savedInstanceState) {
 		Log.v("onCreate", "onCreate has been called!");
@@ -480,17 +469,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		return true;
 	}
 
-	/**
-	 * This hook is called whenever an item in your options menu is selected.
-	 * The default implementation simply returns false to have the normal processing happen
-	 * (calling the item's Runnable or sending a message to its Handler as appropriate).
-	 * You can use this method for any items for which you would like to do processing without those other facilities.
-	 * <p>
-	 * Derived classes should call through to the base class for it to perform the default menu handling.
-	 *
-	 * @param item The menu item that was selected. This value cannot be null.
-	 * @return Return false to allow normal menu processing to proceed, true to consume it here.
-	 */
 	@Override
 	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 		Log.v("onOptionsItemSelected", "onOptionsItemSelected has been called!");
@@ -611,7 +589,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 		this.map.setOnCameraIdleListener(new AdjustZoom(this.map));
 
 		// Add a listener for when a stop icon (circle) is clicked.
-		this.map.setOnCircleClickListener(new fnsb.macstransit.Activities.ActivityListeners
+		this.map.setOnCircleClickListener(new fnsb.macstransit.Activities.activitylisteners
 				.StopClicked(this, this.map));
 
 		// Add a custom info window adapter, to add support for multiline snippets.
@@ -619,7 +597,7 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 		// Set it so that if the info window was closed for a Stop marker,
 		// make that marker invisible, so its just the dot.
-		this.map.setOnInfoWindowCloseListener(new fnsb.macstransit.Activities.ActivityListeners
+		this.map.setOnInfoWindowCloseListener(new fnsb.macstransit.Activities.activitylisteners
 				.StopDeselected());
 
 		// Set it so that when an info window is clicked on, it launches a popup window
@@ -658,14 +636,6 @@ public class MapsActivity extends androidx.fragment.app.FragmentActivity impleme
 
 			// Toggle night mode at this time if enabled.
 			this.toggleNightMode(settings.getDarktheme());
-
-			// Enable street-view options based on settings.
-			/* - DEPRECATED -
-			if (CurrentSettings.settings.getStreetView()) {
-				StreetViewListener streetViewListener = new StreetViewListener(this);
-				MapsActivity.map.setOnInfoWindowLongClickListener(streetViewListener);
-			}
-			*/
 
 			// Get the favorited routes from the settings object.
 			Route[] favoritedRoutes = settings.getRoutes();
