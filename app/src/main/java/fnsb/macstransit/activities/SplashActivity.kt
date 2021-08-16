@@ -1,14 +1,9 @@
 package fnsb.macstransit.activities
 
-import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
-import android.net.Network
 import android.net.NetworkCapabilities
-import android.net.NetworkInfo
 import android.os.Build
-import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import android.util.Pair
 import android.view.View
@@ -16,21 +11,12 @@ import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.AnyThread
-import androidx.annotation.StringRes
 import androidx.annotation.UiThread
-import androidx.appcompat.app.AppCompatActivity
-import com.android.volley.VolleyError
-import fnsb.macstransit.BuildConfig
 import fnsb.macstransit.R
-import fnsb.macstransit.activities.splashscreenrunnables.DownloadBusStops
-import fnsb.macstransit.activities.splashscreenrunnables.MapBusRoutes
-import fnsb.macstransit.activities.splashscreenrunnables.MapBusStops
-import fnsb.macstransit.activities.splashscreenrunnables.MasterScheduleCallback
 import fnsb.macstransit.activities.splashscreenrunnables.SplashListener
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.routematch.SharedStop
-import kotlin.math.max
 import kotlin.math.roundToInt
 
 /**
@@ -40,7 +26,7 @@ import kotlin.math.roundToInt
  * @version 3.0.
  * @since Beta 7.
  */
-class SplashActivity : AppCompatActivity() {
+class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 
 	/**
 	 * The TextView widget in the activity.
@@ -72,7 +58,7 @@ class SplashActivity : AppCompatActivity() {
 	 */
 	var mapStopProgress = 0
 
-	override fun onCreate(savedInstanceState: Bundle?) {
+	override fun onCreate(savedInstanceState: android.os.Bundle?) {
 		super.onCreate(savedInstanceState)
 
 		// Set the view to that of the splash screen.
@@ -89,7 +75,7 @@ class SplashActivity : AppCompatActivity() {
 		// Psst. Hey. Wanna know a secret?
 		// In the debug build you can click on the logo to launch right into the maps activity.
 		// This is mainly for a bypass on Sundays. :D
-		if (BuildConfig.DEBUG) {
+		if (fnsb.macstransit.BuildConfig.DEBUG) {
 			this.findViewById<View>(R.id.logo).setOnClickListener { launchMapsActivity() }
 		}
 
@@ -120,6 +106,11 @@ class SplashActivity : AppCompatActivity() {
 	override fun onResume() {
 		super.onResume()
 
+		// Comments
+		if (this.textView == null || this.progressBar == null || this.button == null) {
+			return
+		}
+
 		// Initialize the progress bar to 0.
 		this.progressBar!!.visibility = View.VISIBLE
 		this.setProgressBar(0.0)
@@ -137,7 +128,8 @@ class SplashActivity : AppCompatActivity() {
 		// Get the master schedule from the RouteMatch server
 		this.setProgressBar(-1.0)
 		this.setMessage(R.string.downloading_master_schedule)
-		this.routeMatch!!.callMasterSchedule(MasterScheduleCallback(this), { error: VolleyError ->
+		this.routeMatch!!.callMasterSchedule(fnsb.macstransit.activities.splashscreenrunnables.MasterScheduleCallback(this), {
+			error: com.android.volley.VolleyError ->
 			Log.w("initializeApp", "MasterSchedule callback error", error)
 			this.setMessage(R.string.routematch_timeout)
 			this.showRetryButton()
@@ -190,25 +182,11 @@ class SplashActivity : AppCompatActivity() {
 
 		this.setMessage(R.string.loading_bus_routes)
 		this.setProgressBar((DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE).toDouble())
-		val step: Double = LOAD_BUS_ROUTES.toDouble() / MapsActivity.allRoutes!!.size
-		val progress: Double =
-				(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_ROUTES).toDouble()
-		val mapBusRoutes = MapBusRoutes(routeMatch!!)
+		val mapBusRoutes = fnsb.macstransit.activities.splashscreenrunnables.MapBusRoutes(routeMatch!!)
 
 		for (route in MapsActivity.allRoutes!!) {
 			mapBusProgress--
-			val pair = Pair<Route, SplashListener>(route, object : SplashListener { // TODO Move to file
-				override fun splashRunnableFinished() {
-					mapBusProgress++
-					Log.v("downloadBusRoutes", "Map progress remaining: $mapBusProgress")
-					if (mapBusProgress == 0) {
-						downloadBusStops()
-					}
-
-					// Update progress. FIXME There is an issue with this getting called one last time from MapBusStops!
-					setProgressBar(progress + step + MapsActivity.allRoutes!!.size + mapBusProgress)
-				}
-			})
+			val pair = Pair<Route, SplashListener>(route, fnsb.macstransit.activities.splashscreenrunnables.DownloadBusRoutes(this))
 			mapBusRoutes.addListener(pair)
 		}
 		mapBusRoutes.getBusRoutes(this)
@@ -221,7 +199,7 @@ class SplashActivity : AppCompatActivity() {
 	 * Documentation
 	 * Comments
 	 */
-	internal fun downloadBusStops() {
+	internal fun downloadBusStops() { // TODO Make this a co-routine.
 
 		// Verify that allRoutes is not null. If it is then log and return early.
 		if (MapsActivity.allRoutes == null) {
@@ -232,12 +210,12 @@ class SplashActivity : AppCompatActivity() {
 		this.setMessage(R.string.loading_bus_stops)
 		this.setProgressBar(
 				(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES).toDouble())
-		val mapBusStops = MapBusStops(routeMatch!!)
+		val mapBusStops = fnsb.macstransit.activities.splashscreenrunnables.MapBusStops(routeMatch!!)
 
 		// Iterate thorough all the routes to load each stop.
 		for (route in MapsActivity.allRoutes!!) {
 			mapStopProgress--
-			val pair = Pair<Route, SplashListener>(route, DownloadBusStops(this))
+			val pair = Pair<Route, SplashListener>(route, fnsb.macstransit.activities.splashscreenrunnables.DownloadBusStops(this))
 			mapBusStops.addListener(pair)
 		}
 		mapBusStops.getBusStops(this)
@@ -261,7 +239,7 @@ class SplashActivity : AppCompatActivity() {
 		// Then setup the button to open the internet settings when clicked on, and make it visible.
 		this.button!!.setText(R.string.open_network_settings)
 		this.button!!.setOnClickListener {
-			this.startActivity(Intent(Settings.ACTION_WIRELESS_SETTINGS))
+			this.startActivity(Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS))
 
 			// Also, close this application when clicked
 			this.finish()
@@ -284,14 +262,14 @@ class SplashActivity : AppCompatActivity() {
 
 		// Get the connectivity manager for the device.
 		val connectivityManager: ConnectivityManager = this.applicationContext
-				.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+				.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
 		// Check the current API version (as behavior changes in later APIs).
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
 			// Newer API.
 			// Comments
-			val network: Network? = connectivityManager.activeNetwork
+			val network: android.net.Network? = connectivityManager.activeNetwork
 			val networkCapabilities: NetworkCapabilities =
 					connectivityManager.getNetworkCapabilities(network) ?: return false
 
@@ -318,7 +296,7 @@ class SplashActivity : AppCompatActivity() {
 			// Older API.
 			// Comments
 			@Suppress("Deprecation")
-			val networkInfo: NetworkInfo = connectivityManager.activeNetworkInfo ?: return false
+			val networkInfo: android.net.NetworkInfo = connectivityManager.activeNetworkInfo ?: return false
 
 			@Suppress("Deprecation")
 			return networkInfo.isConnected
@@ -385,7 +363,7 @@ class SplashActivity : AppCompatActivity() {
 
 				// If the shared routes array has more than one entry, create a new shared stop object.
 				if (sharedRoutes.size > 1) {
-					val sharedStop = SharedStop(stop.circleOptions.center, stop.name, sharedRoutes)
+					val sharedStop = SharedStop(stop.location, stop.name, sharedRoutes)
 
 					// Iterate though all the routes in the shared route, and add our newly created shared stop.
 					for (sharedRoute in sharedRoutes) {
@@ -463,7 +441,7 @@ class SplashActivity : AppCompatActivity() {
 	 * @param resID The string ID of the message. This can be retrieved by calling R.string.STRING_ID.
 	 */
 	@AnyThread
-	fun setMessage(@StringRes resID: Int) {
+	fun setMessage(@androidx.annotation.StringRes resID: Int) {
 
 		// Since we are changing a TextView element, the following needs to be run on the UI thread.
 		this.runOnUiThread {
@@ -497,7 +475,7 @@ class SplashActivity : AppCompatActivity() {
 			var p: Int = (progress / MAX_PROGRESS * 100).roundToInt()
 
 			// Validate that that the progress is between 0 and 100.
-			p = if (p > 100) 100 else max(p, 0)
+			p = if (p > 100) 100 else kotlin.math.max(p, 0)
 
 			// Make sure the progress bar is not null.
 			if (this.progressBar == null) {

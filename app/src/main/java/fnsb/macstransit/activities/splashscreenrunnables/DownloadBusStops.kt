@@ -12,18 +12,6 @@ import fnsb.macstransit.activities.SplashActivity
  */
 class DownloadBusStops(private val activity: SplashActivity) : SplashListener {
 
-	/**
-	 * Documentation
-	 */
-	private val step: Double =
-			SplashActivity.LOAD_BUS_STOPS.toDouble() / MapsActivity.allRoutes!!.size
-
-	/**
-	 * Documentation
-	 */
-	private val progress: Double =
-			(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE + SplashActivity.DOWNLOAD_BUS_ROUTES + SplashActivity.LOAD_BUS_ROUTES + SplashActivity.DOWNLOAD_BUS_STOPS).toDouble()
-
 	override fun splashRunnableFinished() { // Comments
 
 		this.activity.mapStopProgress++
@@ -35,6 +23,19 @@ class DownloadBusStops(private val activity: SplashActivity) : SplashListener {
 		// Update progress.
 		this.activity.setProgressBar(
 				progress + step + MapsActivity.allRoutes!!.size + this.activity.mapStopProgress)
+	}
+
+	companion object {
+
+		/**
+		 * Documentation
+		 */
+		private val step: Double = SplashActivity.LOAD_BUS_STOPS.toDouble() / MapsActivity.allRoutes!!.size
+
+		/**
+		 * Documentation
+		 */
+		private const val progress: Double = (SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE + SplashActivity.DOWNLOAD_BUS_ROUTES + SplashActivity.LOAD_BUS_ROUTES + SplashActivity.DOWNLOAD_BUS_STOPS).toDouble()
 	}
 
 }

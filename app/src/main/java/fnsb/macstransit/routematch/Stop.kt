@@ -17,7 +17,7 @@ import org.json.JSONObject
  * @version 3.0.
  * @since Beta 6.
  */
-class Stop(stopName: String, latitude: Double, longitude: Double, val route: Route) : MarkedObject(stopName) {
+class Stop(stopName: String, val location: LatLng, val route: Route) : MarkedObject(stopName) {
 
 	/**
 	 * The options that apply to the circle representing the stop.
@@ -31,15 +31,25 @@ class Stop(stopName: String, latitude: Double, longitude: Double, val route: Rou
 	 *
 	 * ... and more!
 	 */
-	val circleOptions: CircleOptions = CircleOptions().center(LatLng(latitude, longitude))
-		.radius(STARTING_RADIUS)
+	val circleOptions: CircleOptions = CircleOptions().center(this.location).radius(STARTING_RADIUS)
 
 	/**
 	 * The circle marking the bus stop on the map
 	 * (be sure to check if this exists first as it may be null).
 	 */
-	@JvmField
 	var circle: Circle? = null
+	private set
+
+	/**
+	 * Documentation
+	 *
+	 * @param stopName
+	 * @param latitude
+	 * @param longitude
+	 * @param route
+	 */
+	constructor(stopName: String, latitude: Double, longitude: Double, route: Route) : this(
+			stopName, LatLng(latitude, longitude), route)
 
 	/**
 	 * Lazy creation of a new Stop object using the provided JSON and the route.
@@ -48,8 +58,9 @@ class Stop(stopName: String, latitude: Double, longitude: Double, val route: Rou
 	 * @param route The route this newly created Stop object will apply to.
 	 * @throws JSONException Thrown if there is any issue in parsing the data from the provided JSONObject.
 	 */
-	constructor(json: JSONObject, route: Route) : this(json.getString("stopId"), json.getDouble("latitude"),
-		json.getDouble("longitude"), route)
+	constructor(json: JSONObject, route: Route) : this(json.getString("stopId"),
+	                                                   json.getDouble("latitude"),
+	                                                   json.getDouble("longitude"), route)
 
 	/**
 	 * Shows the stops for the given route.
@@ -64,17 +75,17 @@ class Stop(stopName: String, latitude: Double, longitude: Double, val route: Rou
 
 		// Check if the circle for the stop needs to be created,
 		// or just set to visible if it already exists.
-		if (circle == null) {
+		if (this.circle == null) {
 
 			// Create a new circle object.
 			Log.d("showStop", "Creating new stop for $name")
-			circle = createStopCircle(map, circleOptions, this)
+			this.circle = createStopCircle(map, circleOptions, this)
 		} else {
 
 			// Since the circle already exists simply set it to visible.
 			Log.d("showStop", "Showing stop $name")
-			circle!!.isClickable = true
-			circle!!.isVisible = true
+			this.circle!!.isClickable = true
+			this.circle!!.isVisible = true
 		}
 	}
 
@@ -121,18 +132,13 @@ class Stop(stopName: String, latitude: Double, longitude: Double, val route: Rou
 			return false
 		}
 
-		if (other is Stop) {
-			val latlng: LatLng? = other.circleOptions.center
+		return if (other is Stop) {
 
-			if (latlng == null || this.circleOptions.center == null) {
-				return false
-			}
-
-			return this.circleOptions.center!!.latitude == latlng.latitude &&
-			       this.circleOptions.center!!.longitude == latlng.longitude && this.name == other.name
+			this.location.latitude == other.location.latitude &&
+			this.location.longitude == other.location.longitude && this.name == other.name
 
 		} else {
-			return false
+			false
 		}
 	}
 
@@ -180,7 +186,8 @@ class Stop(stopName: String, latitude: Double, longitude: Double, val route: Rou
 		 * @return The stop array created from the json array.
 		 */
 		@JvmStatic
-		fun generateStops(array: JSONArray, route: Route): Array<Stop> { // TODO Test me with empty array
+		fun generateStops(array: JSONArray,
+		                  route: Route): Array<Stop> { // TODO Test me with empty array
 
 			// Create an array of stops that will be filled using the information from the json array.
 			val count = array.length()
@@ -213,7 +220,8 @@ class Stop(stopName: String, latitude: Double, longitude: Double, val route: Rou
 		 * @return The validated stops array (or an empty stop array if the provided potential stops is null).
 		 */
 		@JvmStatic
-		fun validateGeneratedStops(potentialStops: Array<Stop>): Array<Stop> { // TODO Test with empty array
+		fun validateGeneratedStops(
+				potentialStops: Array<Stop>): Array<Stop> { // TODO Test with empty array
 
 			// Create a variable to store the true size of the stops that have been validated.
 			var validatedSize = 0

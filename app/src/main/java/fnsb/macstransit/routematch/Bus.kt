@@ -178,7 +178,7 @@ class Bus : MarkedObject {
 		 */
 		@JvmStatic
 		@UiThread
-		fun removeOldBuses(oldBuses: Array<Bus>, newBuses: Array<Bus>) {
+		fun removeOldBuses(oldBuses: Array<Bus>, newBuses: Array<Bus>) { // FIXME Buses not being removed!
 
 			// Iterate through the oldBuses
 			for (oldBus in oldBuses) {

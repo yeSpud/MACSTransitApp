@@ -56,7 +56,7 @@ class MapBusRoutes(private val routeMatch: RouteMatch) {
 		// Iterate though each route, and try to load the polyline in each of them.
 		for (pair: Pair<Route, SplashListener> in pairs) {
 
-			val callback = BusRoutesCallback(pair.second, pair.first, activity)
+			val callback = BusRoutesCallback(pair, activity)
 
 			// Get the land route from the routematch API using an asynchronous process.
 			this.routeMatch.callLandRoute(pair.first, callback, { error: com.android.volley.VolleyError ->
@@ -68,7 +68,7 @@ class MapBusRoutes(private val routeMatch: RouteMatch) {
 	}
 
 
-	internal inner class BusRoutesCallback(private val listener: SplashListener, private val route: Route,
+	internal inner class BusRoutesCallback(private val pair: Pair<Route, SplashListener>,
 		private val activity: SplashActivity) : com.android.volley.Response.Listener<JSONObject> {
 
 		override fun onResponse(response: JSONObject) { // Comments
@@ -114,10 +114,17 @@ class MapBusRoutes(private val routeMatch: RouteMatch) {
 				}
 
 				// Set the polyline coordinates array to the finished LatLng array.
-				this.route.polyLineCoordinates = coordinates.requireNoNulls()
-				this.listener.splashRunnableFinished()
+				this.pair.first.polyLineCoordinates = coordinates.requireNoNulls()
+
+				// Remove our pair from the listener.
+				pairs.remove(this.pair)
+
+				// Comments
+				this.pair.second.splashRunnableFinished()
+				Log.v("BusRoutesCallback", "Finished bus callback")
+
 			} catch (exception: org.json.JSONException) {
-				Log.e("getBusRoutes", "Error parsing json", exception)
+				Log.e("BusRoutesCallback", "Error parsing json", exception)
 			}
 		}
 	}
