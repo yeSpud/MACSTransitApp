@@ -22,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.android.volley.VolleyError
 import fnsb.macstransit.BuildConfig
 import fnsb.macstransit.R
+import fnsb.macstransit.activities.splashscreenrunnables.DownloadBusStops
 import fnsb.macstransit.activities.splashscreenrunnables.MapBusRoutes
 import fnsb.macstransit.activities.splashscreenrunnables.MapBusStops
 import fnsb.macstransit.activities.splashscreenrunnables.MasterScheduleCallback
@@ -60,6 +61,16 @@ class SplashActivity : AppCompatActivity() {
 	 * Documentation
 	 */
 	private var routeMatch: RouteMatch? = null
+
+	/**
+	 * Documentation
+	 */
+	var mapBusProgress = 0
+
+	/**
+	 * Documentation
+	 */
+	var mapStopProgress = 0
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -221,26 +232,12 @@ class SplashActivity : AppCompatActivity() {
 		this.setMessage(R.string.loading_bus_stops)
 		this.setProgressBar(
 				(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES).toDouble())
-		val step: Double = LOAD_BUS_STOPS.toDouble() / MapsActivity.allRoutes!!.size
-		val progress: Double =
-				(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS).toDouble()
 		val mapBusStops = MapBusStops(routeMatch!!)
 
 		// Iterate thorough all the routes to load each stop.
 		for (route in MapsActivity.allRoutes!!) {
 			mapStopProgress--
-			val pair = Pair<Route, SplashListener>(route, object : SplashListener { // TODO Move to file
-				override fun splashRunnableFinished() {
-					mapStopProgress++
-					Log.v("downloadBusStops", "Stop progress remaining: $mapStopProgress")
-					if (mapStopProgress == 0) {
-						cleanupThread().start()
-					}
-
-					// Update progress.
-					setProgressBar(progress + step + MapsActivity.allRoutes!!.size + mapStopProgress)
-				}
-			})
+			val pair = Pair<Route, SplashListener>(route, DownloadBusStops(this))
 			mapBusStops.addListener(pair)
 		}
 		mapBusStops.getBusStops(this)
@@ -571,17 +568,17 @@ class SplashActivity : AppCompatActivity() {
 		/**
 		 * Documentation
 		 */
-		private const val LOAD_BUS_STOPS: Short = 8
+		const val LOAD_BUS_STOPS: Short = 8
 
 		/**
 		 * Documentation
 		 */
-		private const val LOAD_SHARED_STOPS: Short = 8
+		const val LOAD_SHARED_STOPS: Short = 8
 
 		/**
 		 * Documentation
 		 */
-		private const val VALIDATE_STOPS: Short = 1
+		const val VALIDATE_STOPS: Short = 1
 
 		/**
 		 * The max progress for the progress bar.
@@ -595,18 +592,8 @@ class SplashActivity : AppCompatActivity() {
 		 *  * Validate the stops (8)
 		 *  Documentation
 		 */
-		private const val MAX_PROGRESS: Short =
+		const val MAX_PROGRESS: Short =
 				(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS + LOAD_SHARED_STOPS + VALIDATE_STOPS).toShort()
-
-		/**
-		 * Documentation
-		 */
-		private var mapBusProgress = 0
-
-		/**
-		 * Documentation
-		 */
-		private var mapStopProgress = 0
 
 		/**
 		 * Create a variable to check if the map activity has already been loaded
