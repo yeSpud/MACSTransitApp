@@ -17,9 +17,11 @@ import fnsb.macstransit.databinding.SplashscreenBinding
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.routematch.SharedStop
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -121,43 +123,58 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		})
 	}
 
-	override fun onResume() {
+	override fun onResume() { // Comments
 		super.onResume()
 
 		this.lifecycleScope.launch {
 
-			val hasInternet = async(start = CoroutineStart.UNDISPATCHED) {
+			launch(CoroutineName("InitialCoroutine"), start=CoroutineStart.UNDISPATCHED) {
+				this@SplashActivity.initialCoroutine()
+			}.join()
 
-				// Check if the user has internet before continuing.
-				this@SplashActivity.viewModel.setMessage(R.string.internet_check)
-				withContext(Dispatchers.IO) {this@SplashActivity.viewModel.hasInternet()}
-			}
-
-			// Initialize the progress bar to 0.
-			this@SplashActivity.viewModel.setProgressBar(0.0)
-			this@SplashActivity.viewModel.showProgressBar()
-
-			// Make sure the dynamic button is invisible.
-			this@SplashActivity.binding.button.visibility = View.INVISIBLE
-
-			Log.d("onResume", "Waiting for internet check...")
-			if (!hasInternet.await()) {
-				this@SplashActivity.noInternet()
-				return@launch
-			}
-
-			// Get the master schedule from the RouteMatch server
-			Log.d("onResume", "Has internet!")
-			this@SplashActivity.viewModel.setProgressBar(-1.0)
-			this@SplashActivity.viewModel.setMessage(R.string.downloading_master_schedule)
-
-			val downloadJob = DownloadMasterSchedule(this@SplashActivity)
-			async(start = CoroutineStart.UNDISPATCHED) { withContext(Dispatchers.IO) { downloadJob.download() }}
+			this@SplashActivity.viewModel.setMessage(R.string.loading_bus_routes)
+			this@SplashActivity.viewModel.setProgressBar((DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE).toDouble())
 
 			Log.d("onResume", "End of lifecycle")
 		}
 
 		Log.d("onResume", "End of onResume")
+	}
+
+	/**
+	 * Documentation
+	 * Comments
+	 */
+	private suspend fun initialCoroutine() = coroutineScope {
+		Log.d("initialCoroutine", "Starting initialCoroutine")
+		val hasInternet = async(start = CoroutineStart.UNDISPATCHED) {
+
+			// Check if the user has internet before continuing.
+			this@SplashActivity.viewModel.setMessage(R.string.internet_check)
+			withContext(Dispatchers.IO) {this@SplashActivity.viewModel.hasInternet()}
+		}
+
+		// Initialize the progress bar to 0.
+		this@SplashActivity.viewModel.setProgressBar(0.0)
+		this@SplashActivity.viewModel.showProgressBar()
+
+		// Make sure the dynamic button is invisible.
+		this@SplashActivity.binding.button.visibility = View.INVISIBLE
+
+		Log.d("initialCoroutine", "Waiting for internet check...")
+		if (!hasInternet.await()) {
+			this@SplashActivity.noInternet()
+			return@coroutineScope
+		}
+
+		// Get the master schedule from the RouteMatch server
+		Log.d("initialCoroutine", "Has internet!")
+		this@SplashActivity.viewModel.setProgressBar(-1.0)
+		this@SplashActivity.viewModel.setMessage(R.string.downloading_master_schedule)
+
+		val downloadMasterSchedule = DownloadMasterSchedule(this@SplashActivity)
+		downloadMasterSchedule.download()
+		Log.d("initialCoroutine", "Reached end of initialCoroutine")
 	}
 
 	override fun onPause() {
@@ -204,8 +221,6 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 			return  // TODO Log
 		}
 
-		this.viewModel.setMessage(R.string.loading_bus_routes)
-		this.viewModel.setProgressBar((DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE).toDouble())
 		val mapBusRoutes = fnsb.macstransit.activities.splashactivity.splashscreenrunnables.MapBusRoutes(routeMatch)
 
 		for (route in MapsActivity.allRoutes!!) {

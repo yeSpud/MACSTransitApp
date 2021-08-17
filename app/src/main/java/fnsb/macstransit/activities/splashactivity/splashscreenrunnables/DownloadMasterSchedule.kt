@@ -6,6 +6,7 @@ import fnsb.macstransit.activities.MapsActivity
 import fnsb.macstransit.activities.splashactivity.SplashActivity
 import fnsb.macstransit.routematch.Route
 import org.json.JSONObject
+import kotlin.coroutines.resume
 
 /**
  * Created by Spud on 8/16/21 for the project: MACS Transit.
@@ -20,8 +21,8 @@ class DownloadMasterSchedule(private val activity: SplashActivity) {
 	/**
 	 * Documentation
 	 */
-	fun download() {
-		this.activity.routeMatch.callMasterSchedule(MasterScheduleCallback(), {
+	suspend fun download(): JSONObject = kotlin.coroutines.suspendCoroutine { continuation ->
+		this.activity.routeMatch.callMasterSchedule(MasterScheduleCallback(continuation), {
 			error: com.android.volley.VolleyError ->
 			Log.w("initializeApp", "MasterSchedule callback error", error)
 			this.activity.viewModel.setMessage(R.string.routematch_timeout)
@@ -29,12 +30,19 @@ class DownloadMasterSchedule(private val activity: SplashActivity) {
 		})
 	}
 
-	internal inner class MasterScheduleCallback() : com.android.volley.Response.Listener<JSONObject> {
+	/**
+	 * Documentation
+	 * @param continuation
+	 */
+	internal inner class MasterScheduleCallback(
+			private val continuation: kotlin.coroutines.Continuation<JSONObject>) :
+			com.android.volley.Response.Listener<JSONObject> {
 
 		override fun onResponse(response: JSONObject) { // Comments
 
 			// Set the progress and message.
-			this@DownloadMasterSchedule.activity.viewModel.setProgressBar(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble())
+			this@DownloadMasterSchedule.activity.viewModel.setProgressBar(
+					SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble())
 			this@DownloadMasterSchedule.activity.viewModel.setMessage(R.string.loading_bus_routes)
 
 			// Get the routes from the JSONObject
@@ -56,7 +64,8 @@ class DownloadMasterSchedule(private val activity: SplashActivity) {
 			var routeCount = 0
 			val step = SplashActivity.PARSE_MASTER_SCHEDULE.toDouble() / count
 			var progress = SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble()
-			this@DownloadMasterSchedule.activity.viewModel.setMessage(R.string.parsing_master_schedule)
+			this@DownloadMasterSchedule.activity.viewModel.setMessage(
+					R.string.parsing_master_schedule)
 
 			// Iterate though each route in the master schedule.
 			for (index in 0 until count) {
@@ -90,6 +99,7 @@ class DownloadMasterSchedule(private val activity: SplashActivity) {
 			MapsActivity.allRoutes = arrayOfNulls(routeCount)
 			System.arraycopy(potentialRoutes, 0, MapsActivity.allRoutes!!, 0, routeCount)
 			Log.d("MasterScheduleCallback", "End of MasterScheduleCallback")
+			this.continuation.resume(response)
 		}
 	}
 }

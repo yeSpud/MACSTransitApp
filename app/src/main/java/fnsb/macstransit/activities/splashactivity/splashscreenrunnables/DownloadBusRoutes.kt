@@ -21,7 +21,7 @@ class DownloadBusRoutes(private val activity: SplashActivity) : SplashListener {
 		}
 
 		// Update progress. FIXME There is an issue with this getting called one last time from MapBusStops!
-		//this.activity.setProgressBar(progress + step + MapsActivity.allRoutes!!.size + this.activity.mapBusProgress)
+		this.activity.viewModel.setProgressBar(progress + step + MapsActivity.allRoutes!!.size + this.activity.mapBusProgress)
 	}
 
 	companion object {
