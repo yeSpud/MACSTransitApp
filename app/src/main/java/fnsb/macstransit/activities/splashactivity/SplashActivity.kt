@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import fnsb.macstransit.R
 import fnsb.macstransit.activities.MapsActivity
 import fnsb.macstransit.activities.splashactivity.splashscreenrunnables.DownloadMasterSchedule
+import fnsb.macstransit.activities.splashactivity.splashscreenrunnables.DownloadBusRoutes
 import fnsb.macstransit.activities.splashactivity.splashscreenrunnables.SplashListener
 import fnsb.macstransit.databinding.SplashscreenBinding
 import fnsb.macstransit.routematch.Route
@@ -50,11 +51,6 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 	 */
 	lateinit var routeMatch: RouteMatch
 	private set
-
-	/**
-	 * Documentation
-	 */
-	var mapBusProgress = 0
 
 	/**
 	 * Documentation
@@ -132,8 +128,9 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 				this@SplashActivity.initialCoroutine()
 			}.join()
 
-			this@SplashActivity.viewModel.setMessage(R.string.loading_bus_routes)
-			this@SplashActivity.viewModel.setProgressBar((DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE).toDouble())
+			launch(CoroutineName("RouteCoroutine"), start=CoroutineStart.UNDISPATCHED) {
+				this@SplashActivity.routeCoroutine()
+			}.join()
 
 			Log.d("onResume", "End of lifecycle")
 		}
@@ -177,6 +174,42 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		Log.d("initialCoroutine", "Reached end of initialCoroutine")
 	}
 
+	/**
+	 * Documentation
+	 * Comments
+	 */
+	private suspend fun routeCoroutine() = coroutineScope {
+
+		this@SplashActivity.viewModel.setMessage(R.string.loading_bus_routes)
+
+		if (MapsActivity.allRoutes == null) {
+			return@coroutineScope  // TODO Log
+		}
+
+		val mapBusRoutes = DownloadBusRoutes(this@SplashActivity)
+
+		var mapBusProgress = 0
+
+		val step: Double = LOAD_BUS_ROUTES.toDouble() / MapsActivity.allRoutes!!.size
+		val progress: Double = (DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_ROUTES).toDouble()
+
+		for (i in MapsActivity.allRoutes!!.indices) {
+			mapBusProgress--
+			async(start = CoroutineStart.UNDISPATCHED) {
+				mapBusRoutes.downloadRoute(MapsActivity.allRoutes!![i], i)
+
+				// Update progress. FIXME There is an issue with this getting called one last time from MapBusStops!
+				this@SplashActivity.viewModel.setProgressBar(progress + step + MapsActivity.allRoutes!!.size + mapBusProgress)
+
+				mapBusProgress++
+
+				if (mapBusProgress == 0) {
+					Log.d("routeCoroutine", "Done mapping bus routes")
+				}
+			}
+		}
+	}
+
 	override fun onPause() {
 		super.onPause()
 
@@ -209,26 +242,6 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		// Set the name of the thread, and finally return it.
 		thread.name = "Cleanup thread"
 		return thread
-	}
-
-	/**
-	 * Documentation
-	 * Comments
-	 */
-	fun downloadBusRoutes() { // TODO Make this a co-routine.
-
-		if (MapsActivity.allRoutes == null) {
-			return  // TODO Log
-		}
-
-		val mapBusRoutes = fnsb.macstransit.activities.splashactivity.splashscreenrunnables.MapBusRoutes(routeMatch)
-
-		for (route in MapsActivity.allRoutes!!) {
-			mapBusProgress--
-			val pair = Pair<Route, SplashListener>(route, fnsb.macstransit.activities.splashactivity.splashscreenrunnables.DownloadBusRoutes(this))
-			mapBusRoutes.addListener(pair)
-		}
-		mapBusRoutes.getBusRoutes(this)
 	}
 
 	/**
