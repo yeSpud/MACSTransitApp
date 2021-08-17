@@ -1,9 +1,9 @@
-package fnsb.macstransit.activities.splashscreenrunnables
+package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
 
 import android.util.Log
 import android.util.Pair
 import fnsb.macstransit.activities.MapsActivity
-import fnsb.macstransit.activities.SplashActivity
+import fnsb.macstransit.activities.splashactivity.SplashActivity
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.routematch.Stop
@@ -47,8 +47,8 @@ class MapBusStops(private val routeMatch: RouteMatch) {
 
 		val step: Double = SplashActivity.DOWNLOAD_BUS_STOPS.toDouble() / MapsActivity.allRoutes!!.size
 		var progress: Double = (SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS +
-				SplashActivity.PARSE_MASTER_SCHEDULE + SplashActivity.DOWNLOAD_BUS_ROUTES +
-				SplashActivity.LOAD_BUS_ROUTES).toDouble()
+		                        SplashActivity.PARSE_MASTER_SCHEDULE + SplashActivity.DOWNLOAD_BUS_ROUTES +
+		                        SplashActivity.LOAD_BUS_ROUTES).toDouble()
 		Log.d("getBusStops", "Step value: $step")
 
 		for (pair: Pair<Route, SplashListener> in pairs) {
@@ -57,9 +57,9 @@ class MapBusStops(private val routeMatch: RouteMatch) {
 				Log.w("loadStops", "Unable to get stops from RouteMatch server", error)
 			})
 			progress += step
-			activity.setProgressBar(progress)
+			//activity.setProgressBar(progress)
 		}
-		activity.setProgressBar(progress)
+		//activity.setProgressBar(progress)
 	}
 
 	internal inner class BusStopCallback(private val listener: SplashListener, private val route: Route,
@@ -68,7 +68,7 @@ class MapBusStops(private val routeMatch: RouteMatch) {
 		override fun onResponse(response: JSONObject) {
 
 			// Display that we are mapping bus stops to the user.
-			this.activity.setMessage(fnsb.macstransit.R.string.mapping_bus_stops)
+			//this.activity.setMessage(fnsb.macstransit.R.string.mapping_bus_stops)
 
 			// Get the data from all the stops and store it in a JSONArray.
 			val data: org.json.JSONArray = RouteMatch.parseData(response)

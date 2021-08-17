@@ -1,23 +1,27 @@
-package fnsb.macstransit.activities
+package fnsb.macstransit.activities.splashactivity
 
 import android.content.Intent
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.os.Build
 import android.util.Log
 import android.util.Pair
 import android.view.View
-import android.widget.Button
-import android.widget.ProgressBar
-import android.widget.TextView
 import androidx.annotation.AnyThread
 import androidx.annotation.UiThread
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import fnsb.macstransit.R
-import fnsb.macstransit.activities.splashscreenrunnables.SplashListener
+import fnsb.macstransit.activities.MapsActivity
+import fnsb.macstransit.activities.splashactivity.splashscreenrunnables.DownloadMasterSchedule
+import fnsb.macstransit.activities.splashactivity.splashscreenrunnables.SplashListener
+import fnsb.macstransit.databinding.SplashscreenBinding
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.routematch.SharedStop
-import kotlin.math.roundToInt
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Created by Spud on 2019-11-04 for the project: MACS Transit.
@@ -29,24 +33,21 @@ import kotlin.math.roundToInt
 class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 
 	/**
-	 * The TextView widget in the activity.
+	 * Documentation
 	 */
-	private var textView: TextView? = null
-
-	/**
-	 * The ProgressBar widget in the activity.
-	 */
-	private var progressBar: ProgressBar? = null
-
-	/**
-	 * The Button widget in the activity.
-	 */
-	private var button: Button? = null
+	lateinit var viewModel: SplashViewModel
+	private set
 
 	/**
 	 * Documentation
 	 */
-	private var routeMatch: RouteMatch? = null
+	private lateinit var binding: SplashscreenBinding
+
+	/**
+	 * Documentation
+	 */
+	lateinit var routeMatch: RouteMatch
+	private set
 
 	/**
 	 * Documentation
@@ -61,13 +62,16 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 	override fun onCreate(savedInstanceState: android.os.Bundle?) {
 		super.onCreate(savedInstanceState)
 
-		// Set the view to that of the splash screen.
-		this.setContentView(R.layout.splashscreen)
+		// Setup view model.
+		this.viewModel = ViewModelProvider(this).get(SplashViewModel::class.java)
 
-		// Find the widgets of use in the splash screen, and assign them to their own private variables.
-		this.textView = this.findViewById(R.id.textView)
-		this.progressBar = this.findViewById(R.id.progressBar)
-		this.button = this.findViewById(R.id.button)
+		// Setup data binding.
+		this.binding = SplashscreenBinding.inflate(this.layoutInflater)
+		this.binding.viewmodel = this.viewModel
+		this.binding.lifecycleOwner = this
+
+		// Set the view to that of the splash screen.
+		this.setContentView(binding.root)
 
 		// Comments
 		this.routeMatch = RouteMatch("https://fnsb.routematch.com/feed/", this)
@@ -76,64 +80,84 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		// In the debug build you can click on the logo to launch right into the maps activity.
 		// This is mainly for a bypass on Sundays. :D
 		if (fnsb.macstransit.BuildConfig.DEBUG) {
-			this.findViewById<View>(R.id.logo).setOnClickListener { launchMapsActivity() }
-		}
-
-		// Comments
-		if (this.button == null) {
-			return
+			this.binding.logo.setOnClickListener { this.launchMapsActivity() }
 		}
 
 		// Set the button widget to have no current onClickListener, and set it to be invisible for now.
-		this.button!!.setOnClickListener(null)
-		this.button!!.visibility = View.INVISIBLE
+		this.binding.button.setOnClickListener(null)
+		this.binding.button.visibility = View.INVISIBLE
 
-		// Comments
-		if (this.progressBar == null) {
-			return
-		}
-
-		// Setup the progress bar by defining its max, and if the SDK supports it, assign its min as well.
-		this.progressBar!!.max = 100
+		// If the SDK supports it, assign the progress minimum.
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			this.progressBar!!.min = 0
+			this.binding.progressBar.min = 0
 		}
 
 		// Make sure the progress bar is visible to the user.
-		this.progressBar!!.visibility = View.VISIBLE
+		this.binding.progressBar.visibility = View.VISIBLE
+
+		// Set how the progress bar updates.
+		this.viewModel.currentProgress.observe(this, {
+
+			// Set the progress to indeterminate if its less than 1.
+			this.binding.progressBar.isIndeterminate = it <= 0.0
+
+			// Animate the progress bar.
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+				this.binding.progressBar.setProgress(it, true)
+			} else {
+
+				// Comments
+				this.binding.progressBar.progress = it
+			}
+		})
+
+		// Set how the progress bar appears and disappears.
+		this.viewModel.progressBarVisible.observe(this, {
+			if (it) {
+				this.binding.progressBar.visibility = View.VISIBLE
+			} else {
+				this.binding.progressBar.visibility = View.INVISIBLE
+			}
+		})
 	}
 
 	override fun onResume() {
 		super.onResume()
 
-		// Comments
-		if (this.textView == null || this.progressBar == null || this.button == null) {
-			return
+		this.lifecycleScope.launch {
+
+			val hasInternet = async(start = CoroutineStart.UNDISPATCHED) {
+
+				// Check if the user has internet before continuing.
+				this@SplashActivity.viewModel.setMessage(R.string.internet_check)
+				withContext(Dispatchers.IO) {this@SplashActivity.viewModel.hasInternet()}
+			}
+
+			// Initialize the progress bar to 0.
+			this@SplashActivity.viewModel.setProgressBar(0.0)
+			this@SplashActivity.viewModel.showProgressBar()
+
+			// Make sure the dynamic button is invisible.
+			this@SplashActivity.binding.button.visibility = View.INVISIBLE
+
+			Log.d("onResume", "Waiting for internet check...")
+			if (!hasInternet.await()) {
+				this@SplashActivity.noInternet()
+				return@launch
+			}
+
+			// Get the master schedule from the RouteMatch server
+			Log.d("onResume", "Has internet!")
+			this@SplashActivity.viewModel.setProgressBar(-1.0)
+			this@SplashActivity.viewModel.setMessage(R.string.downloading_master_schedule)
+
+			val downloadJob = DownloadMasterSchedule(this@SplashActivity)
+			async(start = CoroutineStart.UNDISPATCHED) { withContext(Dispatchers.IO) { downloadJob.download() }}
+
+			Log.d("onResume", "End of lifecycle")
 		}
 
-		// Initialize the progress bar to 0.
-		this.progressBar!!.visibility = View.VISIBLE
-		this.setProgressBar(0.0)
-
-		// Make sure the dynamic button is invisible.
-		this.button!!.visibility = View.INVISIBLE
-
-		// Check if the user has internet before continuing.
-		this.setMessage(R.string.internet_check)
-		if (!this.hasInternet()) {
-			this.noInternet()
-			return
-		}
-
-		// Get the master schedule from the RouteMatch server
-		this.setProgressBar(-1.0)
-		this.setMessage(R.string.downloading_master_schedule)
-		this.routeMatch!!.callMasterSchedule(fnsb.macstransit.activities.splashscreenrunnables.MasterScheduleCallback(this), {
-			error: com.android.volley.VolleyError ->
-			Log.w("initializeApp", "MasterSchedule callback error", error)
-			this.setMessage(R.string.routematch_timeout)
-			this.showRetryButton()
-		})
+		Log.d("onResume", "End of onResume")
 	}
 
 	override fun onPause() {
@@ -174,19 +198,19 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 	 * Documentation
 	 * Comments
 	 */
-	fun downloadBusRoutes() {
+	fun downloadBusRoutes() { // TODO Make this a co-routine.
 
 		if (MapsActivity.allRoutes == null) {
 			return  // TODO Log
 		}
 
-		this.setMessage(R.string.loading_bus_routes)
-		this.setProgressBar((DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE).toDouble())
-		val mapBusRoutes = fnsb.macstransit.activities.splashscreenrunnables.MapBusRoutes(routeMatch!!)
+		this.viewModel.setMessage(R.string.loading_bus_routes)
+		this.viewModel.setProgressBar((DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE).toDouble())
+		val mapBusRoutes = fnsb.macstransit.activities.splashactivity.splashscreenrunnables.MapBusRoutes(routeMatch)
 
 		for (route in MapsActivity.allRoutes!!) {
 			mapBusProgress--
-			val pair = Pair<Route, SplashListener>(route, fnsb.macstransit.activities.splashscreenrunnables.DownloadBusRoutes(this))
+			val pair = Pair<Route, SplashListener>(route, fnsb.macstransit.activities.splashactivity.splashscreenrunnables.DownloadBusRoutes(this))
 			mapBusRoutes.addListener(pair)
 		}
 		mapBusRoutes.getBusRoutes(this)
@@ -207,15 +231,15 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 			return
 		}
 
-		this.setMessage(R.string.loading_bus_stops)
-		this.setProgressBar(
+		this.viewModel.setMessage(R.string.loading_bus_stops)
+		this.viewModel.setProgressBar(
 				(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES).toDouble())
-		val mapBusStops = fnsb.macstransit.activities.splashscreenrunnables.MapBusStops(routeMatch!!)
+		val mapBusStops = fnsb.macstransit.activities.splashactivity.splashscreenrunnables.MapBusStops(routeMatch)
 
 		// Iterate thorough all the routes to load each stop.
 		for (route in MapsActivity.allRoutes!!) {
 			mapStopProgress--
-			val pair = Pair<Route, SplashListener>(route, fnsb.macstransit.activities.splashscreenrunnables.DownloadBusStops(this))
+			val pair = Pair<Route, SplashListener>(route, fnsb.macstransit.activities.splashactivity.splashscreenrunnables.DownloadBusStops(this))
 			mapBusStops.addListener(pair)
 		}
 		mapBusStops.getBusStops(this)
@@ -231,14 +255,14 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 	private fun noInternet() {
 
 		// First, hide the progress bar.
-		this.progressBar!!.visibility = View.INVISIBLE
+		this.viewModel.hideProgressBar()
 
 		// Then, set the message of the text view to notify the user that there is no internet connection.
-		this.setMessage(R.string.cannot_connect_internet)
+		this.viewModel.setMessage(R.string.cannot_connect_internet)
 
 		// Then setup the button to open the internet settings when clicked on, and make it visible.
-		this.button!!.setText(R.string.open_network_settings)
-		this.button!!.setOnClickListener {
+		this.binding.button.setText(R.string.open_network_settings)
+		this.binding.button.setOnClickListener {
 			this.startActivity(Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS))
 
 			// Also, close this application when clicked
@@ -246,62 +270,10 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		}
 
 		// Set the button to invisible.
-		this.button!!.visibility = View.VISIBLE
+		this.binding.button.visibility = View.VISIBLE
 
 		// Since technically everything (which is nothing) has been loaded, set the variable as so
 		loaded = true
-	}
-
-	/**
-	 * Checks if the device has a current internet connection.
-	 *
-	 * @return Whether or not the device has an internet connection.
-	 */
-	@UiThread
-	private fun hasInternet(): Boolean {
-
-		// Get the connectivity manager for the device.
-		val connectivityManager: ConnectivityManager = this.applicationContext
-				.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-		// Check the current API version (as behavior changes in later APIs).
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-
-			// Newer API.
-			// Comments
-			val network: android.net.Network? = connectivityManager.activeNetwork
-			val networkCapabilities: NetworkCapabilities =
-					connectivityManager.getNetworkCapabilities(network) ?: return false
-
-			// Comments
-			return when {
-				// WiFi
-				networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-
-				// Cellular Data
-				networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-
-				// Ethernet
-				networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
-
-				// Bluetooth
-				networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) -> true
-
-				// No connectivity.
-				else -> false
-			}
-
-		} else {
-
-			// Older API.
-			// Comments
-			@Suppress("Deprecation")
-			val networkInfo: android.net.NetworkInfo = connectivityManager.activeNetworkInfo ?: return false
-
-			@Suppress("Deprecation")
-			return networkInfo.isConnected
-
-		}
 	}
 
 	/**
@@ -313,7 +285,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 	private fun mapSharedStops() {
 
 		// Let the user know that we are checking for shared bus stops at this point.
-		this.setMessage(R.string.shared_bus_stop_check)
+		this.viewModel.setMessage(R.string.shared_bus_stop_check)
 
 		// Verify that allRoutes is not null. If it is then log and return early.
 		if (MapsActivity.allRoutes == null) {
@@ -374,7 +346,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 
 			// Update the progress.
 			currentProgress += step
-			setProgressBar(currentProgress)
+			this.viewModel.setProgressBar(currentProgress)
 		}
 	}
 
@@ -385,7 +357,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 	private fun validateStops() {
 
 		// Let the user know that we are validating the stops (and shared stop) for each route.
-		this.setMessage(R.string.stop_validation)
+		this.viewModel.setMessage(R.string.stop_validation)
 
 		// Verify that allRoutes is not null. If it is then log and return early.
 		if (MapsActivity.allRoutes == null) {
@@ -412,7 +384,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 
 			// Update the progress.
 			currentProgress += step
-			setProgressBar(currentProgress)
+			this.viewModel.setProgressBar(currentProgress)
 		}
 	}
 
@@ -428,72 +400,11 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		MapsActivity.selectedFavorites = false
 
 		val mapsIntent = Intent(this, MapsActivity::class.java)
-		mapsIntent.putExtra("RouteMatch", routeMatch!!.url)
+		mapsIntent.putExtra("RouteMatch", routeMatch.url)
 
 		// Start the MapsActivity, and close this splash activity.
 		this.startActivity(mapsIntent)
 		this.finishAfterTransition()
-	}
-
-	/**
-	 * Sets the message content to be displayed to the user on the splash screen.
-	 *
-	 * @param resID The string ID of the message. This can be retrieved by calling R.string.STRING_ID.
-	 */
-	@AnyThread
-	fun setMessage(@androidx.annotation.StringRes resID: Int) {
-
-		// Since we are changing a TextView element, the following needs to be run on the UI thread.
-		this.runOnUiThread {
-
-			// Make sure the text view is not null.
-			if (textView != null) {
-
-				// Set the TextView text to that of the message.
-				textView!!.setText(resID)
-			} else {
-
-				// Since the TextView is null, log that it hasn't been initialized yet.
-				Log.w("setMessage", "TextView has not been initialized yet")
-			}
-		}
-	}
-
-	/**
-	 * Update the progress bar to the current progress.
-	 *
-	 * @param progress The current progress out of SplashActivity.maxProgress.
-	 */
-	@AnyThread
-	fun setProgressBar(progress: Double) {
-		Log.v("setProgressBar", "Provided progress: $progress")
-
-		// Because we are updating UI elements we need to run the following on the UI thread.
-		this.runOnUiThread {
-
-			// Convert the progress to be an int out of 100.
-			var p: Int = (progress / MAX_PROGRESS * 100).roundToInt()
-
-			// Validate that that the progress is between 0 and 100.
-			p = if (p > 100) 100 else kotlin.math.max(p, 0)
-
-			// Make sure the progress bar is not null.
-			if (this.progressBar == null) {
-
-				// Log that the progress bar has not been set up yet.
-				Log.w("setProgressBar", "Progressbar has not been initialized yet")
-			}
-
-			// Set the progress to indeterminate if its less than 1.
-			this.progressBar!!.isIndeterminate = progress < 0.0
-
-			// Apply the progress to the progress bar, and animate it if its supported in the SDK.
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-				progressBar!!.setProgress(p, true)
-			} else {
-				progressBar!!.progress = p
-			}
-		}
 	}
 
 	/**
@@ -507,12 +418,12 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		this.runOnUiThread {
 
 			// First hide the progress bar since it is no longer of use.
-			this.progressBar!!.visibility = View.INVISIBLE
+			this.viewModel.hideProgressBar()
 
 			// Then setup the button to relaunch the activity, and make it visible.
-			this.button!!.setText(R.string.retry)
-			this.button!!.setOnClickListener { this.onResume() }
-			this.button!!.visibility = View.VISIBLE
+			this.binding.button.setText(R.string.retry)
+			this.binding.button.setOnClickListener { this.onResume() }
+			this.binding.button.visibility = View.VISIBLE
 		}
 	}
 
@@ -580,4 +491,5 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		 */
 		var loaded = false
 	}
+
 }

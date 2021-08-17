@@ -1,8 +1,8 @@
-package fnsb.macstransit.activities.splashscreenrunnables
+package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
 
 import android.util.Log
 import fnsb.macstransit.activities.MapsActivity
-import fnsb.macstransit.activities.SplashActivity
+import fnsb.macstransit.activities.splashactivity.SplashActivity
 
 /**
  * Created by Spud on 8/16/21 for the project: MACS Transit.
@@ -21,7 +21,7 @@ class DownloadBusRoutes(private val activity: SplashActivity) : SplashListener {
 		}
 
 		// Update progress. FIXME There is an issue with this getting called one last time from MapBusStops!
-		this.activity.setProgressBar(progress + step + MapsActivity.allRoutes!!.size + this.activity.mapBusProgress)
+		//this.activity.setProgressBar(progress + step + MapsActivity.allRoutes!!.size + this.activity.mapBusProgress)
 	}
 
 	companion object {

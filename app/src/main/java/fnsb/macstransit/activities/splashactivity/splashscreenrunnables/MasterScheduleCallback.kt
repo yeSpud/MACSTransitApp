@@ -1,8 +1,8 @@
-package fnsb.macstransit.activities.splashscreenrunnables
+package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
 
 import android.util.Log
 import fnsb.macstransit.activities.MapsActivity
-import fnsb.macstransit.activities.SplashActivity
+import fnsb.macstransit.activities.splashactivity.SplashActivity
 import fnsb.macstransit.R
 import fnsb.macstransit.routematch.Route
 import org.json.JSONObject
@@ -14,13 +14,14 @@ import org.json.JSONObject
  * @version 2.0.
  * @since Release 1.2.6.
  */
-class MasterScheduleCallback (private val activity: SplashActivity) : com.android.volley.Response.Listener<JSONObject> {
+@Deprecated("Use DownloadMasterSchedule")
+class MasterScheduleCallback(private val activity: SplashActivity) : com.android.volley.Response.Listener<JSONObject> {
 
 	override fun onResponse(response: JSONObject) { // Comments
 
 		// Set the progress and message.
-		this.activity.setProgressBar(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble())
-		this.activity.setMessage(R.string.loading_bus_routes)
+		//this.activity.setProgressBar(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble())
+		//this.activity.setMessage(R.string.loading_bus_routes)
 
 		// Get the routes from the JSONObject
 		val routes = fnsb.macstransit.routematch.RouteMatch.parseData(response)
@@ -28,7 +29,7 @@ class MasterScheduleCallback (private val activity: SplashActivity) : com.androi
 		// If the routes length is 0, say that there are no buses for the day.
 		val count = routes.length()
 		if (count == 0) {
-			this.activity.setMessage(R.string.its_sunday)
+			//this.activity.setMessage(R.string.its_sunday)
 
 			// Also add a chance for the user to retry.
 			this.activity.showRetryButton()
@@ -41,7 +42,7 @@ class MasterScheduleCallback (private val activity: SplashActivity) : com.androi
 		var routeCount = 0
 		val step = SplashActivity.PARSE_MASTER_SCHEDULE.toDouble() / count
 		var progress = SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble()
-		this.activity.setMessage(R.string.parsing_master_schedule)
+		//this.activity.setMessage(R.string.parsing_master_schedule)
 
 		// Iterate though each route in the master schedule.
 		for (index in 0 until count) {
@@ -67,7 +68,7 @@ class MasterScheduleCallback (private val activity: SplashActivity) : com.androi
 			} catch (e: java.io.UnsupportedEncodingException) {
 				Log.w("MasterScheduleCallback", "Issue creating route from route data", e)
 			}
-			this.activity.setProgressBar(progress + step)
+			//this.activity.setProgressBar(progress + step)
 			progress += step
 		}
 

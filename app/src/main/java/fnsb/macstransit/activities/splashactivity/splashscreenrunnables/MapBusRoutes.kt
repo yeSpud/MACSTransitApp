@@ -1,10 +1,10 @@
-package fnsb.macstransit.activities.splashscreenrunnables
+package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
 
 import android.util.Log
 import android.util.Pair
 import com.google.android.gms.maps.model.LatLng
 import fnsb.macstransit.activities.MapsActivity
-import fnsb.macstransit.activities.SplashActivity
+import fnsb.macstransit.activities.splashactivity.SplashActivity
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 import org.json.JSONArray
@@ -63,7 +63,7 @@ class MapBusRoutes(private val routeMatch: RouteMatch) {
 				Log.w("getBusRoutes", "Unable to get polyline from routematch server", error)
 			}, this)
 			progress += step
-			activity.setProgressBar(progress)
+			//activity.setProgressBar(progress)
 		}
 	}
 
@@ -78,7 +78,7 @@ class MapBusRoutes(private val routeMatch: RouteMatch) {
 			}
 
 			// Display that we are mapping bus routes to the user.
-			this.activity.setMessage(fnsb.macstransit.R.string.mapping_bus_routes)
+			//this.activity.setMessage(fnsb.macstransit.R.string.mapping_bus_routes)
 			try {
 
 				// Get the land route data array from the land route object.
