@@ -44,11 +44,7 @@ class DownloadBusRoutes(private val activity: SplashActivity) {
 	internal inner class BusRoutesCallback(private val continuation: Continuation<JSONObject>,
 	                                       private val route: Route) : com.android.volley.Response.Listener<JSONObject> {
 
-		override fun onResponse(response: JSONObject) { // Comments
-
-			if (MapsActivity.allRoutes == null) {
-				return  // TODO Log
-			}
+		override fun onResponse(response: JSONObject) {
 
 			// Display that we are mapping bus routes to the user.
 			this@DownloadBusRoutes.activity.viewModel.setMessage(fnsb.macstransit.R.string.mapping_bus_routes)
