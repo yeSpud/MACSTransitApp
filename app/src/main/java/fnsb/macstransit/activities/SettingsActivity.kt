@@ -26,8 +26,8 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 	/**
 	 * Documentation
 	 */
-	private val settings = fnsb.macstransit.settings.CurrentSettings.settingsImplementation as
-			fnsb.macstransit.settings.V2
+	val settings =
+			fnsb.macstransit.settings.CurrentSettings.settingsImplementation as fnsb.macstransit.settings.V2
 
 	override fun onCreate(savedInstanceState: android.os.Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -39,19 +39,6 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 		this.setContentView(this.binding.root)
 
 		// TODO Move the following to xml
-		// Setup the checkboxes.
-		// Traffic box is used to determine whether or not to show the traffic overlay.
-		this.binding.traffic.isChecked = this.settings.traffic
-
-		// Dark theme box is used to determine whether or not to start the ap with a dark themed map.
-		this.binding.nightMode.isChecked = this.settings.darktheme
-
-		// Polylines is used to determine whether or not to show polylines for routes.
-		this.binding.polylines.isChecked = this.settings.polylines
-
-		// Streetview box would be used to activate the streetview easter egg if it were not deprecated.
-		this.binding.VR.isChecked = this.settings.streetView
-
 		// Setup the radio buttons.
 		when (this.settings.maptype) {
 			GoogleMap.MAP_TYPE_SATELLITE -> this.binding.mapGroup.check(R.id.satellite_map)
@@ -59,23 +46,14 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			else -> this.binding.mapGroup.check(R.id.normal_map)
 		}
 
-		// Setup the favorites container.
-		addToFavoritesContainer()
-
 		// Setup the buttons.
 		// The apply settings button should run the apply settings listener.
 		this.binding.apply.setOnClickListener(ApplySettings())
 
 		// The cancel button should just finish the class and return.
 		this.binding.cancel.setOnClickListener { this.finish() }
-	}
 
-	/**
-	 * Creates new favorite route checkboxes for all the routes that can be tracked,
-	 * and adds them to the favorite routes container.
-	 */
-	private fun addToFavoritesContainer() {
-
+		// Setup the favorites container.
 		// Make sure there are routes to iterate though.
 		if (MapsActivity.allRoutes == null) {
 			return
@@ -96,8 +74,9 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			checkBox.setTextColor(this.resources.getColor(R.color.white))
 
 			// Add button tint if the sdk supports it.
-			checkBox.buttonTintList = androidx.appcompat.content.res.AppCompatResources.
-			getColorStateList(this, R.color.white)
+			checkBox.buttonTintList =
+					androidx.appcompat.content.res.AppCompatResources.getColorStateList(this,
+					                                                                    R.color.white)
 
 			// Set the checkbox tag to the route object.
 			checkBox.tag = route
@@ -175,7 +154,8 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			}
 
 			// Write that string to the file
-			this@SettingsActivity.settings.writeSettingsToFile(json.toString(), this@SettingsActivity)
+			this@SettingsActivity.settings.writeSettingsToFile(json.toString(),
+			                                                   this@SettingsActivity)
 
 			// Reload the settings.
 			this@SettingsActivity.settings.parseSettings(json)
@@ -192,7 +172,8 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 		private fun favoritedRoutes(): Array<Route> {
 
 			// Get the number of potential favorite routes.
-			val potentialRoutesCount: Int = this@SettingsActivity.binding.favoriteRouteContainer.childCount
+			val potentialRoutesCount: Int =
+					this@SettingsActivity.binding.favoriteRouteContainer.childCount
 			Log.d("getFavoritedRoutes", "Potential count: $potentialRoutesCount")
 
 			// Create an array of potential routes.
@@ -204,7 +185,8 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			for (i in 0 until potentialRoutesCount) {
 
 				// Get a specific checkbox from the favorites container.
-				val box: CheckBox = this@SettingsActivity.binding.favoriteRouteContainer.getChildAt(i) as CheckBox
+				val box: CheckBox = this@SettingsActivity.binding.favoriteRouteContainer.getChildAt(
+						i) as CheckBox
 
 				// Add the route to the array if its checked.
 				if (box.isChecked) {
