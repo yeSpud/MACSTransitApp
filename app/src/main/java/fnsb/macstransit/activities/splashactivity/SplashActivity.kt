@@ -55,7 +55,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		this.binding.lifecycleOwner = this
 
 		// Set the view to that of the splash screen.
-		this.setContentView(binding.root)
+		this.setContentView(this.binding.root)
 
 		// Comments
 		this.routeMatch = RouteMatch("https://fnsb.routematch.com/feed/", this)
