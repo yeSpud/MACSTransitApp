@@ -1,4 +1,4 @@
-package fnsb.macstransit.threads
+package fnsb.macstransit.activities.mapsactivity
 
 import android.util.Log
 import com.google.android.gms.maps.GoogleMap
@@ -13,7 +13,7 @@ import org.json.JSONObject
  * @since Release 1.3.
  */
 class UpdateCoroutine(private val updateFrequency: Long,
-                      private val mapsViewModel: fnsb.macstransit.activities.mapsactivity.MapsViewModel,
+                      private val mapsViewModel: MapsViewModel,
                       map: GoogleMap) {
 
 	/**
@@ -24,8 +24,11 @@ class UpdateCoroutine(private val updateFrequency: Long,
 	/**
 	 * Documentation
 	 */
-	var state: STATE = STATE.RUN
+	var run: Boolean = false
 
+	/**
+	 * Documentation
+	 */
 	var isRunning: Boolean = false
 	private set
 
@@ -37,55 +40,27 @@ class UpdateCoroutine(private val updateFrequency: Long,
 		Log.i("UpdateCoroutine", "Starting up...")
 		this.isRunning = true
 
-		while(this.state != STATE.STOP) {
+		while(this.run) {
 
 			Log.d("UpdateCoroutine", "Looping...")
 
 			// Comments
 			this.mapsViewModel.routeMatch.networkQueue.cancelAll(this)
 
-			when(this.state) {
 
-				STATE.RUN -> {
+			this.mapsViewModel.routeMatch.callVehiclesByRoutes(this.callback, {
+				error: com.android.volley.VolleyError ->
+				Log.w("UpdateCoroutine", "Unable to fetch buses", error)
+			}, this, *MapsActivity.allRoutes)
 
-					this.mapsViewModel.routeMatch.callVehiclesByRoutes(this.callback, {
-						error: com.android.volley.VolleyError ->
-						Log.w("UpdateCoroutine", "Unable to fetch buses", error)
-					}, this, *fnsb.macstransit.activities.mapsactivity.MapsActivity.allRoutes)
-
-					Log.v("UpdateCoroutine", "Waiting for ${this.updateFrequency} milliseconds")
-					kotlinx.coroutines.delay(this.updateFrequency)
-				}
-
-				STATE.STOP -> {
-					// Comments
-					Log.i("UpdateCoroutine", "Stopping coroutine...")
-					break
-				}
-
-			}
+			Log.v("UpdateCoroutine", "Waiting for ${this.updateFrequency} milliseconds")
+			kotlinx.coroutines.delay(this.updateFrequency)
 
 		}
 
 		this.isRunning = false
 		Log.i("UpdateCoroutine", "Shutting down...") // FIXME Doesn't seem to shutdown on rotation...
 
-	}
-
-	/**
-	 * Documentation
-	 */
-	enum class STATE {
-
-		/**
-		 * Documentation
-		 */
-		RUN,
-
-		/**
-		 * Documentation
-		 */
-		STOP
 	}
 
 	/**

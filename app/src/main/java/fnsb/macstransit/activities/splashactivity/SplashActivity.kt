@@ -209,7 +209,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 
 		for (i in MapsActivity.allRoutes.indices) {
 			mapBusProgress--
-			async(start = CoroutineStart.UNDISPATCHED) {
+			launch(start = CoroutineStart.UNDISPATCHED) {
 				downloadBusRoutes.downloadRoute(MapsActivity.allRoutes[i], i)
 
 				// Update progress.
@@ -245,7 +245,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		for (i in MapsActivity.allRoutes.indices) {
 			mapStopProgress--
 
-			async(start = CoroutineStart.UNDISPATCHED) {
+			launch(start = CoroutineStart.UNDISPATCHED) {
 				mapBusStops.downloadBusStops(MapsActivity.allRoutes[i], i)
 
 				this@SplashActivity.viewModel.setProgressBar(

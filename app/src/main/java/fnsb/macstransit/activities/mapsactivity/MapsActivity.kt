@@ -19,7 +19,7 @@ import fnsb.macstransit.activities.InfoWindowAdapter
 import fnsb.macstransit.activities.PopupWindow
 import fnsb.macstransit.activities.SettingsActivity
 import fnsb.macstransit.databinding.ActivityMapsBinding
-import fnsb.macstransit.threads.UpdateCoroutine
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONException
@@ -88,37 +88,44 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 		Log.v("onDestroy", "onDestroy called!")
 		super.onDestroy()
 
-		// Iterate though each route to get access to its shared stops and regular stops.
-		for (route in allRoutes) { // TODO Coroutine?
+		// Launch the following as a cleanup job (that way we can essentially multi-thread the onDestroy process)
+		lifecycleScope.launch(Dispatchers.Main, start=CoroutineStart.UNDISPATCHED) {
+			Log.i("onDestroy", "Beginning onDestroy cleanup coroutine...")
 
-			// Iterate though each stop.
-			Log.d("onDestroy", "Removing stop circles")
-			for (stop in route.stops) {
+			// Iterate though each route to get access to its shared stops and regular stops.
+			for (route in allRoutes) {
 
-				// Remove the stop's circle.
-				stop.removeStopCircle()
+				// Iterate though each stop.
+				Log.d("onDestroy", "Removing stop circles")
+				for (stop in route.stops) {
 
-				// Remove stop's marker.
-				stop.removeMarker()
+					// Remove the stop's circle.
+					stop.removeStopCircle()
+
+					// Remove stop's marker.
+					stop.removeMarker()
+				}
+
+				// Get the shared stops for the route.
+				Log.d("onDestroy", "Removing shared stop circles")
+				val sharedStops = route.sharedStops
+
+				// Iterate though each shared stop.
+				for (sharedStop in sharedStops) {
+
+					// Remove each shared stop circles.
+					sharedStop.removeSharedStopCircles()
+
+					// Remove the shared stop's marker.
+					sharedStop.removeMarker()
+				}
+
+				// Remove route polylines.
+				Log.d("onDestroy", "Removing route polyline")
+				route.removePolyline()
 			}
 
-			// Get the shared stops for the route.
-			Log.d("onDestroy", "Removing shared stop circles")
-			val sharedStops = route.sharedStops
-
-			// Iterate though each shared stop.
-			for (sharedStop in sharedStops) {
-
-				// Remove each shared stop circles.
-				sharedStop.removeSharedStopCircles()
-
-				// Remove the shared stop's marker.
-				sharedStop.removeMarker()
-			}
-
-			// Remove route polylines.
-			Log.d("onDestroy", "Removing route polyline")
-			route.removePolyline()
+			Log.i("onDestroy", "Finished onDestroy cleanup coroutine")
 		}
 
 		// Iterate though all the buses, and remove its marker.
@@ -129,13 +136,15 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 
 		// TODO Stop the update coroutine
 		if (this.updater != null) {
-			this.updater!!.state = UpdateCoroutine.STATE.STOP
+			this.updater!!.run = false
 		}
 
 		// Be sure to clear the map.
 		if (this.map != null) {
 			this.map!!.clear()
 		}
+
+		Log.i("onDestroy", "Finished onDestroy")
 	}
 
 	override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -284,12 +293,7 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 
 		// Resume the coroutine
 		if (this.updater != null) {
-			this.updater!!.state = UpdateCoroutine.STATE.RUN
-			if (!this.updater!!.isRunning) {
-				lifecycleScope.launch(Dispatchers.Main) {
-					this@MapsActivity.updater!!.start()
-				}
-			}
+			this.runUpdater()
 		}
 	}
 
@@ -299,7 +303,7 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 
 		// Stop the coroutine
 		if (this.updater != null) {
-			this.updater!!.state = UpdateCoroutine.STATE.STOP
+			this.updater!!.run = false
 		}
 	}
 
@@ -341,12 +345,7 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 
 		// TODO Update coroutine
 		this.updater = UpdateCoroutine(5000, this.viewModel, this.map!!)
-		this.updater!!.state = UpdateCoroutine.STATE.RUN
-		if (!this.updater!!.isRunning) {
-			lifecycleScope.launch(Dispatchers.Main) {
-				this@MapsActivity.updater!!.start()
-			}
-		}
+		this.runUpdater()
 	}
 
 	/**
@@ -398,6 +397,19 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 			}
 		} else {
 			Log.w("updateMapSettings", "Map is not yet ready!")
+		}
+	}
+
+	/**
+	 * Documentation
+	 * Comments
+	 */
+	private fun runUpdater() {
+		this.updater!!.run = true
+		if (!this.updater!!.isRunning) {
+			lifecycleScope.launch(Dispatchers.Main) {
+				this@MapsActivity.updater!!.start()
+			}
 		}
 	}
 
