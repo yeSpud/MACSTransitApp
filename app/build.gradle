@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion 30
@@ -25,6 +26,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    buildFeatures {
+        viewBinding true
+        dataBinding true
+    }
     compileOptions {
         sourceCompatibility = 1.8
         targetCompatibility = 1.8
@@ -43,6 +48,8 @@ dependencies {
     implementation 'org.jetbrains:annotations:22.0.0'
     implementation 'com.android.volley:volley:1.2.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.1-native-mt'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.json:json:20210307'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

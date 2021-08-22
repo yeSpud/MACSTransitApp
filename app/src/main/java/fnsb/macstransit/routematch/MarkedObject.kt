@@ -12,7 +12,7 @@ import com.google.android.gms.maps.model.Marker
  * @version 2.0.
  * @since Beta 8.
  */
-open class MarkedObject(val name: String) {
+open class MarkedObject(val name: String, var location: LatLng) {
 
 	/**
 	 * The marker of the marker of the marked object.
@@ -21,13 +21,37 @@ open class MarkedObject(val name: String) {
 	var marker: Marker? = null
 		private set
 
+	override fun equals(other: Any?): Boolean { // Comments
+
+		if (other == null) {
+			return false
+		}
+
+		return if (other is Stop) {
+
+			this.location.latitude == other.location.latitude &&
+			this.location.longitude == other.location.longitude && this.name == other.name
+
+		} else {
+			false
+		}
+	}
+
+	override fun hashCode(): Int { // Comments
+		var result = name.hashCode()
+		result = (31 * result) + location.hashCode()
+		result = (31 * result) + (marker?.hashCode() ?: 0)
+		return result
+	}
+
 	/**
 	 * Documentation
 	 */
 	@UiThread
-	fun updateLocation(latitude: Double, longitude: Double) {
+	fun updateLocation(updatedLocation: LatLng) {
+		this.location = updatedLocation
 		if (this.marker != null) {
-			this.marker!!.position = LatLng(latitude, longitude)
+			this.marker!!.position = this.location
 		}
 	}
 
@@ -36,19 +60,18 @@ open class MarkedObject(val name: String) {
 	 * It only adds it to the map, and returns the newly added marker.
 	 *
 	 * @param map         The map to add the marker to.
-	 * @param coordinates The LatLng coordinates of the marker.
 	 * @param color       The color of the marker.
 	 * This will try to get the closest approximation to the color as there are a limited number of marker colors.
 	 * @return The newly added marker.
 	 */
 	@UiThread
-	fun addMarker(map: com.google.android.gms.maps.GoogleMap, coordinates: LatLng, color: Int) {
+	fun addMarker(map: com.google.android.gms.maps.GoogleMap, color: Int) {
 
 		// Create a new maker options object
 		val options = com.google.android.gms.maps.model.MarkerOptions()
 
 		// Set the position of the marker via the latitude and longitude.
-		options.position(coordinates)
+		options.position(this.location)
 
 		// Set the color of the marker.
 		Log.d("addMarker", "Applying marker color")

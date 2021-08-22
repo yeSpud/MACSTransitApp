@@ -1,6 +1,6 @@
 package fnsb.macstransit
 
-import fnsb.macstransit.activities.MapsActivity
+import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.routematch.SharedStop
@@ -174,7 +174,7 @@ class StopTest {
 
 					// If the shared routes array has more than one entry, create a new shared stop object.
 					if (sharedRoutes.size > 1) {
-						val sharedStop = SharedStop(stop.circleOptions.center, stop.name, sharedRoutes)
+						val sharedStop = SharedStop(stop.location, stop.name, sharedRoutes)
 
 						// Iterate though all the routes in the shared route, and add our newly created shared stop.
 						for (sharedRoute in sharedRoutes) {
@@ -193,10 +193,6 @@ class StopTest {
 				println("${route.routeName} route shared stops: ${sharedStops.size}\n")
 				Assert.assertEquals(sharedStopsCount[i], sharedStops.size)
 			}
-
-			// Reset all routes.
-			MapsActivity.allRoutes = null
-
 
 			// Test removal of stops that have shared stops.
 			val finalStops = ArrayList<Array<Stop>>(loadedFiles)

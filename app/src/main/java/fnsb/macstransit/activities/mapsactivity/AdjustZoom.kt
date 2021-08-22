@@ -1,8 +1,7 @@
-package fnsb.macstransit.activities.activitylisteners
+package fnsb.macstransit.activities.mapsactivity
 
 import android.util.Log
 import com.google.android.gms.maps.GoogleMap
-import fnsb.macstransit.activities.MapsActivity
 import kotlin.math.pow
 
 /**
@@ -38,11 +37,6 @@ class AdjustZoom(private val map: GoogleMap) : GoogleMap.OnCameraIdleListener {
 		@JvmStatic
 		fun resizeStops(map: GoogleMap) {
 
-			// Check that there are routes to iterate though for later on.
-			if (MapsActivity.allRoutes == null) {
-				return
-			}
-
 			/*
 			 * Calculate meters per pixel.
 			 * This will be used to determine the circle size as we want it it be 4 meters in size.
@@ -61,7 +55,7 @@ class AdjustZoom(private val map: GoogleMap) : GoogleMap.OnCameraIdleListener {
 			Log.d("resizeStops", "Setting circle size to: ${metersPerPixel * 4}")
 
 			// Iterate though each route.
-			for (route in MapsActivity.allRoutes!!) {
+			for (route in MapsActivity.allRoutes) {
 
 				// Start by resizing the stop circles first.
 				for (stop in route.stops) {

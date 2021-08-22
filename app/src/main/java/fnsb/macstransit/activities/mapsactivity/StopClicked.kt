@@ -1,11 +1,10 @@
-package fnsb.macstransit.activities.activitylisteners
+package fnsb.macstransit.activities.mapsactivity
 
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
-import fnsb.macstransit.activities.MapsActivity
 import fnsb.macstransit.R
 import fnsb.macstransit.routematch.MarkedObject
 import fnsb.macstransit.routematch.Route
@@ -42,19 +41,16 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 
 			// Get the location and color of the object
 			// (this is different depending on whether or not its a shared stop or a regular stop).
-			val location: com.google.android.gms.maps.model.LatLng
 			val color: Int
 			when (markedObject) {
 				is SharedStop -> {
 
-					// Get the location and color of the largest circle of our shared stop.
-					location = markedObject.location
+					// Get color of the largest circle of our shared stop.
 					color = markedObject.routes[0].color
 				}
 				is Stop -> {
 
-					// Get the location and color of our stop.
-					location = markedObject.circleOptions.center
+					// Get color of our stop.
 					color = markedObject.route.color
 				}
 				else -> {
@@ -67,7 +63,7 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 			}
 
 			// Create a new marker for our marked object using the newly determined location and color.
-			markedObject.addMarker(this.map, location, color)
+			markedObject.addMarker(this.map, color)
 		}
 
 		// Comments
@@ -98,13 +94,11 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 		// Get the name of the stop.
 		val name = marker.title ?: return
 
-		// If the name is null return early.
-
 		// For now just set the snippet text to "retrieving stop times" as a callback method gets the times.
 		marker.snippet = this.activity.getString(R.string.retrieving_stop_times)
 
 		// Retrieve the stop times.
-		this.activity.routeMatch.callDeparturesByStop(name, { result: JSONObject ->
+		this.activity.viewModel.routeMatch.callDeparturesByStop(name, { result: JSONObject ->
 
 			// Update the snippet text of the marker's info window.
 			Log.v("showMarker", "Updating snippet")
@@ -275,9 +269,8 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 						}
 
 						// Append the arrival and departure times to the snippet text.
-						snippetText.append("${context.getString(R.string.expected_arrival)} " +
-						                   "$arrivalTime\n${context.getString(R.string.expected_departure)}"
-						                   + " $departureTime\n\n")
+						snippetText.append("${context.getString(R.string.expected_arrival)} $arrivalTime\n" +
+						                   "${context.getString(R.string.expected_departure)} $departureTime\n\n")
 					}
 				}
 			}
@@ -334,7 +327,12 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 
 			// If the match was found, return it, if not return midnight.
 			return if (matcher.find()) {
-				matcher.group(0)
+				try {
+					matcher.group(0)!!
+				} catch (exception: NullPointerException) {
+					// TODO Log the exception
+					""
+				}
 			} else {
 				""
 			}
@@ -356,7 +354,7 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 			val fullTimeDate: Date = try {
 
 				// Try to get the 24 hour time as a date.
-				fullTime.parse(time)
+				fullTime.parse(time)!!
 			} catch (e: java.text.ParseException) {
 
 				// If there was a parsing exception simply return the old time.

@@ -2,7 +2,7 @@ package fnsb.macstransit
 
 import fnsb.macstransit.routematch.Bus
 import fnsb.macstransit.routematch.RouteMatch
-import fnsb.macstransit.activities.MapsActivity
+import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.routematch.Route.RouteException
 import fnsb.macstransit.routematch.Route
 import org.json.JSONArray
@@ -47,8 +47,8 @@ class BusTest {
 				val bus: Bus = buses[i]
 				Assert.assertEquals(ids[i], bus.name)
 				Assert.assertSame(Objects.requireNonNull(MapsActivity.allRoutes)[i], bus.route)
-				Assert.assertEquals(lat[i], bus.latitude, 0.0)
-				Assert.assertEquals(lon[i], bus.longitude, 0.0)
+				Assert.assertEquals(lat[i], bus.location.latitude, 0.0)
+				Assert.assertEquals(lon[i], bus.location.longitude, 0.0)
 			}
 		} catch (e: JSONException) {
 			e.printStackTrace()
@@ -74,9 +74,9 @@ class BusTest {
 			for (i in 0 until busArray.length()) {
 				val bus = Bus(busArray.getJSONObject(i))
 				Assert.assertEquals(ids[i], bus.name)
-				Assert.assertSame(MapsActivity.allRoutes!![i], bus.route)
-				Assert.assertEquals(lat[i], bus.latitude, 0.0)
-				Assert.assertEquals(lon[i], bus.longitude, 0.0)
+				Assert.assertSame(MapsActivity.allRoutes[i], bus.route)
+				Assert.assertEquals(lat[i], bus.location.latitude, 0.0)
+				Assert.assertEquals(lon[i], bus.location.longitude, 0.0)
 			}
 		} catch (e: JSONException) {
 			e.printStackTrace()

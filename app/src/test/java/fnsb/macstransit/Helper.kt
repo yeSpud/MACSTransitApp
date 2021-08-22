@@ -72,7 +72,8 @@ internal object Helper {
 							line = reader.readLine()
 						}
 					}
-		} catch (e: java.io.IOException) {			// Error occurred when opening raw file for reading.
+		} catch (e: java.io.IOException) {
+			// Error occurred when opening raw file for reading.
 			e.printStackTrace()
 		}
 		return stringBuilder.toString()
@@ -88,7 +89,7 @@ internal object Helper {
 	@JvmStatic
 	@Throws(JSONException::class)
 	fun getJSON(file: File): JSONObject {
-		val text = getText(file) ?: throw JSONException("Text is null")
+		val text: String = getText(file)
 		return JSONObject(text)
 	}
 
