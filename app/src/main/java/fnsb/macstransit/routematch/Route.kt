@@ -6,7 +6,7 @@ import androidx.annotation.UiThread
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
-import fnsb.macstransit.activities.MapsActivity
+import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
@@ -219,21 +219,11 @@ class Route(val routeName: String, color: Int) {
 		@JvmStatic
 		fun enableFavoriteRoutes(favoritedRoutes: Array<Route>) {
 
-			// Make sure there are routes to iterate over.
-			if (MapsActivity.allRoutes == null) {
-				return
-			}
-
 			// Iterate through all the routes that will be used in the activity.
-			for (allRoute in MapsActivity.allRoutes!!) {
+			for (allRoute in MapsActivity.allRoutes) {
 
 				// Iterate though the favorite routes.
 				for (favoritedRoute in favoritedRoutes) {
-
-					// Make sure the favorited route and the comparison route aren't null.
-					if (allRoute == null) {
-						break
-					}
 
 					// If the route name matches the favorited route name, enable it.
 					if (allRoute.routeName == favoritedRoute.routeName) {

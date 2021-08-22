@@ -6,7 +6,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
-import fnsb.macstransit.activities.MapsActivity
+import fnsb.macstransit.activities.mapsactivity.MapsActivity
 
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.
@@ -202,16 +202,10 @@ class SharedStop(val location: LatLng, stopName: String, val routes: Array<Route
 		@JvmStatic
 		fun getSharedRoutes(route: Route, routeIndex: Int, stop: Stop): Array<Route> {
 
-			// Check if all routes is null.
-			// If it is then simply return the single route provided as an array of 1.
-			if (MapsActivity.allRoutes == null) {
-				return arrayOf(route)
-			}
-
 			// Create an array of potential routes that could share a same stop
 			// (the stop that we are iterating over).
 			// Set the array size to that of all the routes minus the current index as to make it decrease every iteration.
-			val potentialRoutes = arrayOfNulls<Route>(MapsActivity.allRoutes!!.size - routeIndex)
+			val potentialRoutes = arrayOfNulls<Route>(MapsActivity.allRoutes.size - routeIndex)
 
 			// Add the current route to the potential routes, and update the potential route index.
 			potentialRoutes[0] = route
@@ -220,10 +214,10 @@ class SharedStop(val location: LatLng, stopName: String, val routes: Array<Route
 			// In order to iterate though all the routes remaining in the allRoutes array we need to get the 2nd route index.
 			// This is equal to the first route index + 1 as to not hopefully not compare the same route against itself,
 			// but also not compare against previous routes in the array.
-			for (route2Index in routeIndex + 1 until MapsActivity.allRoutes!!.size) {
+			for (route2Index in routeIndex + 1 until MapsActivity.allRoutes.size) {
 
 				// Get the route at the 2nd index for comparison.
-				val route2 = MapsActivity.allRoutes!![route2Index]
+				val route2 = MapsActivity.allRoutes[route2Index]
 
 				// If the routes are the same then continue to the next iteration of the loop.
 				if (route == route2) {

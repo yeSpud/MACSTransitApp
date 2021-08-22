@@ -2,7 +2,7 @@ package fnsb.macstransit.routematch
 
 import android.util.Log
 import androidx.annotation.UiThread
-import fnsb.macstransit.activities.MapsActivity
+import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.routematch.Route.RouteException
 import org.json.JSONException
 import org.json.JSONObject
@@ -73,13 +73,13 @@ class Bus : MarkedObject {
 
 		// Since we have the route name we need to now find the actual route that belongs to it.
 		// First make sure all the routes have been loaded before continuing.
-		if (MapsActivity.allRoutes == null || MapsActivity.allRoutes!!.isEmpty()) {
+		if (MapsActivity.allRoutes.isEmpty()) {
 			throw RouteException("There are no loaded routes!")
 		}
 
 		// Now iterate through all the routes.
 		var route: Route? = null
-		for (r in MapsActivity.allRoutes!!) {
+		for (r in MapsActivity.allRoutes) {
 
 			// If the route name matches that of our bus route, then that's our route object.
 			if (r.routeName == routeName) {
@@ -152,20 +152,18 @@ class Bus : MarkedObject {
 		 * @param vehiclesJson The json array containing the bus information.
 		 * @return An array of buses created from the information in the json array.
 		 * @throws JSONException Thrown if there are no routes to track FIXME
-		 * (either MapsActivity.allRoutes is null or is 0 in length).
 		 */
 		@JvmStatic
 		@Throws(JSONException::class)
 		fun getBuses(vehiclesJson: org.json.JSONArray): Array<Bus> {
 
-			// Return the bus array.
-			return Array(vehiclesJson.length()) { // Comments
+			// Return the bus array from the following:
+			return Array(vehiclesJson.length()) {
 
-				// Try to get the json object corresponding to the bus. If unsuccessful then log it,
-				// and continue the loop without executing any of the lower code.
+				// Get the json object corresponding to the bus.
 				val busObject: JSONObject = vehiclesJson.getJSONObject(it)
 
-				// Try to create a new bus object using the content in the json object.
+				// Create a new bus object using the content in the json object.
 				Bus(busObject)
 			}
 		}

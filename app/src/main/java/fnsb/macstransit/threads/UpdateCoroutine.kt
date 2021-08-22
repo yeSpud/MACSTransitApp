@@ -1,15 +1,8 @@
 package fnsb.macstransit.threads
 
 import android.util.Log
-import com.android.volley.Response
-import com.android.volley.VolleyError
 import com.google.android.gms.maps.GoogleMap
-import fnsb.macstransit.activities.MapsActivity
 import fnsb.macstransit.routematch.Bus
-import fnsb.macstransit.routematch.RouteMatch
-import kotlinx.coroutines.delay
-import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 
 /**
@@ -19,10 +12,12 @@ import org.json.JSONObject
  * @version 1.0.
  * @since Release 1.3.
  */
-class UpdateCoroutine(private val updateFrequency: Long, private val routeMatch: RouteMatch, map: GoogleMap) {
+class UpdateCoroutine(private val updateFrequency: Long,
+                      private val mapsViewModel: fnsb.macstransit.activities.mapsactivity.MapsViewModel,
+                      map: GoogleMap) {
 
 	/**
-	 * Documentation
+	 * The callback to execute once the vehicles json has been returned from the server.
 	 */
 	private val callback: Callback = Callback(map)
 
@@ -34,7 +29,7 @@ class UpdateCoroutine(private val updateFrequency: Long, private val routeMatch:
 	/**
 	 * Documentation
 	 */
-	suspend fun main() {
+	suspend fun start() {
 
 		Log.i("UpdateCoroutine", "Starting up...")
 
@@ -43,22 +38,19 @@ class UpdateCoroutine(private val updateFrequency: Long, private val routeMatch:
 			Log.d("UpdateCoroutine", "Looping...")
 
 			// Comments
-			this.routeMatch.networkQueue.cancelAll(this)
+			this.mapsViewModel.routeMatch.networkQueue.cancelAll(this)
 
 			when(this.state) {
 
 				STATE.RUN -> {
 
-					if (MapsActivity.allRoutes == null) {
-						Log.w("UpdateCoroutine", "No routes to work with!")
-						return
-					}
-
-					this.routeMatch.callVehiclesByRoutes(this.callback, { error: VolleyError ->
-						Log.w("UpdateCoroutine", "Unable to fetch buses", error) }, this, *MapsActivity.allRoutes!!)
+					this.mapsViewModel.routeMatch.callVehiclesByRoutes(this.callback, {
+						error: com.android.volley.VolleyError ->
+						Log.w("UpdateCoroutine", "Unable to fetch buses", error)
+					}, this, *fnsb.macstransit.activities.mapsactivity.MapsActivity.allRoutes)
 
 					Log.v("UpdateCoroutine", "Waiting for ${this.updateFrequency} milliseconds")
-					delay(this.updateFrequency)
+					kotlinx.coroutines.delay(this.updateFrequency)
 				}
 
 				STATE.PAUSE -> {
@@ -66,14 +58,20 @@ class UpdateCoroutine(private val updateFrequency: Long, private val routeMatch:
 					Log.i("UpdateCoroutine", "Waiting for thread to resumed...")
 
 					// TODO Pause update thread
-
-					// TODO Wait
+					// Simply run in a while loop until no longer paused.
+					while (this.state == STATE.PAUSE) {
+						// Wait
+					}
 
 					// TODO Resume
+					Log.i("UpdateCoroutine", "Resuming...")
+
 				}
 
 				STATE.STOP -> {
-					// TODO Stop
+					// Comments
+					Log.i("UpdateCoroutine", "Stopping coroutine...")
+					break
 				}
 
 			}
@@ -108,17 +106,17 @@ class UpdateCoroutine(private val updateFrequency: Long, private val routeMatch:
 	/**
 	 * Documentation
 	 */
-	internal inner class Callback(private val map: GoogleMap): Response.Listener<JSONObject> {
+	internal inner class Callback(private val map: GoogleMap): com.android.volley.Response.Listener<JSONObject> {
 
 		override fun onResponse(response: JSONObject) {
 
 			// Comments
-			val vehiclesJson: JSONArray = RouteMatch.parseData(response)
+			val vehiclesJson: org.json.JSONArray = fnsb.macstransit.routematch.RouteMatch.parseData(response)
 
 			// Comments
 			val buses: Array<Bus> = try {
 				Bus.getBuses(vehiclesJson)
-			} catch (exception: JSONException) {
+			} catch (exception: org.json.JSONException) {
 				Log.e("Callback", "Could not parse bus json", exception)
 				return
 			}
@@ -127,17 +125,17 @@ class UpdateCoroutine(private val updateFrequency: Long, private val routeMatch:
 
 			// Get the array of new buses.
 			// These buses are buses that were not previously on the map until now.
-			Log.d("UpdateBuses", "Adding new buses to map")
-			val newBuses: Array<Bus> = Bus.addNewBuses(MapsActivity.buses, buses, this.map)
+			Log.d("Callback", "Adding new buses to map")
+			val newBuses: Array<Bus> = Bus.addNewBuses(this@UpdateCoroutine.mapsViewModel.buses, buses, this.map)
 
 			// Update the current position of our current buses.
 			// This also removes old buses from the array, but they still have markers on the map.
-			Log.d("UpdateBuses", "Updating current buses on map")
-			val currentBuses: Array<Bus> = Bus.updateCurrentBuses(MapsActivity.buses, buses)
+			Log.d("Callback", "Updating current buses on map")
+			val currentBuses: Array<Bus> = Bus.updateCurrentBuses(this@UpdateCoroutine.mapsViewModel.buses, buses)
 
 			// Remove the markers of the old buses that are no longer on the map.
-			Log.d("UpdateBuses", "Removing old buses from map")
-			Bus.removeOldBuses(MapsActivity.buses, buses)
+			Log.d("Callback", "Removing old buses from map")
+			Bus.removeOldBuses(this@UpdateCoroutine.mapsViewModel.buses, buses)
 
 			// Create a new bus array that will store our new and updated buses.
 			val finalBusArray: Array<Bus?> = arrayOfNulls(newBuses.size + currentBuses.size)
@@ -148,11 +146,11 @@ class UpdateCoroutine(private val updateFrequency: Long, private val routeMatch:
 
 			// Make sure our entire array was filled.
 			if (finalBusArray.isNotEmpty() && finalBusArray[finalBusArray.size - 1] == null) {
-				Log.w("UpdateBuses", "Bus array was populated incorrectly!")
+				Log.w("Callback", "Bus array was populated incorrectly!")
 			}
 
 			// Set our bus array.
-			MapsActivity.buses = finalBusArray
+			this@UpdateCoroutine.mapsViewModel.buses = finalBusArray.requireNoNulls()
 		}
 	}
 

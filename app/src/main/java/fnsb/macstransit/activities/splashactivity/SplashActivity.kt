@@ -6,7 +6,7 @@ import android.util.Log
 import android.view.View
 import androidx.lifecycle.lifecycleScope
 import fnsb.macstransit.R
-import fnsb.macstransit.activities.MapsActivity
+import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.databinding.SplashscreenBinding
 import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.routematch.SharedStop
@@ -198,28 +198,23 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 
 		this@SplashActivity.viewModel.setMessage(R.string.loading_bus_routes)
 
-		if (MapsActivity.allRoutes == null) {
-			// TODO Log
-			return@coroutineScope
-		}
-
 		val downloadBusRoutes = fnsb.macstransit.activities.splashactivity.splashscreenrunnables.
 		DownloadBusRoutes(this@SplashActivity)
 
 		var mapBusProgress = 0
 
-		val step: Double = LOAD_BUS_ROUTES.toDouble() / MapsActivity.allRoutes!!.size
+		val step: Double = LOAD_BUS_ROUTES.toDouble() / MapsActivity.allRoutes.size
 		val progress: Double =
 				(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_ROUTES).toDouble()
 
-		for (i in MapsActivity.allRoutes!!.indices) {
+		for (i in MapsActivity.allRoutes.indices) {
 			mapBusProgress--
 			async(start = CoroutineStart.UNDISPATCHED) {
-				downloadBusRoutes.downloadRoute(MapsActivity.allRoutes!![i], i)
+				downloadBusRoutes.downloadRoute(MapsActivity.allRoutes[i], i)
 
 				// Update progress.
 				this@SplashActivity.viewModel.setProgressBar(
-						progress + step + MapsActivity.allRoutes!!.size + mapBusProgress)
+						progress + step + MapsActivity.allRoutes.size + mapBusProgress)
 
 				mapBusProgress++
 
@@ -237,30 +232,24 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 	private suspend fun stopCoroutine() = coroutineScope {
 		this@SplashActivity.viewModel.setMessage(R.string.loading_bus_stops)
 
-		// Verify that allRoutes is not null. If it is then log and return early.
-		if (MapsActivity.allRoutes == null) {
-			Log.w("stopCoroutine", "All routes is null!")
-			return@coroutineScope
-		}
-
 		val mapBusStops = fnsb.macstransit.activities.splashactivity.splashscreenrunnables.
 		DownloadBusStops(this@SplashActivity)
 
 		var mapStopProgress = 0
 
-		val step: Double = LOAD_BUS_STOPS.toDouble() / MapsActivity.allRoutes!!.size
+		val step: Double = LOAD_BUS_STOPS.toDouble() / MapsActivity.allRoutes.size
 		val progress: Double =
 				(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS).toDouble()
 
 		// Iterate thorough all the routes to load each stop.
-		for (i in MapsActivity.allRoutes!!.indices) {
+		for (i in MapsActivity.allRoutes.indices) {
 			mapStopProgress--
 
 			async(start = CoroutineStart.UNDISPATCHED) {
-				mapBusStops.downloadBusStops(MapsActivity.allRoutes!![i], i)
+				mapBusStops.downloadBusStops(MapsActivity.allRoutes[i], i)
 
 				this@SplashActivity.viewModel.setProgressBar(
-						progress + step + MapsActivity.allRoutes!!.size + mapStopProgress)
+						progress + step + MapsActivity.allRoutes.size + mapStopProgress)
 
 				mapStopProgress++
 
@@ -314,22 +303,16 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		// Let the user know that we are checking for shared bus stops at this point.
 		this@SplashActivity.viewModel.setMessage(R.string.shared_bus_stop_check)
 
-		// Verify that allRoutes is not null. If it is then log and return early.
-		if (MapsActivity.allRoutes == null) {
-			Log.w("mapSharedStops", "All routes is null!")
-			return@coroutineScope
-		}
-
 		// Set the current progress.
-		val step = LOAD_SHARED_STOPS.toDouble() / MapsActivity.allRoutes!!.size
+		val step = LOAD_SHARED_STOPS.toDouble() / MapsActivity.allRoutes.size
 		var currentProgress =
 				(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS).toDouble()
 
 		// Iterate though all the routes.
-		for (routeIndex in MapsActivity.allRoutes!!.indices) {
+		for (routeIndex in MapsActivity.allRoutes.indices) {
 
 			// Get a first comparison route.
-			val route = MapsActivity.allRoutes!![routeIndex]
+			val route = MapsActivity.allRoutes[routeIndex]
 
 			// If there are no stops to iterate over just continue with the next iteration.
 			val stops = route.stops
@@ -388,19 +371,13 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		// Let the user know that we are validating the stops (and shared stop) for each route.
 		this@SplashActivity.viewModel.setMessage(R.string.stop_validation)
 
-		// Verify that allRoutes is not null. If it is then log and return early.
-		if (MapsActivity.allRoutes == null) {
-			Log.w("validateStops", "All routes is null!")
-			return@coroutineScope
-		}
-
 		// Determine the progress step.
-		val step = VALIDATE_STOPS.toDouble() / MapsActivity.allRoutes!!.size
+		val step = VALIDATE_STOPS.toDouble() / MapsActivity.allRoutes.size
 		var currentProgress =
 				(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS + LOAD_SHARED_STOPS).toDouble()
 
 		// Iterate though all the routes and recreate the stops for each route.
-		for (route in MapsActivity.allRoutes!!) {
+		for (route in MapsActivity.allRoutes) {
 
 			// Get the final stop count for each route by removing stops that are taken care of by the shared route object.
 			val finalStops = SharedStop.removeStopsWithSharedStops(route.stops, route.sharedStops)

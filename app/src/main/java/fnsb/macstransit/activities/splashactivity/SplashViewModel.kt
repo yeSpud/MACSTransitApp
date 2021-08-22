@@ -7,13 +7,9 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
-import androidx.annotation.UiThread
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 /**

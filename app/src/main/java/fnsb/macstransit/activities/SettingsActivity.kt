@@ -1,11 +1,13 @@
 package fnsb.macstransit.activities
 
+import android.os.Build
 import android.util.Log
 import android.view.View
 import android.widget.CheckBox
 import android.widget.Toast
 import fnsb.macstransit.R
 import com.google.android.gms.maps.GoogleMap
+import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.databinding.SettingsBinding
 import fnsb.macstransit.routematch.Route
 
@@ -54,13 +56,8 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 		this.binding.cancel.setOnClickListener { this.finish() }
 
 		// Setup the favorites container.
-		// Make sure there are routes to iterate though.
-		if (MapsActivity.allRoutes == null) {
-			return
-		}
-
-		// Iterate though all the routes.
-		for (route in MapsActivity.allRoutes!!) {
+		// Begin by iterating though all the routes.
+		for (route in MapsActivity.allRoutes) {
 
 			// Create a new checkbox.
 			val checkBox = CheckBox(this)
@@ -71,7 +68,13 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 
 			// Set the color and size of the text to constants.
 			checkBox.textSize = CHECKBOX_TEXT_SIZE.toFloat()
-			checkBox.setTextColor(this.resources.getColor(R.color.white))
+			val color = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+				@Suppress("Deprecation")
+				this.resources.getColor(R.color.white)
+			} else {
+				this.resources.getColor(R.color.white, null)
+			}
+			checkBox.setTextColor(color)
 
 			// Add button tint if the sdk supports it.
 			checkBox.buttonTintList =

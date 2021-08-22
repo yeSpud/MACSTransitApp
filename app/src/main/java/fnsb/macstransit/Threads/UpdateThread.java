@@ -7,7 +7,7 @@ import com.google.android.gms.maps.GoogleMap;
 
 import org.json.JSONException;
 
-import fnsb.macstransit.activities.MapsActivity;
+import fnsb.macstransit.activities.mapsactivity.MapsActivity;
 import fnsb.macstransit.routematch.Bus;
 import fnsb.macstransit.routematch.RouteMatch;
 
@@ -196,13 +196,6 @@ public class UpdateThread {
 	 */
 	private void fetchBuses() {
 
-		// Check to make sure allRoutes isn't null.
-		// It its null then log that it is and return early.
-		if (MapsActivity.allRoutes == null) {
-			Log.w("UpdateThread", "No routes to work with!");
-			return;
-		}
-
 		// Get the buses from the RouteMatch server.
 		this.routeMatch.callVehiclesByRoutes(response -> {
 			org.json.JSONArray vehiclesJson = fnsb.macstransit.routematch.RouteMatch.parseData(response);
@@ -220,7 +213,7 @@ public class UpdateThread {
 			// This must be executed on the UI thread or else the app will crash.
 			this.updateBuses.setPotentialNewBuses(buses);
 			this.UIHandler.post(this.updateBuses);
-		}, error -> Log.w("fetchBuses", "Unable to fetch buses", error), this, MapsActivity.allRoutes);
+		}, error -> Log.w("fetchBuses", "Unable to fetch buses", error), this, MapsActivity.Companion.getAllRoutes());
 	}
 
 	/**

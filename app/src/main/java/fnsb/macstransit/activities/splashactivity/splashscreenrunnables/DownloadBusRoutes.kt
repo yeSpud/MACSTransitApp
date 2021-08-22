@@ -2,7 +2,7 @@ package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
 
 import android.util.Log
 import com.google.android.gms.maps.model.LatLng
-import fnsb.macstransit.activities.MapsActivity
+import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.activities.splashactivity.SplashActivity
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch

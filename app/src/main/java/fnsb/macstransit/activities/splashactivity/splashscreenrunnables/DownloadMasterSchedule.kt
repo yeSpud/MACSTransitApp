@@ -2,7 +2,7 @@ package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
 
 import android.util.Log
 import fnsb.macstransit.R
-import fnsb.macstransit.activities.MapsActivity
+import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.activities.splashactivity.SplashActivity
 import fnsb.macstransit.routematch.Route
 import org.json.JSONObject
@@ -64,8 +64,7 @@ class DownloadMasterSchedule(private val activity: SplashActivity) {
 			var routeCount = 0
 			val step = SplashActivity.PARSE_MASTER_SCHEDULE.toDouble() / count
 			var progress = SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble()
-			this@DownloadMasterSchedule.activity.viewModel.setMessage(
-					R.string.parsing_master_schedule)
+			this@DownloadMasterSchedule.activity.viewModel.setMessage(R.string.parsing_master_schedule)
 
 			// Iterate though each route in the master schedule.
 			for (index in 0 until count) {
@@ -96,8 +95,9 @@ class DownloadMasterSchedule(private val activity: SplashActivity) {
 			}
 
 			// Down size our potential routes array to fit the actual number of routes.
-			MapsActivity.allRoutes = arrayOfNulls(routeCount)
-			System.arraycopy(potentialRoutes, 0, MapsActivity.allRoutes!!, 0, routeCount)
+			val finalRoutes: Array<Route?> = arrayOfNulls(routeCount)
+			System.arraycopy(potentialRoutes, 0, finalRoutes, 0, routeCount)
+			MapsActivity.allRoutes = finalRoutes.requireNoNulls()
 			Log.d("MasterScheduleCallback", "End of MasterScheduleCallback")
 			this.continuation.resume(response)
 		}

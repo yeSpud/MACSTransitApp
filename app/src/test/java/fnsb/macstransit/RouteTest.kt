@@ -2,7 +2,7 @@ package fnsb.macstransit
 
 import android.graphics.Color
 import fnsb.macstransit.routematch.Route
-import fnsb.macstransit.activities.MapsActivity
+import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import org.junit.Assert
 import org.junit.Test
 
@@ -57,9 +57,8 @@ class RouteTest {
 		Route.enableFavoriteRoutes(favoriteRoutes)
 
 		// Check for expected values.
-		Assert.assertTrue(MapsActivity.allRoutes!![0].enabled)
-		Assert.assertFalse(MapsActivity.allRoutes!![1].enabled)
-		Assert.assertFalse(MapsActivity.allRoutes!![2].enabled)
-		MapsActivity.allRoutes = null
+		Assert.assertTrue(MapsActivity.allRoutes[0].enabled)
+		Assert.assertFalse(MapsActivity.allRoutes[1].enabled)
+		Assert.assertFalse(MapsActivity.allRoutes[2].enabled)
 	}
 }

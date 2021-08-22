@@ -1,11 +1,10 @@
-package fnsb.macstransit.activities.activitylisteners
+package fnsb.macstransit.activities.mapsactivity
 
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
-import fnsb.macstransit.activities.MapsActivity
 import fnsb.macstransit.R
 import fnsb.macstransit.routematch.MarkedObject
 import fnsb.macstransit.routematch.Route
@@ -102,7 +101,7 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 		marker.snippet = this.activity.getString(R.string.retrieving_stop_times)
 
 		// Retrieve the stop times.
-		this.activity.routeMatch.callDeparturesByStop(name, { result: JSONObject ->
+		this.activity.viewModel.routeMatch.callDeparturesByStop(name, { result: JSONObject ->
 
 			// Update the snippet text of the marker's info window.
 			Log.v("showMarker", "Updating snippet")

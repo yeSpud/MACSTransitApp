@@ -2,7 +2,7 @@ package fnsb.macstransit.threads
 
 import android.util.Log
 import fnsb.macstransit.routematch.Bus
-import fnsb.macstransit.activities.MapsActivity
+import fnsb.macstransit.activities.mapsactivity.MapsActivity
 
 /**
  * Created by Spud on 2021-04-01 for the project: MACS Transit.
@@ -34,30 +34,30 @@ class UpdateBuses (private val map: com.google.android.gms.maps.GoogleMap) : Run
 		// Get the array of new buses.
 		// These buses are buses that were not previously on the map until now.
 		Log.d("UpdateBuses", "Adding new buses to map")
-		val newBuses: Array<Bus> = Bus.addNewBuses(MapsActivity.buses, potentialNewBuses, this.map)
+		//val newBuses: Array<Bus> = Bus.addNewBuses(MapsActivity.buses, potentialNewBuses, this.map)
 
 		// Update the current position of our current buses.
 		// This also removes old buses from the array, but they still have markers on the map.
 		Log.d("UpdateBuses", "Updating current buses on map")
-		val currentBuses: Array<Bus> = Bus.updateCurrentBuses(MapsActivity.buses, potentialNewBuses)
+		//val currentBuses: Array<Bus> = Bus.updateCurrentBuses(MapsActivity.buses, potentialNewBuses)
 
 		// Remove the markers of the old buses that are no longer on the map.
 		Log.d("UpdateBuses", "Removing old buses from map")
-		Bus.removeOldBuses(MapsActivity.buses, potentialNewBuses)
+		//Bus.removeOldBuses(MapsActivity.buses, potentialNewBuses)
 
 		// Create a new bus array that will store our new and updated buses.
-		val buses: Array<Bus?> = arrayOfNulls(newBuses.size + currentBuses.size)
+		//val buses: Array<Bus?> = arrayOfNulls(newBuses.size + currentBuses.size)
 
 		// Populate our bus array.
-		System.arraycopy(newBuses, 0, buses, 0, newBuses.size)
-		System.arraycopy(currentBuses, 0, buses, newBuses.size, currentBuses.size)
+		//System.arraycopy(newBuses, 0, buses, 0, newBuses.size)
+		//System.arraycopy(currentBuses, 0, buses, newBuses.size, currentBuses.size)
 
 		// Make sure our entire array was filled.
-		if (buses.isNotEmpty() && buses[buses.size - 1] == null) {
-			Log.w("UpdateBuses", "Bus array was populated incorrectly!")
-		}
+		//if (buses.isNotEmpty() && buses[buses.size - 1] == null) {
+		//	Log.w("UpdateBuses", "Bus array was populated incorrectly!")
+		//}
 
 		// Set our bus array.
-		MapsActivity.buses = buses
+		//MapsActivity.buses = buses
 	}
 }

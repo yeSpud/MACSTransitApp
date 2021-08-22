@@ -33,7 +33,7 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".activities.MapsActivity"
+            android:name=".activities.mapsactivity.MapsActivity"
             android:label="@string/app_name"
             android:launchMode="standard"
             android:screenOrientation="unspecified"

@@ -1,6 +1,7 @@
 package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
 
 import android.util.Log
+import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.activities.splashactivity.SplashActivity
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.Stop
@@ -25,8 +26,7 @@ class DownloadBusStops(private val activity: SplashActivity) {
 			kotlin.coroutines.suspendCoroutine{ continuation ->
 
 				val step: Double =
-						SplashActivity.DOWNLOAD_BUS_STOPS.toDouble() / fnsb.macstransit.activities.
-						MapsActivity.allRoutes!!.size
+						SplashActivity.DOWNLOAD_BUS_STOPS.toDouble() / MapsActivity.allRoutes.size
 				val progress: Double =
 						(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE
 						 + SplashActivity.DOWNLOAD_BUS_ROUTES + SplashActivity.LOAD_BUS_ROUTES).toDouble()
@@ -66,11 +66,7 @@ class DownloadBusStops(private val activity: SplashActivity) {
 			val validatedStops = arrayOfNulls<Stop>(potentialStops.size)
 
 			// Iterate through each stop in our array of potential stops.
-			for (stop: Stop? in potentialStops) {
-
-				if (stop == null) {
-					continue
-				}
+			for (stop: Stop in potentialStops) {
 
 				// Check to see if the stop is in our array of validated stops. If its not,
 				// add it to the array and add 1 to the true index size of stops that have been validated.

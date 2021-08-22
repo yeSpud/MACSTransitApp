@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import com.google.android.gms.maps.GoogleMap
-import fnsb.macstransit.activities.MapsActivity
+import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.CurrentSettings.readFile
 import org.json.JSONArray
@@ -206,12 +206,6 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 			this.streetView = input.getBoolean("enable streetview")
 			this.maptype = input.getInt("map type")
 
-			// Make sure all routes is not null before loading favorite routes.
-			if (MapsActivity.allRoutes == null) {
-				Log.w("parseSettings", "All routes is null!")
-				return
-			}
-
 			// Now try to parse the more dynamic content (favorited routes array).
 			val favoritedRoutes: JSONArray = input.getJSONArray("favorited routes")
 			val count: Int = favoritedRoutes.length()
@@ -223,7 +217,7 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 			// Iterate through the JSON array and try to match the names of the routes.
 			for (i in 0 until count) {
 				val routeName = favoritedRoutes.getString(i)
-				for (route in MapsActivity.allRoutes!!) {
+				for (route in MapsActivity.allRoutes) {
 
 					// If the route names match, add it to the list of routes.
 					if (routeName == route.routeName) {

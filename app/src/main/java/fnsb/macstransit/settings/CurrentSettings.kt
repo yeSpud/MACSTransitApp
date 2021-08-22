@@ -55,6 +55,7 @@ object CurrentSettings {
 				}
 
 				// Check if the name matches an older settings file.
+				@Suppress("Deprecated")
 				val oldSettings = V1
 				if (name == oldSettings.FILENAME) {
 
@@ -120,6 +121,7 @@ object CurrentSettings {
 	 * @param context The app context (for creating a new current settings file).
 	 * @return The converted settings as a json object.
 	 */
+	@Suppress("Deprecation")
 	private fun convertSettings(oldFile: File, context: Context): JSONObject {
 
 		// Check if the old file name is that of v1.
