@@ -17,7 +17,7 @@ import org.json.JSONObject
  * @version 3.0.
  * @since Beta 6.
  */
-class Stop(stopName: String, val location: LatLng, val route: Route) : MarkedObject(stopName) {
+class Stop(stopName: String, location: LatLng, val route: Route) : MarkedObject(stopName, location) {
 
 	/**
 	 * The options that apply to the circle representing the stop.
@@ -31,7 +31,7 @@ class Stop(stopName: String, val location: LatLng, val route: Route) : MarkedObj
 	 *
 	 * ... and more!
 	 */
-	val circleOptions: CircleOptions = CircleOptions().center(this.location).radius(STARTING_RADIUS)
+	private val circleOptions: CircleOptions = CircleOptions().center(this.location).radius(STARTING_RADIUS)
 
 	/**
 	 * The circle marking the bus stop on the map
@@ -120,25 +120,6 @@ class Stop(stopName: String, val location: LatLng, val route: Route) : MarkedObj
 		if (circle != null) {
 			circle!!.remove()
 			circle = null
-		}
-	}
-
-	/**
-	 * TODO Documentation
-	 */
-	override fun equals(other: Any?): Boolean {
-
-		if (other == null) {
-			return false
-		}
-
-		return if (other is Stop) {
-
-			this.location.latitude == other.location.latitude &&
-			this.location.longitude == other.location.longitude && this.name == other.name
-
-		} else {
-			false
 		}
 	}
 

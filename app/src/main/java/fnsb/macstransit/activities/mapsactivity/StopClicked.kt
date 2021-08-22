@@ -41,19 +41,16 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 
 			// Get the location and color of the object
 			// (this is different depending on whether or not its a shared stop or a regular stop).
-			val location: com.google.android.gms.maps.model.LatLng
 			val color: Int
 			when (markedObject) {
 				is SharedStop -> {
 
-					// Get the location and color of the largest circle of our shared stop.
-					location = markedObject.location
+					// Get color of the largest circle of our shared stop.
 					color = markedObject.routes[0].color
 				}
 				is Stop -> {
 
-					// Get the location and color of our stop.
-					location = markedObject.location
+					// Get color of our stop.
 					color = markedObject.route.color
 				}
 				else -> {
@@ -66,7 +63,7 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 			}
 
 			// Create a new marker for our marked object using the newly determined location and color.
-			markedObject.addMarker(this.map, location, color)
+			markedObject.addMarker(this.map, color)
 		}
 
 		// Comments
@@ -330,7 +327,12 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 
 			// If the match was found, return it, if not return midnight.
 			return if (matcher.find()) {
-				matcher.group(0)
+				try {
+					matcher.group(0)!!
+				} catch (exception: NullPointerException) {
+					// TODO Log the exception
+					""
+				}
 			} else {
 				""
 			}

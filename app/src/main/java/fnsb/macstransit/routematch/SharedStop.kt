@@ -15,7 +15,7 @@ import fnsb.macstransit.activities.mapsactivity.MapsActivity
  * @version 4.0.
  * @since Beta 7.
  */
-class SharedStop(val location: LatLng, stopName: String, val routes: Array<Route>) : MarkedObject(stopName) {
+class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) : MarkedObject(stopName, location) {
 
 	/**
 	 * Array of circle options for each circle that represents a route.
@@ -34,45 +34,6 @@ class SharedStop(val location: LatLng, stopName: String, val routes: Array<Route
 	 * Array of circles that represent a route that shares this one stop.
 	 */
 	private val circles: Array<Circle?> = arrayOfNulls(this.routes.size)
-
-	/**
-	 * TODO Documentation
-	 *
-	 * @param other TODO
-	 */
-	override fun equals(other: Any?): Boolean {
-
-		if (other == null) {
-			return false
-		}
-
-		if (other is SharedStop) {
-
-			if ((this.location.latitude != other.location.latitude) ||
-				(this.location.longitude != other.location.longitude) || (this.name != other.name)) {
-				return false
-			}
-
-			return true
-
-		}
-
-		if (other is Stop) {
-
-			val otherLocation: LatLng = other.circleOptions.center ?: return false
-
-			if ((this.location.latitude != otherLocation.latitude) ||
-				(this.location.longitude != otherLocation.longitude) || (this.name != other.name)) {
-				return false
-			}
-
-			return true
-
-		}
-
-		return false
-
-	}
 
 	/**
 	 * Sets the shared stop circles to be visible.

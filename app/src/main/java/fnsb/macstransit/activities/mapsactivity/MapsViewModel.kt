@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.LatLng
 import fnsb.macstransit.activities.FarePopupWindow
 import fnsb.macstransit.routematch.Bus
 import fnsb.macstransit.routematch.RouteMatch
@@ -163,7 +162,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 					if (route.enabled) {
 
 						// Try creating a new marker for the bus (if its enabled).
-						bus.addMarker(map, LatLng(bus.latitude, bus.longitude), bus.color)
+						bus.addMarker(map, bus.color)
 						bus.marker!!.isVisible = true
 
 					} else {

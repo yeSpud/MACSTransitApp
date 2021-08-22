@@ -55,7 +55,7 @@ object CurrentSettings {
 				}
 
 				// Check if the name matches an older settings file.
-				@Suppress("Deprecated")
+				@Suppress("Deprecation")
 				val oldSettings = V1
 				if (name == oldSettings.FILENAME) {
 
@@ -172,7 +172,7 @@ object CurrentSettings {
 	 */
 	fun readFile(file: File): String {
 
-		// TODO
+		// TODO replace?
 		val stringBuilder = StringBuilder(0)
 
 		// Try to create a file input stream in order to read the data from the file.

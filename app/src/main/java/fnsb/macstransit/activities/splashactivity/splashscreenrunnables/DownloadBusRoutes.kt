@@ -28,7 +28,7 @@ class DownloadBusRoutes(private val activity: SplashActivity) {
 	 * @param route
 	 */
 	suspend fun downloadRoute(route: Route, index: Int): JSONObject = suspendCoroutine { continuation ->
-		val step: Double = SplashActivity.DOWNLOAD_BUS_ROUTES.toDouble() / MapsActivity.allRoutes!!.size
+		val step: Double = SplashActivity.DOWNLOAD_BUS_ROUTES.toDouble() / MapsActivity.allRoutes.size
 		val progress: Double = (SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE).toDouble()
 		Log.d("downloadRoute", "Step value: $step")
 

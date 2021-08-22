@@ -2,6 +2,7 @@ package fnsb.macstransit.routematch
 
 import android.util.Log
 import androidx.annotation.UiThread
+import com.google.android.gms.maps.model.LatLng
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.routematch.Route.RouteException
 import org.json.JSONException
@@ -20,16 +21,6 @@ class Bus : MarkedObject {
 	 * Documentation
 	 */
 	val route: Route
-
-	/**
-	 * Documentation
-	 */
-	val latitude: Double
-
-	/**
-	 * Documentation
-	 */
-	val longitude: Double
 
 	/**
 	 * The current bus's color.
@@ -53,11 +44,11 @@ class Bus : MarkedObject {
 
 	/**
 	 * Documentation
+	 * FIXME Change 2 double parameters to LatLng
 	 */
-	constructor(vehicleId: String, route: Route, latitude: Double, longitude: Double): super("Bus $vehicleId") {
+	constructor(vehicleId: String, route: Route, latitude: Double, longitude: Double):
+			super("Bus $vehicleId", LatLng(latitude, longitude)) {
 		this.route = route
-		this.latitude = latitude
-		this.longitude = longitude
 		this.color = route.color
 	}
 
@@ -65,7 +56,9 @@ class Bus : MarkedObject {
 	 * Documentation
 	 */
 	@Throws(JSONException::class, RouteException::class)
-	constructor(jsonObject: JSONObject) : super("Bus ${jsonObject.getString("vehicleId")}") {
+	constructor(jsonObject: JSONObject) : super("Bus ${jsonObject.getString("vehicleId")}",
+	                                            LatLng(jsonObject.getDouble("latitude"),
+	                                                   jsonObject.getDouble("longitude"))) {
 
 		// Ge the route name of the bus.
 		// This will be used to determine the route object of the bus from our array of all routes.
@@ -93,12 +86,6 @@ class Bus : MarkedObject {
 			throw RouteException("Bus route not found in all routes")
 		}
 
-		// Get the the latitude of the bus.
-		val latitude = jsonObject.getDouble("latitude")
-
-		// Get the longitude of the bus.
-		val longitude = jsonObject.getDouble("longitude")
-
 		// Try to get the heading of the bus. This value isn't necessary, but is nice to have.
 		val heading = jsonObject.optString("headingName", "")
 
@@ -107,8 +94,6 @@ class Bus : MarkedObject {
 
 		// Create a new bus object using the determined information.
 		this.route = route
-		this.latitude = latitude
-		this.longitude = longitude
 		this.color = route.color
 		this.heading = heading
 		this.speed = speed
@@ -217,7 +202,7 @@ class Bus : MarkedObject {
 					if (newBus.name == oldBus.name) {
 
 						// Update the buses position, heading, and speed.
-						oldBus.updateLocation(newBus.latitude, newBus.longitude)
+						oldBus.updateLocation(newBus.location)
 						oldBus.heading = newBus.heading
 						oldBus.speed = newBus.speed
 						try {
@@ -268,8 +253,7 @@ class Bus : MarkedObject {
 					Log.d("addNewBuses", "Adding new bus to map: ${newBus.name}")
 
 					// Create the bus marker.
-					newBus.addMarker(map, com.google.android.gms.maps.model.LatLng(newBus.latitude,
-					                                                               newBus.longitude), newBus.color)
+					newBus.addMarker(map, newBus.color)
 					if (newBus.marker != null) {
 
 						// Determine whether or not to show the bus marker.
