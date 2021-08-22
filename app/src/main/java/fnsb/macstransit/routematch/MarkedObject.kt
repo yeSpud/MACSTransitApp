@@ -12,7 +12,7 @@ import com.google.android.gms.maps.model.Marker
  * @version 2.0.
  * @since Beta 8.
  */
-open class MarkedObject(val name: String) {
+open class MarkedObject(val name: String) { // TODO Add location as a private set argument
 
 	/**
 	 * The marker of the marker of the marked object.

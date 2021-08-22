@@ -54,7 +54,7 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 				is Stop -> {
 
 					// Get the location and color of our stop.
-					location = markedObject.circleOptions.center
+					location = markedObject.location
 					color = markedObject.route.color
 				}
 				else -> {
@@ -97,8 +97,6 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 
 		// Get the name of the stop.
 		val name = marker.title ?: return
-
-		// If the name is null return early.
 
 		// For now just set the snippet text to "retrieving stop times" as a callback method gets the times.
 		marker.snippet = this.activity.getString(R.string.retrieving_stop_times)
@@ -275,9 +273,8 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 						}
 
 						// Append the arrival and departure times to the snippet text.
-						snippetText.append("${context.getString(R.string.expected_arrival)} " +
-						                   "$arrivalTime\n${context.getString(R.string.expected_departure)}"
-						                   + " $departureTime\n\n")
+						snippetText.append("${context.getString(R.string.expected_arrival)} $arrivalTime\n" +
+						                   "${context.getString(R.string.expected_departure)} $departureTime\n\n")
 					}
 				}
 			}
@@ -356,7 +353,7 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 			val fullTimeDate: Date = try {
 
 				// Try to get the 24 hour time as a date.
-				fullTime.parse(time)
+				fullTime.parse(time)!!
 			} catch (e: java.text.ParseException) {
 
 				// If there was a parsing exception simply return the old time.
