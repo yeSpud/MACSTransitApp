@@ -14,6 +14,7 @@ import fnsb.macstransit.activities.MapsActivity
  * @since Release 1.2.
  */
 @androidx.annotation.UiThread
+@Deprecated("Use UpdateCoroutine")
 class UpdateBuses (private val map: com.google.android.gms.maps.GoogleMap) : Runnable {
 
 	/**

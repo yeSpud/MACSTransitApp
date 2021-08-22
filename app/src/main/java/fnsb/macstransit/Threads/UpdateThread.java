@@ -19,6 +19,7 @@ import fnsb.macstransit.routematch.RouteMatch;
  * @version 4.1.
  * @since Beta 3.
  */
+@Deprecated
 public class UpdateThread {
 
 	/**
