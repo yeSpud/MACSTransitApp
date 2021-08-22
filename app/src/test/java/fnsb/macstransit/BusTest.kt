@@ -47,8 +47,8 @@ class BusTest {
 				val bus: Bus = buses[i]
 				Assert.assertEquals(ids[i], bus.name)
 				Assert.assertSame(Objects.requireNonNull(MapsActivity.allRoutes)[i], bus.route)
-				Assert.assertEquals(lat[i], bus.latitude, 0.0)
-				Assert.assertEquals(lon[i], bus.longitude, 0.0)
+				Assert.assertEquals(lat[i], bus.location.latitude, 0.0)
+				Assert.assertEquals(lon[i], bus.location.longitude, 0.0)
 			}
 		} catch (e: JSONException) {
 			e.printStackTrace()
@@ -75,8 +75,8 @@ class BusTest {
 				val bus = Bus(busArray.getJSONObject(i))
 				Assert.assertEquals(ids[i], bus.name)
 				Assert.assertSame(MapsActivity.allRoutes[i], bus.route)
-				Assert.assertEquals(lat[i], bus.latitude, 0.0)
-				Assert.assertEquals(lon[i], bus.longitude, 0.0)
+				Assert.assertEquals(lat[i], bus.location.latitude, 0.0)
+				Assert.assertEquals(lon[i], bus.location.longitude, 0.0)
 			}
 		} catch (e: JSONException) {
 			e.printStackTrace()
