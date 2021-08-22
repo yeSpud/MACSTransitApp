@@ -12,7 +12,7 @@ import com.google.android.gms.maps.model.Marker
  * @version 2.0.
  * @since Beta 8.
  */
-open class MarkedObject(val name: String, var location: LatLng) { // TODO Add location as a private set argument
+open class MarkedObject(val name: String, var location: LatLng) {
 
 	/**
 	 * The marker of the marker of the marked object.
@@ -21,10 +21,7 @@ open class MarkedObject(val name: String, var location: LatLng) { // TODO Add lo
 	var marker: Marker? = null
 		private set
 
-	/**
-	 * TODO Documentation
-	 */
-	override fun equals(other: Any?): Boolean {
+	override fun equals(other: Any?): Boolean { // Comments
 
 		if (other == null) {
 			return false
@@ -40,7 +37,7 @@ open class MarkedObject(val name: String, var location: LatLng) { // TODO Add lo
 		}
 	}
 
-	override fun hashCode(): Int {
+	override fun hashCode(): Int { // Comments
 		var result = name.hashCode()
 		result = (31 * result) + location.hashCode()
 		result = (31 * result) + (marker?.hashCode() ?: 0)

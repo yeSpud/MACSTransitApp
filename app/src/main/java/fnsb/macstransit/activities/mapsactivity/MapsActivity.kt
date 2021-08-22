@@ -134,7 +134,7 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 			bus.removeMarker()
 		}
 
-		// TODO Stop the update coroutine
+		// Comments
 		if (this.updater != null) {
 			this.updater!!.run = false
 		}
@@ -343,8 +343,8 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 		// Update the map's dynamic settings.
 		this.updateMapSettings()
 
-		// TODO Update coroutine
-		this.updater = UpdateCoroutine(5000, this.viewModel, this.map!!)
+		// Comments
+		this.updater = UpdateCoroutine(10000, this.viewModel, this.map!!)
 		this.runUpdater()
 	}
 

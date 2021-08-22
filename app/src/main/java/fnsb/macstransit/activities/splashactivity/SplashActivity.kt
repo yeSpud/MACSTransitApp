@@ -298,7 +298,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 	 * If there are any found they will be added to all the routes the stop belongs to as a shared stop.
 	 * At this point the original stop is still present in the route.
 	 */
-	private suspend fun mapSharedStops() = coroutineScope { // TODO Native?
+	private suspend fun mapSharedStops() = coroutineScope {
 
 		// Let the user know that we are checking for shared bus stops at this point.
 		this@SplashActivity.viewModel.setMessage(R.string.shared_bus_stop_check)
@@ -366,7 +366,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 	 * Validates the stops and shared stops.
 	 * Meaning this method removes the stops that are shared stops as to not duplicate the stop.
 	 */
-	private suspend fun validateStops() = coroutineScope { // TODO Native?
+	private suspend fun validateStops() = coroutineScope {
 
 		// Let the user know that we are validating the stops (and shared stop) for each route.
 		this@SplashActivity.viewModel.setMessage(R.string.stop_validation)

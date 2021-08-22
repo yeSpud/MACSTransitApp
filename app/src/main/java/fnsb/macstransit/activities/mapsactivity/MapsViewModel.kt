@@ -40,8 +40,14 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	lateinit var routeMatch: RouteMatch
 	private set
 
+	/**
+	 * Documentation
+	 */
 	private var loadedRouteMatch: Boolean = false
 
+	/**
+	 * Documentation
+	 */
 	fun setRouteMatch(bundle: Bundle) {
 		if (!this.loadedRouteMatch) {
 			val url: String = try {
