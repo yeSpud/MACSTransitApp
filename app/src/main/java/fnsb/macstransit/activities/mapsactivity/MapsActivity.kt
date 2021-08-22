@@ -282,9 +282,14 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 		// Update the map's dynamic settings.
 		this.updateMapSettings()
 
-		// TODO Resume the coroutine
+		// Resume the coroutine
 		if (this.updater != null) {
 			this.updater!!.state = UpdateCoroutine.STATE.RUN
+			if (!this.updater!!.isRunning) {
+				lifecycleScope.launch(Dispatchers.Main) {
+					this@MapsActivity.updater!!.start()
+				}
+			}
 		}
 	}
 
@@ -292,9 +297,9 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 		Log.v("onPause", "onPause has been called!")
 		super.onPause()
 
-		// TODO Pause update coroutine
+		// Stop the coroutine
 		if (this.updater != null) {
-			this.updater!!.state = UpdateCoroutine.STATE.PAUSE
+			this.updater!!.state = UpdateCoroutine.STATE.STOP
 		}
 	}
 
@@ -337,8 +342,10 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 		// TODO Update coroutine
 		this.updater = UpdateCoroutine(5000, this.viewModel, this.map!!)
 		this.updater!!.state = UpdateCoroutine.STATE.RUN
-		lifecycleScope.launch(Dispatchers.Main) {
-			this@MapsActivity.updater!!.start()
+		if (!this.updater!!.isRunning) {
+			lifecycleScope.launch(Dispatchers.Main) {
+				this@MapsActivity.updater!!.start()
+			}
 		}
 	}
 

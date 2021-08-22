@@ -26,12 +26,16 @@ class UpdateCoroutine(private val updateFrequency: Long,
 	 */
 	var state: STATE = STATE.RUN
 
+	var isRunning: Boolean = false
+	private set
+
 	/**
 	 * Documentation
 	 */
 	suspend fun start() {
 
 		Log.i("UpdateCoroutine", "Starting up...")
+		this.isRunning = true
 
 		while(this.state != STATE.STOP) {
 
@@ -53,21 +57,6 @@ class UpdateCoroutine(private val updateFrequency: Long,
 					kotlinx.coroutines.delay(this.updateFrequency)
 				}
 
-				STATE.PAUSE -> {
-
-					Log.i("UpdateCoroutine", "Waiting for thread to resumed...")
-
-					// TODO Pause update thread
-					// Simply run in a while loop until no longer paused.
-					while (this.state == STATE.PAUSE) {
-						// Wait
-					}
-
-					// TODO Resume
-					Log.i("UpdateCoroutine", "Resuming...")
-
-				}
-
 				STATE.STOP -> {
 					// Comments
 					Log.i("UpdateCoroutine", "Stopping coroutine...")
@@ -78,7 +67,8 @@ class UpdateCoroutine(private val updateFrequency: Long,
 
 		}
 
-		Log.i("UpdateCoroutine", "Shutting down...")
+		this.isRunning = false
+		Log.i("UpdateCoroutine", "Shutting down...") // FIXME Doesn't seem to shutdown on rotation...
 
 	}
 
@@ -86,11 +76,6 @@ class UpdateCoroutine(private val updateFrequency: Long,
 	 * Documentation
 	 */
 	enum class STATE {
-
-		/**
-		 * Documentation
-		 */
-		PAUSE,
 
 		/**
 		 * Documentation
