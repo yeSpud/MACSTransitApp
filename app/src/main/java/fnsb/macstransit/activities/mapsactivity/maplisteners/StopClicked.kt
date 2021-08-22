@@ -1,4 +1,4 @@
-package fnsb.macstransit.activities.mapsactivity
+package fnsb.macstransit.activities.mapsactivity.maplisteners
 
 import android.content.Context
 import android.util.Log
@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
 import fnsb.macstransit.R
+import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.routematch.MarkedObject
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.SharedStop

@@ -1,4 +1,4 @@
-package fnsb.macstransit.activities.mapsactivity
+package fnsb.macstransit.activities.mapsactivity.maplisteners
 
 import com.android.volley.RequestQueue
 import fnsb.macstransit.routematch.MarkedObject

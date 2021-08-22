@@ -13,6 +13,7 @@ import java.io.File
  * @version 2.0.
  * @since Release 1.2.
  */
+@Suppress("Deprecation")
 class V1Test {
 
 	/**
@@ -41,7 +42,7 @@ class V1Test {
 				"Show Polylines:false", "Show VR Options:false"), out.toTypedArray())
 
 		// Test a bad file
-		Assert.assertEquals(emptyList<String>(), settings.readFromSettingsFile(File("")));
+		Assert.assertEquals(emptyList<String>(), settings.readFromSettingsFile(File("")))
 	}
 
 	@Test

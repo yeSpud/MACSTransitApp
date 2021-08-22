@@ -18,6 +18,9 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import fnsb.macstransit.activities.InfoWindowAdapter
 import fnsb.macstransit.activities.PopupWindow
 import fnsb.macstransit.activities.SettingsActivity
+import fnsb.macstransit.activities.mapsactivity.maplisteners.AdjustZoom
+import fnsb.macstransit.activities.mapsactivity.maplisteners.StopClicked
+import fnsb.macstransit.activities.mapsactivity.maplisteners.StopDeselected
 import fnsb.macstransit.databinding.ActivityMapsBinding
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -344,8 +347,10 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 		this.updateMapSettings()
 
 		// Comments
-		this.updater = UpdateCoroutine(10000, this.viewModel, this.map!!)
-		this.runUpdater()
+		if (allRoutes.isNotEmpty()) {
+			this.updater = UpdateCoroutine(10000, this.viewModel, this.map!!)
+			this.runUpdater()
+		}
 	}
 
 	/**
