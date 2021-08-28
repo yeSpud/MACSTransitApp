@@ -6,7 +6,9 @@ import android.widget.Toast
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
 import fnsb.macstransit.R
+import fnsb.macstransit.activities.mapsactivity.mappopups.InfoWindowPopup
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
+import fnsb.macstransit.activities.mapsactivity.mappopups.PopupWindow
 import fnsb.macstransit.routematch.MarkedObject
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.SharedStop
@@ -172,12 +174,12 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 			}
 
 			// Load the times string into a popup window for when its clicked on.
-			fnsb.macstransit.activities.PopupWindow.body = string
+			PopupWindow.body = string
 
 			// Check to see how many new lines there are in the display.
 			// If there are more than the maximum lines allowed bu the info window adapter,
 			// display "Click to view all the arrival and departure times.".
-			return if (getNewlineOccurrence(string) <= fnsb.macstransit.activities.InfoWindowAdapter.MAX_LINES) {
+			return if (getNewlineOccurrence(string) <= InfoWindowPopup.MAX_LINES) {
 				string
 			} else {
 				context.getString(

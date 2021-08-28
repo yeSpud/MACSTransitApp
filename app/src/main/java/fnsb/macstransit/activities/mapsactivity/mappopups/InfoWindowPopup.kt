@@ -1,4 +1,4 @@
-package fnsb.macstransit.activities
+package fnsb.macstransit.activities.mapsactivity.mappopups
 
 import android.graphics.Color
 import android.view.View
@@ -15,7 +15,7 @@ import fnsb.macstransit.activities.mapsactivity.MapsActivity
  * @since Beta 7.
  */
 @androidx.annotation.UiThread
-class InfoWindowAdapter(private val activity: MapsActivity) :
+class InfoWindowPopup(private val activity: MapsActivity) :
 		com.google.android.gms.maps.GoogleMap.InfoWindowAdapter {
 
 	/**

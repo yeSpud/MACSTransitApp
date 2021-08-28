@@ -15,12 +15,12 @@ import android.view.MenuItem
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.MapStyleOptions
-import fnsb.macstransit.activities.InfoWindowAdapter
-import fnsb.macstransit.activities.PopupWindow
 import fnsb.macstransit.activities.SettingsActivity
 import fnsb.macstransit.activities.mapsactivity.maplisteners.AdjustZoom
 import fnsb.macstransit.activities.mapsactivity.maplisteners.StopClicked
 import fnsb.macstransit.activities.mapsactivity.maplisteners.StopDeselected
+import fnsb.macstransit.activities.mapsactivity.mappopups.InfoWindowPopup
+import fnsb.macstransit.activities.mapsactivity.mappopups.PopupWindow
 import fnsb.macstransit.databinding.ActivityMapsBinding
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -333,7 +333,7 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 		this.map!!.setOnCircleClickListener(StopClicked(this, map!!))
 
 		// Add a custom info window adapter, to add support for multiline snippets.
-		this.map!!.setInfoWindowAdapter(InfoWindowAdapter(this))
+		this.map!!.setInfoWindowAdapter(InfoWindowPopup(this))
 
 		// Set it so that if the info window was closed for a Stop marker,
 		// make that marker invisible, so its just the dot.

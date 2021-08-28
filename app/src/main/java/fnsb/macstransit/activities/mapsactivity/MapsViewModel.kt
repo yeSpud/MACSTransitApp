@@ -6,8 +6,8 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.GoogleMap
-import fnsb.macstransit.activities.FarePopupWindow
 import fnsb.macstransit.activities.mapsactivity.maplisteners.AdjustZoom
+import fnsb.macstransit.activities.mapsactivity.mappopups.FarePopupWindow
 import fnsb.macstransit.routematch.Bus
 import fnsb.macstransit.routematch.RouteMatch
 import kotlinx.coroutines.Dispatchers

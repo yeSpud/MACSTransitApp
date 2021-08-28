@@ -1,4 +1,4 @@
-package fnsb.macstransit.activities
+package fnsb.macstransit.activities.mapsactivity.mappopups
 
 import android.app.AlertDialog
 import fnsb.macstransit.databinding.InfoWindowPopupBinding
