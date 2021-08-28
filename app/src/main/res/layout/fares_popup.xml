@@ -14,6 +14,16 @@
         android:text="@string/bus_fares"
         android:textSize="35sp" />
 
+    <TextView
+        android:id="@+id/covid19"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:layout_marginBottom="20dp"
+        android:textColor="#FF0000"
+        android:text="@string/covid19_notice"
+        android:textSize="25sp" />
+
     <TableLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
