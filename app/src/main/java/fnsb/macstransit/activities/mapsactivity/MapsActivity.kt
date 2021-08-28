@@ -19,6 +19,7 @@ import fnsb.macstransit.activities.SettingsActivity
 import fnsb.macstransit.activities.mapsactivity.maplisteners.AdjustZoom
 import fnsb.macstransit.activities.mapsactivity.maplisteners.StopClicked
 import fnsb.macstransit.activities.mapsactivity.maplisteners.StopDeselected
+import fnsb.macstransit.activities.mapsactivity.mappopups.FarePopupWindow
 import fnsb.macstransit.activities.mapsactivity.mappopups.InfoWindowPopup
 import fnsb.macstransit.activities.mapsactivity.mappopups.PopupWindow
 import fnsb.macstransit.databinding.ActivityMapsBinding
@@ -50,6 +51,11 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 	 * Documentation
 	 */
 	private var updater: UpdateCoroutine? = null
+
+	/**
+	 * Create a variable to store our fare popup window instance.
+	 */
+	private lateinit var farePopupWindow: FarePopupWindow
 
 	override fun onCreate(savedInstanceState: android.os.Bundle?) {
 		Log.v("onCreate", "onCreate has been called!")
@@ -85,6 +91,9 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 
 		// Obtain the SupportMapFragment and get notified when the map is ready to be used.
 		(this.supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment).getMapAsync(this)
+
+		// Comments
+		this.farePopupWindow = FarePopupWindow(this)
 	}
 
 	override fun onDestroy() {
@@ -213,7 +222,7 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 
 					// Check if the item that was selected was the fares button.
 					R.id.fares -> {
-						this.viewModel.farePopupWindow.showFarePopupWindow()
+						this.farePopupWindow.showFarePopupWindow()
 					}
 					else -> {
 

@@ -1,5 +1,6 @@
 package fnsb.macstransit.activities.mapsactivity.mappopups
 
+import android.app.AlertDialog
 import android.content.Intent
 import fnsb.macstransit.databinding.FaresPopupBinding
 
@@ -11,7 +12,7 @@ import fnsb.macstransit.databinding.FaresPopupBinding
  * @since Release 1.1.
  */
 @androidx.annotation.UiThread
-class FarePopupWindow(context: android.content.Context) : android.app.AlertDialog(context) {
+class FarePopupWindow(context: android.content.Context) : AlertDialog(context) {
 
 	/**
 	 * Creates and shows the popup window.
@@ -30,7 +31,7 @@ class FarePopupWindow(context: android.content.Context) : android.app.AlertDialo
 		// Create the dialog via the alert dialog builder.
 		val builder = Builder(this.context)
 		builder.setView(binder.root)
-		val alertDialog = builder.create()
+		val alertDialog: AlertDialog = builder.create()
 
 		// Setup the cancel button.
 		binder.close.setOnClickListener { alertDialog.cancel() }

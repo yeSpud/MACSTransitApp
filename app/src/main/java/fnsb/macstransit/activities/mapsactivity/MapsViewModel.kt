@@ -7,7 +7,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.GoogleMap
 import fnsb.macstransit.activities.mapsactivity.maplisteners.AdjustZoom
-import fnsb.macstransit.activities.mapsactivity.mappopups.FarePopupWindow
 import fnsb.macstransit.routematch.Bus
 import fnsb.macstransit.routematch.RouteMatch
 import kotlinx.coroutines.Dispatchers
@@ -29,11 +28,6 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	 * For now just initialize this array to 0.
 	 */
 	var buses: Array<Bus> = emptyArray()
-
-	/**
-	 * Create a variable to store our fare popup window instance.
-	 */
-	val farePopupWindow: FarePopupWindow = FarePopupWindow(this.getApplication())
 
 	/**
 	 * Documentation
