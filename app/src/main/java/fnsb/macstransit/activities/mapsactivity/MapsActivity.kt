@@ -9,8 +9,6 @@ import android.util.Log
 import android.view.Menu
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.MapStyleOptions
-import com.google.maps.android.ktx.awaitMap
 import fnsb.macstransit.activities.mapsactivity.mappopups.FarePopupWindow
 import fnsb.macstransit.databinding.ActivityMapsBinding
 import kotlinx.coroutines.Dispatchers
@@ -25,20 +23,9 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 	lateinit var viewModel: MapsViewModel
 
 	/**
-	 * Create the map object. This will be null until the map is ready to be used.
-	 * Deprecated because this leaks memory in the static form. Use as dependency injection.
-	 */
-	private var map: com.google.android.gms.maps.GoogleMap? = null
-
-	/**
 	 * Documentation
 	 */
 	private val currentSettings = fnsb.macstransit.settings.CurrentSettings
-
-	/**
-	 * Documentation
-	 */
-	private var updater: UpdateCoroutine? = null
 
 	/**
 	 * Create a variable to store our fare popup window instance.
@@ -75,62 +62,14 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		}
 
 		// Set the map to null for now. It will be set when the callback is ready.
-		this.map = null
+		//this.map = null
 
 		// Obtain the SupportMapFragment and get notified when the map is ready to be used.
 		val supportFragment: SupportMapFragment =
 				(this.supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
 
 		// Comments
-		this.lifecycleScope.launchWhenCreated {
-			Log.v("MapCoroutine", "Awaiting for map...")
-			this@MapsActivity.map = supportFragment.awaitMap()
-			Log.v("MapCoroutine", "Map has been set")
-
-			// Move the camera to the 'home' position
-			Log.v("MapCoroutine", "Moving camera to home position")
-			this@MapsActivity.map!!.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.
-			newLatLngZoom(com.google.android.gms.maps.model.LatLng(64.8391975, -147.7684709), 11.0f))
-
-			// Add a listener for when the camera has become idle (ie was moving isn't anymore).
-			Log.v("MapCoroutine", "Setting camera idle listener")
-			this@MapsActivity.map!!.setOnCameraIdleListener(fnsb.macstransit.activities.mapsactivity.
-			maplisteners.AdjustZoom(this@MapsActivity.map!!))
-
-			// Add a listener for when a stop icon (circle) is clicked.
-			Log.v("MapCoroutine", "Setting circle click listener")
-			this@MapsActivity.map!!.setOnCircleClickListener(fnsb.macstransit.activities.mapsactivity.
-			maplisteners.StopClicked(this@MapsActivity, this@MapsActivity.map!!))
-
-			// Add a custom info window adapter, to add support for multiline snippets.
-			Log.v("MapCoroutine", "Setting info window")
-			this@MapsActivity.map!!.setInfoWindowAdapter(fnsb.macstransit.activities.mapsactivity.
-			mappopups.InfoWindowPopup(this@MapsActivity))
-
-			// Set it so that if the info window was closed for a Stop marker,
-			// make that marker invisible, so its just the dot.
-			Log.v("MapCoroutine", "Setting info window close listener")
-			this@MapsActivity.map!!.setOnInfoWindowCloseListener(fnsb.macstransit.activities.
-			mapsactivity.maplisteners.StopDeselected(this@MapsActivity.viewModel.routeMatch.networkQueue))
-
-			// Set it so that when an info window is clicked on, it launches a popup window
-			Log.v("MapCoroutine", "Setting info window click listener")
-			this@MapsActivity.map!!.setOnInfoWindowClickListener(fnsb.macstransit.activities.
-			mapsactivity.mappopups.PopupWindow(this@MapsActivity))
-
-			// Update the map's dynamic settings.
-			Log.v("MapCoroutine", "Updating map settings")
-			this@MapsActivity.updateMapSettings()
-
-			// Comments
-			if (allRoutes.isNotEmpty()) {
-				Log.v("MapCoroutine", "Launching update coroutine")
-				this@MapsActivity.updater =
-						UpdateCoroutine(10000, this@MapsActivity.viewModel,
-						                this@MapsActivity.map!!)
-				this@MapsActivity.runUpdater()
-			}
-		}
+		this.lifecycleScope.launchWhenCreated { this@MapsActivity.viewModel.mapCoroutine(supportFragment) }
 
 		// Comments
 		this.farePopupWindow = FarePopupWindow(this)
@@ -187,13 +126,13 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		}
 
 		// Comments
-		if (this.updater != null) {
-			this.updater!!.run = false
+		if (this.viewModel.updater != null) {
+			this.viewModel.updater!!.run = false
 		}
 
 		// Be sure to clear the map.
-		if (this.map != null) {
-			this.map!!.clear()
+		if (this.viewModel.map != null) {
+			this.viewModel.map!!.clear()
 		}
 
 		Log.i("onDestroy", "Finished onDestroy")
@@ -248,7 +187,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 						val enabled = !item.isChecked
 
 						// Toggle night mode
-						toggleNightMode(enabled)
+						this.viewModel.toggleNightMode(enabled)
 
 						// Set the menu item's checked value to that of the enabled value
 						item.isChecked = enabled
@@ -301,7 +240,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 					selectedRoute.enabled = enabled
 
 					// Comment
-					if (this.map == null) {
+					if (this.viewModel.map == null) {
 						return super.onOptionsItemSelected(item)
 					}
 
@@ -309,18 +248,18 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 					// Because we are iterating a static variable that is modified on a different thread
 					// there is a possibility of a concurrent modification.
 					try {
-						this.viewModel.drawBuses(this.map!!)
+						this.viewModel.drawBuses(this.viewModel.map!!)
 					} catch (e: ConcurrentModificationException) {
 						Log.e("onOptionsItemSelected",
 						      "Unable to redraw all buses due to concurrent modification", e)
 					}
 
 					// (Re) draw the stops onto the map.
-					this.viewModel.drawStops(this.map!!)
+					this.viewModel.drawStops(this.viewModel.map!!)
 
 					// (Re) draw the routes onto the map (if enabled).
 					if ((currentSettings.settingsImplementation as V2).polylines) {
-						this.viewModel.drawRoutes(this.map!!)
+						this.viewModel.drawRoutes(this.viewModel.map!!)
 					}
 
 					// Set the menu item's checked value to that of the enabled value
@@ -346,11 +285,11 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		super.onResume()
 
 		// Update the map's dynamic settings.
-		this.updateMapSettings()
+		this.viewModel.updateMapSettings()
 
 		// Resume the coroutine
-		if (this.updater != null) {
-			this.runUpdater()
+		if (this.viewModel.updater != null) {
+			this.viewModel.runUpdater()
 		}
 	}
 
@@ -359,88 +298,8 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		super.onPause()
 
 		// Stop the coroutine
-		if (this.updater != null) {
-			this.updater!!.run = false
-		}
-	}
-
-	/**
-	 * Updates the various settings on the map object determined by the settings file.
-	 * It also redraws the buses and stops that are active on the map, and draws the polylines if they are enabled.
-	 * This should be called when the map has been setup and is ready to be refreshed.
-	 */
-	private fun updateMapSettings() {
-
-		// Make sure to only execute the following if the maps object is not null (map has been setup).
-		if (this.map != null) {
-
-			// Comments
-			val settings = currentSettings.settingsImplementation as V2
-
-			// Enable traffic overlay based on settings.
-			this.map!!.isTrafficEnabled = settings.traffic
-
-			// Set the the type of map based on settings.
-			this.map!!.mapType = settings.maptype
-
-			// Toggle night mode at this time if enabled.
-			toggleNightMode(settings.darktheme)
-
-			// Get the favorited routes from the settings object.
-			val favoritedRoutes = settings.routes
-			if (!selectedFavorites) {
-
-				// If the favorited routes is not null, enable them.
-				Route.enableFavoriteRoutes(favoritedRoutes)
-			}
-
-			// Try redrawing the buses.
-			// Because we are iterating a static variable that is modified on a different thread
-			// there is a possibility of a concurrent modification.
-			try {
-				this.viewModel.drawBuses(this.map!!)
-			} catch (e: ConcurrentModificationException) {
-				Log.e("updateMapSettings",
-				      "Unable to draw all buses due to concurrent modification", e)
-			}
-
-			// Draw the stops.
-			this.viewModel.drawStops(this.map!!)
-
-			// Draw the routes.
-			if (settings.polylines) {
-				this.viewModel.drawRoutes(this.map!!)
-			}
-		} else {
-			Log.w("updateMapSettings", "Map is not yet ready!")
-		}
-	}
-
-	/**
-	 * Documentation
-	 * Comments
-	 */
-	private fun runUpdater() {
-		this.updater!!.run = true
-		if (!this.updater!!.isRunning) {
-			lifecycleScope.launch(Dispatchers.Main) {
-				this@MapsActivity.updater!!.start()
-			}
-		}
-	}
-
-	/**
-	 * Toggles the map's night mode (dark theme).
-	 *
-	 * @param enabled Whether to toggle the maps night mode
-	 */
-	private fun toggleNightMode(enabled: Boolean) {
-		if (this.map != null) {
-			this.map!!.setMapStyle(
-					if (enabled) MapStyleOptions.loadRawResourceStyle(this, R.raw.nightmode)
-					else MapStyleOptions.loadRawResourceStyle(this, R.raw.standard))
-		} else {
-			Log.w("toggleNightMode", "Map is not yet ready")
+		if (this.viewModel.updater != null) {
+			this.viewModel.updater!!.run = false
 		}
 	}
 

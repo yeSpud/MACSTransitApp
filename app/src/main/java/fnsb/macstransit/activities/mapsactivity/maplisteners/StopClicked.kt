@@ -11,6 +11,7 @@ import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.activities.mapsactivity.mappopups.PopupWindow
 import fnsb.macstransit.routematch.MarkedObject
 import fnsb.macstransit.routematch.Route
+import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.routematch.SharedStop
 import fnsb.macstransit.routematch.Stop
 import org.json.JSONException
@@ -25,7 +26,8 @@ import java.util.*
  * @version 2.0.
  * @since Beta 7.
  */
-class StopClicked(private val activity: MapsActivity, private val map: GoogleMap) : GoogleMap.OnCircleClickListener {
+class StopClicked(private val activity: Context, private val routematch: RouteMatch,
+                  private val map: GoogleMap) : GoogleMap.OnCircleClickListener {
 
 	/**
 	 * Called when a circle is clicked.
@@ -101,7 +103,7 @@ class StopClicked(private val activity: MapsActivity, private val map: GoogleMap
 		marker.snippet = this.activity.getString(R.string.retrieving_stop_times)
 
 		// Retrieve the stop times.
-		this.activity.viewModel.routeMatch.callDeparturesByStop(name, { result: JSONObject ->
+		this.routematch.callDeparturesByStop(name, { result: JSONObject ->
 
 			// Update the snippet text of the marker's info window.
 			Log.v("showMarker", "Updating snippet")
