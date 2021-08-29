@@ -1,35 +1,23 @@
 package fnsb.macstransit.activities.mapsactivity
 
-import com.google.android.gms.maps.GoogleMap
 import fnsb.macstransit.routematch.Route.RouteException
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.V2
-import com.google.android.gms.maps.model.LatLng
 import fnsb.macstransit.R
-import com.google.android.gms.maps.SupportMapFragment
 import android.widget.Toast
-import android.content.Intent
 import android.util.Log
 import android.view.Menu
-import android.view.MenuItem
 import androidx.lifecycle.lifecycleScope
-import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.MapStyleOptions
-import fnsb.macstransit.activities.SettingsActivity
-import fnsb.macstransit.activities.mapsactivity.maplisteners.AdjustZoom
-import fnsb.macstransit.activities.mapsactivity.maplisteners.StopClicked
-import fnsb.macstransit.activities.mapsactivity.maplisteners.StopDeselected
+import com.google.maps.android.ktx.awaitMap
 import fnsb.macstransit.activities.mapsactivity.mappopups.FarePopupWindow
-import fnsb.macstransit.activities.mapsactivity.mappopups.InfoWindowPopup
-import fnsb.macstransit.activities.mapsactivity.mappopups.PopupWindow
 import fnsb.macstransit.databinding.ActivityMapsBinding
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.json.JSONException
 import java.util.ConcurrentModificationException
 
-class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.android.gms.maps.OnMapReadyCallback {
+class MapsActivity: androidx.fragment.app.FragmentActivity() {
 
 	/**
 	 * Documentation
@@ -40,7 +28,7 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 	 * Create the map object. This will be null until the map is ready to be used.
 	 * Deprecated because this leaks memory in the static form. Use as dependency injection.
 	 */
-	private var map: GoogleMap? = null
+	private var map: com.google.android.gms.maps.GoogleMap? = null
 
 	/**
 	 * Documentation
@@ -60,7 +48,7 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 	override fun onCreate(savedInstanceState: android.os.Bundle?) {
 		Log.v("onCreate", "onCreate has been called!")
 		super.onCreate(savedInstanceState)
-		
+
 		// Setup view model.
 		this.viewModel = androidx.lifecycle.ViewModelProvider(this).get(MapsViewModel::class.java)
 
@@ -79,8 +67,8 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 
 		// Load in the current settings.
 		try {
-			currentSettings.loadSettings(this)
-		} catch (e: JSONException) {
+			this.currentSettings.loadSettings(this)
+		} catch (e: org.json.JSONException) {
 			// If there was an exception loading the settings simply log it and return.
 			Log.e("onCreate", "Exception when loading settings", e)
 			return
@@ -90,7 +78,59 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 		this.map = null
 
 		// Obtain the SupportMapFragment and get notified when the map is ready to be used.
-		(this.supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment).getMapAsync(this)
+		val supportFragment: SupportMapFragment =
+				(this.supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
+
+		// Comments
+		this.lifecycleScope.launchWhenCreated {
+			Log.v("MapCoroutine", "Awaiting for map...")
+			this@MapsActivity.map = supportFragment.awaitMap()
+			Log.v("MapCoroutine", "Map has been set")
+
+			// Move the camera to the 'home' position
+			Log.v("MapCoroutine", "Moving camera to home position")
+			this@MapsActivity.map!!.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.
+			newLatLngZoom(com.google.android.gms.maps.model.LatLng(64.8391975, -147.7684709), 11.0f))
+
+			// Add a listener for when the camera has become idle (ie was moving isn't anymore).
+			Log.v("MapCoroutine", "Setting camera idle listener")
+			this@MapsActivity.map!!.setOnCameraIdleListener(fnsb.macstransit.activities.mapsactivity.
+			maplisteners.AdjustZoom(this@MapsActivity.map!!))
+
+			// Add a listener for when a stop icon (circle) is clicked.
+			Log.v("MapCoroutine", "Setting circle click listener")
+			this@MapsActivity.map!!.setOnCircleClickListener(fnsb.macstransit.activities.mapsactivity.
+			maplisteners.StopClicked(this@MapsActivity, this@MapsActivity.map!!))
+
+			// Add a custom info window adapter, to add support for multiline snippets.
+			Log.v("MapCoroutine", "Setting info window")
+			this@MapsActivity.map!!.setInfoWindowAdapter(fnsb.macstransit.activities.mapsactivity.
+			mappopups.InfoWindowPopup(this@MapsActivity))
+
+			// Set it so that if the info window was closed for a Stop marker,
+			// make that marker invisible, so its just the dot.
+			Log.v("MapCoroutine", "Setting info window close listener")
+			this@MapsActivity.map!!.setOnInfoWindowCloseListener(fnsb.macstransit.activities.
+			mapsactivity.maplisteners.StopDeselected(this@MapsActivity.viewModel.routeMatch.networkQueue))
+
+			// Set it so that when an info window is clicked on, it launches a popup window
+			Log.v("MapCoroutine", "Setting info window click listener")
+			this@MapsActivity.map!!.setOnInfoWindowClickListener(fnsb.macstransit.activities.
+			mapsactivity.mappopups.PopupWindow(this@MapsActivity))
+
+			// Update the map's dynamic settings.
+			Log.v("MapCoroutine", "Updating map settings")
+			this@MapsActivity.updateMapSettings()
+
+			// Comments
+			if (allRoutes.isNotEmpty()) {
+				Log.v("MapCoroutine", "Launching update coroutine")
+				this@MapsActivity.updater =
+						UpdateCoroutine(10000, this@MapsActivity.viewModel,
+						                this@MapsActivity.map!!)
+				this@MapsActivity.runUpdater()
+			}
+		}
 
 		// Comments
 		this.farePopupWindow = FarePopupWindow(this)
@@ -101,7 +141,7 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 		super.onDestroy()
 
 		// Launch the following as a cleanup job (that way we can essentially multi-thread the onDestroy process)
-		lifecycleScope.launch(Dispatchers.Main, start=CoroutineStart.UNDISPATCHED) {
+		lifecycleScope.launch(Dispatchers.Main, start=kotlinx.coroutines.CoroutineStart.UNDISPATCHED) {
 			Log.i("onDestroy", "Beginning onDestroy cleanup coroutine...")
 
 			// Iterate though each route to get access to its shared stops and regular stops.
@@ -182,13 +222,14 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 		}
 
 		// Check if night mode should be enabled by default, and set the checkbox to that value.
-		menu.findItem(R.id.night_mode).isChecked = (currentSettings.settingsImplementation as V2).darktheme
+		menu.findItem(R.id.night_mode).isChecked =
+				(currentSettings.settingsImplementation as V2).darktheme
 
 		// Return true, otherwise the menu wont be displayed.
 		return true
 	}
 
-	override fun onOptionsItemSelected(item: MenuItem): Boolean {
+	override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
 		Log.v("onOptionsItemSelected", "onOptionsItemSelected has been called!")
 
 		// Identify which method to call based on the item ID.
@@ -217,17 +258,20 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 					R.id.settings -> {
 
 						// Launch the settings activity
-						this.startActivity(Intent(this, SettingsActivity::class.java))
+						this.startActivity(android.content.Intent(this, fnsb.
+						macstransit.activities.SettingsActivity::class.java))
 					}
 
 					// Check if the item that was selected was the fares button.
 					R.id.fares -> {
 						this.farePopupWindow.showFarePopupWindow()
 					}
+
 					else -> {
 
 						// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!
-						Log.w("onOptionsItemSelected", "Unaccounted menu item in the other group was checked!")
+						Log.w("onOptionsItemSelected",
+						      "Unaccounted menu item in the other group was checked!")
 					}
 				}
 			}
@@ -287,6 +331,7 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 					e.printStackTrace()
 				}
 			}
+
 			else -> {
 				// Since the item's ID and group was not part of anything accounted for (uh oh),
 				// log it as a warning!
@@ -316,49 +361,6 @@ class MapsActivity : androidx.fragment.app.FragmentActivity(), com.google.androi
 		// Stop the coroutine
 		if (this.updater != null) {
 			this.updater!!.run = false
-		}
-	}
-
-	/**
-	 * Manipulates the map once available. This callback is triggered when the map is ready to be used.
-	 * This is where we can add markers or lines, add listeners or move the camera.
-	 * If Google Play services is not installed on the device,
-	 * the user will be prompted to install it inside the SupportMapFragment.
-	 * This method will only be triggered once the user has installed Google Play services and returned to the app.
-	 */
-	override fun onMapReady(googleMap: GoogleMap) {
-		Log.v("onMapReady", "onMapReady has been called!")
-
-		// Setup the map object at this point as it is finally initialized and ready.
-		this.map = googleMap
-
-		// Move the camera to the 'home' position
-		this.map!!.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(64.8391975, -147.7684709), 11.0f))
-
-		// Add a listener for when the camera has become idle (ie was moving isn't anymore).
-		this.map!!.setOnCameraIdleListener(AdjustZoom(map!!))
-
-		// Add a listener for when a stop icon (circle) is clicked.
-		this.map!!.setOnCircleClickListener(StopClicked(this, map!!))
-
-		// Add a custom info window adapter, to add support for multiline snippets.
-		this.map!!.setInfoWindowAdapter(InfoWindowPopup(this))
-
-		// Set it so that if the info window was closed for a Stop marker,
-		// make that marker invisible, so its just the dot.
-		this.map!!.setOnInfoWindowCloseListener(
-				StopDeselected(this.viewModel.routeMatch.networkQueue))
-
-		// Set it so that when an info window is clicked on, it launches a popup window
-		this.map!!.setOnInfoWindowClickListener(PopupWindow(this))
-
-		// Update the map's dynamic settings.
-		this.updateMapSettings()
-
-		// Comments
-		if (allRoutes.isNotEmpty()) {
-			this.updater = UpdateCoroutine(10000, this.viewModel, this.map!!)
-			this.runUpdater()
 		}
 	}
 

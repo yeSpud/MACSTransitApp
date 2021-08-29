@@ -4,6 +4,8 @@ import android.app.Application
 import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.OnLifecycleEvent
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.GoogleMap
 import fnsb.macstransit.activities.mapsactivity.maplisteners.AdjustZoom
@@ -169,12 +171,18 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 					} else {
 
 						// If the marker was null simply log it as a warning.
-						Log.w("drawBuses", "Bus doesn't have a marker for route "+
-						                   "${route.routeName}!")
+						Log.w("drawBuses", "Bus doesn't have a marker for route ${route.routeName}!")
 					}
 				}
 			}
 		}
 	}
+
+	/*
+	@OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
+	fun foo() {
+
+	}
+	 */
 
 }

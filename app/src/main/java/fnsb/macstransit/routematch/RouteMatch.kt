@@ -138,7 +138,9 @@ class RouteMatch(val url: String, private val context: android.content.Context) 
 		// TODO Comments
 		Log.d("executeNetworkRequest", "Querying url: $url")
 		val request =
-				com.android.volley.toolbox.JsonObjectRequest(url, null, successCallback, onError)
+				com.android.volley.toolbox.JsonObjectRequest(com.android.volley.Request.Method.GET,
+				                                             url, null, successCallback,
+				                                             onError)
 		request.retryPolicy = RETRY_POLICY
 		request.tag = tag
 		this.networkQueue.add(request)

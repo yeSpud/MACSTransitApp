@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
+import com.google.maps.android.ktx.addMarker
 
 /**
  * Created by Spud on 2019-11-20 for the project: MACS Transit.
@@ -38,9 +39,9 @@ open class MarkedObject(val name: String, var location: LatLng) {
 	}
 
 	override fun hashCode(): Int { // Comments
-		var result = name.hashCode()
-		result = (31 * result) + location.hashCode()
-		result = (31 * result) + (marker?.hashCode() ?: 0)
+		var result = this.name.hashCode()
+		result = (31 * result) + this.location.hashCode()
+		result = (31 * result) + (this.marker?.hashCode() ?: 0)
 		return result
 	}
 
@@ -67,21 +68,19 @@ open class MarkedObject(val name: String, var location: LatLng) {
 	@UiThread
 	fun addMarker(map: com.google.android.gms.maps.GoogleMap, color: Int) {
 
-		// Create a new maker options object
-		val options = com.google.android.gms.maps.model.MarkerOptions()
-
-		// Set the position of the marker via the latitude and longitude.
-		options.position(this.location)
-
-		// Set the color of the marker.
-		Log.d("addMarker", "Applying marker color")
-		val hsv = FloatArray(3)
-		android.graphics.Color.colorToHSV(color, hsv)
-		options.icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]))
-
 		// Add the marker to the map.
 		Log.d("addMarker", "Adding marker to the map")
-		val marker: Marker? = map.addMarker(options)
+		val marker: Marker? = map.addMarker {
+
+			// Set the position of the marker via the latitude and longitude.
+			position(this@MarkedObject.location)
+
+			// Set the color of the marker.
+			Log.d("addMarker", "Applying marker color")
+			val hsv = FloatArray(3)
+			android.graphics.Color.colorToHSV(color, hsv)
+			icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]))
+		}
 
 		// If the marker isn't null add more fields.
 		if (marker != null) {
