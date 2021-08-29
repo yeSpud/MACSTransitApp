@@ -59,7 +59,7 @@ class UpdateCoroutine(private val updateFrequency: Long,
 		}
 
 		this.isRunning = false
-		Log.i("UpdateCoroutine", "Shutting down...") // FIXME Doesn't seem to shutdown on rotation...
+		Log.i("UpdateCoroutine", "Shutting down...")
 
 	}
 

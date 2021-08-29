@@ -5,9 +5,6 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.OnLifecycleEvent
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
@@ -83,6 +80,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	 */
 	fun drawStops(map: GoogleMap) {
 
+		// Comments
 		viewModelScope.launch(Dispatchers.Main) {
 
 			// Iterate though all the routes as we know at this point that they are not null.
@@ -133,6 +131,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	 */
 	fun drawRoutes(map: GoogleMap) {
 
+		// Comments
 		viewModelScope.launch(Dispatchers.Main) {
 
 			// Start by iterating through all the routes.
@@ -169,6 +168,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	@Throws(ConcurrentModificationException::class)
 	fun drawBuses(map: GoogleMap) {
 
+		// Comments
 		viewModelScope.launch(Dispatchers.Main) {
 
 			// Start by iterating though all the buses on the map.
@@ -199,8 +199,9 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 
 	/**
 	 * Documentation
+	 * @param supportFragment
 	 */
-	suspend fun mapCoroutine(supportFragment: SupportMapFragment) { // TODO Annotation
+	suspend fun mapCoroutine(supportFragment: SupportMapFragment) {
 
 		// Comments
 		Log.v("MapCoroutine", "Awaiting for map...")
@@ -272,7 +273,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 			this.map!!.mapType = settings.maptype
 
 			// Toggle night mode at this time if enabled.
-			toggleNightMode(settings.darktheme)
+			this.toggleNightMode(settings.darktheme)
 
 			// Get the favorited routes from the settings object.
 			val favoritedRoutes = settings.routes
@@ -336,12 +337,5 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 			Log.w("toggleNightMode", "Map is not yet ready")
 		}
 	}
-
-	/*
-	@OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
-	fun foo() {
-
-	}
-	 */
 
 }

@@ -56,13 +56,11 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		try {
 			this.currentSettings.loadSettings(this)
 		} catch (e: org.json.JSONException) {
+
 			// If there was an exception loading the settings simply log it and return.
 			Log.e("onCreate", "Exception when loading settings", e)
 			return
 		}
-
-		// Set the map to null for now. It will be set when the callback is ready.
-		//this.map = null
 
 		// Obtain the SupportMapFragment and get notified when the map is ready to be used.
 		val supportFragment: SupportMapFragment =
@@ -125,14 +123,16 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 			bus.removeMarker()
 		}
 
-		// Comments
+		// Stop the update thread.
 		if (this.viewModel.updater != null) {
 			this.viewModel.updater!!.run = false
+			this.viewModel.updater = null
 		}
 
 		// Be sure to clear the map.
 		if (this.viewModel.map != null) {
 			this.viewModel.map!!.clear()
+			this.viewModel.map = null
 		}
 
 		Log.i("onDestroy", "Finished onDestroy")
@@ -310,6 +310,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		 * This is not to say that all routes in this array are enabled - they can also be disabled (hidden).
 		 * This array is initialized in DownloadMasterSchedule.
 		 */
+		// FIXME Memory leak (due to routes containing polylines)
 		var allRoutes: Array<Route> = emptyArray() // TODO Check for concurrent exceptions
 
 		/**
