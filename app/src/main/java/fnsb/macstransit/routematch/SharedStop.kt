@@ -51,8 +51,8 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) :
 			// If the circle is null, create a new shared stop circle.
 			if (circles[i] == null) {
 
-				// Only set the newly created circles to clickable if its the 0th index circle (the biggest one).
-				circles[i] = createSharedStopCircle(map, circleOptions[i], this, i == 0)
+				// Comments
+				this.createSharedStopCircle(map, i)
 			} else {
 
 				// Only set the circle to be clickable if its the 0th index circle (the biggest one).
@@ -110,7 +110,6 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) :
 
 			// Get the size of the circle based on its radius.
 			val radiusSize = size * (1.0 / (i + 1))
-			Log.v("setCircleSizes", "Radius size: $radiusSize")
 
 			// Set the circle size.
 			this.circleOptions[i].radius(radiusSize)
@@ -137,6 +136,32 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) :
 			// Set all the circles to null.
 			this.circles[i] = null
 		}
+	}
+
+	/**
+	 * Creates a new circle with the specified circle options that is immediately visible.
+	 * This should be run on the UI thread.
+	 *
+	 * @param map   The map to add the circle to.
+	 * @param index Comments
+	 */
+	@UiThread
+	fun createSharedStopCircle(map: GoogleMap, index: Int) {
+
+		// Get the circle that was added to the map with the provided circle options.
+		val circle: Circle = map.addCircle(this.circleOptions[index])
+
+		// Set the tag of the circle to the provided shared stop object.
+		circle.tag = this
+
+		// Set the circle to be clickable depending on the clickable argument.
+		circle.isClickable = index == 0
+
+		// At this point set the circle to be visible.
+		circle.isVisible = true
+
+		// Return our newly created circle.
+		this.circles[index] = circle
 	}
 
 	companion object {
@@ -262,36 +287,6 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) :
 			val finalStops = arrayOfNulls<Stop>(finalIndex)
 			System.arraycopy(potentialStops, 0, finalStops, 0, finalIndex)
 			return finalStops.requireNoNulls()
-		}
-
-		/**
-		 * Creates a new circle with the specified circle options that is immediately visible.
-		 * This should be run on the UI thread.
-		 *
-		 * @param map        The map to add the circle to.
-		 * @param options    The specified circle options to apply to the circle.
-		 * @param sharedStop The shared stop this circle belongs to. This will be set as the circle's tag.
-		 * @param clickable  Whether or not the circle should be clickable.
-		 * @return The newly created circle.
-		 */
-		@UiThread
-		internal fun createSharedStopCircle(map: GoogleMap, options: CircleOptions, sharedStop: SharedStop,
-		                                    clickable: Boolean): Circle {
-
-			// Get the circle that was added to the map with the provided circle options.
-			val circle = map.addCircle(options)
-
-			// Set the tag of the circle to the provided shared stop object.
-			circle.tag = sharedStop
-
-			// Set the circle to be clickable depending on the clickable argument.
-			circle.isClickable = clickable
-
-			// At this point set the circle to be visible.
-			circle.isVisible = true
-
-			// Return our newly created circle.
-			return circle
 		}
 	}
 

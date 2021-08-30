@@ -82,31 +82,28 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 			Log.i("onDestroy", "Beginning onDestroy cleanup coroutine...")
 
 			// Iterate though each route to get access to its shared stops and regular stops.
-			for (route in allRoutes) {
+			allRoutes.forEach { route ->
 
 				// Iterate though each stop.
 				Log.d("onDestroy", "Removing stop circles")
-				for (stop in route.stops) {
+				route.stops.forEach {
 
 					// Remove the stop's circle.
-					stop.removeStopCircle()
+					it.removeStopCircle()
 
 					// Remove stop's marker.
-					stop.removeMarker()
+					it.removeMarker()
 				}
 
 				// Get the shared stops for the route.
 				Log.d("onDestroy", "Removing shared stop circles")
-				val sharedStops = route.sharedStops
-
-				// Iterate though each shared stop.
-				for (sharedStop in sharedStops) {
+				route.sharedStops.forEach {
 
 					// Remove each shared stop circles.
-					sharedStop.removeSharedStopCircles()
+					it.removeSharedStopCircles()
 
 					// Remove the shared stop's marker.
-					sharedStop.removeMarker()
+					it.removeMarker()
 				}
 
 				// Remove route polylines.
@@ -157,6 +154,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 			menuItem.isCheckable = true
 
 			// Determine whether or not the menu item should be checked before hand.
+			Log.i("onCreateOptionsMenu", "Setting ${route.routeName} to be enabled: ${route.enabled}")
 			menuItem.isChecked = route.enabled
 		}
 
@@ -248,18 +246,18 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 					// Because we are iterating a static variable that is modified on a different thread
 					// there is a possibility of a concurrent modification.
 					try {
-						this.viewModel.drawBuses(this.viewModel.map!!)
+						this.viewModel.drawBuses()
 					} catch (e: ConcurrentModificationException) {
 						Log.e("onOptionsItemSelected",
 						      "Unable to redraw all buses due to concurrent modification", e)
 					}
 
 					// (Re) draw the stops onto the map.
-					this.viewModel.drawStops(this.viewModel.map!!)
+					this.viewModel.drawStops()
 
 					// (Re) draw the routes onto the map (if enabled).
 					if ((currentSettings.settingsImplementation as V2).polylines) {
-						this.viewModel.drawRoutes(this.viewModel.map!!)
+						this.viewModel.drawRoutes()
 					}
 
 					// Set the menu item's checked value to that of the enabled value
@@ -313,11 +311,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		// FIXME Memory leak (due to routes containing polylines)
 		var allRoutes: Array<Route> = emptyArray() // TODO Check for concurrent exceptions
 
-		/**
-		 * Bool used to check if we have selected favorited routes from all routes.
-		 * If this is set to true then we do not need to select favorite routes again as it should only be selected once.
-		 */
-		var selectedFavorites = false
+		var firstRun: Boolean = true
 
 	}
 }

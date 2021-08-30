@@ -1,14 +1,13 @@
 package fnsb.macstransit.routematch
 
-import android.graphics.Color
 import android.util.Log
 import androidx.annotation.UiThread
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Polyline
-import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.maps.GoogleMap
+import com.google.maps.android.ktx.addPolyline
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.Serializable
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.util.regex.Pattern
@@ -20,7 +19,7 @@ import java.util.regex.Pattern
  * @version 3.0.
  * @since Beta 3.
  */
-class Route(val routeName: String, color: Int) {
+class Route(val routeName: String, color: Int) : Serializable {
 
 	/**
 	 * The name of the route formatted to be parsed as a URL.
@@ -53,7 +52,7 @@ class Route(val routeName: String, color: Int) {
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
 	 * This is private as we don't want this variable to be set outside the class.
 	 */
-	var polyLineCoordinates: Array<LatLng> = emptyArray()
+	var polyLineCoordinates: Array<com.google.android.gms.maps.model.LatLng> = emptyArray()
 
 	/**
 	 * The array of shared stops for this route.
@@ -66,8 +65,7 @@ class Route(val routeName: String, color: Int) {
 	/**
 	 * The polyline that corresponds to this route.
 	 */
-	var polyline: Polyline? = null
-		private set
+	private var polyline: com.google.android.gms.maps.model.Polyline? = null
 
 	/**
 	 * Constructor for the route. The name of the route is the only thing that is required.
@@ -86,7 +84,7 @@ class Route(val routeName: String, color: Int) {
 	 * @param map TODO
 	 */
 	@UiThread
-	fun createPolyline(map: com.google.android.gms.maps.GoogleMap) {
+	fun createPolyline(map: GoogleMap) {
 		Log.v("createPolyline", "Creating route polyline")
 
 		// Make sure the polyline coordinates is not null or 0. If it is then return early.
@@ -95,20 +93,20 @@ class Route(val routeName: String, color: Int) {
 			return
 		}
 
-		// Create new polyline options from the array of polyline coordinates stored for the route.
-		val options = PolylineOptions().add(*polyLineCoordinates)
+		this.polyline = map.addPolyline {
 
-		// Make sure its not clickable.
-		options.clickable(false)
+			// Create new polyline options from the array of polyline coordinates stored for the route.
+			this.add(*this@Route.polyLineCoordinates)
 
-		// Set the color of the polylines based on the route color.
-		options.color(color)
+			// Make sure its not clickable.
+			this.clickable(false)
 
-		// Make sure the polyline starts out invisible.
-		options.visible(false)
+			// Set the color of the polylines based on the route color.
+			this.color(this@Route.color)
 
-		// Add the polyline to the map, and set it for the object.
-		this.polyline = map.addPolyline(options)
+			// Set the polyline visibility to whether or not the route is enabled.
+			this.visible(this@Route.enabled)
+		}
 	}
 
 	/**
@@ -134,6 +132,35 @@ class Route(val routeName: String, color: Int) {
 
 			// Set the routes shared stop array to the newly created shared stop array.
 			this.sharedStops = newSharedStops.requireNoNulls()
+		}
+	}
+
+	/**
+	 * Documentation
+	 * @param map
+	 * @param attempted
+	 */
+	@UiThread
+	fun togglePolylineVisibility(map: GoogleMap, attempted: Boolean = false) {
+
+		// Check if the route has a polyline to set visible.
+		if (this.polyline == null) {
+
+			// Check to make sure we haven't already attempted to load the polyline.
+			if (attempted) {
+				Log.w("enablePolyline", "Could not load polyline for route ${this.routeName}")
+				return
+			}
+
+			// Create a new polyline for the route since it didn't have one before.
+			this.createPolyline(map)
+			this.togglePolylineVisibility(map, true)
+		} else {
+
+			// Set the polyline's visibility to whether the route is enabled or not
+			Log.d("tgglPolylineVisibility", "Setting route ${this.routeName} to visible:"
+			                                  +"${this.enabled}")
+			this.polyline!!.isVisible = this.enabled
 		}
 	}
 
@@ -194,7 +221,7 @@ class Route(val routeName: String, color: Int) {
 			// Now try to parse the route and route color and return the resulting object.
 			return try {
 				val colorName = jsonObject.getString("routeColor")
-				val color = Color.parseColor(colorName)
+				val color = android.graphics.Color.parseColor(colorName)
 				Route(name, color)
 			} catch (e: JSONException) {
 				Log.w("generateRoute", "Unable to parse color")
@@ -232,9 +259,6 @@ class Route(val routeName: String, color: Int) {
 					}
 				}
 			}
-
-			// Set the selectedFavorites variable to be true as to not run again.
-			MapsActivity.selectedFavorites = true
 		}
 	}
 

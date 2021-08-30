@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Circle
-import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.ktx.addCircle
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -18,20 +18,6 @@ import org.json.JSONObject
  * @since Beta 6.
  */
 class Stop(stopName: String, location: LatLng, val route: Route) : MarkedObject(stopName, location) {
-
-	/**
-	 * The options that apply to the circle representing the stop.
-	 * These options include:
-	 *
-	 *  * The coordinates of the stop
-	 *  * The current size of the circle
-	 *  * The color of the circle
-	 *  * Whether the circle is clickable or not
-	 *
-	 *
-	 * ... and more!
-	 */
-	private val circleOptions: CircleOptions = CircleOptions().center(this.location).radius(STARTING_RADIUS)
 
 	/**
 	 * The circle marking the bus stop on the map
@@ -69,42 +55,30 @@ class Stop(stopName: String, location: LatLng, val route: Route) : MarkedObject(
 	 *
 	 * @param map The google maps object that the stops will be drawn onto.
 	 * Be sure this object has been initialized first.
+	 * @param attempted Comments
 	 */
 	@UiThread
-	fun showStop(map: GoogleMap) {
+	fun toggleStopVisibility(map: GoogleMap, attempted: Boolean = false) {
 
 		// Check if the circle for the stop needs to be created,
 		// or just set to visible if it already exists.
 		if (this.circle == null) {
 
+			if (attempted) {
+				Log.w("toggleStopVisibility", "Unable to create circle for stop ${this.name}")
+				return
+			}
+
 			// Create a new circle object.
-			Log.d("showStop", "Creating new stop for $name")
-			this.circle = createStopCircle(map, circleOptions, this)
+			Log.d("toggleStopVisibility", "Creating new stop for ${this.name}")
+			this.createStopCircle(map)
+			this.toggleStopVisibility(map, true)
 		} else {
 
-			// Since the circle already exists simply set it to visible.
-			Log.d("showStop", "Showing stop $name")
-			this.circle!!.isClickable = true
-			this.circle!!.isVisible = true
-		}
-	}
-
-	/**
-	 * Hides the objects on the map.
-	 * This doesn't dispose of the circle object, but rather sets it to invisible
-	 * (and also sets it to not be clickable in an attempt to disable its hit box from overriding other circles).
-	 * This should be run on the UI thread.
-	 */
-	@UiThread
-	fun hideStop() {
-
-		// If the circle is null this will simply return.
-		if (circle != null) {
-
-			// Since it exists, hide the circle.
-			Log.d("hideStop", "Hiding stop $name")
-			circle!!.isClickable = false
-			circle!!.isVisible = false
+			// Since the circle already exists simply update its visibility.
+			Log.d("toggleStopVisibility", "Setting stop ${this.name} to visible: ${this.route.enabled}")
+			this.circle!!.isClickable = this.route.enabled
+			this.circle!!.isVisible = this.route.enabled
 		}
 	}
 
@@ -123,40 +97,46 @@ class Stop(stopName: String, location: LatLng, val route: Route) : MarkedObject(
 		}
 	}
 
+	/**
+	 * Creates a new circle object for new Stops.
+	 *
+	 * @param map     The google maps object that this newly created circle will be added to.
+	 * This cannot be null.
+	 */
+	@UiThread
+	fun createStopCircle(map: GoogleMap) {
+
+		// Add our circle to the map.
+		this.circle = map.addCircle {
+
+			// Comments
+			this.center(this@Stop.location)
+
+			// Comments
+			this.radius(STARTING_RADIUS)
+
+			val route: Route = this@Stop.route
+
+			// Set the colors.
+			this.fillColor(route.color)
+			this.strokeColor(route.color)
+
+			// Set the stop to be visibility to whether or not the route is enabled.
+			this.clickable(route.enabled)
+			this.visible(route.enabled)
+		}
+
+		// Set the tag of the circle to Stop so that it can differentiate between this class
+		// and other stop-like classes (such as shared stops).
+		this.circle!!.tag = this // TODO Set me after check
+	}
+
 	companion object {
 
 		/**
 		 * The starting radius size of the circle for the stop on the map (in meters).
 		 */
 		private const val STARTING_RADIUS = 50.0
-
-		/**
-		 * Creates a new circle object for new Stops.
-		 * This method does not set the circle itself, but rather returns the newly created circle.
-		 *
-		 * @param map     The google maps object that this newly created circle will be added to.
-		 * This cannot be null.
-		 * @param options The options to apply to the circle.
-		 * @param stop    The stop that this circle belongs to (this will be set as the circle's tag)
-		 * @return The newly created circle.
-		 */
-		@UiThread
-		internal fun createStopCircle(map: GoogleMap, options: CircleOptions, stop: Stop): Circle {
-
-			// Add the circle to the map.
-			val circle = map.addCircle(options)
-
-			// Set the tag of the circle to Stop so that it can differentiate between this class
-			// and other stop-like classes (such as shared stops).
-			circle.tag = stop
-
-			// Set the stop to be visible and clickable.
-			circle.isClickable = true
-			circle.isVisible = true
-
-			// Return the newly created circle.
-			return circle
-		}
 
 		/**
 		 * Creates an array of stops from the provided json array.
@@ -265,16 +245,6 @@ class Stop(stopName: String, location: LatLng, val route: Route) : MarkedObject(
 
 			// Since nothing matched, return false.
 			return false
-		}
-	}
-
-	init {
-
-		// Add the route color if it has one.
-		val color = this.route.color
-		if (color != 0) {
-			this.circleOptions.fillColor(color)
-			this.circleOptions.strokeColor(color)
 		}
 	}
 }

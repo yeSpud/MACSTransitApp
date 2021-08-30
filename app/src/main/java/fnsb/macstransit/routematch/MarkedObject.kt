@@ -73,13 +73,13 @@ open class MarkedObject(val name: String, var location: LatLng) {
 		val marker: Marker? = map.addMarker {
 
 			// Set the position of the marker via the latitude and longitude.
-			position(this@MarkedObject.location)
+			this.position(this@MarkedObject.location)
 
 			// Set the color of the marker.
 			Log.d("addMarker", "Applying marker color")
 			val hsv = FloatArray(3)
 			android.graphics.Color.colorToHSV(color, hsv)
-			icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]))
+			this.icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]))
 		}
 
 		// If the marker isn't null add more fields.

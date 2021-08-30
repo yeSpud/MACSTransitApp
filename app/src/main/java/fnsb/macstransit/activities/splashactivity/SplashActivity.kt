@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import fnsb.macstransit.R
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.databinding.SplashscreenBinding
+import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.routematch.SharedStop
 import kotlinx.coroutines.CoroutineName
@@ -402,10 +403,11 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		loaded = true
 
 		// Set the selected favorites routes to be false for the maps activity.
-		MapsActivity.selectedFavorites = false
+		MapsActivity.firstRun = false
 
 		val mapsIntent = Intent(this, MapsActivity::class.java)
 		mapsIntent.putExtra("RouteMatch", routeMatch.url)
+		// TODO Put routes as extra (serializable) to pass to maps activity
 
 		// Start the MapsActivity, and close this splash activity.
 		this.startActivity(mapsIntent)

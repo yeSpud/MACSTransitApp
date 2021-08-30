@@ -1,8 +1,6 @@
 package fnsb.macstransit.activities.mapsactivity.maplisteners
 
-import android.util.Log
 import com.google.android.gms.maps.GoogleMap
-import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import kotlin.math.pow
 
 /**
@@ -49,14 +47,12 @@ class AdjustZoom(private val map: GoogleMap) : GoogleMap.OnCameraIdleListener {
 			// With the zoom and latitude determined we can then calculate meters per pixel.
 			val metersPerPixel =
 					156543.03392 * kotlin.math.cos(lat * Math.PI / 180.0) / 2.0.pow(zoom.toDouble())
-			Log.v("resizeStops", "Meters / Pixel: $metersPerPixel")
 
 			// Get the size of the circle to resize to.
 			val size = metersPerPixel * 4
-			Log.d("resizeStops", "Setting circle size to: ${metersPerPixel * 4}")
 
 			// Iterate though each route.
-			for (route in MapsActivity.allRoutes) {
+			for (route in fnsb.macstransit.activities.mapsactivity.MapsActivity.allRoutes) {
 
 				// Start by resizing the stop circles first.
 				for (stop in route.stops) {
@@ -66,12 +62,7 @@ class AdjustZoom(private val map: GoogleMap) : GoogleMap.OnCameraIdleListener {
 				}
 
 				// Then resize the route's shared stop circles.
-				val sharedStops = route.sharedStops
-				if (sharedStops.isNotEmpty()) {
-					for (sharedStop in sharedStops) {
-						sharedStop.setCircleSizes(size)
-					}
-				}
+				route.sharedStops.forEach { it.setCircleSizes(size) }
 			}
 		}
 	}

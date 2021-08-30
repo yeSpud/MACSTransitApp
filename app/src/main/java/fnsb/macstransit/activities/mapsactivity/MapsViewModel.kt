@@ -15,6 +15,7 @@ import fnsb.macstransit.activities.mapsactivity.maplisteners.AdjustZoom
 import fnsb.macstransit.routematch.Bus
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
+import fnsb.macstransit.routematch.SharedStop
 import fnsb.macstransit.settings.V2
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -78,7 +79,12 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	 * Draws the stops and shared stops onto the map,
 	 * and adjusts the stop sizes based on the zoom level.
 	 */
-	fun drawStops(map: GoogleMap) {
+	fun drawStops() {
+
+		// Comments
+		if (this.map == null) {
+			return
+		}
 
 		// Comments
 		viewModelScope.launch(Dispatchers.Main) {
@@ -86,30 +92,15 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 			// Iterate though all the routes as we know at this point that they are not null.
 			for (route in MapsActivity.allRoutes) {
 
-				// Iterate though the stops in the route before getting to the shared stops.
-				for (stop in route.stops) {
-
-					if (route.enabled) {
-
-						// Show the stop on the map.
-						stop.showStop(map)
-					} else {
-
-						// Hide the stop from the map.
-						// Be sure its only hidden and not actually destroying the object.
-						stop.hideStop()
-					}
-				}
-
-				// Check that there are shared stops to hide in the route.
-				val sharedStops = route.sharedStops
+				// Toggle the stop visibility for each route.
+				route.stops.forEach { it.toggleStopVisibility(this@MapsViewModel.map!!) }
 
 				// Iterate though the shared stops in the route.
-				for (sharedStop in sharedStops) {
+				for (sharedStop in route.sharedStops) {
 					if (route.enabled) {
 
 						// Show the shared stops.
-						sharedStop.showSharedStop(map)
+						sharedStop.showSharedStop(this@MapsViewModel.map!!)
 					} else {
 
 						// Hide the shared stops on the map.
@@ -120,7 +111,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 			}
 
 			// Adjust the circle sizes of the stops on the map given the current zoom.
-			AdjustZoom.resizeStops(map)
+			AdjustZoom.resizeStops(this@MapsViewModel.map!!)
 
 		}
 	}
@@ -129,32 +120,16 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	 * Draws the route's polylines to the map.
 	 * While all polylines are drawn they will only be shown if the route that they belong to is enabled.
 	 */
-	fun drawRoutes(map: GoogleMap) {
+	fun drawRoutes() {
 
 		// Comments
-		viewModelScope.launch(Dispatchers.Main) {
-
-			// Start by iterating through all the routes.
-			for (route in MapsActivity.allRoutes) {
-				try {
-
-					// Check if the route has a polyline to set visible.
-					if (route.polyline == null) {
-
-						// Create a new polyline for the route since it didn't have one before.
-						route.createPolyline(map)
-					}
-
-					// Set the polyline's visibility to whether the route is enabled or not.
-					route.polyline!!.isVisible = route.enabled
-				} catch (e: java.lang.NullPointerException) {
-
-					// If the polyline was still null after being created, log it as a warning.
-					Log.w("drawRoutes", "Polyline for route ${route.routeName} " +
-					                    "was not created successfully!")
-				}
-			}
+		if (this.map == null) {
+			return
 		}
+
+		// Toggle the polyline visibility for all the routes on the map.
+		MapsActivity.allRoutes.forEach { it.togglePolylineVisibility(this.map!!) }
+
 	}
 
 	/**
@@ -166,7 +141,12 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	 * which may be modified at the time of iteration.
 	 */
 	@Throws(ConcurrentModificationException::class)
-	fun drawBuses(map: GoogleMap) {
+	fun drawBuses() {
+
+		// Comments
+		if (this.map == null) {
+			return
+		}
 
 		// Comments
 		viewModelScope.launch(Dispatchers.Main) {
@@ -184,7 +164,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 					if (route.enabled) {
 
 						// Try creating a new marker for the bus (if its enabled).
-						bus.addMarker(map, bus.color)
+						bus.addMarker(this@MapsViewModel.map!!, bus.color)
 						bus.marker!!.isVisible = true
 
 					} else {
@@ -213,44 +193,47 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		this.map!!.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.
 		newLatLngZoom(com.google.android.gms.maps.model.LatLng(64.8391975, -147.7684709), 11.0f))
 
-		// Add a listener for when the camera has become idle (ie was moving isn't anymore).
-		Log.v("MapCoroutine", "Setting camera idle listener")
-		this.map!!.setOnCameraIdleListener(AdjustZoom(this.map!!))
+		// Only execute the following if we have routes to iterate over.
+		if (MapsActivity.allRoutes.isNotEmpty()) {
 
-		// Comments
-		val activity: Context = this.getApplication<Application>().applicationContext as Context
+			// Add a listener for when the camera has become idle (ie was moving isn't anymore).
+			Log.v("MapCoroutine", "Setting camera idle listener")
+			this.map!!.setOnCameraIdleListener(AdjustZoom(this.map!!))
 
-		// Add a listener for when a stop icon (circle) is clicked.
-		Log.v("MapCoroutine", "Setting circle click listener")
-		this.map!!.setOnCircleClickListener(fnsb.macstransit.activities.mapsactivity.
-		maplisteners.StopClicked(activity, this.routeMatch, this.map!!))
+			// Comments
+			val activity: Context = this.getApplication<Application>().applicationContext as Context
 
-		// Add a custom info window adapter, to add support for multiline snippets.
-		Log.v("MapCoroutine", "Setting info window")
-		this.map!!.setInfoWindowAdapter(fnsb.macstransit.activities.mapsactivity.mappopups.
-		InfoWindowPopup(activity))
+			// Add a listener for when a stop icon (circle) is clicked.
+			Log.v("MapCoroutine", "Setting circle click listener")
+			this.map!!.setOnCircleClickListener(fnsb.macstransit.activities.mapsactivity.
+			maplisteners.StopClicked(activity, this.routeMatch, this.map!!))
 
-		// Set it so that if the info window was closed for a Stop marker,
-		// make that marker invisible, so its just the dot.
-		Log.v("MapCoroutine", "Setting info window close listener")
-		this.map!!.setOnInfoWindowCloseListener(fnsb.macstransit.activities.
-		mapsactivity.maplisteners.StopDeselected(this.routeMatch.networkQueue))
+			// Add a custom info window adapter, to add support for multiline snippets.
+			Log.v("MapCoroutine", "Setting info window")
+			this.map!!.setInfoWindowAdapter(fnsb.macstransit.activities.mapsactivity.mappopups.
+			InfoWindowPopup(activity))
 
-		// Set it so that when an info window is clicked on, it launches a popup window
-		Log.v("MapCoroutine", "Setting info window click listener")
-		this.map!!.setOnInfoWindowClickListener(fnsb.macstransit.activities.mapsactivity.mappopups.
-		PopupWindow(activity))
+			// Set it so that if the info window was closed for a Stop marker,
+			// make that marker invisible, so its just the dot.
+			Log.v("MapCoroutine", "Setting info window close listener")
+			this.map!!.setOnInfoWindowCloseListener(fnsb.macstransit.activities.
+			mapsactivity.maplisteners.StopDeselected(this.routeMatch.networkQueue))
+
+			// Set it so that when an info window is clicked on, it launches a popup window
+			Log.v("MapCoroutine", "Setting info window click listener")
+			this.map!!.setOnInfoWindowClickListener(fnsb.macstransit.activities.mapsactivity.mappopups.
+			PopupWindow(activity))
+
+			// Comments
+			Log.v("MapCoroutine", "Launching update coroutine")
+			this.updater = UpdateCoroutine(10000, this, this.map!!)
+			this.runUpdater()
+		}
 
 		// Update the map's dynamic settings.
 		Log.v("MapCoroutine", "Updating map settings")
 		this.updateMapSettings()
 
-		// Comments
-		if (MapsActivity.allRoutes.isNotEmpty()) {
-			Log.v("MapCoroutine", "Launching update coroutine")
-			this.updater = UpdateCoroutine(10000, this, this.map!!)
-			this.runUpdater()
-		}
 	}
 
 	/**
@@ -275,30 +258,35 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 			// Toggle night mode at this time if enabled.
 			this.toggleNightMode(settings.darktheme)
 
-			// Get the favorited routes from the settings object.
-			val favoritedRoutes = settings.routes
-			if (!MapsActivity.selectedFavorites) {
+			if (MapsActivity.firstRun) {
+
+				// Get the favorited routes from the settings object.
+				val favoritedRoutes = settings.routes
 
 				// If the favorited routes is not null, enable them.
 				Route.enableFavoriteRoutes(favoritedRoutes)
+
+				MapsActivity.firstRun = false
 			}
+
+			// TODO Update initial checkbox state if not first run for each route
 
 			// Try redrawing the buses.
 			// Because we are iterating a static variable that is modified on a different thread
 			// there is a possibility of a concurrent modification.
 			try {
-				this.drawBuses(this.map!!)
+				this.drawBuses()
 			} catch (e: ConcurrentModificationException) {
 				Log.e("updateMapSettings",
 				      "Unable to draw all buses due to concurrent modification", e)
 			}
 
 			// Draw the stops.
-			this.drawStops(this.map!!)
+			this.drawStops()
 
 			// Draw the routes.
 			if (settings.polylines) {
-				this.drawRoutes(this.map!!)
+				this.drawRoutes()
 			}
 		} else {
 			Log.w("updateMapSettings", "Map is not yet ready!")
