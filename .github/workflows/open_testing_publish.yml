@@ -1,0 +1,49 @@
+name: Open Testing
+
+on:
+  push:
+    branches:
+      - Open-Testing
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set Up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Change wrapper permissions
+        run: chmod +x ./gradlew
+
+      - name: Write local.properties
+        run: echo MAPS_API_KEY=${{ secrets.MAPS_API_KEY }} > ./local.properties
+
+      - name: Run Tests
+        run: ./gradlew test
+
+      - name: Build Project
+        run: ./gradlew build
+
+      - name: Build Release Bundle
+        run: ./gradlew bundleRelease
+
+# Comment out for now... FIXME
+#      - name: Sign Bundle
+#        uses: r0adkll/sign-android-release@v1
+#        with:
+#          releaseDirectory: app/build/outputs/bundle/release
+#          signingKeyBase64: ${{ secrets.SIGN_KEY }}
+#          alias: ${{ secrets.ALIAS }}
+#          keyStorePassword: ${{ secrets.STORE_KEY_PASSWORD }}
+#          keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+#      - name: Deploy to Play Store
+#        uses: r0adkll/upload-google-play@v1
+#        with:
+#          serviceAccountJsonPlainText: ${{secrets.SERVICE_ACCOUNT}}
+#          packageName: fnsb.macstransit
+#          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+#          track: production
