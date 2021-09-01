@@ -11,7 +11,8 @@ import fnsb.macstransit.routematch.MarkedObject
  * @since Beta 7.
  */
 @androidx.annotation.UiThread
-class StopDeselected(private val networkQueue: RequestQueue) : com.google.android.gms.maps.GoogleMap.OnInfoWindowCloseListener {
+class StopDeselected(private val networkQueue: RequestQueue) :
+		com.google.android.gms.maps.GoogleMap.OnInfoWindowCloseListener {
 
 	/**
 	 * Called when the marker's info window is closed.

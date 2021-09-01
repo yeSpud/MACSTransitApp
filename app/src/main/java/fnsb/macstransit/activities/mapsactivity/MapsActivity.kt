@@ -13,6 +13,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import fnsb.macstransit.activities.SettingsActivity
 import fnsb.macstransit.activities.mapsactivity.mappopups.FarePopupWindow
 import fnsb.macstransit.databinding.ActivityMapsBinding
+import fnsb.macstransit.settings.CurrentSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.ConcurrentModificationException
@@ -23,11 +24,6 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 	 * Documentation
 	 */
 	lateinit var viewModel: MapsViewModel
-
-	/**
-	 * Documentation
-	 */
-	private val currentSettings = fnsb.macstransit.settings.CurrentSettings
 
 	/**
 	 * Create a variable to store our fare popup window instance.
@@ -51,7 +47,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 
 		// Load in the current settings.
 		try {
-			this.currentSettings.loadSettings(this)
+			CurrentSettings.loadSettings(this)
 		} catch (e: org.json.JSONException) {
 
 			// If there was an exception loading the settings simply log it and return.
@@ -146,10 +142,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		this.menuInflater.inflate(R.menu.menu, menu)
 
 		// Iterate through all the routes that can be tracked (if allRoutes isn't null).
-		for (i in allRoutes.indices) {
-
-			// Get the route object that we will be using from all the routes.
-			val route = allRoutes[i]
+		for (route: Route in allRoutes) {
 
 			// Create the menu item that corresponds to the route object.
 			val menuItem = menu.add(R.id.routes, Menu.NONE, 0, route.routeName)
@@ -163,8 +156,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		}
 
 		// Check if night mode should be enabled by default, and set the checkbox to that value.
-		menu.findItem(R.id.night_mode).isChecked =
-				(currentSettings.settingsImplementation as V2).darktheme
+		menu.findItem(R.id.night_mode).isChecked = (CurrentSettings.settingsImplementation as V2).darktheme
 
 		// Comments
 		return super.onCreateOptionsMenu(menu)
@@ -251,7 +243,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 					this.viewModel.drawStops()
 
 					// (Re) draw the routes onto the map (if enabled).
-					if ((currentSettings.settingsImplementation as V2).polylines) {
+					if ((CurrentSettings.settingsImplementation as V2).polylines) {
 						this.viewModel.drawRoutes()
 					}
 
@@ -306,6 +298,9 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		@Deprecated("Memory leak")
 		var allRoutes: Array<Route> = emptyArray()
 
+		/**
+		 * Documentation
+		 */
 		var firstRun: Boolean = true
 
 	}

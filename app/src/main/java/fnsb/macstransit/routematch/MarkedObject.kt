@@ -13,7 +13,7 @@ import com.google.maps.android.ktx.addMarker
  * @version 2.0.
  * @since Beta 8.
  */
-open class MarkedObject(val name: String, var location: LatLng) {
+open class MarkedObject(val name: String, var location: LatLng, val route: Route) {
 
 	/**
 	 * The marker of the marker of the marked object.
@@ -39,9 +39,10 @@ open class MarkedObject(val name: String, var location: LatLng) {
 	}
 
 	override fun hashCode(): Int { // Comments
-		var result = this.name.hashCode()
-		result = (31 * result) + this.location.hashCode()
-		result = (31 * result) + (this.marker?.hashCode() ?: 0)
+		var result = name.hashCode()
+		result = 0x1F * result + location.hashCode()
+		result = 0x1F * result + route.hashCode()
+		result = 0x1F * result + (marker?.hashCode() ?: 0)
 		return result
 	}
 
@@ -60,13 +61,12 @@ open class MarkedObject(val name: String, var location: LatLng) {
 	 * Adds a marker to the map. Note that this method does not save the marker to the marked object.
 	 * It only adds it to the map, and returns the newly added marker.
 	 *
-	 * @param map         The map to add the marker to.
-	 * @param color       The color of the marker.
+	 * @param map The map to add the marker to.
 	 * This will try to get the closest approximation to the color as there are a limited number of marker colors.
 	 * @return The newly added marker.
 	 */
 	@UiThread
-	fun addMarker(map: com.google.android.gms.maps.GoogleMap, color: Int) {
+	fun addMarker(map: com.google.android.gms.maps.GoogleMap) {
 
 		// Add the marker to the map.
 		Log.d("addMarker", "Adding marker to the map")
@@ -78,7 +78,7 @@ open class MarkedObject(val name: String, var location: LatLng) {
 			// Set the color of the marker.
 			Log.d("addMarker", "Applying marker color")
 			val hsv = FloatArray(3)
-			android.graphics.Color.colorToHSV(color, hsv)
+			android.graphics.Color.colorToHSV(this@MarkedObject.route.color, hsv)
 			this.icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]))
 		}
 
@@ -86,8 +86,8 @@ open class MarkedObject(val name: String, var location: LatLng) {
 		if (marker != null) {
 
 			// Set the marker title.
-			Log.d("addMarker", "Setting marker title to: $name")
-			marker.title = name
+			Log.d("addMarker", "Setting marker title to: ${this.name}")
+			marker.title = this.name
 
 			// Set the marker's tag.
 			Log.d("addMarker", "Setting the markers tag to: ${this.javaClass}")

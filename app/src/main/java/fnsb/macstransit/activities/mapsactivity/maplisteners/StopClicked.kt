@@ -44,34 +44,12 @@ class StopClicked(private val activity: Context, private val routematch: RouteMa
 		// If the marker for our marked object is null, create a new marker.
 		if (markedObject.marker == null) {
 
-			// Get the location and color of the object
-			// (this is different depending on whether or not its a shared stop or a regular stop).
-			val color: Int
-			when (markedObject) {
-				is SharedStop -> {
-
-					// Get color of the largest circle of our shared stop.
-					color = markedObject.routes[0].color
-				}
-				is Stop -> {
-
-					// Get color of our stop.
-					color = markedObject.route.color
-				}
-				else -> {
-
-					// Since our marked object was neither a shared stop nor a regular stop log it as a warning,
-					// and return early.
-					Log.w("onCircleClick", "Object unaccounted for: ${markedObject.javaClass}")
-					return
-				}
-			}
-
 			// Create a new marker for our marked object using the newly determined location and color.
-			markedObject.addMarker(this.map, color)
+			markedObject.addMarker(this.map)
 		}
 
 		// Comments
+		// TODO Add recursion
 		if (markedObject.marker != null) {
 
 			// Show our marker.
@@ -136,7 +114,7 @@ class StopClicked(private val activity: Context, private val routematch: RouteMa
 		fun postStopTimes(stop: MarkedObject, json: JSONObject, context: Context): String {
 
 			// Get the stop data from the retrieved json.
-			val stopData = fnsb.macstransit.routematch.RouteMatch.parseData(json)
+			val stopData = RouteMatch.parseData(json)
 
 			// Get the times for the stop.
 			// Since the method arguments are slightly different for a shared stop compared to a regular stop,
@@ -158,10 +136,10 @@ class StopClicked(private val activity: Context, private val routematch: RouteMa
 				// If there was an issue casting from classes log the error and return the current content of the string.
 				Log.e("postStopTimes", "Unaccounted object class: ${stop.javaClass}", e)
 				return string
-			} catch (nullPointerException: NullPointerException) {
+			} catch (NullPointerException: NullPointerException) {
 
 				// Log the null exception, and return the current string content.
-				Log.e("postStopTimes", "Null pointer exception thrown!", nullPointerException)
+				Log.e("postStopTimes", "Null pointer exception thrown!", NullPointerException)
 				return string
 			}
 
@@ -234,7 +212,8 @@ class StopClicked(private val activity: Context, private val routematch: RouteMa
 		 * @throws JSONException Thrown if there is a JSONException while parsing the data for the stop.
 		 */
 		@Throws(JSONException::class)
-		private fun generateTimeString(stopArray: org.json.JSONArray, context: Context, routes: Array<Route>, includeRouteName: Boolean): String {
+		private fun generateTimeString(stopArray: org.json.JSONArray, context: Context,
+		                               routes: Array<Route>, includeRouteName: Boolean): String {
 
 			// Get the number of entries in our json array.
 			val count = stopArray.length()

@@ -5,7 +5,7 @@
     <data>
 
         <variable
-            name="settings_activity"
+            name="activity"
             type="fnsb.macstransit.activities.SettingsActivity" />
 
     </data>
@@ -51,7 +51,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/white"
-                    android:checked="@{settings_activity.settings.INSTANCE.traffic}"
+                    android:checked="@{activity.settings.INSTANCE.traffic}"
                     android:text="@string/enable_traffic_view"
                     android:textColor="@color/white"
                     android:textSize="15sp" />
@@ -61,7 +61,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/white"
-                    android:checked="@{settings_activity.settings.INSTANCE.darktheme}"
+                    android:checked="@{activity.settings.INSTANCE.darktheme}"
                     android:text="@string/launch_with_night_mode"
                     android:textColor="@color/white"
                     android:textSize="15sp" />
@@ -71,7 +71,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/white"
-                    android:checked="@{settings_activity.settings.INSTANCE.polylines}"
+                    android:checked="@{activity.settings.INSTANCE.polylines}"
                     android:text="@string/show_polylines"
                     android:textColor="@color/white"
                     android:textSize="15sp" />
@@ -81,7 +81,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/white"
-                    android:checked="@{settings_activity.settings.INSTANCE.streetView}"
+                    android:checked="@{activity.settings.INSTANCE.streetView}"
                     android:enabled="false"
                     android:text="@string/enable_street_view"
                     android:textColor="@color/white"

@@ -15,7 +15,8 @@ import fnsb.macstransit.activities.mapsactivity.MapsActivity
  * @version 4.0.
  * @since Beta 7.
  */
-class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) : MarkedObject(stopName, location) {
+class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) :
+		MarkedObject(stopName, location, routes[0]) {
 
 	/**
 	 * Array of circle options for each circle that represents a route.

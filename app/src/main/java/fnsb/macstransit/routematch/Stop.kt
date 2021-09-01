@@ -17,7 +17,7 @@ import org.json.JSONObject
  * @version 3.0.
  * @since Beta 6.
  */
-class Stop(stopName: String, location: LatLng, val route: Route) : MarkedObject(stopName, location) {
+class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stopName, location, route) {
 
 	/**
 	 * The circle marking the bus stop on the map
@@ -34,8 +34,8 @@ class Stop(stopName: String, location: LatLng, val route: Route) : MarkedObject(
 	 * @param longitude
 	 * @param route
 	 */
-	constructor(stopName: String, latitude: Double, longitude: Double, route: Route) : this(
-			stopName, LatLng(latitude, longitude), route)
+	constructor(stopName: String, latitude: Double, longitude: Double, route: Route) :
+			this(stopName, LatLng(latitude, longitude), route)
 
 	/**
 	 * Lazy creation of a new Stop object using the provided JSON and the route.

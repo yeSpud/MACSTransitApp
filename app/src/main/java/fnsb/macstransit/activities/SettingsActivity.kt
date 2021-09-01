@@ -10,6 +10,7 @@ import com.google.android.gms.maps.GoogleMap
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.databinding.SettingsBinding
 import fnsb.macstransit.routematch.Route
+import fnsb.macstransit.settings.CurrentSettings
 
 /**
  * Created by Spud on 2019-11-24 for the project: MACS Transit.
@@ -28,8 +29,7 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 	/**
 	 * Documentation
 	 */
-	val settings =
-			fnsb.macstransit.settings.CurrentSettings.settingsImplementation as fnsb.macstransit.settings.V2
+	val settings = CurrentSettings.settingsImplementation as fnsb.macstransit.settings.V2
 
 	override fun onCreate(savedInstanceState: android.os.Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -157,11 +157,11 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			}
 
 			// Write that string to the file
-			this@SettingsActivity.settings.writeSettingsToFile(json.toString(),
-			                                                   this@SettingsActivity)
+			CurrentSettings.settingsImplementation.writeSettingsToFile(json.toString(),
+			                                                           this@SettingsActivity)
 
 			// Reload the settings.
-			this@SettingsActivity.settings.parseSettings(json)
+			CurrentSettings.settingsImplementation.parseSettings(json)
 
 			// Close the activity.
 			this@SettingsActivity.finish()

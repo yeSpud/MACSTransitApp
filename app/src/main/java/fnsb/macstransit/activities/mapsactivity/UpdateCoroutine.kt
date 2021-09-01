@@ -12,8 +12,7 @@ import org.json.JSONObject
  * @version 1.0.
  * @since Release 1.3.
  */
-class UpdateCoroutine(private val updateFrequency: Long,
-                      private val mapsViewModel: MapsViewModel,
+class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewModel: MapsViewModel,
                       map: GoogleMap) {
 
 	/**
@@ -60,7 +59,6 @@ class UpdateCoroutine(private val updateFrequency: Long,
 
 		this.isRunning = false
 		Log.i("UpdateCoroutine", "Shutting down...")
-
 	}
 
 	/**
@@ -86,12 +84,14 @@ class UpdateCoroutine(private val updateFrequency: Long,
 			// Get the array of new buses.
 			// These buses are buses that were not previously on the map until now.
 			Log.d("Callback", "Adding new buses to map")
-			val newBuses: Array<Bus> = Bus.addNewBuses(this@UpdateCoroutine.mapsViewModel.buses, buses, this.map)
+			val newBuses: Array<Bus> = Bus.addNewBuses(this@UpdateCoroutine.mapsViewModel.buses,
+			                                           buses, this.map)
 
 			// Update the current position of our current buses.
 			// This also removes old buses from the array, but they still have markers on the map.
 			Log.d("Callback", "Updating current buses on map")
-			val currentBuses: Array<Bus> = Bus.updateCurrentBuses(this@UpdateCoroutine.mapsViewModel.buses, buses)
+			val currentBuses: Array<Bus> = Bus.updateCurrentBuses(this@UpdateCoroutine.mapsViewModel.
+			buses, buses)
 
 			// Remove the markers of the old buses that are no longer on the map.
 			Log.d("Callback", "Removing old buses from map")
@@ -113,5 +113,4 @@ class UpdateCoroutine(private val updateFrequency: Long,
 			this@UpdateCoroutine.mapsViewModel.buses = finalBusArray.requireNoNulls()
 		}
 	}
-
 }

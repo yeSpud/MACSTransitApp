@@ -27,8 +27,7 @@ class SplashViewModel(application: Application) : AndroidViewModel(application) 
 	/**
 	 * Documentation
 	 */
-	val routeMatch: RouteMatch = RouteMatch(this.getApplication<Application>().getString(R.string.routematch_url),
-	                                        this.getApplication())
+	val routeMatch: RouteMatch = RouteMatch(this.getApplication<Application>().getString(R.string.routematch_url), this.getApplication())
 
 	/**
 	 * Documentation
