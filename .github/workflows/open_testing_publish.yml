@@ -19,9 +19,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Write local.properties
-        env:
-          MAPS_API_KEY: "FIXME"#${{ secrets.MAPS_API_KEY }}
-        run: echo MAPS_API_KEY="MAPS_API_KEY" > ./local.properties
+        run: echo MAPS_API_KEY=${{ secrets.MAPS_API_KEY }} > ./local.properties
 
       - name: Run Tests
         run: ./gradlew test
