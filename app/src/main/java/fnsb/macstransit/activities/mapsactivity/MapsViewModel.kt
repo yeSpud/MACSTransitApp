@@ -10,7 +10,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.ktx.awaitMap
 import fnsb.macstransit.R
-import fnsb.macstransit.activities.mapsactivity.maplisteners.AdjustZoom
 import fnsb.macstransit.routematch.Bus
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
@@ -18,6 +17,7 @@ import fnsb.macstransit.settings.V2
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.ConcurrentModificationException
+import kotlin.math.pow
 
 /**
  * Created by Spud on 8/21/21 for the project: MACS Transit.
@@ -38,13 +38,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	/**
 	 * Documentation
 	 */
-	val routeMatch: RouteMatch = RouteMatch(this.getApplication<Application>().getString(R.string.routematch_url),
-	                                        this.getApplication())
-
-	/**
-	 * Documentation
-	 */
-	private var loadedRouteMatch: Boolean = false
+	val routeMatch: RouteMatch = RouteMatch(this.getApplication<Application>().getString(R.string.routematch_url), this.getApplication())
 
 	/**
 	 * Create the map object. This will be null until the map is ready to be used.
@@ -93,7 +87,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 			}
 
 			// Adjust the circle sizes of the stops on the map given the current zoom.
-			AdjustZoom.resizeStops(this@MapsViewModel.map!!)
+			this@MapsViewModel.resizeStops()
 
 		}
 	}
@@ -146,7 +140,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 					if (route.enabled) {
 
 						// Try creating a new marker for the bus (if its enabled).
-						bus.addMarker(this@MapsViewModel.map!!, bus.color)
+						bus.addMarker(this@MapsViewModel.map!!)
 						bus.marker!!.isVisible = true
 
 					} else {
@@ -180,7 +174,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 
 			// Add a listener for when the camera has become idle (ie was moving isn't anymore).
 			Log.v("MapCoroutine", "Setting camera idle listener")
-			this.map!!.setOnCameraIdleListener(AdjustZoom(this.map!!))
+			this.map!!.setOnCameraIdleListener { this.resizeStops() }
 
 			// Comments
 			val activity: Context = this.getApplication<Application>().applicationContext as Context
@@ -285,6 +279,47 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 			this.viewModelScope.launch(Dispatchers.Main) {
 				this@MapsViewModel.updater!!.start()
 			}
+		}
+	}
+
+	/**
+	 * Resizes the stop and shared stop circles on the map.
+	 * This works regardless of whether or not a particular route is enabled or disabled.
+	 */
+	private fun resizeStops() {
+
+		// Comments
+		if (this.map == null) {
+			return
+		}
+		
+		/*
+		 * Calculate meters per pixel.
+		 * This will be used to determine the circle size as we want it it be 4 meters in size.
+		 * To calculate this we will need the current zoom as well as the cameras latitude.
+		 */
+		val zoom = this.map!!.cameraPosition.zoom
+		val lat = this.map!!.cameraPosition.target.latitude
+
+		// With the zoom and latitude determined we can then calculate meters per pixel.
+		val metersPerPixel =
+				156543.03392 * kotlin.math.cos(lat * Math.PI / 180.0) / 2.0.pow(zoom.toDouble())
+
+		// Get the size of the circle to resize to.
+		val size = metersPerPixel * 4
+
+		// Iterate though each route.
+		for (route in MapsActivity.allRoutes) {
+
+			// Start by resizing the stop circles first.
+			for (stop in route.stops) {
+				if (stop.circle != null) {
+					stop.circle!!.radius = size
+				}
+			}
+
+			// Then resize the route's shared stop circles.
+			route.sharedStops.forEach { it.setCircleSizes(size) }
 		}
 	}
 
