@@ -10,6 +10,8 @@ import androidx.annotation.MainThread
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import fnsb.macstransit.R
+import fnsb.macstransit.routematch.RouteMatch
 import kotlin.math.roundToInt
 
 /**
@@ -20,6 +22,13 @@ import kotlin.math.roundToInt
  * @since Release 1.3.
  */
 class SplashViewModel(application: Application) : AndroidViewModel(application) {
+
+
+	/**
+	 * Documentation
+	 */
+	val routeMatch: RouteMatch = RouteMatch(this.getApplication<Application>().getString(R.string.routematch_url),
+	                                        this.getApplication())
 
 	/**
 	 * Documentation

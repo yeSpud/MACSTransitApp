@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">MACS Transit</string>
+    <string name="routematch_url">https://fnsb.routematch.com/feed/</string>
+
     <string name="expected_arrival">Expected arrival: </string>
     <string name="expected_departure">Expected departure: </string>
     <string name="loading">Loading…</string>

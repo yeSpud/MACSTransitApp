@@ -2,7 +2,6 @@ package fnsb.macstransit.activities.mapsactivity
 
 import android.app.Application
 import android.content.Context
-import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,7 +14,6 @@ import fnsb.macstransit.activities.mapsactivity.maplisteners.AdjustZoom
 import fnsb.macstransit.routematch.Bus
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
-import fnsb.macstransit.routematch.SharedStop
 import fnsb.macstransit.settings.V2
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,8 +38,8 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	/**
 	 * Documentation
 	 */
-	lateinit var routeMatch: RouteMatch
-	private set
+	val routeMatch: RouteMatch = RouteMatch(this.getApplication<Application>().getString(R.string.routematch_url),
+	                                        this.getApplication())
 
 	/**
 	 * Documentation
@@ -58,22 +56,6 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	 * Documentation
 	 */
 	var updater: UpdateCoroutine? = null
-
-	/**
-	 * Documentation
-	 */
-	fun setRouteMatch(bundle: Bundle) {
-		if (!this.loadedRouteMatch) {
-			val url: String = try {
-				bundle.getString("RouteMatch")!!
-			} catch (exception: NullPointerException) {
-				Log.e("setRouteMatch", "Could not find URL for routematch", exception)
-				return
-			}
-			this.routeMatch = RouteMatch(url, this.getApplication())
-			this.loadedRouteMatch = true
-		}
-	}
 
 	/**
 	 * Draws the stops and shared stops onto the map,

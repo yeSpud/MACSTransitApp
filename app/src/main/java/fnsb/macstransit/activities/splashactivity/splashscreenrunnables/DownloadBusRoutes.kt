@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.android.gms.maps.model.LatLng
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.activities.splashactivity.SplashActivity
+import fnsb.macstransit.activities.splashactivity.SplashViewModel
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 import org.json.JSONArray
@@ -20,7 +21,7 @@ import kotlin.coroutines.suspendCoroutine
  * @version 1.0.
  * @since Release 1.3.
  */
-class DownloadBusRoutes(private val activity: SplashActivity) {
+class DownloadBusRoutes(private val viewModel: SplashViewModel) {
 
 	/**
 	 * Documentation
@@ -33,11 +34,11 @@ class DownloadBusRoutes(private val activity: SplashActivity) {
 		Log.d("downloadRoute", "Step value: $step")
 
 		// Get the land route from the routematch API using an asynchronous process.
-		this.activity.routeMatch.callLandRoute(route, BusRoutesCallback(continuation, route),
+		this.viewModel.routeMatch.callLandRoute(route, BusRoutesCallback(continuation, route),
 		                                       { error: com.android.volley.VolleyError ->
 			Log.w("downloadRoute", "Unable to get polyline from routematch server", error)
 		}, this)
-		this.activity.viewModel.setProgressBar(progress + step + index)
+		this.viewModel.setProgressBar(progress + step + index)
 	}
 
 
@@ -47,7 +48,7 @@ class DownloadBusRoutes(private val activity: SplashActivity) {
 		override fun onResponse(response: JSONObject) {
 
 			// Display that we are mapping bus routes to the user.
-			this@DownloadBusRoutes.activity.viewModel.setMessage(fnsb.macstransit.R.string.mapping_bus_routes)
+			this@DownloadBusRoutes.viewModel.setMessage(fnsb.macstransit.R.string.mapping_bus_routes)
 			try {
 
 				// Get the land route data array from the land route object.

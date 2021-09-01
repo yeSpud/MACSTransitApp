@@ -4,6 +4,7 @@ import android.util.Log
 import fnsb.macstransit.R
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.activities.splashactivity.SplashActivity
+import fnsb.macstransit.activities.splashactivity.SplashViewModel
 import fnsb.macstransit.routematch.Route
 import org.json.JSONObject
 import kotlin.coroutines.resume
@@ -16,13 +17,13 @@ import kotlin.coroutines.resume
  * @version 1.0.
  * @since Release 1.3.
  */
-class DownloadMasterSchedule(private val activity: SplashActivity) {
+class DownloadMasterSchedule(private val activity: SplashActivity) { // TODO Replace activity with view model
 
 	/**
 	 * Documentation
 	 */
 	suspend fun download(): JSONObject = kotlin.coroutines.suspendCoroutine { continuation ->
-		this.activity.routeMatch.callMasterSchedule(MasterScheduleCallback(continuation), {
+		this.activity.viewModel.routeMatch.callMasterSchedule(MasterScheduleCallback(continuation), {
 			error: com.android.volley.VolleyError ->
 			Log.w("initializeApp", "MasterSchedule callback error", error)
 			this.activity.viewModel.setMessage(R.string.routematch_timeout)

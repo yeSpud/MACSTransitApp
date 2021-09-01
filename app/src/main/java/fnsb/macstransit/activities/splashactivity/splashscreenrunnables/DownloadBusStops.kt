@@ -3,6 +3,7 @@ package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
 import android.util.Log
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.activities.splashactivity.SplashActivity
+import fnsb.macstransit.activities.splashactivity.SplashViewModel
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.Stop
 import org.json.JSONObject
@@ -15,7 +16,7 @@ import kotlin.coroutines.resume
  * @version 1.0.
  * @since Release 1.3.
  */
-class DownloadBusStops(private val activity: SplashActivity) {
+class DownloadBusStops(private val viewModel: SplashViewModel) {
 
 	/**
 	 * Documentation
@@ -33,11 +34,11 @@ class DownloadBusStops(private val activity: SplashActivity) {
 				Log.d("getBusStops", "Step value: $step")
 
 
-				this.activity.routeMatch.callAllStops(route, BusStopCallback(continuation, route), {
+				this.viewModel.routeMatch.callAllStops(route, BusStopCallback(continuation, route), {
 					error: com.android.volley.VolleyError ->
 					Log.w("loadStops", "Unable to get stops from RouteMatch server", error)
 				})
-				this.activity.viewModel.setProgressBar(progress + step + index)
+				this.viewModel.setProgressBar(progress + step + index)
 			}
 
 	internal inner class BusStopCallback(private val continuation: kotlin.coroutines.Continuation<JSONObject>,
@@ -47,7 +48,7 @@ class DownloadBusStops(private val activity: SplashActivity) {
 		override fun onResponse(response: JSONObject) {
 
 			// Display that we are mapping bus stops to the user.
-			this@DownloadBusStops.activity.viewModel.setMessage(fnsb.macstransit.R.string.mapping_bus_stops)
+			this@DownloadBusStops.viewModel.setMessage(fnsb.macstransit.R.string.mapping_bus_stops)
 
 			// Get the data from all the stops and store it in a JSONArray.
 			val data: org.json.JSONArray = fnsb.macstransit.routematch.RouteMatch.parseData(response)

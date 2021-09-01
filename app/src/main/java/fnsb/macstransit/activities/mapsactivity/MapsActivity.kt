@@ -1,5 +1,6 @@
 package fnsb.macstransit.activities.mapsactivity
 
+import android.content.Intent
 import fnsb.macstransit.routematch.Route.RouteException
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.V2
@@ -9,6 +10,7 @@ import android.util.Log
 import android.view.Menu
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.maps.SupportMapFragment
+import fnsb.macstransit.activities.SettingsActivity
 import fnsb.macstransit.activities.mapsactivity.mappopups.FarePopupWindow
 import fnsb.macstransit.databinding.ActivityMapsBinding
 import kotlinx.coroutines.Dispatchers
@@ -46,11 +48,6 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 
 		// Set the activity view to the map activity layout.
 		this.setContentView(binding.root)
-
-		// Comments
-		if (this.intent.extras != null) {
-			this.viewModel.setRouteMatch(this.intent.extras!!)
-		}
 
 		// Load in the current settings.
 		try {
@@ -135,6 +132,13 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		Log.i("onDestroy", "Finished onDestroy")
 	}
 
+	/*
+	override fun onMenuOpened(featureId: Int, menu: Menu): Boolean {
+		Log.v("onMenuOpened", "onMenuOpened has been called!")
+		return super.onMenuOpened(featureId, menu)
+	}
+	 */
+
 	override fun onCreateOptionsMenu(menu: Menu): Boolean {
 		Log.v("onCreateOptionsMenu", "onCreateOptionsMenu has been called!")
 
@@ -162,8 +166,8 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		menu.findItem(R.id.night_mode).isChecked =
 				(currentSettings.settingsImplementation as V2).darktheme
 
-		// Return true, otherwise the menu wont be displayed.
-		return true
+		// Comments
+		return super.onCreateOptionsMenu(menu)
 	}
 
 	override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
@@ -192,24 +196,15 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 					}
 
 					// Check if the item that was selected was the settings button.
-					R.id.settings -> {
-
-						// Launch the settings activity
-						this.startActivity(android.content.Intent(this, fnsb.
-						macstransit.activities.SettingsActivity::class.java))
-					}
+					// Launch the settings activity if it was.
+					R.id.settings -> this.startActivity(Intent(this, SettingsActivity::class.java))
 
 					// Check if the item that was selected was the fares button.
-					R.id.fares -> {
-						this.farePopupWindow.showFarePopupWindow()
-					}
+					R.id.fares -> this.farePopupWindow.showFarePopupWindow()
 
-					else -> {
-
-						// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!
-						Log.w("onOptionsItemSelected",
-						      "Unaccounted menu item in the other group was checked!")
-					}
+					// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!
+					else -> Log.w("onOptionsItemSelected",
+					              "Unaccounted menu item in the other group was checked!")
 				}
 			}
 
@@ -269,12 +264,11 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 				}
 			}
 
-			else -> {
-				// Since the item's ID and group was not part of anything accounted for (uh oh),
-				// log it as a warning!
-				Log.w("onOptionsItemSelected", "Unaccounted menu item was checked!")
-			}
+			// Since the item's ID and group was not part of anything accounted for (uh oh), log it as a warning!
+			else -> Log.w("onOptionsItemSelected", "Unaccounted menu item was checked!")
 		}
+
+		// Comments
 		return super.onOptionsItemSelected(item)
 	}
 
@@ -309,7 +303,8 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		 * This array is initialized in DownloadMasterSchedule.
 		 */
 		// FIXME Memory leak (due to routes containing polylines)
-		var allRoutes: Array<Route> = emptyArray() // TODO Check for concurrent exceptions
+		@Deprecated("Memory leak")
+		var allRoutes: Array<Route> = emptyArray()
 
 		var firstRun: Boolean = true
 

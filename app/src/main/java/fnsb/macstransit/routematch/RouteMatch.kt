@@ -13,7 +13,7 @@ import java.util.regex.Pattern
  * @version 5.0.
  * @since Beta 1.
  */
-class RouteMatch(val url: String, private val context: android.content.Context) {
+class RouteMatch(private val url: String, private val context: android.content.Context) {
 
 	/**
 	 * Volley network queue used to make network and API requests.

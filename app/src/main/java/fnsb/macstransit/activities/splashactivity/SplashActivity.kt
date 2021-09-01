@@ -38,12 +38,6 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 	 */
 	private lateinit var binding: SplashscreenBinding
 
-	/**
-	 * Documentation
-	 */
-	lateinit var routeMatch: RouteMatch
-		private set
-
 	override fun onCreate(savedInstanceState: android.os.Bundle?) {
 		super.onCreate(savedInstanceState)
 
@@ -57,9 +51,6 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 
 		// Set the view to that of the splash screen.
 		this.setContentView(this.binding.root)
-
-		// Comments
-		this.routeMatch = RouteMatch("https://fnsb.routematch.com/feed/", this)
 
 		// Psst. Hey. Wanna know a secret?
 		// In the debug build you can click on the logo to launch right into the maps activity.
@@ -200,7 +191,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		this@SplashActivity.viewModel.setMessage(R.string.loading_bus_routes)
 
 		val downloadBusRoutes = fnsb.macstransit.activities.splashactivity.splashscreenrunnables.
-		DownloadBusRoutes(this@SplashActivity)
+		DownloadBusRoutes(this@SplashActivity.viewModel)
 
 		var mapBusProgress = 0
 
@@ -234,7 +225,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		this@SplashActivity.viewModel.setMessage(R.string.loading_bus_stops)
 
 		val mapBusStops = fnsb.macstransit.activities.splashactivity.splashscreenrunnables.
-		DownloadBusStops(this@SplashActivity)
+		DownloadBusStops(this@SplashActivity.viewModel)
 
 		var mapStopProgress = 0
 
@@ -406,7 +397,6 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		MapsActivity.firstRun = false
 
 		val mapsIntent = Intent(this, MapsActivity::class.java)
-		mapsIntent.putExtra("RouteMatch", routeMatch.url)
 		// TODO Put routes as extra (serializable) to pass to maps activity
 
 		// Start the MapsActivity, and close this splash activity.
