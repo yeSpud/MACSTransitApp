@@ -392,7 +392,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		loaded = true
 
 		// Set the selected favorites routes to be false for the maps activity.
-		MapsActivity.firstRun = false
+		MapsActivity.firstRun = true
 
 		// Comments
 		val mapsIntent = Intent(this, MapsActivity::class.java)

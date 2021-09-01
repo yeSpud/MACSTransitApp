@@ -7,7 +7,6 @@ import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
 import fnsb.macstransit.R
 import fnsb.macstransit.activities.mapsactivity.mappopups.InfoWindowPopup
-import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.activities.mapsactivity.mappopups.PopupWindow
 import fnsb.macstransit.routematch.MarkedObject
 import fnsb.macstransit.routematch.Route
@@ -26,7 +25,7 @@ import java.util.*
  * @version 2.0.
  * @since Beta 7.
  */
-class StopClicked(private val activity: Context, private val routematch: RouteMatch,
+class StopClicked(private val context: Context, private val routematch: RouteMatch,
                   private val map: GoogleMap) : GoogleMap.OnCircleClickListener {
 
 	/**
@@ -57,7 +56,7 @@ class StopClicked(private val activity: Context, private val routematch: RouteMa
 		} else {
 
 			// Comments
-			Toast.makeText(this.activity, markedObject.name, Toast.LENGTH_LONG).show()
+			Toast.makeText(this.context, markedObject.name, Toast.LENGTH_LONG).show()
 		}
 	}
 
@@ -78,14 +77,14 @@ class StopClicked(private val activity: Context, private val routematch: RouteMa
 		val name = marker.title ?: return
 
 		// For now just set the snippet text to "retrieving stop times" as a callback method gets the times.
-		marker.snippet = this.activity.getString(R.string.retrieving_stop_times)
+		marker.snippet = this.context.getString(R.string.retrieving_stop_times)
 
 		// Retrieve the stop times.
 		this.routematch.callDeparturesByStop(name, { result: JSONObject ->
 
 			// Update the snippet text of the marker's info window.
 			Log.v("showMarker", "Updating snippet")
-			marker.snippet = postStopTimes(marker.tag as MarkedObject, result, this.activity)
+			marker.snippet = postStopTimes(marker.tag as MarkedObject, result, this.context)
 
 			// Refresh the info window by calling showInfoWindow().
 			Log.v("showMarker", "Refreshing info window")

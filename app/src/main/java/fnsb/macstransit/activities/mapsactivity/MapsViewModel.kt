@@ -157,7 +157,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	 * Documentation
 	 * @param supportFragment
 	 */
-	suspend fun mapCoroutine(supportFragment: SupportMapFragment) {
+	suspend fun mapCoroutine(supportFragment: SupportMapFragment, activity: MapsActivity) {
 
 		// Comments
 		Log.v("MapCoroutine", "Awaiting for map...")
@@ -175,9 +175,6 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 			// Add a listener for when the camera has become idle (ie was moving isn't anymore).
 			Log.v("MapCoroutine", "Setting camera idle listener")
 			this.map!!.setOnCameraIdleListener { this.resizeStops() }
-
-			// Comments
-			val activity: Context = this.getApplication<Application>().applicationContext as Context
 
 			// Add a listener for when a stop icon (circle) is clicked.
 			Log.v("MapCoroutine", "Setting circle click listener")

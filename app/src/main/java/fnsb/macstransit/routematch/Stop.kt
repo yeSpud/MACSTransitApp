@@ -70,13 +70,13 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 			}
 
 			// Create a new circle object.
-			Log.d("toggleStopVisibility", "Creating new stop for ${this.name}")
+			//Log.d("toggleStopVisibility", "Creating new stop for ${this.name}")
 			this.createStopCircle(map)
 			this.toggleStopVisibility(map, true)
 		} else {
 
 			// Since the circle already exists simply update its visibility.
-			Log.d("toggleStopVisibility", "Setting stop ${this.name} to visible: ${this.route.enabled}")
+			//Log.d("toggleStopVisibility", "Setting stop ${this.name} to visible: ${this.route.enabled}")
 			this.circle!!.isClickable = this.route.enabled
 			this.circle!!.isVisible = this.route.enabled
 		}

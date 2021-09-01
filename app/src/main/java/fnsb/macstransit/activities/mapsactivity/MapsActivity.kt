@@ -60,7 +60,8 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 				(this.supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
 
 		// Comments
-		this.lifecycleScope.launchWhenCreated { this@MapsActivity.viewModel.mapCoroutine(supportFragment) }
+		this.lifecycleScope.launchWhenCreated { this@MapsActivity.viewModel.mapCoroutine(supportFragment,
+		                                                                                 this@MapsActivity) }
 
 		// Comments
 		this.farePopupWindow = FarePopupWindow(this)
