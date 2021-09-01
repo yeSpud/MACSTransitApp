@@ -2,32 +2,30 @@ package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
 
 import android.util.Log
 import fnsb.macstransit.R
-import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.activities.splashactivity.SplashActivity
-import fnsb.macstransit.activities.splashactivity.SplashViewModel
 import fnsb.macstransit.routematch.Route
 import org.json.JSONObject
 import kotlin.coroutines.resume
 
 /**
  * Created by Spud on 8/16/21 for the project: MACS Transit.
- *
  * For the license, view the file titled LICENSE at the root of the project.
  *
  * @version 1.0.
  * @since Release 1.3.
  */
-class DownloadMasterSchedule(private val activity: SplashActivity) { // TODO Replace activity with view model
+class DownloadMasterSchedule(private val splashActivity: SplashActivity) {
 
 	/**
 	 * Documentation
 	 */
 	suspend fun download(): JSONObject = kotlin.coroutines.suspendCoroutine { continuation ->
-		this.activity.viewModel.routeMatch.callMasterSchedule(MasterScheduleCallback(continuation), {
+		this.splashActivity.viewModel.routeMatch.callMasterSchedule(MasterScheduleCallback(continuation), {
 			error: com.android.volley.VolleyError ->
 			Log.w("initializeApp", "MasterSchedule callback error", error)
-			this.activity.viewModel.setMessage(R.string.routematch_timeout)
-			this.activity.showRetryButton()
+			Log.w("initializeApp", "Error: ${error.message}\n${error.cause.toString()}")
+			this.splashActivity.viewModel.setMessage(R.string.routematch_timeout)
+			this.splashActivity.showRetryButton()
 		})
 	}
 
@@ -42,9 +40,9 @@ class DownloadMasterSchedule(private val activity: SplashActivity) { // TODO Rep
 		override fun onResponse(response: JSONObject) { // Comments
 
 			// Set the progress and message.
-			this@DownloadMasterSchedule.activity.viewModel.setProgressBar(
+			this@DownloadMasterSchedule.splashActivity.viewModel.setProgressBar(
 					SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble())
-			this@DownloadMasterSchedule.activity.viewModel.setMessage(R.string.loading_bus_routes)
+			this@DownloadMasterSchedule.splashActivity.viewModel.setMessage(R.string.loading_bus_routes)
 
 			// Get the routes from the JSONObject
 			val routes = fnsb.macstransit.routematch.RouteMatch.parseData(response)
@@ -52,10 +50,10 @@ class DownloadMasterSchedule(private val activity: SplashActivity) { // TODO Rep
 			// If the routes length is 0, say that there are no buses for the day.
 			val count = routes.length()
 			if (count == 0) {
-				this@DownloadMasterSchedule.activity.viewModel.setMessage(R.string.its_sunday)
+				this@DownloadMasterSchedule.splashActivity.viewModel.setMessage(R.string.its_sunday)
 
 				// Also add a chance for the user to retry.
-				this@DownloadMasterSchedule.activity.showRetryButton()
+				this@DownloadMasterSchedule.splashActivity.showRetryButton()
 				SplashActivity.loaded = true
 				return
 			}
@@ -65,7 +63,7 @@ class DownloadMasterSchedule(private val activity: SplashActivity) { // TODO Rep
 			var routeCount = 0
 			val step = SplashActivity.PARSE_MASTER_SCHEDULE.toDouble() / count
 			var progress = SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble()
-			this@DownloadMasterSchedule.activity.viewModel.setMessage(R.string.parsing_master_schedule)
+			this@DownloadMasterSchedule.splashActivity.viewModel.setMessage(R.string.parsing_master_schedule)
 
 			// Iterate though each route in the master schedule.
 			for (index in 0 until count) {
@@ -91,14 +89,14 @@ class DownloadMasterSchedule(private val activity: SplashActivity) { // TODO Rep
 				} catch (e: java.io.UnsupportedEncodingException) {
 					Log.w("MasterScheduleCallback", "Issue creating route from route data", e)
 				}
-				this@DownloadMasterSchedule.activity.viewModel.setProgressBar(progress + step)
+				this@DownloadMasterSchedule.splashActivity.viewModel.setProgressBar(progress + step)
 				progress += step
 			}
 
 			// Down size our potential routes array to fit the actual number of routes.
 			val finalRoutes: Array<Route?> = arrayOfNulls(routeCount)
 			System.arraycopy(potentialRoutes, 0, finalRoutes, 0, routeCount)
-			MapsActivity.allRoutes = finalRoutes.requireNoNulls()
+			fnsb.macstransit.activities.mapsactivity.MapsActivity.allRoutes = finalRoutes.requireNoNulls()
 			Log.d("MasterScheduleCallback", "End of MasterScheduleCallback")
 			this.continuation.resume(response)
 		}
