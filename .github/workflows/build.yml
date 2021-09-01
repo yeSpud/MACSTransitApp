@@ -16,7 +16,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Write local.properties
-        run: echo MAPS_API_KEY=${{ secrets.MAPS_API_KEY }} > ./local.properties; echo "testing\n"; echo MAPS_API_KEY=${{ secrets.MAPS_API_KEY }};
+        run: echo MAPS_API_KEY=${{ secrets.MAPS_API_KEY }} > ./local.properties
 
       - name: Run Tests
         run: ./gradlew test
