@@ -29,7 +29,7 @@ abstract class BaseSettings<R>(val FILENAME: String, val VERSION: Int) {
 	/**
 	 * Parses the settings from the settings file into booleans and ints.
 	 *
-	 * @param input TODO
+	 * @param input The settings object (as one big object) to parse.
 	 */
 	abstract fun parseSettings(input: R)
 
@@ -37,7 +37,7 @@ abstract class BaseSettings<R>(val FILENAME: String, val VERSION: Int) {
 	 *  Reads the object from the settings file.
 	 *
 	 *  @param file The settings file.
-	 *  @return TODO
+	 *  @return The object representing the settings read from the file. This is one large object.
 	 */
 	abstract fun readFromSettingsFile(file: java.io.File): R
 

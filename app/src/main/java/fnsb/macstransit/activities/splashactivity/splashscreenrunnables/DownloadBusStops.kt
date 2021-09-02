@@ -59,13 +59,13 @@ class DownloadBusStops(viewModel: fnsb.macstransit.activities.splashactivity.Spl
 
 			// Create an array for our actual stops.
 			// Since we now know the number of validated stops we can use that as its size.
-			val actualStops = arrayOfNulls<Stop>(validatedSize)
+			val actualStops: Array<Stop?> = arrayOfNulls(validatedSize)
 
 			// Copy our validated stops into our smaller actual stops array, and return it.
 			System.arraycopy(validatedStops, 0, actualStops, 0, actualStops.size)
 
 			// At this point duplicate stops have now been handled and removed.
-			this.route.stops = actualStops.requireNoNulls()
+			this.route.stops = actualStops as Array<Stop>
 		}
 	}
 }

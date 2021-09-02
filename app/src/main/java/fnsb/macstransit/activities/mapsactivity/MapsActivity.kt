@@ -1,7 +1,6 @@
 package fnsb.macstransit.activities.mapsactivity
 
 import android.content.Intent
-import fnsb.macstransit.routematch.Route.RouteException
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.V2
 import fnsb.macstransit.R
@@ -16,7 +15,7 @@ import fnsb.macstransit.databinding.ActivityMapsBinding
 import fnsb.macstransit.settings.CurrentSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.ConcurrentModificationException
+import java.util.*
 
 class MapsActivity: androidx.fragment.app.FragmentActivity() {
 
@@ -219,7 +218,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 
 					// Make sure the selected route was found.
 					if (selectedRoute == null) {
-						throw RouteException("Unable to determine selected route!")
+						throw RuntimeException("Unable to find selected route within all routes available!")
 					}
 
 					// Updated the selected route's boolean.
@@ -250,7 +249,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 
 					// Set the menu item's checked value to that of the enabled value
 					item.isChecked = enabled
-				} catch (e: RouteException) {
+				} catch (e: RuntimeException) {
 					Toast.makeText(this, "An error occurred while toggling that route",
 					               Toast.LENGTH_LONG).show()
 					e.printStackTrace()

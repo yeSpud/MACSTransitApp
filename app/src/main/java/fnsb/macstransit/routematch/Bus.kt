@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.model.LatLng
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
-import fnsb.macstransit.routematch.Route.RouteException
 import org.json.JSONException
+import kotlin.RuntimeException
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
@@ -113,11 +113,11 @@ class Bus(
 				// Since we have the route name we need to now find the actual route that belongs to it.
 				// First make sure all the routes have been loaded before continuing.
 				if (MapsActivity.allRoutes.isEmpty()) {
-					throw RouteException("There are no loaded routes!")
+					throw RuntimeException("There are no loaded routes!")
 				}
 
 				// Now iterate through all the routes.
-				var route: Route? = null
+				var route: Route? = null // TODO Create route here
 				for (r in MapsActivity.allRoutes) {
 
 					// If the route name matches that of our bus route, then that's our route object.
@@ -129,7 +129,7 @@ class Bus(
 
 				// Comments
 				if (route == null) {
-					throw RouteException("Bus route not found in all routes")
+					throw RuntimeException("Bus route not found in all routes")
 				}
 
 				// Try to get the heading of the bus. This value isn't necessary, but is nice to have.

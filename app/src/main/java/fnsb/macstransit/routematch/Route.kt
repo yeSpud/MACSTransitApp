@@ -4,10 +4,7 @@ import android.util.Log
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
 import com.google.maps.android.ktx.addPolyline
-import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import org.json.JSONException
-import org.json.JSONObject
-import java.io.Serializable
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
 import java.util.regex.Pattern
@@ -19,7 +16,7 @@ import java.util.regex.Pattern
  * @version 3.0.
  * @since Beta 3.
  */
-class Route(val routeName: String, color: Int) : Serializable {
+class Route(val routeName: String, var color: Int = 0) : java.io.Serializable {
 
 	/**
 	 * The name of the route formatted to be parsed as a URL.
@@ -28,19 +25,11 @@ class Route(val routeName: String, color: Int) : Serializable {
 	encode(this.routeName, "UTF-8")).replaceAll("%20") // TODO Add regex check
 
 	/**
-	 * The color of the route.
-	 * This is optional, as there is a high chance that the route does not have one.
-	 * This is an int instead of a Color object as android stores its colors as an integer.
-	 */
-	var color: Int
-		private set
-
-	/**
 	 * The array of stops for this route.
 	 * This may be empty / null if the route has not been initialized,
 	 * and the stops haven't been loaded.
 	 */
-	var stops: Array<Stop> = emptyArray() // TODO Test length of 0 instead of null for iteration
+	var stops: Array<Stop> = emptyArray()
 
 	/**
 	 * Whether or not the route is enabled or disabled (to be shown or hidden).
@@ -59,7 +48,7 @@ class Route(val routeName: String, color: Int) : Serializable {
 	 * This may be empty if the route has not been initialized,
 	 * and the the shared stops haven't been loaded, or if there are no shared stops for the route.
 	 */
-	var sharedStops: Array<SharedStop> = emptyArray() // TODO Test length of 0 instead of null for iteration
+	var sharedStops: Array<SharedStop> = emptyArray()
 		private set
 
 	/**
@@ -75,13 +64,16 @@ class Route(val routeName: String, color: Int) : Serializable {
 	 * contain any whitespace characters!
 	 * @throws UnsupportedEncodingException Thrown if the route name cannot be formatted to a URL.
 	 */
+	// TODO Throw UnsupportedEncodingException if the name is invalid
 	constructor(routeName: String) : this(routeName, 0)
 
 	/**
 	 * Creates and sets the polyline for the route.
 	 * If there are no polyline coordinates for the route then this simply returns early and does not create the polyline.
 	 *
-	 * @param map TODO
+	 * This must be run on the UI Thread.
+	 *
+	 * @param map The map to add the polyline to.
 	 */
 	@UiThread
 	fun createPolyline(map: GoogleMap) {
@@ -93,6 +85,7 @@ class Route(val routeName: String, color: Int) : Serializable {
 			return
 		}
 
+		// Add the polyline to the map with the following options:
 		this.polyline = map.addPolyline {
 
 			// Create new polyline options from the array of polyline coordinates stored for the route.
@@ -131,14 +124,18 @@ class Route(val routeName: String, color: Int) : Serializable {
 			System.arraycopy(this.sharedStops, 0, newSharedStops, 1, sharedStops.size)
 
 			// Set the routes shared stop array to the newly created shared stop array.
-			this.sharedStops = newSharedStops.requireNoNulls()
+			this.sharedStops = newSharedStops as Array<SharedStop>
 		}
 	}
 
 	/**
-	 * Documentation
-	 * @param map
-	 * @param attempted
+	 * Sets the polylines visibly to whether or not the route is enabled or not.
+	 * If the polyline didn't previously exist it will be created in this method.
+	 *
+	 * THis must be run on the UI Thread.
+	 *
+	 * @param map The map to add the polyline to.
+	 * @param attempted Whether or not this method has been run (for recursion). Default is false.
 	 */
 	@UiThread
 	fun togglePolylineVisibility(map: GoogleMap, attempted: Boolean = false) {
@@ -148,6 +145,8 @@ class Route(val routeName: String, color: Int) : Serializable {
 
 			// Check to make sure we haven't already attempted to load the polyline.
 			if (attempted) {
+
+				// Since we already have attempted to create the polyline simply return early with a warning.
 				Log.w("enablePolyline", "Could not load polyline for route ${this.routeName}")
 				return
 			}
@@ -158,14 +157,14 @@ class Route(val routeName: String, color: Int) : Serializable {
 		} else {
 
 			// Set the polyline's visibility to whether the route is enabled or not
-			Log.d("tgglPolylineVisibility", "Setting route ${this.routeName} to visible:"
-			                                  +"${this.enabled}")
+			Log.d("togglePolyline", "Setting route ${this.routeName} to visible: ${this.enabled}")
 			this.polyline!!.isVisible = this.enabled
 		}
 	}
 
 	/**
 	 * Removes the routes polyline from the map, and sets it to null.
+	 *
 	 * This must be run on the UI thread.
 	 */
 	@UiThread
@@ -176,26 +175,6 @@ class Route(val routeName: String, color: Int) : Serializable {
 		}
 	}
 
-	/**
-	 * Exception class used for throwing any exception relating to Routes.
-	 */
-	class RouteException : Exception {
-		/**
-		 * Constructor for a new exception with a (hopefully detailed) message.
-		 *
-		 * @param message The (ideally detailed) message for why this was thrown.
-		 */
-		constructor(message: String?) : super(message)
-
-		/**
-		 * Constructor for a new exception with a (hopefully detailed) message, and a cause.
-		 *
-		 * @param message The (ideally detailed) message.
-		 * @param cause   The cause for the exception. This may be null if the cause is undetermined.
-		 */
-		constructor(message: String?, cause: Throwable?) : super(message, cause)
-	}
-
 	companion object {
 
 		/**
@@ -204,33 +183,30 @@ class Route(val routeName: String, color: Int) : Serializable {
 		 *
 		 * @param jsonObject The json object contain the data to create a new route object.
 		 * @return The newly created route object.
-		 * @throws RouteException               Thrown if the json object is null, or if the route name is unable to be parsed.
+		 * @throws JSONException                Thrown if the json object is null,
+		 *                                      or if the route name is unable to be parsed.
 		 * @throws UnsupportedEncodingException Thrown if the route name cannot be formatted to a URL.
 		 */
 		@JvmStatic
-		@Throws(RouteException::class, UnsupportedEncodingException::class)
-		fun generateRoute(jsonObject: JSONObject): Route {
+		@Throws(JSONException::class, UnsupportedEncodingException::class)
+		fun generateRoute(jsonObject: org.json.JSONObject): Route {
 
 			// First, parse the name.
-			val name: String = try {
-				jsonObject.getString("routeId")
-			} catch (e: JSONException) {
-				throw RouteException("Unable to get route name from JSON", e.cause)
-			}
+			val name = jsonObject.getString("routeId")
 
-			// Now try to parse the route and route color and return the resulting object.
 			return try {
+
+				// Now try to parse the route color.
 				val colorName = jsonObject.getString("routeColor")
 				val color = android.graphics.Color.parseColor(colorName)
-				Route(name, color)
-			} catch (e: JSONException) {
-				Log.w("generateRoute", "Unable to parse color")
 
-				// Since there was an issue parsing the color, and we have the name at this point...
-				// Simply create the route without a color.
-				Route(name)
-			} catch (e: IllegalArgumentException) {
-				Log.w("generateRoute", "Unable to parse color")
+				// Return our newly created route with color!
+				Route(name, color)
+			} catch (Exception: Exception) {
+				Log.w("generateRoute", "Unable to parse color", Exception)
+
+				// Since there was an issue parsing the color,
+				// and we have the name at this point simply create the route without a color.
 				Route(name)
 			}
 		}
@@ -239,32 +215,24 @@ class Route(val routeName: String, color: Int) : Serializable {
 		 * Iterates though all the routes in MapsActivity.allRoutes
 		 * and enables those that have been favorited (as determined by being in the favoritedRoutes array).
 		 *
-		 * This should only be run once.
-		 *
 		 * @param favoritedRoutes The selected routes to be enabled from MapsActivity.allRoutes.
 		 */
 		@JvmStatic
 		fun enableFavoriteRoutes(favoritedRoutes: Array<Route>) {
 
 			// Iterate through all the routes that will be used in the activity.
-			for (allRoute in MapsActivity.allRoutes) {
+			fnsb.macstransit.activities.mapsactivity.MapsActivity.allRoutes.forEach {
 
 				// Iterate though the favorite routes.
-				for (favoritedRoute in favoritedRoutes) {
+				for (favoritedRoute: Route in favoritedRoutes) {
 
-					// If the route name matches the favorited route name, enable it.
-					if (allRoute.routeName == favoritedRoute.routeName) {
-						allRoute.enabled = true
+					// If the route name matches the favorited route name, enable it in all routes.
+					if (it.routeName == favoritedRoute.routeName) {
+						it.enabled = true
 						break
 					}
 				}
 			}
 		}
-	}
-
-	init {
-
-		// Set the route color.
-		this.color = color
 	}
 }

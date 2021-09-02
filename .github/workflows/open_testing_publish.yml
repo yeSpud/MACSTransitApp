@@ -30,20 +30,20 @@ jobs:
       - name: Build Release Bundle
         run: ./gradlew bundleRelease
 
-# Comment out for now... FIXME
-#      - name: Sign Bundle
-#        uses: r0adkll/sign-android-release@v1
-#        with:
-#          releaseDirectory: app/build/outputs/bundle/release
-#          signingKeyBase64: ${{ secrets.SIGN_KEY }}
-#          alias: ${{ secrets.ALIAS }}
-#          keyStorePassword: ${{ secrets.STORE_KEY_PASSWORD }}
-#          keyPassword: ${{ secrets.KEY_PASSWORD }}
+      - name: Sign Bundle
+        uses: r0adkll/sign-android-release@v1 # https://github.com/r0adkll/sign-android-release
+        with:
+          releaseDirectory: app/build/outputs/bundle/release
+          signingKeyBase64: ${{ secrets.SIGN_KEY }}
+          alias: MACSKey
+          keyStorePassword: ${{ secrets.KEY_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
 
-#      - name: Deploy to Play Store
-#        uses: r0adkll/upload-google-play@v1
-#        with:
-#          serviceAccountJsonPlainText: ${{secrets.SERVICE_ACCOUNT}}
-#          packageName: fnsb.macstransit
-#          releaseFiles: app/build/outputs/bundle/release/app-release.aab
-#          track: production
+      - name: Deploy to Play Store
+        uses: r0adkll/upload-google-play@v1 # https://github.com/r0adkll/upload-google-play
+        with:
+          serviceAccountJsonPlainText: ${{secrets.SERVICE_ACCOUNT}}
+          packageName: fnsb.macstransit
+          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          track: beta
+          whatsNewDirectory: whatsnew

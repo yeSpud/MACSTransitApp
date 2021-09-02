@@ -17,6 +17,7 @@ Simply clone this repository using git, and then open the cloned project in andr
 
 ### Submitting updates
 Submit a pull request to the [Open Testing branch](https://github.com/yeSpud/MACSTransitApp/tree/Open-Testing), and make sure that your updates are well documented, well commented, elegantly written, and above all else, stable.
+Also be sure to edit the [whats new file](whatsnew/) to list all the noticeable changes.
 
 The pull request will then undergo a review process, and either be accepted and merged, or rejected with comments and critiques for how to do better.
 Once the changes have been running on the Open Testing version of the app it will then be merged with the Production version of the app.

@@ -84,10 +84,9 @@ class DownloadMasterSchedule(private val splashActivity: SplashActivity) {
 					val route = Route.generateRoute(routeData)
 					potentialRoutes[routeCount] = route
 					routeCount++
-				} catch (e: Route.RouteException) {
-					Log.w("MasterScheduleCallback", "Issue creating route from route data", e)
-				} catch (e: java.io.UnsupportedEncodingException) {
-					Log.w("MasterScheduleCallback", "Issue creating route from route data", e)
+				} catch (Exception: Exception) {
+					Log.w("MasterScheduleCallback", "Issue creating route from route data",
+					     Exception)
 				}
 				this@DownloadMasterSchedule.splashActivity.viewModel.setProgressBar(progress + step)
 				progress += step
@@ -96,7 +95,7 @@ class DownloadMasterSchedule(private val splashActivity: SplashActivity) {
 			// Down size our potential routes array to fit the actual number of routes.
 			val finalRoutes: Array<Route?> = arrayOfNulls(routeCount)
 			System.arraycopy(potentialRoutes, 0, finalRoutes, 0, routeCount)
-			fnsb.macstransit.activities.mapsactivity.MapsActivity.allRoutes = finalRoutes.requireNoNulls()
+			fnsb.macstransit.activities.mapsactivity.MapsActivity.allRoutes = finalRoutes as Array<Route>
 			Log.d("MasterScheduleCallback", "End of MasterScheduleCallback")
 			this.continuation.resume(response)
 		}
