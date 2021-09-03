@@ -222,7 +222,7 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 				}
 
 				// Check if the following match.
-				val routeMatch = stop.route.routeName == stopArrayItem.route.routeName
+				val routeMatch = stop.route.name == stopArrayItem.route.name
 
 				// If all of the following match, return true.
 				if (routeMatch && stop == stopArrayItem) {

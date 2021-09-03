@@ -63,7 +63,7 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			val checkBox = CheckBox(this)
 
 			// Set the checkbox's text to the route name.
-			val routeName = route.routeName
+			val routeName = route.name
 			checkBox.text = routeName
 
 			// Set the color and size of the text to constants.
@@ -113,7 +113,7 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			for (savedRoute in routes) {
 
 				// If the name matches then return true. If not then keep iterating.
-				if (savedRoute.routeName == routeName) {
+				if (savedRoute.name == routeName) {
 					return true
 				}
 			}
@@ -195,7 +195,7 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 				if (box.isChecked) {
 					potentialRoutes[routesPosition] = box.tag as Route
 					Log.d("getFavoritedRoutes",
-					      "Adding route ${potentialRoutes[routesPosition]!!.routeName}")
+					      "Adding route ${potentialRoutes[routesPosition]!!.name}")
 
 					// Add one to a tally of verified favorite routes.
 					routesPosition++

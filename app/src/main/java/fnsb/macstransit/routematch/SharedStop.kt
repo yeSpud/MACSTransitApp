@@ -275,7 +275,7 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
 						// If the array was out of bounds then log it (catastrophic if left unchecked).
 						Log.e("remvStpsWthShredStps",
 						      "Failed to add stop ${stop.name} " +
-						      "from route ${stop.route.routeName} to array\n" +
+						      "from route ${stop.route.name} to array\n" +
 						      "Final stops array is too small!", e)
 					}
 				}

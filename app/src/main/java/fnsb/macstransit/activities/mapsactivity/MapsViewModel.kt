@@ -146,7 +146,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 					} else {
 
 						// If the marker was null simply log it as a warning.
-						Log.w("drawBuses", "Bus doesn't have a marker for route ${route.routeName}!")
+						Log.w("drawBuses", "Bus doesn't have a marker for route ${route.name}!")
 					}
 				}
 			}

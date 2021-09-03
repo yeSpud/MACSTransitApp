@@ -230,7 +230,7 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 				// Iterate though each of our active routes. If the route is one that is listed,
 				// append the time to the string builder.
 				for (route in routes) {
-					val routeName = route.routeName
+					val routeName = route.name
 					if (routeName == jsonObject.getString("routeId")) {
 
 						// Set the arrival and departure time to the arrival and departure time in the JSONObject.

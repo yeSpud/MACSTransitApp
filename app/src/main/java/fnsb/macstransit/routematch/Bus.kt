@@ -68,7 +68,7 @@ class Bus(
 				Log.d("isBusNotInArray", "Vehicle IDs match")
 
 				// Check if the routes for the bus also match. If they do, return false (found).
-				if (this.route.routeName == bus.route.routeName) {
+				if (this.route.name == bus.route.name) {
 					Log.d("isBusNotInArray", "Objects match!")
 					return false
 				}
@@ -121,7 +121,7 @@ class Bus(
 				for (r in MapsActivity.allRoutes) {
 
 					// If the route name matches that of our bus route, then that's our route object.
-					if (r.routeName == routeName) {
+					if (r.name == routeName) {
 						route = r
 						break
 					}

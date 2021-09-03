@@ -16,13 +16,13 @@ import java.util.regex.Pattern
  * @version 3.0.
  * @since Beta 3.
  */
-class Route(val routeName: String, var color: Int = 0) : java.io.Serializable {
+class Route(val name: String, var color: Int = 0) : java.io.Serializable {
 
 	/**
 	 * The name of the route formatted to be parsed as a URL.
 	 */
 	val urlFormattedName: String = Pattern.compile("\\+").matcher(URLEncoder.
-	encode(this.routeName, "UTF-8")).replaceAll("%20") // TODO Add regex check
+	encode(this.name, "UTF-8")).replaceAll("%20") // TODO Add regex check
 
 	/**
 	 * The array of stops for this route.
@@ -147,7 +147,7 @@ class Route(val routeName: String, var color: Int = 0) : java.io.Serializable {
 			if (attempted) {
 
 				// Since we already have attempted to create the polyline simply return early with a warning.
-				Log.w("enablePolyline", "Could not load polyline for route ${this.routeName}")
+				Log.w("enablePolyline", "Could not load polyline for route ${this.name}")
 				return
 			}
 
@@ -157,7 +157,7 @@ class Route(val routeName: String, var color: Int = 0) : java.io.Serializable {
 		} else {
 
 			// Set the polyline's visibility to whether the route is enabled or not
-			Log.d("togglePolyline", "Setting route ${this.routeName} to visible: ${this.enabled}")
+			Log.d("togglePolyline", "Setting route ${this.name} to visible: ${this.enabled}")
 			this.polyline!!.isVisible = this.enabled
 		}
 	}
@@ -227,7 +227,7 @@ class Route(val routeName: String, var color: Int = 0) : java.io.Serializable {
 				for (favoritedRoute: Route in favoritedRoutes) {
 
 					// If the route name matches the favorited route name, enable it in all routes.
-					if (it.routeName == favoritedRoute.routeName) {
+					if (it.name == favoritedRoute.name) {
 						it.enabled = true
 						break
 					}

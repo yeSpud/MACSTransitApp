@@ -4,7 +4,6 @@ import com.google.android.gms.maps.model.LatLng
 import fnsb.macstransit.routematch.Bus
 import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
-import fnsb.macstransit.routematch.Route.RouteException
 import fnsb.macstransit.routematch.Route
 import org.json.JSONArray
 import org.json.JSONException
@@ -13,7 +12,6 @@ import org.junit.Assert
 import org.junit.Test
 import java.lang.NullPointerException
 import java.util.*
-import kotlin.Throws
 
 /**
  * Created by Spud on 6/27/20 for the project: MACS Transit.
@@ -86,13 +84,7 @@ class BusTest {
 				Assert.assertEquals(lat[i], bus.location.latitude, 0.0)
 				Assert.assertEquals(lon[i], bus.location.longitude, 0.0)
 			}
-		} catch (e: JSONException) {
-			e.printStackTrace()
-			Assert.fail()
-		} catch (e: RouteException) {
-			e.printStackTrace()
-			Assert.fail()
-		} catch (e: NullPointerException) {
+		} catch (e: Exception) {
 			e.printStackTrace()
 			Assert.fail()
 		}

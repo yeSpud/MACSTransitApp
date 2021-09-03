@@ -7,6 +7,7 @@ import fnsb.macstransit.R
 import android.widget.Toast
 import android.util.Log
 import android.view.Menu
+import android.view.MenuItem
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.maps.SupportMapFragment
 import fnsb.macstransit.activities.SettingsActivity
@@ -109,9 +110,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 
 		// Iterate though all the buses, and remove its marker.
 		Log.d("onDestroy", "Removing bus markers")
-		for (bus in this.viewModel.buses) {
-			bus.removeMarker()
-		}
+		this.viewModel.buses.forEach { it.removeMarker() }
 
 		// Stop the update thread.
 		if (this.viewModel.updater != null) {
@@ -128,41 +127,45 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		Log.i("onDestroy", "Finished onDestroy")
 	}
 
-	/*
-	override fun onMenuOpened(featureId: Int, menu: Menu): Boolean {
-		Log.v("onMenuOpened", "onMenuOpened has been called!")
-		return super.onMenuOpened(featureId, menu)
-	}
-	 */
-
 	override fun onCreateOptionsMenu(menu: Menu): Boolean {
 		Log.v("onCreateOptionsMenu", "onCreateOptionsMenu has been called!")
 
-		// Setup the inflater
+		// Setup the inflater.
 		this.menuInflater.inflate(R.menu.menu, menu)
 
-		// Iterate through all the routes that can be tracked (if allRoutes isn't null).
-		for (route: Route in allRoutes) {
-
-			// Create the menu item that corresponds to the route object.
-			val menuItem = menu.add(R.id.routes, Menu.NONE, 0, route.routeName)
+		// Create the menu item that corresponds to the route object.
+		for (i in allRoutes.indices) {
 
 			// Make sure the item is checkable.
-			menuItem.isCheckable = true
+			menu.add(R.id.routes, i, Menu.NONE, allRoutes[i].name).isCheckable = true
+		}
+
+		// Comments
+		return super.onCreateOptionsMenu(menu)
+	}
+
+	override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+		Log.v("onPrepareOptionsMenu", "onPrepareOptionsMenu has been called!")
+
+		// Iterate through all the routes that can be tracked (if allRoutes isn't null).
+		for (i in allRoutes.indices) {
 
 			// Determine whether or not the menu item should be checked before hand.
-			Log.i("onCreateOptionsMenu", "Setting ${route.routeName} to be enabled: ${route.enabled}")
-			menuItem.isChecked = route.enabled
+			val checked: Boolean = allRoutes[i].enabled
+
+			// Comments
+			Log.d("onPrepareOptionsMenu", "Setting ${allRoutes[i].name} to be enabled: $checked")
+			menu.findItem(i).isChecked = checked
 		}
 
 		// Check if night mode should be enabled by default, and set the checkbox to that value.
 		menu.findItem(R.id.night_mode).isChecked = (CurrentSettings.settingsImplementation as V2).darktheme
 
 		// Comments
-		return super.onCreateOptionsMenu(menu)
+		return super.onPrepareOptionsMenu(menu)
 	}
 
-	override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+	override fun onOptionsItemSelected(item: MenuItem): Boolean {
 		Log.v("onOptionsItemSelected", "onOptionsItemSelected has been called!")
 
 		// Identify which method to call based on the item ID.
@@ -207,22 +210,9 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 					// Create a boolean to store the resulting value of the menu item.
 					val enabled = !item.isChecked
 
-					// Determine which route from all the routes was just selected.
-					var selectedRoute: Route? = null
-					for (route in allRoutes) {
-						if (route.routeName == item.title.toString()) {
-							selectedRoute = route
-							break
-						}
-					}
-
-					// Make sure the selected route was found.
-					if (selectedRoute == null) {
-						throw RuntimeException("Unable to find selected route within all routes available!")
-					}
-
-					// Updated the selected route's boolean.
-					selectedRoute.enabled = enabled
+					// Updated the selected route's enabled boolean.
+					allRoutes[item.itemId].enabled = enabled
+					Log.d("onOptionsItemSelected", "Selected route ${allRoutes[item.itemId].name}")
 
 					// Comment
 					if (this.viewModel.map == null) {
@@ -259,6 +249,8 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 			// Since the item's ID and group was not part of anything accounted for (uh oh), log it as a warning!
 			else -> Log.w("onOptionsItemSelected", "Unaccounted menu item was checked!")
 		}
+
+		// TODO Look into overriding invalidateOptionsMenu() to fix toggles being inaccurate due to settings.
 
 		// Comments
 		return super.onOptionsItemSelected(item)
