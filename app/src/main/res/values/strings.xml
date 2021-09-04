@@ -26,7 +26,7 @@
     <!-- Stop clicked -->
     <string name="click_to_view_all_the_arrival_and_departure_times">Click to view all the arrival and departure times.</string>
     <string name="retrieving_stop_times">Retrieving stop times…</string>
-    <string name="stop_times_retrieval_error">Unable to retrieve the arrival and departure times for</string>
+    <string name="stop_times_retrieval_error">Unable to retrieve the arrival and departure times for %1$s</string>
     <string name="expected_arrival">Expected arrival: </string>
     <string name="expected_departure">Expected departure: </string>
 

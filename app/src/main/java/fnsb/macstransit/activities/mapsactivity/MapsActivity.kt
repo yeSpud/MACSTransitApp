@@ -4,7 +4,6 @@ import android.content.Intent
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.V2
 import fnsb.macstransit.R
-import android.widget.Toast
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -21,7 +20,8 @@ import java.util.*
 class MapsActivity: androidx.fragment.app.FragmentActivity() {
 
 	/**
-	 * Documentation
+	 * The view model for the maps activity.
+	 * This is usually where all the large functions and additional properties are.
 	 */
 	lateinit var viewModel: MapsViewModel
 
@@ -59,12 +59,12 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		val supportFragment: SupportMapFragment =
 				(this.supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
 
-		// Comments
+		// Launch the maps coroutine (which sets up the Google Map object).
 		this.lifecycleScope.launchWhenCreated { this@MapsActivity.viewModel.mapCoroutine(supportFragment,
 		                                                                                 this@MapsActivity) }
 
-		// Comments
-		this.farePopupWindow = FarePopupWindow(this)
+		// Setup the fares popup window.
+		this.farePopupWindow = FarePopupWindow(this) // TODO Set this up in view model?
 	}
 
 	override fun onDestroy() {
@@ -124,7 +124,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 			this.viewModel.map = null
 		}
 
-		Log.i("onDestroy", "Finished onDestroy")
+		Log.v("onDestroy", "Finished onDestroy")
 	}
 
 	override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -140,7 +140,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 			menu.add(R.id.routes, i, Menu.NONE, allRoutes[i].name).isCheckable = true
 		}
 
-		// Comments
+		// Return what ever the default behaviour would be when calling this method if it were not overridden.
 		return super.onCreateOptionsMenu(menu)
 	}
 
@@ -153,7 +153,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 			// Determine whether or not the menu item should be checked before hand.
 			val checked: Boolean = allRoutes[i].enabled
 
-			// Comments
+			// Set the menu item to be checked if the route it corresponds to is enabled.
 			Log.d("onPrepareOptionsMenu", "Setting ${allRoutes[i].name} to be enabled: $checked")
 			menu.findItem(i).isChecked = checked
 		}
@@ -161,7 +161,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		// Check if night mode should be enabled by default, and set the checkbox to that value.
 		menu.findItem(R.id.night_mode).isChecked = (CurrentSettings.settingsImplementation as V2).darktheme
 
-		// Comments
+		// Return what ever the default behaviour would be when calling this method if it were not overridden.
 		return super.onPrepareOptionsMenu(menu)
 	}
 
@@ -180,13 +180,13 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 					R.id.night_mode -> {
 						Log.d("onOptionsItemSelected", "Toggling night mode...")
 
-						// Create a boolean to store the resulting value of the menu item
+						// Create a boolean to store the resulting value of the menu item.
 						val enabled = !item.isChecked
 
 						// Toggle night mode
 						this.viewModel.toggleNightMode(enabled)
 
-						// Set the menu item's checked value to that of the enabled value
+						// Set the menu item's checked value to that of the enabled value.
 						item.isChecked = enabled
 					}
 
@@ -205,54 +205,46 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 
 			// Check if the item that was selected belongs to the routes group.
 			R.id.routes -> {
-				try {
 
-					// Create a boolean to store the resulting value of the menu item.
-					val enabled = !item.isChecked
+				// Create a boolean to store the resulting value of the menu item.
+				val enabled = !item.isChecked
 
-					// Updated the selected route's enabled boolean.
-					allRoutes[item.itemId].enabled = enabled
-					Log.d("onOptionsItemSelected", "Selected route ${allRoutes[item.itemId].name}")
+				// Updated the selected route's enabled boolean.
+				allRoutes[item.itemId].enabled = enabled
+				Log.d("onOptionsItemSelected", "Selected route ${allRoutes[item.itemId].name}")
 
-					// Comment
-					if (this.viewModel.map == null) {
-						return super.onOptionsItemSelected(item)
-					}
-
-					// Try to (re)draw the buses onto the map.
-					// Because we are iterating a static variable that is modified on a different thread
-					// there is a possibility of a concurrent modification.
-					try {
-						this.viewModel.drawBuses()
-					} catch (e: ConcurrentModificationException) {
-						Log.e("onOptionsItemSelected",
-						      "Unable to redraw all buses due to concurrent modification", e)
-					}
-
-					// (Re) draw the stops onto the map.
-					this.viewModel.drawStops()
-
-					// (Re) draw the routes onto the map (if enabled).
-					if ((CurrentSettings.settingsImplementation as V2).polylines) {
-						this.viewModel.drawRoutes()
-					}
-
-					// Set the menu item's checked value to that of the enabled value
-					item.isChecked = enabled
-				} catch (e: RuntimeException) {
-					Toast.makeText(this, "An error occurred while toggling that route",
-					               Toast.LENGTH_LONG).show()
-					e.printStackTrace()
+				// If the map is null at this point just return early (skip redrawing).
+				if (this.viewModel.map == null) {
+					return super.onOptionsItemSelected(item)
 				}
+
+				// Try to (re)draw the buses onto the map.
+				// Because we are iterating a static variable that is modified on a different thread
+				// there is a possibility of a concurrent modification.
+				try {
+					this.viewModel.drawBuses()
+				} catch (e: ConcurrentModificationException) {
+					Log.e("onOptionsItemSelected",
+					      "Unable to redraw all buses due to concurrent modification", e)
+				}
+
+				// (Re) draw the stops onto the map.
+				this.viewModel.drawStops()
+
+				// (Re) draw the routes onto the map (if enabled).
+				if ((CurrentSettings.settingsImplementation as V2).polylines) {
+					this.viewModel.drawRoutes()
+				}
+
+				// Set the menu item's checked value to that of the enabled value
+				item.isChecked = enabled
 			}
 
 			// Since the item's ID and group was not part of anything accounted for (uh oh), log it as a warning!
 			else -> Log.w("onOptionsItemSelected", "Unaccounted menu item was checked!")
 		}
 
-		// TODO Look into overriding invalidateOptionsMenu() to fix toggles being inaccurate due to settings.
-
-		// Comments
+		// Return what ever the default behaviour would be when calling this method if it were not overridden.
 		return super.onOptionsItemSelected(item)
 	}
 
@@ -285,13 +277,16 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		 * Create an array to store all the routes that we will track.
 		 * This is not to say that all routes in this array are enabled - they can also be disabled (hidden).
 		 * This array is initialized in DownloadMasterSchedule.
+		 *
+		 * Because this is a static member that stores items that take in contexts it is a potential memory leak,
+		 * so an alternative is strongly recommend.
 		 */
-		// FIXME Memory leak (due to routes containing polylines)
 		@Deprecated("Memory leak")
 		var allRoutes: Array<Route> = emptyArray()
 
 		/**
-		 * Documentation
+		 * Used to determine if the MapsActivity has been run before in the app's lifecycle.
+		 * This will be set to true coming out of SplashActivity
 		 */
 		var firstRun: Boolean = true
 

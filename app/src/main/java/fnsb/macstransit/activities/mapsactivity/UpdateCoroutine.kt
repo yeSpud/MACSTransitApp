@@ -29,24 +29,25 @@ class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewMod
 	 * Documentation
 	 */
 	var isRunning: Boolean = false
-	private set
+		private set
 
 	/**
 	 * Documentation
 	 */
 	suspend fun start() {
 
+		// Comments
 		Log.i("UpdateCoroutine", "Starting up...")
 		this.isRunning = true
 
+		// Comments
 		while(this.run) {
-
 			Log.d("UpdateCoroutine", "Looping...")
 
 			// Comments
 			this.mapsViewModel.routeMatch.networkQueue.cancelAll(this)
 
-
+			// Comments
 			this.mapsViewModel.routeMatch.callVehiclesByRoutes(this.callback, {
 				error: com.android.volley.VolleyError ->
 				Log.w("UpdateCoroutine", "Unable to fetch buses", error)
@@ -54,9 +55,9 @@ class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewMod
 
 			Log.v("UpdateCoroutine", "Waiting for ${this.updateFrequency} milliseconds")
 			kotlinx.coroutines.delay(this.updateFrequency)
-
 		}
 
+		// Comments
 		this.isRunning = false
 		Log.i("UpdateCoroutine", "Shutting down...")
 	}
@@ -110,7 +111,7 @@ class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewMod
 			}
 
 			// Set our bus array.
-			this@UpdateCoroutine.mapsViewModel.buses = finalBusArray.requireNoNulls()
+			this@UpdateCoroutine.mapsViewModel.buses = finalBusArray as Array<Bus>
 		}
 	}
 }

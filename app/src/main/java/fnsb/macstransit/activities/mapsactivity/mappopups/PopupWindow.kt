@@ -15,19 +15,12 @@ import fnsb.macstransit.routematch.Bus
 class PopupWindow(context: android.content.Context) : AlertDialog(context),
 		com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener {
 
-	/**
-	 * Called when the marker's info window is clicked.
-	 * This is called on the Android UI thread.
-	 * For this use case we simply want to show the popup window dialog.
-	 *
-	 * @param marker The marker of the info window that was clicked.
-	 */
 	override fun onInfoWindowClick(marker: com.google.android.gms.maps.model.Marker) {
 
-		// Comments
+		// Get the binder for the popup info window.
 		val binder: InfoWindowPopupBinding = InfoWindowPopupBinding.inflate(this.layoutInflater)
 
-		// Comments
+		// Set the title of the window to the title of the marker.
 		binder.title.text = marker.title
 
 		// Check the marker instance to determine the content text.
@@ -39,25 +32,29 @@ class PopupWindow(context: android.content.Context) : AlertDialog(context),
 			// Since the instance is that of a bus, set the content to the heading, speed,
 			// and current capacity.
 			val bus: Bus = marker.tag as Bus
-			val builder = StringBuilder()
+
+			// Create a placeholder text to store the heading and speed if they're valid.
+			var text = ""
 
 			// Make sure to set the heading if it exists, and format it to be all lower case,
 			// except the first character.
-			var heading: String? = bus.heading
-			if (heading != null && heading.isEmpty()) {
+			var heading: String = bus.heading
+			if (heading.isNotEmpty()) {
 				heading = heading.lowercase()
-				builder.append("Heading: ${heading.replaceFirstChar {
-						if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString()
-					}}\n")
+				heading.replaceFirstChar {
+					if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
+
+				// Add the heading.
+				text += "Heading: $heading\n"
 			}
 
-			// Append the speed in mph if its not 0.
+			// Add the speed if it's not 0.
 			if (bus.speed != 0) {
-				builder.append("Speed: ${bus.speed} mph\n")
+				text += "Speed: ${bus.speed}"
 			}
 
-			// Then set the text to the determined content.
-			binder.body.text = builder.toString()
+			// Set the popup window text to include whats in our heading and speed placeholder.
+			binder.body.text = text
 		}
 
 		// Create the alert dialog based off of the dialog view.

@@ -11,6 +11,7 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.ktx.awaitMap
 import fnsb.macstransit.R
 import fnsb.macstransit.routematch.Bus
+import fnsb.macstransit.routematch.MarkedObject
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.settings.V2
@@ -36,7 +37,8 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	var buses: Array<Bus> = emptyArray()
 
 	/**
-	 * Documentation
+	 * The RouteMatch object used to make calls to the RouteMatch server in order to update the bus positions,
+	 * and to determine the arrival and departure times for stops.
 	 */
 	val routeMatch: RouteMatch = RouteMatch(this.getApplication<Application>().getString(R.string.routematch_url), this.getApplication())
 
@@ -57,38 +59,37 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	 */
 	fun drawStops() {
 
-		// Comments
+		// If the map is null at this point return early.
 		if (this.map == null) {
 			return
 		}
 
-		// Comments
+		// Launch the toggle function on a coroutine to free up some of the work on the main thread.
 		viewModelScope.launch(Dispatchers.Main) {
 
 			// Iterate though all the routes as we know at this point that they are not null.
-			for (route in MapsActivity.allRoutes) {
+			MapsActivity.allRoutes.forEach { route ->
 
 				// Toggle the stop visibility for each route.
 				route.stops.forEach { it.toggleStopVisibility(this@MapsViewModel.map!!) }
 
 				// Iterate though the shared stops in the route.
-				for (sharedStop in route.sharedStops) {
+				route.sharedStops.forEach {
 					if (route.enabled) {
 
 						// Show the shared stops.
-						sharedStop.showSharedStop(this@MapsViewModel.map!!)
+						it.showSharedStop(this@MapsViewModel.map!!)
 					} else {
 
 						// Hide the shared stops on the map.
 						// Note that the stops should be hidden - not destroyed.
-						sharedStop.hideStop()
+						it.hideStop()
 					}
 				}
 			}
 
 			// Adjust the circle sizes of the stops on the map given the current zoom.
 			this@MapsViewModel.resizeStops()
-
 		}
 	}
 
@@ -98,14 +99,13 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	 */
 	fun drawRoutes() {
 
-		// Comments
+		// If the map is null at this point return early.
 		if (this.map == null) {
 			return
 		}
 
 		// Toggle the polyline visibility for all the routes on the map.
 		MapsActivity.allRoutes.forEach { it.togglePolylineVisibility(this.map!!) }
-
 	}
 
 	/**
@@ -119,34 +119,32 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	@Throws(ConcurrentModificationException::class)
 	fun drawBuses() {
 
-		// Comments
+		// If the map is null at this point return early.
 		if (this.map == null) {
 			return
 		}
 
-		// Comments
+		// Launch the update function on a coroutine to free up some of the work on the main thread.
 		viewModelScope.launch(Dispatchers.Main) {
 
 			// Start by iterating though all the buses on the map.
-			for (bus in this@MapsViewModel.buses) {
+			this@MapsViewModel.buses.forEach {
 
-				// Comments
-				val route = bus.route
-				if (bus.marker != null) {
+				if (it.marker != null) {
 
 					// Set the bus marker visibility based on if the bus's route is enabled or not.
-					bus.marker!!.isVisible = route.enabled
+					it.marker!!.isVisible = it.route.enabled
 				} else {
-					if (route.enabled) {
+					if (it.route.enabled) {
 
 						// Try creating a new marker for the bus (if its enabled).
-						bus.addMarker(this@MapsViewModel.map!!)
-						bus.marker!!.isVisible = true
+						it.addMarker(this@MapsViewModel.map!!)
+						it.marker!!.isVisible = true // TODO Marker still amy be null here!
 
 					} else {
 
 						// If the marker was null simply log it as a warning.
-						Log.w("drawBuses", "Bus doesn't have a marker for route ${route.name}!")
+						Log.w("drawBuses", "Bus doesn't have a marker for route ${it.route.name}!")
 					}
 				}
 			}
@@ -167,7 +165,8 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		// Move the camera to the 'home' position
 		Log.v("MapCoroutine", "Moving camera to home position")
 		this.map!!.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.
-		newLatLngZoom(com.google.android.gms.maps.model.LatLng(64.8391975, -147.7684709), 11.0f))
+		newLatLngZoom(com.google.android.gms.maps.model.LatLng(64.8391975,
+		                                                       -147.7684709), 11.0f))
 
 		// Only execute the following if we have routes to iterate over.
 		if (MapsActivity.allRoutes.isNotEmpty()) {
@@ -178,8 +177,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 
 			// Add a listener for when a stop icon (circle) is clicked.
 			Log.v("MapCoroutine", "Setting circle click listener")
-			this.map!!.setOnCircleClickListener(fnsb.macstransit.activities.mapsactivity.
-			maplisteners.StopClicked(activity, this.routeMatch, this.map!!))
+			this.map!!.setOnCircleClickListener(StopClicked(activity, this.routeMatch, this.map!!))
 
 			// Add a custom info window adapter, to add support for multiline snippets.
 			Log.v("MapCoroutine", "Setting info window")
@@ -189,8 +187,25 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 			// Set it so that if the info window was closed for a Stop marker,
 			// make that marker invisible, so its just the dot.
 			Log.v("MapCoroutine", "Setting info window close listener")
-			this.map!!.setOnInfoWindowCloseListener(fnsb.macstransit.activities.
-			mapsactivity.maplisteners.StopDeselected(this.routeMatch.networkQueue))
+			this.map!!.setOnInfoWindowCloseListener {
+
+				// Get the tag as a marked object for easier lookup.
+				val potentialStop: MarkedObject = it.tag as MarkedObject
+
+				// Check if it was a stop info window that was closed.
+				if (potentialStop is fnsb.macstransit.routematch.Stop || potentialStop is fnsb.macstransit.routematch.SharedStop) {
+
+					// Cancel the network request.
+					this.routeMatch.networkQueue.cancelAll(it)
+
+					// Just hide the marker, since we don't want to destroy it just yet.
+					it.isVisible = false
+				} else {
+
+					// Log that the info window that was closed was neither a Stop nor a SharedStop.
+					Log.w("onInfoWindowClose", "Unhandled info window")
+				}
+			}
 
 			// Set it so that when an info window is clicked on, it launches a popup window
 			Log.v("MapCoroutine", "Setting info window click listener")
@@ -285,16 +300,14 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	 */
 	private fun resizeStops() {
 
-		// Comments
+		// If the map is null at this point return early.
 		if (this.map == null) {
 			return
 		}
-		
-		/*
-		 * Calculate meters per pixel.
-		 * This will be used to determine the circle size as we want it it be 4 meters in size.
-		 * To calculate this we will need the current zoom as well as the cameras latitude.
-		 */
+
+		// Calculate meters per pixel.
+		// This will be used to determine the circle size as we want it it be 4 meters in size.
+		// To calculate this we will need the current zoom as well as the cameras latitude.
 		val zoom = this.map!!.cameraPosition.zoom
 		val lat = this.map!!.cameraPosition.target.latitude
 
@@ -328,16 +341,15 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	fun toggleNightMode(enabled: Boolean) {
 		if (this.map != null) {
 
-			// Comments
-			val activity: Context = this.getApplication<Application>().applicationContext as Context
+			// Get the context for the view model
+			val context: Context = this.getApplication<Application>().applicationContext as Context
 
-			// Comments
+			// Set the map style to the appropriate resource determined by the provided boolean.
 			this.map!!.setMapStyle(
-					if (enabled) MapStyleOptions.loadRawResourceStyle(activity, R.raw.nightmode)
-					else MapStyleOptions.loadRawResourceStyle(activity, R.raw.standard))
+					if (enabled) MapStyleOptions.loadRawResourceStyle(context, R.raw.nightmode)
+					else MapStyleOptions.loadRawResourceStyle(context, R.raw.standard))
 		} else {
 			Log.w("toggleNightMode", "Map is not yet ready")
 		}
 	}
-
 }

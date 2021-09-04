@@ -1,4 +1,4 @@
-package fnsb.macstransit.activities.mapsactivity.maplisteners
+package fnsb.macstransit.activities.mapsactivity
 
 import android.content.Context
 import android.util.Log
@@ -76,7 +76,7 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 			Log.e("showMarker", "Unable to get departure times", error)
 
 			// Be sure to update the stop snippet to let the user know there was an error.
-			markedObject.marker!!.snippet = "${this.context.getString(R.string.stop_times_retrieval_error)} ${markedObject.name}."
+			markedObject.marker!!.snippet = this.context.getString(R.string.stop_times_retrieval_error, markedObject.name)
 			markedObject.marker!!.showInfoWindow()
 		}, markedObject.marker!!)
 

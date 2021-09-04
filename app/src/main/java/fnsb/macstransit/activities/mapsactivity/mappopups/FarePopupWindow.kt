@@ -12,17 +12,17 @@ import fnsb.macstransit.databinding.FaresPopupBinding
  * @since Release 1.1.
  */
 @androidx.annotation.UiThread
-class FarePopupWindow(context: android.content.Context) : AlertDialog(context) {
+class FarePopupWindow(activity: fnsb.macstransit.activities.mapsactivity.MapsActivity) : AlertDialog(activity) {
 
 	/**
 	 * Creates and shows the popup window.
 	 */
 	fun showFarePopupWindow() {
 
-		// Comments
+		// Get the binder for the fares popup window.
 		val binder: FaresPopupBinding = FaresPopupBinding.inflate(this.layoutInflater)
 
-		// Setup the hyperlink.
+		// Setup the hyperlink to open the bus fares page.
 		binder.link.setOnClickListener {
 			this.context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(
 					"https://www.fnsb.gov/352/Bus-Fares")))
