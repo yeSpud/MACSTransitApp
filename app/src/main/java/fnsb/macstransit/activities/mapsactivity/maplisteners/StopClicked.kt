@@ -16,7 +16,7 @@ import fnsb.macstransit.routematch.Stop
 import org.json.JSONException
 import org.json.JSONObject
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 
 /**
  * Created by Spud on 2019-10-30 for the project: MACS Transit.
@@ -28,12 +28,6 @@ import java.util.*
 class StopClicked(private val context: Context, private val routematch: RouteMatch,
                   private val map: GoogleMap) : GoogleMap.OnCircleClickListener {
 
-	/**
-	 * Called when a circle is clicked.
-	 * This is called on the Android UI thread.
-	 *
-	 * @param circle The circle that is clicked.
-	 */
 	@UiThread
 	override fun onCircleClick(circle: com.google.android.gms.maps.model.Circle) {
 
@@ -45,126 +39,183 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 
 			// Create a new marker for our marked object using the newly determined location and color.
 			markedObject.addMarker(this.map)
+
+			// Check if the marker was added successfully.
+			if (markedObject.marker == null) {
+				Log.w("onCircleClick", "Unable to add marker to map!")
+
+				// Since the marker was unable to be added to the map just default to toast.
+				Toast.makeText(this.context, markedObject.name, Toast.LENGTH_LONG).show()
+				return
+			}
 		}
 
-		// Comments
-		// TODO Add recursion
-		if (markedObject.marker != null) {
+		// Since the marker is not null, show it the marker by setting it to visible.
+		markedObject.marker!!.isVisible = true
 
-			// Show our marker.
-			showMarker(markedObject.marker!!)
+		// Get the name of the stop.
+		val name = markedObject.marker!!.title ?: return
+
+		// Set the snippet text to "retrieving stop times".
+		// Once the stop times for this stop are retrieved and parsed
+		// the callback function will set the snippet text to the actual times.
+		markedObject.marker!!.snippet = this.context.getString(R.string.retrieving_stop_times)
+
+		// Start the callback to retrieve the actual stop times.
+		this.routematch.callDeparturesByStop(name, {
+
+			// Update the snippet text of the marker's info window.
+			markedObject.marker!!.snippet = postStopTimes(markedObject.marker!!.tag as MarkedObject, it)
+
+			// Refresh the info window by calling showInfoWindow().
+			Log.v("showMarker", "Refreshing info window")
+			markedObject.marker!!.showInfoWindow()
+		}, { error: com.android.volley.VolleyError? ->
+
+			// Log that we are unable to get the departure times, and provide the error.
+			Log.e("showMarker", "Unable to get departure times", error)
+
+			// Be sure to update the stop snippet to let the user know there was an error.
+			markedObject.marker!!.snippet = "${this.context.getString(R.string.stop_times_retrieval_error)} ${markedObject.name}."
+			markedObject.marker!!.showInfoWindow()
+		}, markedObject.marker!!)
+
+		// Sow the stop info window.
+		markedObject.marker!!.showInfoWindow()
+	}
+
+	/**
+	 * Posts the time string for the selected stop,
+	 * which contains when the (selected) buses for that stop will be arriving and departing.
+	 * This method also posts this string to the body of the popup window when the info window is clicked on.
+	 *
+	 * @param stop    The stop (either an actual Stop object, or a SharedStop).
+	 * @param json    The json object retrieved from the RouteMatch server.
+	 * @return The string containing either all the arrival and departure times for the stop,
+	 *         or the overflow string if there is too much data.
+	 */
+	private fun postStopTimes(stop: MarkedObject, json: JSONObject): String {
+
+		// Get the stop data from the retrieved json.
+		val stopData = RouteMatch.parseData(json)
+
+		// Check if our marked object is a shared stop (for future formatting reasons).
+		val isSharedStop = stop is SharedStop
+
+		// Try setting the routes array to either enabled routes (shared stop) or our single route (stop).
+		val routes: Array<Route> = try {
+			if (isSharedStop){
+				getEnabledRoutesForStop((stop as SharedStop).routes)
+			} else {
+				arrayOf((stop as Stop).route)
+			}
+		} catch (e: ClassCastException) {
+
+			// If there was an issue casting from classes log the error and return the current content of the string.
+			Log.e("postStopTimes", "Unaccounted object class: ${stop.javaClass}", e)
+			return ""
+		}
+
+		// Get the formatted time string for the marked object, and load it into the popup window.
+		PopupWindow.body = this.generateTimeString(stopData, routes, isSharedStop)
+
+		// Check to see how many new lines there are in the display.
+		// If there are more than the maximum lines allowed bu the info window adapter,
+		// display "Click to view all the arrival and departure times.".
+		return if (getNewlineOccurrence(PopupWindow.body) <= InfoWindowPopup.MAX_LINES) {
+			PopupWindow.body
 		} else {
-
-			// Comments
-			Toast.makeText(this.context, markedObject.name, Toast.LENGTH_LONG).show()
+			this.context.getString(R.string.click_to_view_all_the_arrival_and_departure_times)
 		}
 	}
 
 	/**
-	 * Shows the given marker on the map by setting it to visible.
-	 * The title of the marker is set to the name of the stop.
-	 * The marker snippet is set to a pending message as a callback method retrieves the stop times for the stop.
+	 * Generates the large string that is used to display the departure and arrival times of a
+	 * particular stop when clicked on.
 	 *
-	 * @param marker The marker to be shown. This cannot be null.
+	 * @param stopArray        The JSONArray that contains all the stops for the route.
+	 * @param routes           The active (enabled) routes to get the times for.
+	 * @param includeRouteName Whether or not to include the route name in the final string.
+	 * @return The string containing all the departure and arrival times for the particular stop.
 	 */
-	@UiThread
-	private fun showMarker(marker: com.google.android.gms.maps.model.Marker) {
+	private fun generateTimeString(stopArray: org.json.JSONArray, routes: Array<Route>,
+	                               includeRouteName: Boolean): String {
 
-		// Since the marker is not null, show it the marker by setting it to visible.
-		marker.isVisible = true
+		// Get the number of entries in our json array.
+		val count = stopArray.length()
 
-		// Get the name of the stop.
-		val name = marker.title ?: return
+		// Create a new string with the size of our capacity times 5 (0:00\n).
+		val snippetText = StringBuilder(count * 5)
 
-		// For now just set the snippet text to "retrieving stop times" as a callback method gets the times.
-		marker.snippet = this.context.getString(R.string.retrieving_stop_times)
+		// Iterate though each entry in our json array.
+		for (index in 0 until count) {
+			Log.d("generateTimeString", "Parsing stop times for stop $index/$count")
 
-		// Retrieve the stop times.
-		this.routematch.callDeparturesByStop(name, { result: JSONObject ->
+			// Get the json object from the json array.
+			val jsonObject: JSONObject = try {
+				stopArray.getJSONObject(index)
+			} catch (e: JSONException) {
+				Log.e("generateTimeString", "Could not get json object from json array", e)
+				continue
+			}
 
-			// Update the snippet text of the marker's info window.
-			Log.v("showMarker", "Updating snippet")
-			marker.snippet = postStopTimes(marker.tag as MarkedObject, result, this.context)
+			// Get the route name from the json object.
+			// This is not to be confused with the route name from the route.
+			val routeId: String = try {
+				jsonObject.getString("routeId")
+			} catch (e: JSONException) {
+				Log.e("generateTimeString", "Could not get route name from json array", e)
+				continue
+			}
 
-			// Refresh the info window by calling showInfoWindow().
-			Log.v("showMarker", "Refreshing info window")
-			marker.showInfoWindow()
-		}, { error: com.android.volley.VolleyError? -> Log.e("showMarker",
-		                                                     "Unable to get departure times",
-		                                                     error) }, marker)
+			// Iterate though each of our active routes. If the route is one that is listed,
+			// append the time to the string builder.
+			routes.forEach {
 
-		// For now though just show the info window.
-		marker.showInfoWindow()
+				if (it.name == routeId) {
+
+					// Set the arrival and departure time to the arrival and departure time in the JSONObject.
+					// At this point this is stored in 24-hour time.
+					var arrivalTime = getTime(jsonObject, "predictedArrivalTime")
+					var departureTime = getTime(jsonObject, "predictedDepartureTime")
+
+					// If the user doesn't use 24-hour time, convert to 12-hour time.
+					if (!android.text.format.DateFormat.is24HourFormat(this.context)) {
+						Log.d("generateTimeString", "Converting time to 12 hour time")
+						arrivalTime = formatTime(arrivalTime)
+						departureTime = formatTime(departureTime)
+					}
+
+					// Append the route name if there is one.
+					if (includeRouteName) {
+						Log.d("generateTimeString", "Adding route: ${it.name}")
+						snippetText.append("Route: ${it.name}\n")
+					}
+
+					// Append the arrival and departure times to the snippet text.
+					snippetText.append("${this.context.getString(R.string.expected_arrival)} $arrivalTime\n" +
+					                   "${this.context.getString(R.string.expected_departure)} $departureTime\n\n")
+				}
+			}
+		}
+
+		// Be sure to trim the snippet text at this point.
+		snippetText.trimToSize()
+
+		// Get the length of the original snippet text.
+		val length = snippetText.length
+
+		// Replace the last 2 new lines (this is to mitigate a side effect of the final append).
+		if (length > 2) {
+			snippetText.deleteCharAt(length - 1)
+			snippetText.deleteCharAt(length - 2)
+		}
+
+		// Finally, build the text and return it.
+		return snippetText.toString()
 	}
 
 	companion object {
-
-		/**
-		 * Posts the time string for the selected stop,
-		 * which contains when the (selected) buses for that stop will be arriving and departing.
-		 * This method also posts this string to the body of the popup window when the info window is clicked on.
-		 *
-		 * @param stop    The stop (either an actual Stop object, or a SharedStop).
-		 * @param json    The json object retrieved from the RouteMatch server.
-		 * @param context The context from which this method is being called from (for string lookup).
-		 * @return The string containing either all the arrival and departure times for the stop,
-		 * or the overflowString if there is too much data.
-		 */
-		fun postStopTimes(stop: MarkedObject, json: JSONObject, context: Context): String {
-
-			// Get the stop data from the retrieved json.
-			val stopData = RouteMatch.parseData(json)
-
-			// Get the times for the stop.
-			// Since the method arguments are slightly different for a shared stop compared to a regular stop,
-			// check if the marker is an instance of a Stop or SharedStop.
-			var string = ""
-
-			// Check if our marked object is a shared stop (for future formatting reasons).
-			val isSharedStop = stop is SharedStop
-
-			// Try setting the routes array to either enabled routes (shared stop) or our single route (stop).
-			val routes: Array<Route> = try {
-				if (isSharedStop){
-					getEnabledRoutesForStop((stop as SharedStop).routes)
-				} else {
-					arrayOf((stop as Stop).route)
-				}
-			} catch (e: ClassCastException) {
-
-				// If there was an issue casting from classes log the error and return the current content of the string.
-				Log.e("postStopTimes", "Unaccounted object class: ${stop.javaClass}", e)
-				return string
-			} catch (NullPointerException: NullPointerException) {
-
-				// Log the null exception, and return the current string content.
-				Log.e("postStopTimes", "Null pointer exception thrown!", NullPointerException)
-				return string
-			}
-
-			// Try to get the formatted time string for the marked object.
-			string = try {
-				generateTimeString(stopData, context, routes, isSharedStop)
-			} catch (e: JSONException) {
-
-				// If there was an exception thrown while parsing the json simply log it and return the current content of the string.
-				Log.e("postStopTimes", "Could not get stop time from json", e)
-				return string
-			}
-
-			// Load the times string into a popup window for when its clicked on.
-			PopupWindow.body = string
-
-			// Check to see how many new lines there are in the display.
-			// If there are more than the maximum lines allowed bu the info window adapter,
-			// display "Click to view all the arrival and departure times.".
-			return if (getNewlineOccurrence(string) <= InfoWindowPopup.MAX_LINES) {
-				string
-			} else {
-				context.getString(
-						R.string.click_to_view_all_the_arrival_and_departure_times)
-			}
-		}
 
 		/**
 		 * Returns an array of routes that are enabled from all the routes in the shared stop.
@@ -172,19 +223,19 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 		 * @param allRoutesForStop The routes in the shared stop.
 		 * @return The routes in the shared stop that are enabled.
 		 */
-		private fun getEnabledRoutesForStop(allRoutesForStop: Array<Route>): Array<Route> {
+		internal fun getEnabledRoutesForStop(allRoutesForStop: Array<Route>): Array<Route> {
 
 			// Create a new routes array to store routes that have been verified to be enabled.
 			val potentialRoutes = arrayOfNulls<Route>(allRoutesForStop.size)
 			var routeCount = 0
 
 			// Iterate though all the routes in our shared stop.
-			for (route in allRoutesForStop) {
+			allRoutesForStop.forEach {
 
 				// If the route is enabled add it to our verified routes array,
 				// and increase the verified count.
-				if (route.enabled) {
-					potentialRoutes[routeCount] = route
+				if (it.enabled) {
+					potentialRoutes[routeCount] = it
 					routeCount++
 				}
 			}
@@ -196,82 +247,7 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 			System.arraycopy(potentialRoutes, 0, selectedRoutes, 0, routeCount)
 
 			// Return our selected routes.
-			return selectedRoutes.requireNoNulls()
-		}
-
-		/**
-		 * Generates the large string that is used to display the departure and arrival times of a
-		 * particular stop when clicked on.
-		 *
-		 * @param stopArray        The JSONArray that contains all the stops for the route.
-		 * @param context          The context from which this method is being called (used for string lookup).
-		 * @param routes           The active (enabled) routes to get the times for.
-		 * @param includeRouteName Whether or not to include the route name in the final string.
-		 * @return The string containing all the departure and arrival times for the particular stop.
-		 * @throws JSONException Thrown if there is a JSONException while parsing the data for the stop.
-		 */
-		@Throws(JSONException::class)
-		private fun generateTimeString(stopArray: org.json.JSONArray, context: Context,
-		                               routes: Array<Route>, includeRouteName: Boolean): String {
-
-			// Get the number of entries in our json array.
-			val count = stopArray.length()
-
-			// Create a new string with the size of our capacity times 5 (0:00\n).
-			val snippetText = StringBuilder(count * 5)
-
-			// Iterate though each entry in our json array.
-			for (index in 0 until count) {
-				Log.d("generateTimeString", "Parsing stop times for stop $index/$count")
-
-				// Get the stop time from the current stop.
-				val jsonObject = stopArray.getJSONObject(index)
-
-				// Iterate though each of our active routes. If the route is one that is listed,
-				// append the time to the string builder.
-				for (route in routes) {
-					val routeName = route.name
-					if (routeName == jsonObject.getString("routeId")) {
-
-						// Set the arrival and departure time to the arrival and departure time in the JSONObject.
-						// At this point this is stored in 24-hour time.
-						var arrivalTime = getTime(jsonObject, "predictedArrivalTime")
-						var departureTime = getTime(jsonObject, "predictedDepartureTime")
-
-						// If the user doesn't use 24-hour time, convert to 12-hour time.
-						if (!android.text.format.DateFormat.is24HourFormat(context)) {
-							Log.d("generateTimeString", "Converting time to 12 hour time")
-							arrivalTime = formatTime(arrivalTime)
-							departureTime = formatTime(departureTime)
-						}
-
-						// Append the route name if there is one.
-						if (includeRouteName) {
-							Log.d("generateTimeString", "Adding route: $routeName")
-							snippetText.append("Route: $routeName\n")
-						}
-
-						// Append the arrival and departure times to the snippet text.
-						snippetText.append("${context.getString(R.string.expected_arrival)} $arrivalTime\n" +
-						                   "${context.getString(R.string.expected_departure)} $departureTime\n\n")
-					}
-				}
-			}
-
-			// Be sure to trim the snippet text at this point.
-			snippetText.trimToSize()
-
-			// Get the length of the original snippet text.
-			val length = snippetText.length
-
-			// Replace the last 2 new lines (this is to mitigate a side effect of the final append).
-			if (length > 2) {
-				snippetText.deleteCharAt(length - 1)
-				snippetText.deleteCharAt(length - 2)
-			}
-
-			// Finally, build the text and return it.
-			return snippetText.toString()
+			return selectedRoutes as Array<Route>
 		}
 
 		/**
@@ -295,7 +271,7 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 							if (message == "JSONObject[\"$key\"] is not a string.") {
 								Log.w("getTime", "$key has the wrong type (not a string - probably null)")
 
-								// Because the string was probably "Null", return null.
+								// Because the string was probably "Null", return an empty string.
 								return ""
 							}
 						}
@@ -312,8 +288,8 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 			return if (matcher.find()) {
 				try {
 					matcher.group(0)!!
-				} catch (exception: NullPointerException) {
-					// TODO Log the exception
+				} catch (NullPointerException: NullPointerException) {
+					Log.e("getTime", "Regex returned null!", NullPointerException)
 					""
 				}
 			} else {
@@ -334,21 +310,17 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 
 			// Create another date format for formatting 12 hour time.
 			val halfTime = SimpleDateFormat("h:mm a", Locale.US)
-			val fullTimeDate: Date = try {
+
+			// Get the time in 24 hours.
+			val fullTimeDate: java.util.Date = try {
 
 				// Try to get the 24 hour time as a date.
 				fullTime.parse(time)!!
-			} catch (e: java.text.ParseException) {
+			} catch (Exception: Exception) {
 
-				// If there was a parsing exception simply return the old time.
-				Log.e("formatTime", "Could not parse full 24 hour time", e)
+				// If there was an exception raised during parsing simply return the parameter.
+				Log.e("formatTime", "Could not parse full 24 hour time", Exception)
 				return time
-			} catch (npe: NullPointerException) {
-
-				// Because time was null return an empty string.
-				// We cant return the argument because then we would be returning null.
-				Log.e("formatTime", "Provided time was null!", npe)
-				return ""
 			}
 
 			// Format the 24 hour time date into 12 hour time and return it.
@@ -369,10 +341,10 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 			var count = 0
 
 			// Iterate through the string.
-			for (element in string) {
+			string.forEach {
 
 				// If the character at the current index matches our character, increase the count.
-				if (element == '\n') {
+				if (it == '\n') {
 					count++
 				}
 			}

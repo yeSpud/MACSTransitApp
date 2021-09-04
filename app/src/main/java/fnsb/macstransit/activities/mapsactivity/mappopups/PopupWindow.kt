@@ -77,6 +77,6 @@ class PopupWindow(context: android.content.Context) : AlertDialog(context),
 		/**
 		 * The body text of the popup window.
 		 */
-		var body: String? = null
+		var body: String = ""
 	}
 }

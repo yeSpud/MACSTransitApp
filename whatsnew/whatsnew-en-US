@@ -1,0 +1,4 @@
+* Under the hood changes
+* Fixed rotation bugs
+* Target android version is now Android 12 (minimum is still Lollipop).
+* Fixed menu routes being out of sync with actual routes being shown.
