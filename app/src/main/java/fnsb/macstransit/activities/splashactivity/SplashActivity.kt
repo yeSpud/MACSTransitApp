@@ -252,6 +252,9 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 			this.finish()
 		}
 
+		// Hide the progress bar.
+		this.viewModel.hideProgressBar()
+
 		// Set the button to invisible.
 		this.binding.button.visibility = View.VISIBLE
 

@@ -44,12 +44,11 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 
 	/**
 	 * Create the map object. This will be null until the map is ready to be used.
-	 * Deprecated because this leaks memory in the static form. Use as dependency injection.
 	 */
 	var map: GoogleMap? = null
 
 	/**
-	 * Documentation
+	 * The update coroutine used to update the bus positions on the map.
 	 */
 	var updater: UpdateCoroutine? = null
 
@@ -152,17 +151,19 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	}
 
 	/**
-	 * Documentation
-	 * @param supportFragment
+	 * Sets up the map by applying all the relevant listeners,
+	 * and moving the map camera to the starting position.
+	 *
+	 * @param supportFragment The map component view in the activity.
 	 */
 	suspend fun mapCoroutine(supportFragment: SupportMapFragment, activity: MapsActivity) {
 
-		// Comments
-		Log.v("MapCoroutine", "Awaiting for map...")
+		// Wait until the map object is ready.
+		Log.v("MapCoroutine", "Awaiting map...")
 		this.map = supportFragment.awaitMap()
 		Log.v("MapCoroutine", "Map has been set")
 
-		// Move the camera to the 'home' position
+		// Move the camera to the 'home' position.
 		Log.v("MapCoroutine", "Moving camera to home position")
 		this.map!!.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.
 		newLatLngZoom(com.google.android.gms.maps.model.LatLng(64.8391975,
@@ -212,7 +213,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 			this.map!!.setOnInfoWindowClickListener(fnsb.macstransit.activities.mapsactivity.mappopups.
 			PopupWindow(activity))
 
-			// Comments
+			// Set the update coroutine to update every 10 seconds.
 			Log.v("MapCoroutine", "Launching update coroutine")
 			this.updater = UpdateCoroutine(10000, this, this.map!!)
 			this.runUpdater()
@@ -234,7 +235,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		// Make sure to only execute the following if the maps object is not null (map has been setup).
 		if (this.map != null) {
 
-			// Comments
+			// Get the current settings values.
 			val settings = fnsb.macstransit.settings.CurrentSettings.settingsImplementation as V2
 
 			// Enable traffic overlay based on settings.
@@ -256,8 +257,6 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 
 				MapsActivity.firstRun = false
 			}
-
-			// TODO Update initial checkbox state if not first run for each route
 
 			// Try redrawing the buses.
 			// Because we are iterating a static variable that is modified on a different thread
@@ -282,15 +281,16 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	}
 
 	/**
-	 * Documentation
-	 * Comments
+	 * Runs the update coroutine.
 	 */
 	fun runUpdater() {
+
+		// Set the update coroutine to run.
 		this.updater!!.run = true
+
+		// If the coroutine isn't running then start it.
 		if (!this.updater!!.isRunning) {
-			this.viewModelScope.launch(Dispatchers.Main) {
-				this@MapsViewModel.updater!!.start()
-			}
+			this.viewModelScope.launch(Dispatchers.IO) { this@MapsViewModel.updater!!.start() }
 		}
 	}
 
@@ -319,7 +319,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		val size = metersPerPixel * 4
 
 		// Iterate though each route.
-		for (route in MapsActivity.allRoutes) {
+		 MapsActivity.allRoutes.forEach { route ->
 
 			// Start by resizing the stop circles first.
 			for (stop in route.stops) {
