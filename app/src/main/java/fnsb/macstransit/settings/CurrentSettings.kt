@@ -194,16 +194,15 @@ object CurrentSettings {
 			BufferedReader(InputStreamReader(input, StandardCharsets.UTF_8)).use {
 
 				// Create a variable to read strings from our file.
-				var line: String?
-				do {
+				var line: String? = it.readLine()
+				while (line != null) {
+
+					// Apply the read string to our string.
+					string += "$line\n"
 
 					// Read the next line from the file.
 					line = it.readLine()
-
-					// Apply the read read string to our string.
-					string += "$line\n"
-
-				} while (line != null)
+				}
 			}
 		} catch (IOException: IOException) {
 
