@@ -72,7 +72,7 @@ class SplashViewModel(application: Application) : AndroidViewModel(application) 
 		Log.v("setProgressBar", "Provided progress: $progress")
 
 		// Convert the progress to be an int out of 100.
-		var p: Int = (progress / SplashActivity.MAX_PROGRESS * 100).roundToInt()
+		var p: Int = (progress / SplashActivity.MAX_PROGRESS * 100).toInt()
 
 		// Validate that that the progress is between 0 and 100.
 		p = if (p > 100) 100 else kotlin.math.max(p, 0)

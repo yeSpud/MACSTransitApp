@@ -54,7 +54,7 @@ class DownloadMasterSchedule(private val splashActivity: SplashActivity) {
 
 				// Also add a chance for the user to retry.
 				this@DownloadMasterSchedule.splashActivity.showRetryButton()
-				SplashActivity.loaded = true
+				this@DownloadMasterSchedule.splashActivity.loaded = true
 				return
 			}
 
