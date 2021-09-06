@@ -5,14 +5,10 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.util.Log
-import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import fnsb.macstransit.R
 import fnsb.macstransit.routematch.RouteMatch
-import kotlin.math.roundToInt
 
 /**
  * Created by Spud on 8/16/21 for the project: MACS Transit.
@@ -21,46 +17,49 @@ import kotlin.math.roundToInt
  * @version 1.0.
  * @since Release 1.3.
  */
-class SplashViewModel(application: Application) : AndroidViewModel(application) {
+class SplashViewModel(application: Application) : androidx.lifecycle.AndroidViewModel(application) {
 
 
 	/**
-	 * Documentation
+	 * The RouteMatch object used to retrieve data from the RouteMatch servers.
 	 */
-	val routeMatch: RouteMatch = RouteMatch(this.getApplication<Application>().getString(R.string.routematch_url), this.getApplication())
+	val routeMatch: RouteMatch = RouteMatch(this.getApplication<Application>().getString(fnsb.macstransit.R.string.routematch_url), this.getApplication())
 
 	/**
-	 * Documentation
+	 * The current (adjustable) progress.
+	 * This is private as we only want to adjust it the values in the view model.
 	 */
 	private val _currentProgress: MutableLiveData<Int> = MutableLiveData()
 
 	/**
-	 * TODO Documentation
+	 * The (unmodifiable) progress of the progressbar.
 	 */
 	val currentProgress: LiveData<Int>
 		get() = _currentProgress
 
 	/**
-	 * Documentation
+	 * The current (adjustable) visibility of the progressbar.
+	 * This is private as we only want to adjust the visibility in the view model.
 	 */
 	private val _progressBarVisible: MutableLiveData<Boolean> = MutableLiveData()
 
 	/**
-	 * Documentation
+	 * The (unmodifiable) visibility of the progressbar.
+	 */
+	val progressBarVisible: LiveData<Boolean>
+		get() = _progressBarVisible
+
+	/**
+	 * The current (adjustable) text of the textview.
+	 * This is private as we only want to adjust the text in the view model.
 	 */
 	private val _textviewText: MutableLiveData<String> = MutableLiveData()
 
 	/**
-	 * Documentation
+	 * The (unmodifiable) text in the text data.
 	 */
 	val textviewText: LiveData<String>
 		get() = _textviewText
-
-	/**
-	 * Documentation
-	 */
-	val progressBarVisible: LiveData<Boolean>
-		get() = _progressBarVisible
 
 	/**
 	 * Update the progress bar to the current progress.
@@ -77,11 +76,12 @@ class SplashViewModel(application: Application) : AndroidViewModel(application) 
 		// Validate that that the progress is between 0 and 100.
 		p = if (p > 100) 100 else kotlin.math.max(p, 0)
 
+		// Set the current progress to the int out of 100.
 		this._currentProgress.value = p
 	}
 
 	/**
-	 * Documentation
+	 * Shows the progress bar.
 	 */
 	@MainThread
 	fun showProgressBar() {
@@ -89,7 +89,7 @@ class SplashViewModel(application: Application) : AndroidViewModel(application) 
 	}
 
 	/**
-	 * Documentation
+	 * Hides the progress bar.
 	 */
 	@MainThread
 	fun hideProgressBar() {
@@ -104,7 +104,8 @@ class SplashViewModel(application: Application) : AndroidViewModel(application) 
 	@MainThread
 	fun setMessage(@androidx.annotation.StringRes resID: Int) {
 
-		// Comments
+		// Set the textview value to the provided string.
+		// Because this is a live data object it will then call any observers.
 		this._textviewText.value = this.getApplication<Application>().getString(resID)
 	}
 
@@ -113,7 +114,7 @@ class SplashViewModel(application: Application) : AndroidViewModel(application) 
 	 *
 	 * @return Whether or not the device has an internet connection.
 	 */
-	@AnyThread
+	@androidx.annotation.AnyThread
 	fun hasInternet(): Boolean {
 
 		Log.d("hasInternet", "Checking internet...")
@@ -126,12 +127,12 @@ class SplashViewModel(application: Application) : AndroidViewModel(application) 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
 			// Newer API.
-			// Comments
+			// Get the network, and its capabilities for the app.
 			val network: android.net.Network? = connectivityManager.activeNetwork
 			val networkCapabilities: NetworkCapabilities =
 					connectivityManager.getNetworkCapabilities(network) ?: return false
 
-			// Comments
+			// Return true if the app has access to any of the network capabilities:
 			return when {
 				// WiFi
 				networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
@@ -152,11 +153,12 @@ class SplashViewModel(application: Application) : AndroidViewModel(application) 
 		} else {
 
 			// Older API.
-			// Comments
+			// Get the current network info available to the app.
 			@Suppress("Deprecation")
 			val networkInfo: android.net.NetworkInfo = connectivityManager.activeNetworkInfo ?: return false
 
 			@Suppress("Deprecation")
+			// Return if we are connected or not.
 			return networkInfo.isConnected
 
 		}

@@ -17,11 +17,18 @@ import kotlin.coroutines.resume
 class DownloadMasterSchedule(private val splashActivity: SplashActivity) {
 
 	/**
-	 * Documentation
+	 * The method that will attempt to start the download of the master schedule.
+	 * If a volley exception is thrown then then it is assumed that the RouteMatch server has timed out,
+	 * and the appropriate action will be taken.
 	 */
-	suspend fun download(): JSONObject = kotlin.coroutines.suspendCoroutine { continuation ->
-		this.splashActivity.viewModel.routeMatch.callMasterSchedule(MasterScheduleCallback(continuation), {
+	suspend fun download(): JSONObject = kotlin.coroutines.suspendCoroutine { // TODO Replace returned value with Array of Routes (from callback).
+
+		// Make the network request for the master route.
+		this.splashActivity.viewModel.routeMatch.callMasterSchedule(MasterScheduleCallback(it), {
 			error: com.android.volley.VolleyError ->
+
+			// Since there was an error retrieving the master route be sure to log it,
+			// and show the retry message and button.
 			Log.w("initializeApp", "MasterSchedule callback error", error)
 			Log.w("initializeApp", "Error: ${error.message}\n${error.cause.toString()}")
 			this.splashActivity.viewModel.setMessage(R.string.routematch_timeout)
@@ -30,18 +37,18 @@ class DownloadMasterSchedule(private val splashActivity: SplashActivity) {
 	}
 
 	/**
-	 * Documentation
-	 * @param continuation
+	 * Callback used to parse the master route JSON Object that was retrieved from the RouteMatch server.
+	 *
+	 * @param continuation The continuation coroutine to resume once the callback finishes.
 	 */
-	internal inner class MasterScheduleCallback(
-			private val continuation: kotlin.coroutines.Continuation<JSONObject>) :
-			com.android.volley.Response.Listener<JSONObject> {
+	internal inner class MasterScheduleCallback(private val continuation: kotlin.coroutines.
+	Continuation<JSONObject>) : com.android.volley.Response.Listener<JSONObject> {
 
-		override fun onResponse(response: JSONObject) { // Comments
+		override fun onResponse(response: JSONObject) {
 
 			// Set the progress and message.
-			this@DownloadMasterSchedule.splashActivity.viewModel.setProgressBar(
-					SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble())
+			this@DownloadMasterSchedule.splashActivity.viewModel.setProgressBar(SplashActivity.
+			DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble())
 			this@DownloadMasterSchedule.splashActivity.viewModel.setMessage(R.string.loading_bus_routes)
 
 			// Get the routes from the JSONObject
@@ -61,6 +68,8 @@ class DownloadMasterSchedule(private val splashActivity: SplashActivity) {
 			// Create an array to store all the generated routes.
 			val potentialRoutes = arrayOfNulls<Route>(count)
 			var routeCount = 0
+
+			// Update the progress and message.
 			val step = SplashActivity.PARSE_MASTER_SCHEDULE.toDouble() / count
 			var progress = SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble()
 			this@DownloadMasterSchedule.splashActivity.viewModel.setMessage(R.string.parsing_master_schedule)
@@ -85,7 +94,7 @@ class DownloadMasterSchedule(private val splashActivity: SplashActivity) {
 					potentialRoutes[routeCount] = route
 					routeCount++
 				} catch (Exception: Exception) {
-					Log.w("MasterScheduleCallback", "Issue creating route from route data",
+					Log.e("MasterScheduleCallback", "Issue creating route from route data",
 					     Exception)
 				}
 				this@DownloadMasterSchedule.splashActivity.viewModel.setProgressBar(progress + step)
@@ -96,6 +105,8 @@ class DownloadMasterSchedule(private val splashActivity: SplashActivity) {
 			val finalRoutes: Array<Route?> = arrayOfNulls(routeCount)
 			System.arraycopy(potentialRoutes, 0, finalRoutes, 0, routeCount)
 			fnsb.macstransit.activities.mapsactivity.MapsActivity.allRoutes = finalRoutes as Array<Route>
+
+			// Continue with the rest of the coroutine.
 			Log.d("MasterScheduleCallback", "End of MasterScheduleCallback")
 			this.continuation.resume(response)
 		}

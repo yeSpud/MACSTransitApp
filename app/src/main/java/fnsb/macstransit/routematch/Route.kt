@@ -16,7 +16,7 @@ import java.util.regex.Pattern
  * @version 3.0.
  * @since Beta 3.
  */
-class Route(val name: String, var color: Int = 0) : java.io.Serializable {
+class Route(val name: String, var color: Int = 0) : java.io.Serializable {  // TODO Add ["routeName"] operator for arrays.
 
 	/**
 	 * The name of the route formatted to be parsed as a URL.

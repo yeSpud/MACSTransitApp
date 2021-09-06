@@ -1,5 +1,6 @@
 package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
 
+import android.util.Log
 import com.google.android.gms.maps.model.LatLng
 import fnsb.macstransit.routematch.Route
 import org.json.JSONArray
@@ -21,19 +22,29 @@ class DownloadBusRoutes(viewModel: fnsb.macstransit.activities.splashactivity.Sp
 		// Get the land route from the routematch API using an asynchronous process.
 		this.viewModel.routeMatch.callLandRoute(route, BusRoutesCallback(it, route), {
 			error: com.android.volley.VolleyError ->
-			android.util.Log.w("downloadRoute", "Unable to get polyline from routematch server", error)
+			Log.e("downloadRoute", "Unable to get polyline from routematch server", error)
 		}, this)
 
+		// Get the progress step.
 		val step: Double = downloadProgress / fnsb.macstransit.activities.mapsactivity.MapsActivity.
 		allRoutes.size
+
+		// Update the progress bar.
 		this.viewModel.setProgressBar(progressSoFar + step + index)
 	}
 
+	/**
+	 * Callback used to parse the downloaded route content.
+	 * Once the content has been parsed the suspended coroutine will resume.
+	 *
+	 * @param continuation The suspended continuation coroutine to resume once the the callback has finished.
+	 * @param route The route this downloadable belongs to.
+	 */
 	internal inner class BusRoutesCallback(continuation: kotlin.coroutines.Continuation<JSONObject>,
 	                                       route: Route):
 			DownloadRouteObjects.Callback(continuation, route, fnsb.macstransit.R.string.mapping_bus_routes) {
 
-		override fun function(jsonArray: JSONArray) {
+		override fun parse(jsonArray: JSONArray) {
 			try {
 
 				// Get the land route points object from the land route data array.
@@ -63,9 +74,11 @@ class DownloadBusRoutes(viewModel: fnsb.macstransit.activities.splashactivity.Sp
 				}
 
 				// Set the polyline coordinates array to the finished LatLng array.
-				this.route.polyLineCoordinates = coordinates.requireNoNulls()
+				this.route.polyLineCoordinates = coordinates as Array<LatLng>
 			} catch (exception: org.json.JSONException) {
-				// TODO
+
+				// If there was a JSON Exception thrown while parsing simply log it.
+				Log.e("BusRoutesCallback", "Exception thrown while parsing JSON in callback", exception)
 			}
 		}
 	}

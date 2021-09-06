@@ -99,6 +99,27 @@ class ConceptsTest {
 		endTime = System.nanoTime()
 		println("\nFor each loop print time")
 		Helper.printTime(startTime, endTime)
+	}
+
+	@Test
+	fun nullArrayNonNullTest() {
+
+		var startTime = System.nanoTime()
+		val nullArray = nullArrayNonNull(arrayOfNulls(100))
+		var endTime = System.nanoTime()
+		print("Require Non Nulls time: ")
+		val nnTime = Helper.printTime(startTime, endTime)
+
+		startTime = System.nanoTime()
+		val uncheckedCast = nullArrayUncheckedCast(arrayOfNulls(100))
+		endTime = System.nanoTime()
+		print("Unchecked Cast time: ")
+		val ucTime = Helper.printTime(startTime, endTime)
+
+		Assert.assertEquals(100, nullArray.size)
+		Assert.assertEquals(100, uncheckedCast.size)
+		Assert.assertArrayEquals(nullArray, uncheckedCast)
+		Assert.assertTrue(nnTime > ucTime)
 
 	}
 
@@ -127,6 +148,21 @@ class ConceptsTest {
 			println("ArrayTime")
 			Helper.printTime(startTime, endTime)
 			return returnArray
+		}
+
+		private fun nullArrayNonNull(nullArray: Array<Int?>): Array<Int> {
+			for (i in nullArray.indices) {
+				nullArray[i] = i
+			}
+			return nullArray.requireNoNulls()
+		}
+
+		private fun nullArrayUncheckedCast(nullArray: Array<Int?>): Array<Int> {
+			for (i in nullArray.indices) {
+				nullArray[i] = i
+			}
+			@Suppress("Unchecked_Cast")
+			return nullArray as Array<Int>
 		}
 	}
 

@@ -17,37 +17,49 @@ open class MarkedObject(val name: String, var location: LatLng, val route: Route
 
 	/**
 	 * The marker of the marker of the marked object.
-	 * TODO Mention private set
+	 * This has a private set as we only want to create (set) the marker in the marked object class.
 	 */
 	var marker: Marker? = null
 		private set
 
-	override fun equals(other: Any?): Boolean { // Comments
+	override fun equals(other: Any?): Boolean {
 
+		// If the comparison object is null just return false.
 		if (other == null) {
 			return false
 		}
 
+		// If the comparison object is a Stop object...
 		return if (other is Stop) {
 
+			// Return if the locations and names of the stop and our comparison match.
 			this.location.latitude == other.location.latitude &&
 			this.location.longitude == other.location.longitude && this.name == other.name
 
 		} else {
-			false
+			false // If the comparison object is not a Stop object return false.
 		}
 	}
 
-	override fun hashCode(): Int { // Comments
+	override fun hashCode(): Int {
+
+		// Get the hash code for the name.
 		var result = name.hashCode()
+
+		// TODO Code shifts?
+		// Comments
 		result = 0x1F * result + location.hashCode()
 		result = 0x1F * result + route.hashCode()
 		result = 0x1F * result + (marker?.hashCode() ?: 0)
+
+		// Return our resulting hash code.
 		return result
 	}
 
 	/**
-	 * Documentation
+	 * Update the location of the marked object.
+	 * This also updates the marker position if it has one. Insert fairly-odd-parents meme.
+	 * @param updatedLocation The updated location of the object.
 	 */
 	@UiThread
 	fun updateLocation(updatedLocation: LatLng) {

@@ -31,7 +31,7 @@ class DownloadBusStops(viewModel: fnsb.macstransit.activities.splashactivity.Spl
 	                                     route: Route):
 			DownloadRouteObjects.Callback(continuation, route, fnsb.macstransit.R.string.mapping_bus_stops) {
 
-		override fun function(jsonArray: org.json.JSONArray) {
+		override fun parse(jsonArray: org.json.JSONArray) {
 
 			// Load in all the potential stops for the route.
 			// The reason why this is considered potential stops is because at this stage duplicate

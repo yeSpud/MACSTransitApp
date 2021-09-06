@@ -17,17 +17,18 @@ import kotlin.RuntimeException
 class Bus(
 
 		/**
-		 * Documentation
+		 * The ID (name) of the bus.
+		 * This must not have any prefix (as that will be added later).
 		 */
 		name: String,
 
 		/**
-		 * Documentation
+		 * The current location of the bus (as a LatLng object)
 		 */
 		location: LatLng,
 
 		/**
-		 * Documentation
+		 * The bus's route.
 		 */
 		route: Route,
 
@@ -88,10 +89,11 @@ class Bus(
 		 *
 		 * @param vehiclesJson The json array containing the bus information.
 		 * @return An array of buses created from the information in the json array.
-		 * @throws JSONException Thrown if there are no routes to track FIXME
+		 * @throws RuntimeException Thrown if the bus route is not in our trackable routes.
+		 * @throws JSONException Thrown if there is an error parsing the JSON values.
 		 */
 		@JvmStatic
-		@Throws(JSONException::class)
+		@Throws(RuntimeException::class, JSONException::class)
 		fun getBuses(vehiclesJson: org.json.JSONArray): Array<Bus> {
 
 			// Return the bus array from the following:
@@ -100,10 +102,10 @@ class Bus(
 				// Get the json object corresponding to the bus.
 				val busObject: org.json.JSONObject = vehiclesJson.getJSONObject(it)
 
-				// Comments
+				// Get the bus ID.
 				val name: String = busObject.getString("vehicleId")
 
-				// Comments
+				// Get the location of the bus as a LatLng object.
 				val location = LatLng(busObject.getDouble("latitude"), busObject.getDouble("longitude"))
 
 				// Ge the route name of the bus.
@@ -127,7 +129,7 @@ class Bus(
 					}
 				}
 
-				// Comments
+				// If the bus route was not found in our trackable routes then throw a runtime exception.
 				if (route == null) {
 					throw RuntimeException("Bus route not found in all routes")
 				}
@@ -212,7 +214,7 @@ class Bus(
 			// Down size the array to its actual size and return it.
 			val buses = arrayOfNulls<Bus>(busSize)
 			System.arraycopy(potentialBuses, 0, buses, 0, busSize)
-			return buses.requireNoNulls()
+			return buses as Array<Bus>
 		}
 
 		/**
@@ -261,7 +263,7 @@ class Bus(
 			// Down size the array to its actual size and return it.
 			val buses = arrayOfNulls<Bus>(busSize)
 			System.arraycopy(potentialBuses, 0, buses, 0, busSize)
-			return buses.requireNoNulls()
+			return buses as Array<Bus>
 		}
 	}
 }
