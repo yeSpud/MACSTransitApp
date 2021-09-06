@@ -64,7 +64,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		                                                                                 this@MapsActivity) }
 
 		// Setup the fares popup window.
-		this.farePopupWindow = FarePopupWindow(this) // TODO Set this up in view model?
+		this.farePopupWindow = FarePopupWindow(this)
 	}
 
 	override fun onDestroy() {

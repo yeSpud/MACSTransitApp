@@ -17,6 +17,7 @@ import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.settings.V2
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.lang.NullPointerException
 import java.util.ConcurrentModificationException
 import kotlin.math.pow
 
@@ -137,9 +138,14 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 					if (it.route.enabled) {
 
 						// Try creating a new marker for the bus (if its enabled).
-						it.addMarker(this@MapsViewModel.map!!)
-						it.marker!!.isVisible = true // TODO Marker still amy be null here!
+						try {
+							it.addMarker(this@MapsViewModel.map!!)
+							it.marker!!.isVisible = true // Marker may be null here if unsuccessful!
+						} catch (NullPointerException: NullPointerException) {
 
+							// Log that the marker was unable to be added to the map.
+							Log.e("drawBuses", "Unable to add marker to map", NullPointerException)
+						}
 					} else {
 
 						// If the marker was null simply log it as a warning.
@@ -319,7 +325,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		val size = metersPerPixel * 4
 
 		// Iterate though each route.
-		 MapsActivity.allRoutes.forEach { route ->
+		MapsActivity.allRoutes.forEach { route ->
 
 			// Start by resizing the stop circles first.
 			for (stop in route.stops) {

@@ -21,66 +21,67 @@ class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewMod
 	private val callback: Callback = Callback(map)
 
 	/**
-	 * Documentation
+	 * Boolean to determine whether or not to continue running the coroutine's update loop.
 	 */
 	var run: Boolean = false
 
 	/**
-	 * Documentation
+	 * Whether or not the coroutine loop (the while loop) is currently running.
 	 */
 	var isRunning: Boolean = false
 		private set
 
 	/**
-	 * Documentation
+	 * Starts the coroutine's update loop.
 	 */
 	suspend fun start() {
 
-		// Comments
+		// Set the running variable to true.
 		Log.i("UpdateCoroutine", "Starting up...")
 		this.isRunning = true
 
-		// Comments
+		// Continue looping while the run variable is true.
 		while(this.run) {
 			Log.d("UpdateCoroutine", "Looping...")
 
-			// Comments
+			// Cancel any network requests with this as the tag as they have essentially timed out.
 			this.mapsViewModel.routeMatch.networkQueue.cancelAll(this)
 
-			// Comments
+			// Get all the buses that can be tracked (even the ones that are disabled).
 			this.mapsViewModel.routeMatch.callVehiclesByRoutes(this.callback, {
 				error: com.android.volley.VolleyError ->
 				Log.w("UpdateCoroutine", "Unable to fetch buses", error)
 			}, this, *MapsActivity.allRoutes)
 
+			// Wait for the specified update frequency.
 			Log.v("UpdateCoroutine", "Waiting for ${this.updateFrequency} milliseconds")
 			kotlinx.coroutines.delay(this.updateFrequency)
 		}
 
-		// Comments
+		// Since we have broken out of the while loop,
+		// and are about to exist set the running variable to false.
 		this.isRunning = false
 		Log.i("UpdateCoroutine", "Shutting down...")
 	}
 
 	/**
-	 * Documentation
+	 * Callback used once the bus network call has finished.
+	 * This is the function that updates the buses on the map.
 	 */
 	internal inner class Callback(private val map: GoogleMap): com.android.volley.Response.Listener<JSONObject> {
 
 		override fun onResponse(response: JSONObject) {
 
-			// Comments
+			// Get all the vehicles from the JSON Object as a JSON Array.
 			val vehiclesJson: org.json.JSONArray = fnsb.macstransit.routematch.RouteMatch.parseData(response)
 
-			// Comments
+			// Convert the JSON Array of Buses into an Array of Buses.
 			val buses: Array<Bus> = try {
 				Bus.getBuses(vehiclesJson)
 			} catch (exception: org.json.JSONException) {
 				Log.e("Callback", "Could not parse bus json", exception)
 				return
 			}
-
-			Log.v("Callback", "Updating buses on map")
 
 			// Get the array of new buses.
 			// These buses are buses that were not previously on the map until now.
