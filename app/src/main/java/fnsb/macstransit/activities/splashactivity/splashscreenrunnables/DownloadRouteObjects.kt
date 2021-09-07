@@ -1,5 +1,6 @@
 package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
 
+import fnsb.macstransit.activities.splashactivity.SplashViewModel
 import fnsb.macstransit.routematch.Route
 import org.json.JSONArray
 import org.json.JSONObject
@@ -9,62 +10,50 @@ import kotlin.coroutines.resume
  * Created by Spud on 9/1/21 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.0
+ * @version 1.0.
  * @since Release 1.3.1.
  */
-abstract class DownloadRouteObjects(val viewModel: fnsb.macstransit.activities.splashactivity.SplashViewModel) {
+abstract class DownloadRouteObjects<T>(val viewModel: SplashViewModel, private val parseMessage: Int):
+		com.android.volley.Response.Listener<JSONObject> {
+
+	/**
+	 * The suspended continuation coroutine to resume once the the callback has finished.
+	 * TODO Mention late init
+	 */
+	lateinit var continuation: kotlin.coroutines.Continuation<Array<T>>
 
 	/**
 	 * Downloads specific content pertaining to the provided route.
 	 *
 	 * @param route The route that will be used to find the downloadable content.
+	 * @param downloadProgress Documentation
 	 * @param index The index of the downloadable in terms of progress.
-	 * @return The downloaded (un-parsed) content. TODO Replace with prototyping - return the prototype.
+	 * @return Documentation
 	 */
 	abstract suspend fun download(route: Route, downloadProgress: Double, progressSoFar: Double,
-	                              index: Int): JSONObject
+	                              index: Int): Array<T>
 
 	/**
-	 * Callback used once the download function has finished,
-	 * and the downloaded content needs to be parsed.
+	 * Function that parses the provided JSON Array.
+	 * @param jsonArray The JSON Array to be parsed.
+	 *
+	 * @return Documentation
 	 */
-	internal abstract inner class Callback(
+	abstract fun parse(jsonArray: JSONArray): Array<T>
 
-			/**
-			 * The The suspended continuation coroutine to resume once the the callback has finished.
-			 */
-			private val continuation: kotlin.coroutines.Continuation<JSONObject>,
+	override fun onResponse(response: JSONObject) {
 
-			/**
-			 * The route that the download method is acting on.
-			 */
-			val route: Route,
+		// Set the message in the splash activity to the provided message.
+		this@DownloadRouteObjects.viewModel.setMessage(this.parseMessage)
 
-			/**
-			 * The message to display while parsing the download.
-			 */
-			private val message: Int): com.android.volley.Response.Listener<JSONObject> {
+		// Get the data from all the stops and store it in a JSONArray.
+		val data: JSONArray = fnsb.macstransit.routematch.RouteMatch.parseData(response)
 
-		/**
-		 * Function that parses the provided JSON Array.
-		 * @param jsonArray The JSON Array to be parsed.
-		 */
-		abstract fun parse(jsonArray: JSONArray)
+		// Comments
+		val parsedData: Array<T> = this.parse(data)
 
-		override fun onResponse(response: JSONObject) {
-
-			// Set the message in the splash activity to the provided message.
-			this@DownloadRouteObjects.viewModel.setMessage(this.message)
-
-			// Get the data from all the stops and store it in a JSONArray.
-			val data: JSONArray = fnsb.macstransit.routematch.RouteMatch.parseData(response)
-
-			// Pass the data to our function.
-			this.parse(data) // TODO Implement prototyping to get this to return the prototype.
-
-			// Resume the coroutine as the downloadable has finished being parsed.
-			android.util.Log.v("DownloadRouteObject", "Finished parsing downloadable object")
-			this.continuation.resume(response)  // TODO Implement prototyping to get this to pass the prototype.
-		}
+		// Comments
+		android.util.Log.v("DownloadRouteObject", "Finished parsing downloadable object")
+		this.continuation.resume(parsedData)
 	}
 }

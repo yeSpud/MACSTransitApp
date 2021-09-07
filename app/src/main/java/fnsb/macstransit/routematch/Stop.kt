@@ -118,9 +118,15 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 			this.visible(this@Stop.route.enabled)
 		}
 
+		// Check if the circle is null at this point (failure to add to map).
+		if (this.circle == null) {
+			Log.w("createStopCircle", "Failed to add stop circle to map!")
+			return
+		}
+
 		// Set the tag of the circle to Stop so that it can differentiate between this class
 		// and other stop-like classes (such as shared stops).
-		this.circle!!.tag = this // TODO Set me after check
+		this.circle!!.tag = this
 	}
 
 	companion object {
