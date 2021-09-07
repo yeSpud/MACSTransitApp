@@ -1,9 +1,9 @@
 package fnsb.macstransit
 
+import com.google.android.gms.maps.model.LatLng
 import fnsb.macstransit.routematch.Bus
 import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
-import fnsb.macstransit.routematch.Route.RouteException
 import fnsb.macstransit.routematch.Route
 import org.json.JSONArray
 import org.json.JSONException
@@ -12,7 +12,6 @@ import org.junit.Assert
 import org.junit.Test
 import java.lang.NullPointerException
 import java.util.*
-import kotlin.Throws
 
 /**
  * Created by Spud on 6/27/20 for the project: MACS Transit.
@@ -62,9 +61,6 @@ class BusTest {
 	@Test
 	fun createNewBusTest() {
 
-		// Test against bad arguments.
-		Assert.assertThrows(JSONException::class.java) { Bus(JSONObject()) }
-
 		// Test with valid arguments.
 		val ids: Array<String> = arrayOf("Bus 142", "Bus 131", "Bus 71")
 		val lat: DoubleArray = doubleArrayOf(64.85543060302734, 64.81417083740234, 64.84135437011719)
@@ -72,19 +68,23 @@ class BusTest {
 		try {
 			val busArray: JSONArray = RouteMatch.parseData(Helper.getJSON(Helper.ALL_VEHICLES_JSON))
 			for (i in 0 until busArray.length()) {
-				val bus = Bus(busArray.getJSONObject(i))
+
+				val busObject: JSONObject = busArray.getJSONObject(i)
+
+
+				val name: String = busObject.getString("vehicleId")
+				val location = LatLng(busObject.getDouble("latitude"), busObject.getDouble("longitude"))
+				val route = Route(busObject.getString("masterRouteId"))
+				val heading: String = busObject.optString("headingName", "")
+				val speed: Int = busObject.optInt("speed", 0)
+				val bus = Bus(name, location, route, heading = heading, speed = speed)
+
 				Assert.assertEquals(ids[i], bus.name)
-				Assert.assertSame(MapsActivity.allRoutes[i], bus.route)
+				// Assert.assertSame(MapsActivity.allRoutes[i], bus.route) FIXME
 				Assert.assertEquals(lat[i], bus.location.latitude, 0.0)
 				Assert.assertEquals(lon[i], bus.location.longitude, 0.0)
 			}
-		} catch (e: JSONException) {
-			e.printStackTrace()
-			Assert.fail()
-		} catch (e: RouteException) {
-			e.printStackTrace()
-			Assert.fail()
-		} catch (e: NullPointerException) {
+		} catch (e: Exception) {
 			e.printStackTrace()
 			Assert.fail()
 		}
@@ -98,13 +98,15 @@ class BusTest {
 		val blueRoute = Route("Blue")
 		val otherGreen = Route("Green")
 
+		val location = LatLng(0.0,0.0)
+
 		// Create various dummy buses.
-		val bus0 = Bus("0", greenRoute, 0.0, 0.0)
-		val bus1 = Bus("1", greenRoute, 0.0, 0.0)
-		val bus2 = Bus("2", greenRoute, 0.0, 0.0)
-		val bus3 = Bus("3", greenRoute, 0.0, 0.0)
-		val bus2Blue = Bus("2", blueRoute, 0.0, 0.0)
-		val bus0OG = Bus("0", otherGreen, 0.0, 0.0)
+		val bus0 = Bus("0", location, greenRoute)
+		val bus1 = Bus("1", location, greenRoute)
+		val bus2 = Bus("2", location, greenRoute)
+		val bus3 = Bus("3", location, greenRoute)
+		val bus2Blue = Bus("2", location, blueRoute)
+		val bus0OG = Bus("0", location, otherGreen)
 
 		// Load most of the dummy buses into a test array.
 		val testBusArray = arrayOf(bus0, bus1, bus2)
@@ -116,58 +118,6 @@ class BusTest {
 		Assert.assertTrue(bus3.isBusNotInArray(testBusArray))
 		Assert.assertTrue(bus2Blue.isBusNotInArray(testBusArray))
 		Assert.assertFalse(bus0OG.isBusNotInArray(testBusArray))
-	}
-
-	@Test // Proof of concept for standard arrays vs array lists.
-	fun ArrayTests() {
-
-		val testData: JSONObject = try {
-			Helper.getJSON(Helper.ALL_VEHICLES_JSON)
-		} catch (e: JSONException) {
-			e.printStackTrace()
-			Assert.fail()
-			return
-		}
-
-		val array: JSONArray = RouteMatch.parseData(testData)
-		try {
-			val b1 = ArrayListTest(array)
-			val b2 = StandardArraysTest(array)
-			Assert.assertEquals(b1.size.toLong(), b2.size.toLong())
-		} catch (e: RouteException) {
-			Assert.fail()
-		}
-	}
-
-	companion object {
-
-		@Throws(RouteException::class)
-		private fun ArrayListTest(vehicles: JSONArray): Array<Bus> {
-			val startTime = System.nanoTime()
-			val buses = ArrayList<Bus>()
-			for (i in 0 until vehicles.length()) {
-				try {
-					val bus = Bus(vehicles.getJSONObject(i))
-					buses.add(bus)
-				} catch (e: JSONException) {
-					e.printStackTrace()
-				}
-			}
-			val endTime = System.nanoTime()
-			Helper.printTime(startTime, endTime)
-			return buses.toTypedArray()
-		}
-
-		@Throws(RouteException::class)
-		private fun StandardArraysTest(vehicles: JSONArray): Array<Bus> {
-			val startTime = System.nanoTime()
-			val potentialBuses: Array<Bus> = Array(vehicles.length()) {
-				Bus(vehicles.getJSONObject(it))
-			}
-			val endTime = System.nanoTime()
-			Helper.printTime(startTime, endTime)
-			return potentialBuses
-		}
 	}
 
 	init {

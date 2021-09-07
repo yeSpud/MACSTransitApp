@@ -15,7 +15,8 @@ import fnsb.macstransit.activities.mapsactivity.MapsActivity
  * @version 4.0.
  * @since Beta 7.
  */
-class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) : MarkedObject(stopName, location) {
+class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
+		MarkedObject(stopName, location, routes[0]) {
 
 	/**
 	 * Array of circle options for each circle that represents a route.
@@ -38,7 +39,8 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) :
 	/**
 	 * Sets the shared stop circles to be visible.
 	 * Circles will be created at this point if they were non-existent before (null).
-	 * This should be run on the UI thread.
+	 *
+	 * This must be run on the UI thread.
 	 *
 	 * @param map The map to put create the circles on.
 	 */
@@ -51,8 +53,8 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) :
 			// If the circle is null, create a new shared stop circle.
 			if (circles[i] == null) {
 
-				// Only set the newly created circles to clickable if its the 0th index circle (the biggest one).
-				circles[i] = createSharedStopCircle(map, circleOptions[i], this, i == 0)
+				// Since the stop circle is null try creating a new one.
+				this.createSharedStopCircle(map, i)
 			} else {
 
 				// Only set the circle to be clickable if its the 0th index circle (the biggest one).
@@ -74,21 +76,21 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) :
 	fun hideStop() {
 
 		// Iterate though each route in the shared stop.
-		for (route: Route in this.routes) {
+		this.routes.forEach {
 
 			// If any route is still enabled, return early.
-			if (route.enabled) {
+			if (it.enabled) {
 				return
 			}
 		}
 
 		// Iterate though each circle in the shared stop.
-		for (circle: Circle? in this.circles) {
+		this.circles.forEach {
 
 			// If the circle is not null set it to not be clickable, and hide it.
-			if (circle != null) {
-				circle.isClickable = false
-				circle.isVisible = false
+			if (it != null) {
+				it.isClickable = false
+				it.isVisible = false
 			}
 		}
 	}
@@ -97,8 +99,7 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) :
 	 * Sets the circles to the specified size.
 	 * Each subsequent circle is set to a smaller size than the initial circle.
 	 *
-	 *
-	 * This should be run on the UI thread.
+	 * This must be run on the UI thread.
 	 *
 	 * @param size The size to set the circles to.
 	 */
@@ -106,11 +107,10 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) :
 	fun setCircleSizes(size: Double) {
 
 		// Iterate though each circle option (and circle if its not null) and reset its radius.
-		for (i in circles.indices) {
+		for (i in this.circles.indices) {
 
 			// Get the size of the circle based on its radius.
 			val radiusSize = size * (1.0 / (i + 1))
-			Log.v("setCircleSizes", "Radius size: $radiusSize")
 
 			// Set the circle size.
 			this.circleOptions[i].radius(radiusSize)
@@ -123,6 +123,7 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) :
 	/**
 	 * Removes all the shared stop circles from the map.
 	 * This also set the circles to null (so the circles can be recreated later).
+	 *
 	 * This must run on the UI Thread.
 	 */
 	@UiThread
@@ -139,6 +140,35 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) :
 		}
 	}
 
+	/**
+	 * Creates a new circle with the specified circle options that is immediately visible.
+	 *
+	 * This should be run on the UI thread.
+	 *
+	 * @param map   The map to add the circle to.
+	 * @param index The index of the circle.
+	 *              Used for determining if the circle should be clickable or not,
+	 *              as well as what index to set it to.
+	 */
+	@UiThread
+	fun createSharedStopCircle(map: GoogleMap, index: Int) {
+
+		// Get the circle that was added to the map with the provided circle options.
+		val circle: Circle = map.addCircle(this.circleOptions[index])
+
+		// Set the tag of the circle to the provided shared stop object.
+		circle.tag = this
+
+		// Set the circle to be clickable depending on the clickable argument.
+		circle.isClickable = index == 0
+
+		// At this point set the circle to be visible.
+		circle.isVisible = true
+
+		// Return our newly created circle.
+		this.circles[index] = circle
+	}
+
 	companion object {
 
 		/**
@@ -151,14 +181,13 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) :
 		 * Gets the routes that share the provided stop by iterating through all routes,
 		 * and comparing each route's stop to the provided stop to see if they match.
 		 *
-		 *
-		 * If there are no matches then the size of the returned route array will be 1.
+		 * If there are no matches then the size of the returned route array will be one.
 		 * This is because its the only route to have that stop in its stop array.
 		 *
 		 * @param route      The route to compare against all other routes.
 		 * @param routeIndex The index of the route that we are comparing in all routes.
 		 * @param stop       The stop to compare against all stops in all other routes.
-		 * @return Array of routes that share the stop. This always return an array of at least 1+.
+		 * @return Array of routes that share the stop. This always return an array of at least one route.
 		 */
 		@JvmStatic
 		fun getSharedRoutes(route: Route, routeIndex: Int, stop: Stop): Array<Route> {
@@ -203,11 +232,11 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) :
 			}
 
 			// Create a new array of routes with the actual size of shared routes between the one shared stop.
-			val actualRoutes = arrayOfNulls<Route>(potentialRouteIndex)
+			val actualRoutes: Array<Route?> = arrayOfNulls(potentialRouteIndex)
 
 			// Copy the content from the potential routes into the actual route, and return the actual route.
 			System.arraycopy(potentialRoutes, 0, actualRoutes, 0, potentialRouteIndex)
-			return actualRoutes.requireNoNulls()
+			return actualRoutes as Array<Route>
 		}
 
 		/**
@@ -225,7 +254,7 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) :
 			var finalIndex = 0
 
 			// Iterate though each stop in the provided stop array.
-			for (stop: Stop in stops) {
+			stops.forEach { stop ->
 
 				// Check if the stop matches the shared stop (same name, location).
 				var noMatch = true
@@ -244,54 +273,25 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>) :
 					} catch (e: ArrayIndexOutOfBoundsException) {
 
 						// If the array was out of bounds then log it (catastrophic if left unchecked).
-						Log.e("remvStpsWthShredStps","Failed to add stop ${stop.name} "
-								+ "from route ${stop.route.routeName} to array\n"
-								+ "Final stops array is too small!", e)
+						Log.e("remvStpsWthShredStps",
+						      "Failed to add stop ${stop.name} " +
+						      "from route ${stop.route.name} to array\n" +
+						      "Final stops array is too small!", e)
 					}
 				}
 			}
 
-
 			// If the final index does match the stop length minus shared stop length log how much it was off by.
 			// This is left over from debugging, but is still useful to know.
 			if (finalIndex != stops.size - sharedStops.size) {
-				Log.i("remvStpsWthShredStps","Final index differs from standard number! "
-						+ "(${stops.size - sharedStops.size}d vs $finalIndex)")
+				Log.i("remvStpsWthShredStps", "Final index differs from standard number! " +
+				      "(${stops.size - sharedStops.size}d vs $finalIndex)")
 			}
 
-			val finalStops = arrayOfNulls<Stop>(finalIndex)
+			// Return our final stop array.
+			val finalStops: Array<Stop?> = arrayOfNulls(finalIndex)
 			System.arraycopy(potentialStops, 0, finalStops, 0, finalIndex)
-			return finalStops.requireNoNulls()
-		}
-
-		/**
-		 * Creates a new circle with the specified circle options that is immediately visible.
-		 * This should be run on the UI thread.
-		 *
-		 * @param map        The map to add the circle to.
-		 * @param options    The specified circle options to apply to the circle.
-		 * @param sharedStop The shared stop this circle belongs to. This will be set as the circle's tag.
-		 * @param clickable  Whether or not the circle should be clickable.
-		 * @return The newly created circle.
-		 */
-		@UiThread
-		internal fun createSharedStopCircle(map: GoogleMap, options: CircleOptions, sharedStop: SharedStop,
-		                                    clickable: Boolean): Circle {
-
-			// Get the circle that was added to the map with the provided circle options.
-			val circle = map.addCircle(options)
-
-			// Set the tag of the circle to the provided shared stop object.
-			circle.tag = sharedStop
-
-			// Set the circle to be clickable depending on the clickable argument.
-			circle.isClickable = clickable
-
-			// At this point set the circle to be visible.
-			circle.isVisible = true
-
-			// Return our newly created circle.
-			return circle
+			return finalStops as Array<Stop>
 		}
 	}
 

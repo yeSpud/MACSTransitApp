@@ -122,7 +122,7 @@ class StopTest {
 			val validDuplicateStopCounts = intArrayOf(233, 24, 144, 78, 176, 145)
 			for (i in 0 until loadedFiles) {
 				val stops: Array<Stop> = stopsWithDuplicates[i]
-				println("Number of stops for ${stops[0].route.routeName} (with potential duplicates): ${stops.size}\n")
+				println("Number of stops for ${stops[0].route.name} (with potential duplicates): ${stops.size}\n")
 				Assert.assertEquals(validDuplicateStopCounts[i], stops.size)
 			}
 
@@ -132,7 +132,7 @@ class StopTest {
 			for (i in 0 until loadedFiles) {
 				val stops: Array<Stop> = stopsWithDuplicates[i]
 				val vStops: Array<Stop> = Stop.validateGeneratedStops(stops)
-				println("Number of stops for ${vStops[0].route.routeName}: ${vStops.size}\n")
+				println("Number of stops for ${vStops[0].route.name}: ${vStops.size}\n")
 				Assert.assertEquals(validateStopCounts[i], vStops.size)
 				routes[i].stops = vStops
 			}
@@ -188,9 +188,9 @@ class StopTest {
 			val sharedStopsCount = intArrayOf(14, 3, 10, 10, 12, 17)
 			for (i in 0 until loadedFiles) {
 				val route: Route = routes[i]
-				println("${route.routeName} route stops: ${route.stops.size}\n")
+				println("${route.name} route stops: ${route.stops.size}\n")
 				val sharedStops: Array<SharedStop> = route.sharedStops
-				println("${route.routeName} route shared stops: ${sharedStops.size}\n")
+				println("${route.name} route shared stops: ${sharedStops.size}\n")
 				Assert.assertEquals(sharedStopsCount[i], sharedStops.size)
 			}
 
@@ -198,7 +198,7 @@ class StopTest {
 			val finalStops = ArrayList<Array<Stop>>(loadedFiles)
 			for (route in routes) {
 				val stops: Array<Stop> = SharedStop.removeStopsWithSharedStops(route.stops, route.sharedStops)
-				println("Going from ${route.stops.size} stops to ${stops.size} stops for route ${route.routeName}\n")
+				println("Going from ${route.stops.size} stops to ${stops.size} stops for route ${route.name}\n")
 				finalStops.add(stops)
 			}
 			val finalStopCount = intArrayOf(66 - 14, 24 - 3, 104 - 10, 39 - 10, 58 - 12, 56 - 17)

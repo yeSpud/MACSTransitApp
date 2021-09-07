@@ -2,16 +2,9 @@ package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
 
 import android.util.Log
 import com.google.android.gms.maps.model.LatLng
-import fnsb.macstransit.activities.mapsactivity.MapsActivity
-import fnsb.macstransit.activities.splashactivity.SplashActivity
 import fnsb.macstransit.routematch.Route
-import fnsb.macstransit.routematch.RouteMatch
 import org.json.JSONArray
 import org.json.JSONObject
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * Created by Spud on 8/5/21 for the project: MACS Transit.
@@ -20,41 +13,42 @@ import kotlin.coroutines.suspendCoroutine
  * @version 1.0.
  * @since Release 1.3.
  */
-class DownloadBusRoutes(private val activity: SplashActivity) {
+class DownloadBusRoutes(viewModel: fnsb.macstransit.activities.splashactivity.SplashViewModel):
+		DownloadRouteObjects(viewModel) {
 
-	/**
-	 * Documentation
-	 * Comments
-	 * @param route
-	 */
-	suspend fun downloadRoute(route: Route, index: Int): JSONObject = suspendCoroutine { continuation ->
-		val step: Double = SplashActivity.DOWNLOAD_BUS_ROUTES.toDouble() / MapsActivity.allRoutes.size
-		val progress: Double = (SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE).toDouble()
-		Log.d("downloadRoute", "Step value: $step")
+	override suspend fun download(route: Route, downloadProgress: Double, progressSoFar: Double,
+	                              index: Int): JSONObject = kotlin.coroutines.suspendCoroutine {
 
 		// Get the land route from the routematch API using an asynchronous process.
-		this.activity.routeMatch.callLandRoute(route, BusRoutesCallback(continuation, route),
-		                                       { error: com.android.volley.VolleyError ->
-			Log.w("downloadRoute", "Unable to get polyline from routematch server", error)
+		this.viewModel.routeMatch.callLandRoute(route, BusRoutesCallback(it, route), {
+			error: com.android.volley.VolleyError ->
+			Log.e("downloadRoute", "Unable to get polyline from routematch server", error)
 		}, this)
-		this.activity.viewModel.setProgressBar(progress + step + index)
+
+		// Get the progress step.
+		val step: Double = downloadProgress / fnsb.macstransit.activities.mapsactivity.MapsActivity.
+		allRoutes.size
+
+		// Update the progress bar.
+		this.viewModel.setProgressBar(progressSoFar + step + index)
 	}
 
+	/**
+	 * Callback used to parse the downloaded route content.
+	 * Once the content has been parsed the suspended coroutine will resume.
+	 *
+	 * @param continuation The suspended continuation coroutine to resume once the the callback has finished.
+	 * @param route The route this downloadable belongs to.
+	 */
+	internal inner class BusRoutesCallback(continuation: kotlin.coroutines.Continuation<JSONObject>,
+	                                       route: Route):
+			DownloadRouteObjects.Callback(continuation, route, fnsb.macstransit.R.string.mapping_bus_routes) {
 
-	internal inner class BusRoutesCallback(private val continuation: Continuation<JSONObject>,
-	                                       private val route: Route) : com.android.volley.Response.Listener<JSONObject> {
-
-		override fun onResponse(response: JSONObject) {
-
-			// Display that we are mapping bus routes to the user.
-			this@DownloadBusRoutes.activity.viewModel.setMessage(fnsb.macstransit.R.string.mapping_bus_routes)
+		override fun parse(jsonArray: JSONArray) {
 			try {
 
-				// Get the land route data array from the land route object.
-				val landRouteData: JSONArray = RouteMatch.parseData(response)
-
 				// Get the land route points object from the land route data array.
-				val landRoutePoints: JSONObject = landRouteData.getJSONObject(0)
+				val landRoutePoints: JSONObject = jsonArray.getJSONObject(0)
 
 				// Get the land route points array from the land route points object.
 				val landRoutePointsArray: JSONArray = landRoutePoints.getJSONArray("points")
@@ -75,22 +69,16 @@ class DownloadBusRoutes(private val activity: SplashActivity) {
 					val latitude: Double = landRoutePoint.getDouble("latitude")
 					val longitude: Double = landRoutePoint.getDouble("longitude")
 
-					// Create a new LatLng object using the latitude and longitude.
-					val latLng = LatLng(latitude, longitude)
-
 					// Add the newly created LatLng object to the LatLng array.
-					coordinates[i] = latLng
+					coordinates[i] = LatLng(latitude, longitude)
 				}
 
 				// Set the polyline coordinates array to the finished LatLng array.
-				this.route.polyLineCoordinates = coordinates.requireNoNulls()
-
-				// Comments
-				Log.v("BusRoutesCallback", "Finished bus callback")
-				this.continuation.resume(response)
+				this.route.polyLineCoordinates = coordinates as Array<LatLng>
 			} catch (exception: org.json.JSONException) {
-				Log.e("BusRoutesCallback", "Error parsing json", exception)
-				this.continuation.resumeWithException(exception)
+
+				// If there was a JSON Exception thrown while parsing simply log it.
+				Log.e("BusRoutesCallback", "Exception thrown while parsing JSON in callback", exception)
 			}
 		}
 	}

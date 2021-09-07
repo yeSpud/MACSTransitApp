@@ -13,7 +13,7 @@ import java.util.regex.Pattern
  * @version 5.0.
  * @since Beta 1.
  */
-class RouteMatch(val url: String, private val context: android.content.Context) {
+class RouteMatch(private val url: String, private val context: android.content.Context) {
 
 	/**
 	 * Volley network queue used to make network and API requests.
@@ -22,7 +22,8 @@ class RouteMatch(val url: String, private val context: android.content.Context) 
 			com.android.volley.toolbox.Volley.newRequestQueue(this.context)
 
 	/**
-	 * TODO Documentation
+	 * Used to check if the URL provided matches the URL pattern.
+	 * If this is false then no network requests will be made.
 	 */
 	private val badURL: Boolean = !Pattern.compile("^https?://\\S+/$").matcher(this.url).matches()
 
@@ -34,7 +35,7 @@ class RouteMatch(val url: String, private val context: android.content.Context) 
 	 */
 	fun callMasterSchedule(successCallback: Response.Listener<JSONObject>,
 	                       onError: Response.ErrorListener) {
-		executeNetworkRequest(url + "masterRoute/", successCallback, onError, null)
+		executeNetworkRequest(this.url + "masterRoute/", successCallback, onError, null)
 	}
 
 	/**
@@ -46,7 +47,7 @@ class RouteMatch(val url: String, private val context: android.content.Context) 
 	 */
 	fun callAllStops(route: Route, successCallback: Response.Listener<JSONObject>,
 	                 onError: Response.ErrorListener) {
-		executeNetworkRequest(url + "stops/" + route.urlFormattedName, successCallback, onError,
+		executeNetworkRequest(this.url + "stops/${route.urlFormattedName}", successCallback, onError,
 		                      null)
 	}
 
@@ -71,7 +72,7 @@ class RouteMatch(val url: String, private val context: android.content.Context) 
 			return
 		}
 
-		// TODO Comments
+		// Execute the network call to retrieve all the arrival and departure times.
 		executeNetworkRequest(url, successCallback, onError, tag)
 	}
 
@@ -87,18 +88,18 @@ class RouteMatch(val url: String, private val context: android.content.Context) 
 	fun callVehiclesByRoutes(successCallback: Response.Listener<JSONObject>,
 	                         onError: Response.ErrorListener?, tag: Any, vararg routes: Route) {
 
-		// Route separator.
-		val separator = "%2C"
-
-		// Build the initial URL size based off of the size of the routes plus the separator.
-		val routesString = StringBuilder(separator.length * routes.size)
-		for (route in routes) {
+		// Iterate though all the routes that are going to be queried.
+		var routesString = ""
+		routes.forEach {
 
 			// Add the route URL to the URL string.
-			routesString.append(route.urlFormattedName).append(separator)
+			// %2C marks the separator between routes in terms of the URL string.
+			routesString += "${it.urlFormattedName}%2C"
 		}
-		executeNetworkRequest(url + "vehicle/byRoutes/" + routesString, successCallback, onError,
-		                      tag)
+
+		// Execute the network request to get all the buses for the given routes.
+		executeNetworkRequest(this.url + "vehicle/byRoutes/" + routesString, successCallback,
+		                      onError, tag)
 	}
 
 	/**
@@ -129,18 +130,26 @@ class RouteMatch(val url: String, private val context: android.content.Context) 
 	private fun executeNetworkRequest(url: String, successCallback: Response.Listener<JSONObject>,
 	                                  onError: Response.ErrorListener?, tag: Any?) {
 
-		// TODO Comments
+		// Check if teh URL is bad. If it is then log and return early.
 		if (this.badURL) {
 			Log.e("executeNetworkRequest", "URL to be queried is invalid: $url")
 			return
 		}
 
-		// TODO Comments
+		// Make the JSON Request object.
 		Log.d("executeNetworkRequest", "Querying url: $url")
 		val request =
-				com.android.volley.toolbox.JsonObjectRequest(url, null, successCallback, onError)
+				com.android.volley.toolbox.JsonObjectRequest(com.android.volley.Request.Method.GET,
+				                                             url, null, successCallback,
+				                                             onError)
+
+		// Set the request retry policy.
 		request.retryPolicy = RETRY_POLICY
+
+		// Set the request tag (this may be null).
 		request.tag = tag
+
+		// Make the network request by adding it to the network queue.
 		this.networkQueue.add(request)
 	}
 
@@ -148,6 +157,7 @@ class RouteMatch(val url: String, private val context: android.content.Context) 
 
 		/**
 		 * Retry policy used by the Volley networking queue.
+		 * The request will time out after 1.5 minutes, and will retry 3 times.
 		 */
 		private val RETRY_POLICY: com.android.volley.RetryPolicy =
 				com.android.volley.DefaultRetryPolicy(90000, 3, 1.0f)

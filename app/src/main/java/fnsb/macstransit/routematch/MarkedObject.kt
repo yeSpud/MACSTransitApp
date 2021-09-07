@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
+import com.google.maps.android.ktx.addMarker
 
 /**
  * Created by Spud on 2019-11-20 for the project: MACS Transit.
@@ -12,40 +13,53 @@ import com.google.android.gms.maps.model.Marker
  * @version 2.0.
  * @since Beta 8.
  */
-open class MarkedObject(val name: String, var location: LatLng) {
+open class MarkedObject(val name: String, var location: LatLng, val route: Route) {
 
 	/**
 	 * The marker of the marker of the marked object.
-	 * TODO Mention private set
+	 * This has a private set as we only want to create (set) the marker in the marked object class.
 	 */
 	var marker: Marker? = null
 		private set
 
-	override fun equals(other: Any?): Boolean { // Comments
+	override fun equals(other: Any?): Boolean {
 
+		// If the comparison object is null just return false.
 		if (other == null) {
 			return false
 		}
 
+		// If the comparison object is a Stop object...
 		return if (other is Stop) {
 
+			// Return if the locations and names of the stop and our comparison match.
 			this.location.latitude == other.location.latitude &&
 			this.location.longitude == other.location.longitude && this.name == other.name
 
 		} else {
-			false
+			false // If the comparison object is not a Stop object return false.
 		}
 	}
 
-	override fun hashCode(): Int { // Comments
+	override fun hashCode(): Int {
+
+		// Get the hash code for the name.
 		var result = name.hashCode()
-		result = (31 * result) + location.hashCode()
-		result = (31 * result) + (marker?.hashCode() ?: 0)
+
+		// TODO Code shifts?
+		// Comments
+		result = 0x1F * result + location.hashCode()
+		result = 0x1F * result + route.hashCode()
+		result = 0x1F * result + (marker?.hashCode() ?: 0)
+
+		// Return our resulting hash code.
 		return result
 	}
 
 	/**
-	 * Documentation
+	 * Update the location of the marked object.
+	 * This also updates the marker position if it has one. Insert fairly-odd-parents meme.
+	 * @param updatedLocation The updated location of the object.
 	 */
 	@UiThread
 	fun updateLocation(updatedLocation: LatLng) {
@@ -59,36 +73,33 @@ open class MarkedObject(val name: String, var location: LatLng) {
 	 * Adds a marker to the map. Note that this method does not save the marker to the marked object.
 	 * It only adds it to the map, and returns the newly added marker.
 	 *
-	 * @param map         The map to add the marker to.
-	 * @param color       The color of the marker.
+	 * @param map The map to add the marker to.
 	 * This will try to get the closest approximation to the color as there are a limited number of marker colors.
 	 * @return The newly added marker.
 	 */
 	@UiThread
-	fun addMarker(map: com.google.android.gms.maps.GoogleMap, color: Int) {
-
-		// Create a new maker options object
-		val options = com.google.android.gms.maps.model.MarkerOptions()
-
-		// Set the position of the marker via the latitude and longitude.
-		options.position(this.location)
-
-		// Set the color of the marker.
-		Log.d("addMarker", "Applying marker color")
-		val hsv = FloatArray(3)
-		android.graphics.Color.colorToHSV(color, hsv)
-		options.icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]))
+	fun addMarker(map: com.google.android.gms.maps.GoogleMap) {
 
 		// Add the marker to the map.
 		Log.d("addMarker", "Adding marker to the map")
-		val marker: Marker? = map.addMarker(options)
+		val marker: Marker? = map.addMarker {
+
+			// Set the position of the marker via the latitude and longitude.
+			this.position(this@MarkedObject.location)
+
+			// Set the color of the marker.
+			Log.d("addMarker", "Applying marker color")
+			val hsv = FloatArray(3)
+			android.graphics.Color.colorToHSV(this@MarkedObject.route.color, hsv)
+			this.icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]))
+		}
 
 		// If the marker isn't null add more fields.
 		if (marker != null) {
 
 			// Set the marker title.
-			Log.d("addMarker", "Setting marker title to: $name")
-			marker.title = name
+			Log.d("addMarker", "Setting marker title to: ${this.name}")
+			marker.title = this.name
 
 			// Set the marker's tag.
 			Log.d("addMarker", "Setting the markers tag to: ${this.javaClass}")

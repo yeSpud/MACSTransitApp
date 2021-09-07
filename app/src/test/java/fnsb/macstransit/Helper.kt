@@ -100,7 +100,7 @@ internal object Helper {
 	 * @param endTime
 	 */
 	@JvmStatic
-	fun printTime(startTime: Long, endTime: Long) {
+	fun printTime(startTime: Long, endTime: Long): Long {
 		val total = endTime - startTime
 		var microseconds = 0.0
 		var milliseconds = 0.0
@@ -131,5 +131,7 @@ internal object Helper {
 				println("$total nanoseconds")
 			}
 		}
+
+		return total
 	}
 }

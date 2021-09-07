@@ -26,8 +26,8 @@ class RouteTest {
 
 		val fineRoute = Route("fine")
 		val blue = Route("Blue", Color.BLUE)
-		Assert.assertEquals("fine", fineRoute.routeName)
-		Assert.assertEquals("Blue", blue.routeName)
+		Assert.assertEquals("fine", fineRoute.name)
+		Assert.assertEquals("Blue", blue.name)
 		Assert.assertEquals(Color.BLUE.toLong(), blue.color.toLong())
 		Assert.assertNotEquals(Color.GRAY.toLong(), blue.color.toLong())
 	}

@@ -3,12 +3,8 @@ package fnsb.macstransit.routematch
 import android.util.Log
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.Circle
-import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
+import com.google.maps.android.ktx.addCircle
 
 /**
  * Created by Spud on 2019-10-18 for the project: MACS Transit.
@@ -17,94 +13,67 @@ import org.json.JSONObject
  * @version 3.0.
  * @since Beta 6.
  */
-class Stop(stopName: String, location: LatLng, val route: Route) : MarkedObject(stopName, location) {
-
-	/**
-	 * The options that apply to the circle representing the stop.
-	 * These options include:
-	 *
-	 *  * The coordinates of the stop
-	 *  * The current size of the circle
-	 *  * The color of the circle
-	 *  * Whether the circle is clickable or not
-	 *
-	 *
-	 * ... and more!
-	 */
-	private val circleOptions: CircleOptions = CircleOptions().center(this.location).radius(STARTING_RADIUS)
+class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stopName, location, route) {
 
 	/**
 	 * The circle marking the bus stop on the map
 	 * (be sure to check if this exists first as it may be null).
 	 */
-	var circle: Circle? = null
+	var circle: com.google.android.gms.maps.model.Circle? = null
 	private set
 
 	/**
-	 * Documentation
+	 * Stop object.
 	 *
-	 * @param stopName
-	 * @param latitude
-	 * @param longitude
-	 * @param route
+	 * @param stopName The name of the stop.
+	 * @param latitude The latitude of the stop.
+	 * @param longitude The longitude of the stop.
+	 * @param route The route of the stop.
 	 */
-	constructor(stopName: String, latitude: Double, longitude: Double, route: Route) : this(
-			stopName, LatLng(latitude, longitude), route)
+	constructor(stopName: String, latitude: Double, longitude: Double, route: Route) :
+			this(stopName, LatLng(latitude, longitude), route)
 
 	/**
 	 * Lazy creation of a new Stop object using the provided JSON and the route.
 	 *
 	 * @param json  The JSONObject containing the bus stop data.
 	 * @param route The route this newly created Stop object will apply to.
-	 * @throws JSONException Thrown if there is any issue in parsing the data from the provided JSONObject.
 	 */
-	constructor(json: JSONObject, route: Route) : this(json.getString("stopId"),
-	                                                   json.getDouble("latitude"),
-	                                                   json.getDouble("longitude"), route)
+	constructor(json: org.json.JSONObject, route: Route) : this(json.getString("stopId"),
+	                                                            json.getDouble("latitude"),
+	                                                            json.getDouble("longitude"), route)
 
 	/**
 	 * Shows the stops for the given route.
 	 * If the stops weren't previously added to the map then this method will also see fit to add them to the map.
-	 * This should be run on the UI thread.
+	 * This must be run on the UI thread.
 	 *
 	 * @param map The google maps object that the stops will be drawn onto.
-	 * Be sure this object has been initialized first.
+	 *            Be sure this object has been initialized first.
+	 * @param attempted Whether or not this function has been attempted before (default is false).
 	 */
 	@UiThread
-	fun showStop(map: GoogleMap) {
+	fun toggleStopVisibility(map: GoogleMap, attempted: Boolean = false) {
 
 		// Check if the circle for the stop needs to be created,
 		// or just set to visible if it already exists.
 		if (this.circle == null) {
 
+			// If this function was already attempted return early.
+			// There may be a reason why the stop was unable to be created
+			if (attempted) {
+				Log.w("toggleStopVisibility", "Unable to create circle for stop ${this.name}")
+				return
+			}
+
 			// Create a new circle object.
-			Log.d("showStop", "Creating new stop for $name")
-			this.circle = createStopCircle(map, circleOptions, this)
+			this.createStopCircle(map)
+			this.toggleStopVisibility(map, true)
 		} else {
 
-			// Since the circle already exists simply set it to visible.
-			Log.d("showStop", "Showing stop $name")
-			this.circle!!.isClickable = true
-			this.circle!!.isVisible = true
-		}
-	}
-
-	/**
-	 * Hides the objects on the map.
-	 * This doesn't dispose of the circle object, but rather sets it to invisible
-	 * (and also sets it to not be clickable in an attempt to disable its hit box from overriding other circles).
-	 * This should be run on the UI thread.
-	 */
-	@UiThread
-	fun hideStop() {
-
-		// If the circle is null this will simply return.
-		if (circle != null) {
-
-			// Since it exists, hide the circle.
-			Log.d("hideStop", "Hiding stop $name")
-			circle!!.isClickable = false
-			circle!!.isVisible = false
+			// Since the circle already exists simply update its visibility.
+			this.circle!!.isClickable = this.route.enabled
+			this.circle!!.isVisible = this.route.enabled
 		}
 	}
 
@@ -123,40 +92,43 @@ class Stop(stopName: String, location: LatLng, val route: Route) : MarkedObject(
 		}
 	}
 
+	/**
+	 * Creates a new circle object for new Stops.
+	 *
+	 * @param map The google maps object that this newly created circle will be added to.
+	 */
+	@UiThread
+	fun createStopCircle(map: GoogleMap) {
+
+		// Add our circle to the map.
+		this.circle = map.addCircle {
+
+			// Set the location of the circle to the location of the stop.
+			this.center(this@Stop.location)
+
+			// Set the initial size of the circle to the STARTING_RADIUS constant.
+			this.radius(STARTING_RADIUS)
+
+			// Set the colors.
+			this.fillColor(this@Stop.route.color)
+			this.strokeColor(this@Stop.route.color)
+
+			// Set the stop to be visibility to whether or not the route is enabled.
+			this.clickable(this@Stop.route.enabled)
+			this.visible(this@Stop.route.enabled)
+		}
+
+		// Set the tag of the circle to Stop so that it can differentiate between this class
+		// and other stop-like classes (such as shared stops).
+		this.circle!!.tag = this // TODO Set me after check
+	}
+
 	companion object {
 
 		/**
 		 * The starting radius size of the circle for the stop on the map (in meters).
 		 */
 		private const val STARTING_RADIUS = 50.0
-
-		/**
-		 * Creates a new circle object for new Stops.
-		 * This method does not set the circle itself, but rather returns the newly created circle.
-		 *
-		 * @param map     The google maps object that this newly created circle will be added to.
-		 * This cannot be null.
-		 * @param options The options to apply to the circle.
-		 * @param stop    The stop that this circle belongs to (this will be set as the circle's tag)
-		 * @return The newly created circle.
-		 */
-		@UiThread
-		internal fun createStopCircle(map: GoogleMap, options: CircleOptions, stop: Stop): Circle {
-
-			// Add the circle to the map.
-			val circle = map.addCircle(options)
-
-			// Set the tag of the circle to Stop so that it can differentiate between this class
-			// and other stop-like classes (such as shared stops).
-			circle.tag = stop
-
-			// Set the stop to be visible and clickable.
-			circle.isClickable = true
-			circle.isVisible = true
-
-			// Return the newly created circle.
-			return circle
-		}
 
 		/**
 		 * Creates an array of stops from the provided json array.
@@ -167,8 +139,7 @@ class Stop(stopName: String, location: LatLng, val route: Route) : MarkedObject(
 		 * @return The stop array created from the json array.
 		 */
 		@JvmStatic
-		fun generateStops(array: JSONArray,
-		                  route: Route): Array<Stop> { // TODO Test me with empty array
+		fun generateStops(array: org.json.JSONArray, route: Route): Array<Stop> {
 
 			// Create an array of stops that will be filled using the information from the json array.
 			val count = array.length()
@@ -180,7 +151,7 @@ class Stop(stopName: String, location: LatLng, val route: Route) : MarkedObject(
 				// Try to create a new stop object using the information in the json array.
 				val stop: Stop = try {
 					Stop(array.getJSONObject(i), route)
-				} catch (e: JSONException) {
+				} catch (e: org.json.JSONException) {
 
 					// If unsuccessful simply log the exception and continue iterating.
 					Log.e("generateStops", "Exception occurred while creating stop!", e)
@@ -190,7 +161,7 @@ class Stop(stopName: String, location: LatLng, val route: Route) : MarkedObject(
 			}
 
 			// Return the stop array.
-			return uncheckedStops.requireNoNulls()
+			return uncheckedStops as Array<Stop>
 		}
 
 		/**
@@ -201,8 +172,7 @@ class Stop(stopName: String, location: LatLng, val route: Route) : MarkedObject(
 		 * @return The validated stops array (or an empty stop array if the provided potential stops is null).
 		 */
 		@JvmStatic
-		fun validateGeneratedStops(
-				potentialStops: Array<Stop>): Array<Stop> { // TODO Test with empty array
+		fun validateGeneratedStops(potentialStops: Array<Stop>): Array<Stop> {
 
 			// Create a variable to store the true size of the stops that have been validated.
 			var validatedSize = 0
@@ -229,7 +199,7 @@ class Stop(stopName: String, location: LatLng, val route: Route) : MarkedObject(
 
 			// Copy our validated stops into our smaller actual stops array, and return it.
 			System.arraycopy(validatedStops, 0, actualStops, 0, actualStops.size)
-			return actualStops.requireNoNulls()
+			return actualStops as Array<Stop>
 		}
 
 		/**
@@ -243,19 +213,16 @@ class Stop(stopName: String, location: LatLng, val route: Route) : MarkedObject(
 		@JvmStatic
 		fun isDuplicate(stop: Stop, stopArray: Array<Stop?>): Boolean {
 
-			// If the provided stop array is null just return false.
-			if (stopArray.isEmpty()) {
-				return false
-			}
+			// Iterate though each potentail stop in the stop array.
+			for (stopArrayItem: Stop? in stopArray) {
 
-			for (stopArrayItem in stopArray) {
-
+				// If the array item is null just return false.
 				if (stopArrayItem == null) {
 					return false
 				}
 
 				// Check if the following match.
-				val routeMatch = stop.route.routeName == stopArrayItem.route.routeName
+				val routeMatch = stop.route.name == stopArrayItem.route.name
 
 				// If all of the following match, return true.
 				if (routeMatch && stop == stopArrayItem) {
@@ -265,16 +232,6 @@ class Stop(stopName: String, location: LatLng, val route: Route) : MarkedObject(
 
 			// Since nothing matched, return false.
 			return false
-		}
-	}
-
-	init {
-
-		// Add the route color if it has one.
-		val color = this.route.color
-		if (color != 0) {
-			this.circleOptions.fillColor(color)
-			this.circleOptions.strokeColor(color)
 		}
 	}
 }

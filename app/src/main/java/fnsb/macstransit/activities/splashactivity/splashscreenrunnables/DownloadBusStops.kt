@@ -1,12 +1,8 @@
 package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
 
-import android.util.Log
-import fnsb.macstransit.activities.mapsactivity.MapsActivity
-import fnsb.macstransit.activities.splashactivity.SplashActivity
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.Stop
 import org.json.JSONObject
-import kotlin.coroutines.resume
 
 /**
  * Created by Spud on 8/6/21 for the project: MACS Transit.
@@ -15,47 +11,32 @@ import kotlin.coroutines.resume
  * @version 1.0.
  * @since Release 1.3.
  */
-class DownloadBusStops(private val activity: SplashActivity) {
+class DownloadBusStops(viewModel: fnsb.macstransit.activities.splashactivity.SplashViewModel):
+		DownloadRouteObjects(viewModel) {
 
-	/**
-	 * Documentation
-	 * Comments
-	 * @param route
-	 */
-	suspend fun downloadBusStops(route: Route, index: Int): JSONObject =
-			kotlin.coroutines.suspendCoroutine{ continuation ->
+	override suspend fun download(route: Route, downloadProgress: Double, progressSoFar: Double,
+	                              index: Int): JSONObject = kotlin.coroutines.suspendCoroutine {
 
-				val step: Double =
-						SplashActivity.DOWNLOAD_BUS_STOPS.toDouble() / MapsActivity.allRoutes.size
-				val progress: Double =
-						(SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + SplashActivity.PARSE_MASTER_SCHEDULE
-						 + SplashActivity.DOWNLOAD_BUS_ROUTES + SplashActivity.LOAD_BUS_ROUTES).toDouble()
-				Log.d("getBusStops", "Step value: $step")
+		this.viewModel.routeMatch.callAllStops(route, BusStopCallback(it, route), {
+			error: com.android.volley.VolleyError ->
+			android.util.Log.w("loadStops", "Unable to get stops from RouteMatch server", error)
+		})
 
+		val step: Double = downloadProgress / fnsb.macstransit.activities.mapsactivity.MapsActivity.
+		allRoutes.size
+		this.viewModel.setProgressBar(progressSoFar + step + index)
+	}
 
-				this.activity.routeMatch.callAllStops(route, BusStopCallback(continuation, route), {
-					error: com.android.volley.VolleyError ->
-					Log.w("loadStops", "Unable to get stops from RouteMatch server", error)
-				})
-				this.activity.viewModel.setProgressBar(progress + step + index)
-			}
+	internal inner class BusStopCallback(continuation: kotlin.coroutines.Continuation<JSONObject>,
+	                                     route: Route):
+			DownloadRouteObjects.Callback(continuation, route, fnsb.macstransit.R.string.mapping_bus_stops) {
 
-	internal inner class BusStopCallback(private val continuation: kotlin.coroutines.Continuation<JSONObject>,
-	                                     private val route: Route) :
-			com.android.volley.Response.Listener<JSONObject> {
-
-		override fun onResponse(response: JSONObject) {
-
-			// Display that we are mapping bus stops to the user.
-			this@DownloadBusStops.activity.viewModel.setMessage(fnsb.macstransit.R.string.mapping_bus_stops)
-
-			// Get the data from all the stops and store it in a JSONArray.
-			val data: org.json.JSONArray = fnsb.macstransit.routematch.RouteMatch.parseData(response)
+		override fun parse(jsonArray: org.json.JSONArray) {
 
 			// Load in all the potential stops for the route.
 			// The reason why this is considered potential stops is because at this stage duplicate
 			// stops have not yet been handled.
-			val potentialStops: Array<Stop> = Stop.generateStops(data, route)
+			val potentialStops: Array<Stop> = Stop.generateStops(jsonArray, this.route)
 
 			// Create a variable to store the true size of the stops that have been validated.
 			var validatedSize = 0
@@ -78,16 +59,13 @@ class DownloadBusStops(private val activity: SplashActivity) {
 
 			// Create an array for our actual stops.
 			// Since we now know the number of validated stops we can use that as its size.
-			val actualStops = arrayOfNulls<Stop>(validatedSize)
+			val actualStops: Array<Stop?> = arrayOfNulls(validatedSize)
 
 			// Copy our validated stops into our smaller actual stops array, and return it.
 			System.arraycopy(validatedStops, 0, actualStops, 0, actualStops.size)
 
 			// At this point duplicate stops have now been handled and removed.
-			this.route.stops = actualStops.requireNoNulls()
-
-			// Comments
-			continuation.resume(response)
+			this.route.stops = actualStops as Array<Stop>
 		}
 	}
 }

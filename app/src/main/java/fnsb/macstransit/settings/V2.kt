@@ -132,7 +132,7 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 		// Create a JSON array for all the favorite routes.
 		val favoritedRoutes = JSONArray()
 		for (route in rFavoriteRoutes) {
-			favoritedRoutes.put(route.routeName)
+			favoritedRoutes.put(route.name)
 		}
 
 		// Add the favorite routes JSON array to the parent JSON object.
@@ -220,7 +220,7 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 				for (route in MapsActivity.allRoutes) {
 
 					// If the route names match, add it to the list of routes.
-					if (routeName == route.routeName) {
+					if (routeName == route.name) {
 						potentialRoutes[verifiedCount] = route
 						verifiedCount++
 						break
