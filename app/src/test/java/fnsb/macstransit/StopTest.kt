@@ -126,7 +126,6 @@ class StopTest {
 				Assert.assertEquals(validDuplicateStopCounts[i], stops.size)
 			}
 
-
 			// Now test the removal of duplicate stops.
 			val validateStopCounts = intArrayOf(66, 24, 104, 39, 58, 56)
 			for (i in 0 until loadedFiles) {
@@ -134,7 +133,9 @@ class StopTest {
 				val vStops: Array<Stop> = Stop.validateGeneratedStops(stops)
 				println("Number of stops for ${vStops[0].route.name}: ${vStops.size}\n")
 				Assert.assertEquals(validateStopCounts[i], vStops.size)
-				routes[i].stops = vStops
+				vStops.forEach {
+					routes[i].stops[it.name] = it
+				}
 			}
 
 
@@ -148,7 +149,7 @@ class StopTest {
 				val route = routes[routeIndex]
 
 				// Iterate through all the stops in our first comparison route.
-				for (stop in route.stops) {
+				for ((name, stop) in route.stops) {
 
 					// Make sure our stop is not already in our shared stop.
 					val sharedStops = route.sharedStops
@@ -174,12 +175,10 @@ class StopTest {
 
 					// If the shared routes array has more than one entry, create a new shared stop object.
 					if (sharedRoutes.size > 1) {
-						val sharedStop = SharedStop(stop.location, stop.name, sharedRoutes)
+						val sharedStop = SharedStop(stop.location, name, sharedRoutes)
 
 						// Iterate though all the routes in the shared route, and add our newly created shared stop.
-						for (sharedRoute in sharedRoutes) {
-							sharedRoute.addSharedStop(sharedStop)
-						}
+						sharedRoutes.forEach { it.sharedStops[name] = sharedStop }
 					}
 				}
 			}
@@ -189,22 +188,22 @@ class StopTest {
 			for (i in 0 until loadedFiles) {
 				val route: Route = routes[i]
 				println("${route.name} route stops: ${route.stops.size}\n")
-				val sharedStops: Array<SharedStop> = route.sharedStops
-				println("${route.name} route shared stops: ${sharedStops.size}\n")
-				Assert.assertEquals(sharedStopsCount[i], sharedStops.size)
+				println("${route.name} route shared stops: ${route.sharedStops.size}\n")
+				Assert.assertEquals(sharedStopsCount[i], route.sharedStops.size)
 			}
 
 			// Test removal of stops that have shared stops.
-			val finalStops = ArrayList<Array<Stop>>(loadedFiles)
-			for (route in routes) {
-				val stops: Array<Stop> = SharedStop.removeStopsWithSharedStops(route.stops, route.sharedStops)
-				println("Going from ${route.stops.size} stops to ${stops.size} stops for route ${route.name}\n")
-				finalStops.add(stops)
+			val finalStopsSize: Array<Int?> = arrayOfNulls(loadedFiles)
+			for ((i, route) in routes.withIndex()) {
+				val initialStopSize = route.stops.size
+				route.purgeStops()
+				println("Went from $initialStopSize stops to ${route.stops.size} stops for route ${route.name}\n")
+				finalStopsSize[i] = route.stops.size
 			}
 			val finalStopCount = intArrayOf(66 - 14, 24 - 3, 104 - 10, 39 - 10, 58 - 12, 56 - 17)
 			for (i in 0 until loadedFiles) {
-				val stops: Array<Stop> = finalStops[i]
-				Assert.assertEquals(finalStopCount[i], stops.size)
+				val stopSize: Int = finalStopsSize[i]!!
+				Assert.assertEquals(finalStopCount[i], stopSize)
 			}
 		} catch (e: JSONException) {
 

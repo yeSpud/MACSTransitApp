@@ -71,19 +71,19 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 			MapsActivity.allRoutes.forEach { route ->
 
 				// Toggle the stop visibility for each route.
-				route.stops.forEach { it.toggleStopVisibility(this@MapsViewModel.map!!) }
+				route.stops.forEach { it.value.toggleStopVisibility(this@MapsViewModel.map!!) }
 
 				// Iterate though the shared stops in the route.
 				route.sharedStops.forEach {
 					if (route.enabled) {
 
 						// Show the shared stops.
-						it.showSharedStop(this@MapsViewModel.map!!)
+						it.value.showSharedStop(this@MapsViewModel.map!!)
 					} else {
 
 						// Hide the shared stops on the map.
 						// Note that the stops should be hidden - not destroyed.
-						it.hideStop()
+						it.value.hideStop()
 					}
 				}
 			}
@@ -328,14 +328,14 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		MapsActivity.allRoutes.forEach { route ->
 
 			// Start by resizing the stop circles first.
-			for (stop in route.stops) {
+			for ((_, stop) in route.stops) {
 				if (stop.circle != null) {
 					stop.circle!!.radius = size
 				}
 			}
 
 			// Then resize the route's shared stop circles.
-			route.sharedStops.forEach { it.setCircleSizes(size) }
+			route.sharedStops.forEach { it.value.setCircleSizes(size) }
 		}
 	}
 

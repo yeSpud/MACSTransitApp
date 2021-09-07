@@ -1,6 +1,5 @@
 package fnsb.macstransit.routematch
 
-import android.util.Log
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Circle
@@ -221,10 +220,10 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
 				}
 
 				// Iterate though each stop in the second route and compare them to the provided stop.
-				for (stop2 in route2Stops) {
+				route2Stops.forEach {
 
 					// If the stops match, add the route to the potential routes array.
-					if (stop == stop2) {
+					if (stop == it.value) {
 						potentialRoutes[potentialRouteIndex] = route2
 						potentialRouteIndex++
 					}
@@ -237,61 +236,6 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
 			// Copy the content from the potential routes into the actual route, and return the actual route.
 			System.arraycopy(potentialRoutes, 0, actualRoutes, 0, potentialRouteIndex)
 			return actualRoutes as Array<Route>
-		}
-
-		/**
-		 * Compares stops against shared stops and only returns the stops that are not shared stops.
-		 *
-		 * @param stops       The original stops for the route that may be shared with shared stops.
-		 * @param sharedStops The shared stops for the route.
-		 * @return Returns an array of stops that are unique to the route (not shared by any other routes or shared stops).
-		 */
-		@JvmStatic
-		fun removeStopsWithSharedStops(stops: Array<Stop>, sharedStops: Array<SharedStop>): Array<Stop> {
-
-			// Create an of potential stops with a maximum size of the original stop array.
-			val potentialStops = arrayOfNulls<Stop>(stops.size)
-			var finalIndex = 0
-
-			// Iterate though each stop in the provided stop array.
-			stops.forEach { stop ->
-
-				// Check if the stop matches the shared stop (same name, location).
-				var noMatch = true
-				for (sharedStop: SharedStop in sharedStops) {
-					if (sharedStop.equals(stop)) {
-						noMatch = false
-						break
-					}
-				}
-
-				// If the stop doesn't match add it to the potential stops array since its not shared.
-				if (noMatch) {
-					try {
-						potentialStops[finalIndex] = stop
-						finalIndex++
-					} catch (e: ArrayIndexOutOfBoundsException) {
-
-						// If the array was out of bounds then log it (catastrophic if left unchecked).
-						Log.e("remvStpsWthShredStps",
-						      "Failed to add stop ${stop.name} " +
-						      "from route ${stop.route.name} to array\n" +
-						      "Final stops array is too small!", e)
-					}
-				}
-			}
-
-			// If the final index does match the stop length minus shared stop length log how much it was off by.
-			// This is left over from debugging, but is still useful to know.
-			if (finalIndex != stops.size - sharedStops.size) {
-				Log.i("remvStpsWthShredStps", "Final index differs from standard number! " +
-				      "(${stops.size - sharedStops.size}d vs $finalIndex)")
-			}
-
-			// Return our final stop array.
-			val finalStops: Array<Stop?> = arrayOfNulls(finalIndex)
-			System.arraycopy(potentialStops, 0, finalStops, 0, finalIndex)
-			return finalStops as Array<Stop>
 		}
 	}
 

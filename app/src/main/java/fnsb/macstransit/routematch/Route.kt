@@ -34,11 +34,9 @@ class Route : java.io.Serializable {
 	val urlFormattedName: String
 
 	/**
-	 * The array of stops for this route.
-	 * This may be empty / null if the route has not been initialized,
-	 * and the stops haven't been loaded.
+	 * Documentation
 	 */
-	var stops: Array<Stop> = emptyArray()
+	val stops: HashMap<String, Stop> = HashMap()
 
 	/**
 	 * Whether or not the route is enabled or disabled (to be shown or hidden).
@@ -53,12 +51,9 @@ class Route : java.io.Serializable {
 	var polyLineCoordinates: Array<com.google.android.gms.maps.model.LatLng> = emptyArray()
 
 	/**
-	 * The array of shared stops for this route.
-	 * This may be empty if the route has not been initialized,
-	 * and the the shared stops haven't been loaded, or if there are no shared stops for the route.
+	 * Documentation
 	 */
-	var sharedStops: Array<SharedStop> = emptyArray()
-		private set
+	val sharedStops: HashMap<String, SharedStop> = HashMap()
 
 	/**
 	 * The polyline that corresponds to this route.
@@ -136,28 +131,19 @@ class Route : java.io.Serializable {
 	}
 
 	/**
-	 * Adds the shared to the routes shared stop array.
-	 *
-	 * @param sharedStop The shared stop to add to the route.
+	 * Removes stops that have shared stops.
 	 */
-	fun addSharedStop(sharedStop: SharedStop) {
+	fun purgeStops() {
 
-		if (this.sharedStops.isEmpty()) {
+		// Iterate though each shared stop.
+		this.sharedStops.forEach {
 
-			// If there was no shared stop array before then simply set the array to just contain our shared stop.
-			this.sharedStops = arrayOf(sharedStop)
-			return
-		} else {
+			// Try to remove stops by shared stop name.
+			if (this.stops.remove(it.key) != null) {
 
-			// Create a new shared stop array that will contain our current shared stop array + the new shared stop.
-			// Since our current array of shared stops has content
-			// simply insert our shared stop to the array and copy the rest using System.arraycopy.
-			val newSharedStops: Array<SharedStop?> = arrayOfNulls(this.sharedStops.size + 1)
-			newSharedStops[0] = sharedStop
-			System.arraycopy(this.sharedStops, 0, newSharedStops, 1, sharedStops.size)
-
-			// Set the routes shared stop array to the newly created shared stop array.
-			this.sharedStops = newSharedStops as Array<SharedStop>
+				// If the value for removed wasn't null then log the stop for debugging.
+				Log.d("purgeStops", "Stop removed: ${it.key}")
+			}
 		}
 	}
 
@@ -271,6 +257,7 @@ class Route : java.io.Serializable {
 }
 
 @Throws(ClassNotFoundException::class)
+@Deprecated("Use a hashmap ya goof!")
 operator fun Array<Route>.get(name: String): Route {
 
 	// Iterate though the array.

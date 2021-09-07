@@ -253,7 +253,9 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 					returned.isArrayOf<LatLng>() -> MapsActivity.allRoutes[it].polyLineCoordinates = returned as Array<LatLng>
 
 					// Comments
-					returned.isArrayOf<Stop>() -> MapsActivity.allRoutes[it].stops = returned as Array<Stop>
+					returned.isArrayOf<Stop>() -> (returned as Array<Stop>).forEach { stop ->
+						MapsActivity.allRoutes[it].stops[stop.name] = stop
+					}
 
 					// Comments
 					else -> Log.w("downloadCoroutine", "Parsed downloadable type unaccounted for: ${returned[0]!!::class}")
@@ -338,35 +340,24 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 			}
 
 			// Iterate through all the stops in our first comparison route.
-			for (stop in route.stops) {
+			for ((name, stop) in route.stops) {
 
-				// Make sure our stop is not already in our shared stop.
-				// Do this by iterating though the shared stops in the route.
-				var found = false
-				for (sharedStop: SharedStop in route.sharedStops) {
-
-					// If the route was found in the shared stop then skip this iteration of the loop by continuing.
-					if (sharedStop.equals(stop)) {
-						found = true
-						break
-					}
-				}
-				if (found) {
+				// Make sure the stop is not already in the route's shared stops.
+				// If the stop was found as a shared stop then skip this iteration of the loop by continuing.
+				if (route.sharedStops[name] != null) {
 					continue
 				}
 
 				// Get an array of shared routes.
-				val sharedRoutes: Array<Route> = SharedStop.
-				getSharedRoutes(route, routeIndex, stop)
+				val sharedRoutes: Array<Route> = SharedStop.getSharedRoutes(route, routeIndex, stop)
 
 				// If the shared routes array has more than one entry, create a new shared stop object.
 				if (sharedRoutes.size > 1) {
-					val sharedStop = SharedStop(stop.location, stop.name, sharedRoutes)
+					val sharedStop = SharedStop(stop.location, name, sharedRoutes)
 
-					// Iterate though all the routes in the shared route, and add our newly created shared stop.
-					for (sharedRoute in sharedRoutes) {
-						sharedRoute.addSharedStop(sharedStop)
-					}
+					// Iterate though all the routes in the shared route,
+					// and add our newly created shared stop.
+					sharedRoutes.forEach { it.sharedStops[name] = sharedStop }
 				}
 			}
 
@@ -396,13 +387,9 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		// Iterate though all the routes and recreate the stops for each route.
 		MapsActivity.allRoutes.forEach {
 
-			// Get the final stop count for each route by removing stops that are taken care of by the shared route object.
-			val finalStops = SharedStop.removeStopsWithSharedStops(it.stops, it.sharedStops)
-			Log.d("validateStops", "Final stop count: ${finalStops.size}")
-
-			// Set the stops array for the route to the final determined stop array.
-			// This array no longer contains the stops that are shared stops.
-			it.stops = finalStops
+			// Purge the stops that have shared stops (and get the final count for debugging).
+			it.purgeStops()
+			Log.d("validateStops", "Final stop count: ${it.stops.size}")
 
 			// Update the progress.
 			currentProgress += step

@@ -83,10 +83,10 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 				route.stops.forEach {
 
 					// Remove the stop's circle.
-					it.removeStopCircle()
+					it.value.removeStopCircle()
 
 					// Remove stop's marker.
-					it.removeMarker()
+					it.value.removeMarker()
 				}
 
 				// Get the shared stops for the route.
@@ -94,10 +94,10 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 				route.sharedStops.forEach {
 
 					// Remove each shared stop circles.
-					it.removeSharedStopCircles()
+					it.value.removeSharedStopCircles()
 
 					// Remove the shared stop's marker.
-					it.removeMarker()
+					it.value.removeMarker()
 				}
 
 				// Remove route polylines.
