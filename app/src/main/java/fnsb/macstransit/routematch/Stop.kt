@@ -219,7 +219,7 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 		@JvmStatic
 		fun isDuplicate(stop: Stop, stopArray: Array<Stop?>): Boolean {
 
-			// Iterate though each potentail stop in the stop array.
+			// Iterate though each potential stop in the stop array.
 			for (stopArrayItem: Stop? in stopArray) {
 
 				// If the array item is null just return false.

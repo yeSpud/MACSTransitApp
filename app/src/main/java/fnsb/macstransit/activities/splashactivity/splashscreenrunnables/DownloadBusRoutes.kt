@@ -2,9 +2,8 @@ package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
 
 import android.util.Log
 import com.google.android.gms.maps.model.LatLng
-import fnsb.macstransit.routematch.Route
+import fnsb.macstransit.activities.splashactivity.SplashViewModel
 import org.json.JSONArray
-import org.json.JSONObject
 
 /**
  * Created by Spud on 8/5/21 for the project: MACS Transit.
@@ -13,67 +12,71 @@ import org.json.JSONObject
  * @version 1.0.
  * @since Release 1.3.
  */
-class DownloadBusRoutes(viewModel: fnsb.macstransit.activities.splashactivity.SplashViewModel):
-		DownloadRouteObjects<LatLng>(viewModel, fnsb.macstransit.R.string.mapping_bus_routes) {
+class DownloadBusRoutes(viewModel: SplashViewModel):
+		DownloadRouteObjects<LatLng>(viewModel) {
 
-	override suspend fun download(route: Route, downloadProgress: Double, progressSoFar: Double,
-	                              index: Int): Array<LatLng> = kotlin.coroutines.suspendCoroutine {
 
-		// Comment
-		this.continuation = it
+	override suspend fun download(route: fnsb.macstransit.routematch.Route, downloadProgress: Double,
+	                              progressSoFar: Double, index: Int): Array<LatLng> = kotlin.
+	coroutines.suspendCoroutine {
 
 		// Get the land route from the routematch API using an asynchronous process.
-		this.viewModel.routeMatch.callLandRoute(route, this, {
+		this.viewModel.routeMatch.callLandRoute(route, ParseBusRoutes(it, this.viewModel), {
 			error: com.android.volley.VolleyError ->
 			Log.e("downloadRoute", "Unable to get polyline from routematch server", error)
 		}, this)
 
 		// Get the progress step.
-		val step: Double = downloadProgress / fnsb.macstransit.activities.mapsactivity.MapsActivity.
-		allRoutes.size
+		val step: Double = downloadProgress / this.viewModel.routes.size
 
 		// Update the progress bar.
 		this.viewModel.setProgressBar(progressSoFar + step + index)
 	}
 
-	override fun parse(jsonArray: JSONArray): Array<LatLng> {
-		try {
+	internal class ParseBusRoutes(continuation: kotlin.coroutines.Continuation<Array<LatLng>>,
+	                              viewModel: SplashViewModel) :
+			DownloadableCallback<LatLng>(continuation, viewModel, fnsb.macstransit.R.string.mapping_bus_routes) {
 
-			// Get the land route points object from the land route data array.
-			val landRoutePoints: JSONObject = jsonArray.getJSONObject(0)
+		override fun parse(jsonArray: JSONArray): Array<LatLng> {
+			try {
 
-			// Get the land route points array from the land route points object.
-			val landRoutePointsArray: JSONArray = landRoutePoints.getJSONArray("points")
+				// Get the land route points object from the land route data array.
+				val landRoutePoints: org.json.JSONObject = jsonArray.getJSONObject(0)
 
-			// Get the number of points in the array.
-			val count: Int = landRoutePointsArray.length()
+				// Get the land route points array from the land route points object.
+				val landRoutePointsArray: JSONArray = landRoutePoints.getJSONArray("points")
 
-			// Create a new LatLng array to store all the coordinates.
-			val coordinates = arrayOfNulls<LatLng>(count)
+				// Get the number of points in the array.
+				val count: Int = landRoutePointsArray.length()
 
-			// Initialize the array of coordinates by iterating through the land route points array.
-			for (i in 0 until count) {
+				// Create a new LatLng array to store all the coordinates.
+				val coordinates = arrayOfNulls<LatLng>(count)
 
-				// Get the land route point object from the land route points array.
-				val landRoutePoint = landRoutePointsArray.getJSONObject(i)
+				// Initialize the array of coordinates by iterating through the land route points array.
+				for (i in 0 until count) {
 
-				// Get the latitude and longitude from the land route point.
-				val latitude: Double = landRoutePoint.getDouble("latitude")
-				val longitude: Double = landRoutePoint.getDouble("longitude")
+					// Get the land route point object from the land route points array.
+					val landRoutePoint = landRoutePointsArray.getJSONObject(i)
 
-				// Add the newly created LatLng object to the LatLng array.
-				coordinates[i] = LatLng(latitude, longitude)
+					// Get the latitude and longitude from the land route point.
+					val latitude: Double = landRoutePoint.getDouble("latitude")
+					val longitude: Double = landRoutePoint.getDouble("longitude")
+
+					// Add the newly created LatLng object to the LatLng array.
+					coordinates[i] = LatLng(latitude, longitude)
+				}
+
+				// Comments
+				@Suppress("UNCHECKED_CAST")
+				return coordinates as Array<LatLng>
+			} catch (exception: org.json.JSONException) {
+
+				// If there was a JSON Exception thrown while parsing simply log it.
+				Log.e("BusRoutesCallback", "Exception thrown while parsing JSON in callback", exception)
+
+				// Return a zero length array.
+				return emptyArray()
 			}
-
-			// Comments
-			return coordinates as Array<LatLng>
-		} catch (exception: org.json.JSONException) {
-
-			// If there was a JSON Exception thrown while parsing simply log it.
-			Log.e("BusRoutesCallback", "Exception thrown while parsing JSON in callback", exception)
-
-			// Return a zero length array.
-			return emptyArray()
 		}
 	}
 }

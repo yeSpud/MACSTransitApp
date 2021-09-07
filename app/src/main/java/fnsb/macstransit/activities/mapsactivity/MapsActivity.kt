@@ -60,8 +60,9 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 				(this.supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
 
 		// Launch the maps coroutine (which sets up the Google Map object).
-		this.lifecycleScope.launchWhenCreated { this@MapsActivity.viewModel.mapCoroutine(supportFragment,
-		                                                                                 this@MapsActivity) }
+		this.lifecycleScope.launchWhenCreated {
+			this@MapsActivity.viewModel.mapCoroutine(supportFragment, this@MapsActivity)
+		}
 
 		// Setup the fares popup window.
 		this.farePopupWindow = FarePopupWindow(this)

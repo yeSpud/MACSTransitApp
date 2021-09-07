@@ -204,8 +204,13 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		this@SplashActivity.viewModel.setMessage(R.string.downloading_master_schedule)
 
 		// Download and parse the master schedule. Use a filler route as the first parameter.
-		MapsActivity.allRoutes = DownloadMasterSchedule(this@SplashActivity).
-		download(Route("filler"), DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble(), 0.0, 0)
+		val fillerRoute = runCatching { Route("filler") }.getOrNull()
+		DownloadMasterSchedule(this@SplashActivity).download(fillerRoute!!,
+		                                                     DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble(),
+		                                                     0.0, 0).forEach {
+			// Populate the routes in the view model.
+			this@SplashActivity.viewModel.routes[it.name] = it
+		}
 
 		// If we've made it to the end without interruption or error return true (success).
 		Log.d("initialCoroutine", "Reached end of initialCoroutine")
@@ -230,13 +235,14 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		var downloadQueue = 0
 
 		// Get the progress step.
-		val step: Double = loadProgress / MapsActivity.allRoutes.size
+		val step: Double = loadProgress / this@SplashActivity.viewModel.routes.size
 
 		// Get the current progress.
 		val progress: Double = progressSoFar + downloadProgress
 
 		// Iterate though all the indices of all the routes that can be tracked.
-		MapsActivity.allRoutes.indices.forEach {
+		var i = 0
+		for ((_, route) in this@SplashActivity.viewModel.routes) {
 
 			// Decrease the download queue (as we are queueing a new downloadable).
 			downloadQueue--
@@ -245,17 +251,16 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 			this.launch(start = CoroutineStart.UNDISPATCHED) {
 
 				// Comments
-				val returned: Array<T> = runnable.download(MapsActivity.allRoutes[it], downloadProgress, progressSoFar, it)
+				val returned: Array<T> = runnable.download(route, downloadProgress, progressSoFar, i)
 
+				@Suppress("UNCHECKED_CAST")
 				when {
 
 					// If the type of array is a LatLng array then tet the polyline coordinates array to the returned array array.
-					returned.isArrayOf<LatLng>() -> MapsActivity.allRoutes[it].polyLineCoordinates = returned as Array<LatLng>
+					returned.isArrayOf<LatLng>() -> route.polyLineCoordinates = returned as Array<LatLng>
 
 					// Comments
-					returned.isArrayOf<Stop>() -> (returned as Array<Stop>).forEach { stop ->
-						MapsActivity.allRoutes[it].stops[stop.name] = stop
-					}
+					returned.isArrayOf<Stop>() -> (returned as Array<Stop>).forEach { route.stops[it.name] = it }
 
 					// Comments
 					else -> Log.w("downloadCoroutine", "Parsed downloadable type unaccounted for: ${returned[0]!!::class}")
@@ -263,8 +268,8 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 
 
 				// Update the current progress.
-				this@SplashActivity.viewModel.setProgressBar(progress + step +
-				                                             MapsActivity.allRoutes.size + downloadQueue)
+				this@SplashActivity.viewModel.setProgressBar(progress + step + downloadQueue +
+				                                             this@SplashActivity.viewModel.routes.size)
 
 				// Increase the downloaded queue as our downloadable has finished downloading.
 				downloadQueue++
@@ -274,6 +279,8 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 					Log.d("downloadCoroutine", "Done mapping downloadable!")
 				}
 			}
+
+			i++
 		}
 	}
 
@@ -323,16 +330,14 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		this@SplashActivity.viewModel.setMessage(R.string.shared_bus_stop_check)
 
 		// Set the current progress.
-		val step = LOAD_SHARED_STOPS.toDouble() / MapsActivity.allRoutes.size
+		val step = LOAD_SHARED_STOPS.toDouble() / this@SplashActivity.viewModel.routes.size
 		var currentProgress = (DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE +
 		                       DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS +
 		                       LOAD_BUS_STOPS).toDouble()
 
-		// Iterate though all the routes.
-		for (routeIndex: Int in MapsActivity.allRoutes.indices) {
-
-			// Get a first comparison route.
-			val route = MapsActivity.allRoutes[routeIndex]
+		// Comments
+		var i = 0
+		for ((_, route) in this@SplashActivity.viewModel.routes) {
 
 			// If there are no stops to iterate over just continue with the next iteration.
 			if (route.stops.isEmpty()) {
@@ -349,7 +354,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 				}
 
 				// Get an array of shared routes.
-				val sharedRoutes: Array<Route> = SharedStop.getSharedRoutes(route, routeIndex, stop)
+				val sharedRoutes: Array<Route> = SharedStop.getSharedRoutes(route, i, stop)
 
 				// If the shared routes array has more than one entry, create a new shared stop object.
 				if (sharedRoutes.size > 1) {
@@ -364,6 +369,8 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 			// Update the progress.
 			currentProgress += step
 			this@SplashActivity.viewModel.setProgressBar(currentProgress)
+
+			i++
 		}
 
 		Log.d("mapSharedStops", "Reached end of mapSharedStops")
@@ -379,17 +386,17 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		this@SplashActivity.viewModel.setMessage(R.string.stop_validation)
 
 		// Determine the progress step.
-		val step = VALIDATE_STOPS.toDouble() / MapsActivity.allRoutes.size
+		val step = VALIDATE_STOPS.toDouble() / this@SplashActivity.viewModel.routes.size
 		var currentProgress =
 				(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_ROUTES +
 				 LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS + LOAD_SHARED_STOPS).toDouble()
 
 		// Iterate though all the routes and recreate the stops for each route.
-		MapsActivity.allRoutes.forEach {
+		for ((name, route) in this@SplashActivity.viewModel.routes) {
 
 			// Purge the stops that have shared stops (and get the final count for debugging).
-			it.purgeStops()
-			Log.d("validateStops", "Final stop count: ${it.stops.size}")
+			route.purgeStops()
+			Log.d("validateStops", "Final stop count for route $name: ${route.stops.size}")
 
 			// Update the progress.
 			currentProgress += step
@@ -427,6 +434,9 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 
 		// Set the selected favorites routes to be false for the maps activity.
 		MapsActivity.firstRun = true
+
+		// For now set deprecated all routes...
+		MapsActivity.allRoutes = this.viewModel.routes.values.toTypedArray()
 
 		// Get the intent to start the MapsActivity.
 		val mapsIntent = Intent(this, MapsActivity::class.java)

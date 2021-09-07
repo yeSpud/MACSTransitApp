@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 
 /**
@@ -24,6 +25,11 @@ class SplashViewModel(application: Application) : androidx.lifecycle.AndroidView
 	 * The RouteMatch object used to retrieve data from the RouteMatch servers.
 	 */
 	val routeMatch: RouteMatch = RouteMatch(this.getApplication<Application>().getString(fnsb.macstransit.R.string.routematch_url), this.getApplication())
+
+	/**
+	 * Documentation
+	 */
+	val routes: HashMap<String, Route> = HashMap()
 
 	/**
 	 * The current (adjustable) progress.

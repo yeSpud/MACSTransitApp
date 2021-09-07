@@ -85,7 +85,8 @@ class StopTest {
 	 * and finally remove overlapping shared stops and regular stops.
 	 */
 	fun stopGauntlet() {
-		try {			// Start by getting the json files to use for testing.
+		try {
+			// Start by getting the json files to use for testing.
 			// TODO Add Gray, Orange lines.
 			val loadedFiles = 6
 			val files = arrayOf(Helper.BLUE_STOPS, Helper.BROWN_STOPS, Helper.GREEN_STOPS, Helper.PURPLE_STOPS,
@@ -133,9 +134,7 @@ class StopTest {
 				val vStops: Array<Stop> = Stop.validateGeneratedStops(stops)
 				println("Number of stops for ${vStops[0].route.name}: ${vStops.size}\n")
 				Assert.assertEquals(validateStopCounts[i], vStops.size)
-				vStops.forEach {
-					routes[i].stops[it.name] = it
-				}
+				vStops.forEach { routes[i].stops[it.name] = it }
 			}
 
 

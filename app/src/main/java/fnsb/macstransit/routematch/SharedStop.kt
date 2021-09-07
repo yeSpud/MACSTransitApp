@@ -191,6 +191,13 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
 		@JvmStatic
 		fun getSharedRoutes(route: Route, routeIndex: Int, stop: Stop): Array<Route> {
 
+			// Make sure all routes isn't empty.
+			if (MapsActivity.allRoutes.isEmpty()) {
+
+				// Just return an empty array since there are no routes.
+				return emptyArray()
+			}
+
 			// Create an array of potential routes that could share a same stop
 			// (the stop that we are iterating over).
 			// Set the array size to that of all the routes minus the current index as to make it decrease every iteration.
