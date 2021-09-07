@@ -13,10 +13,10 @@ import fnsb.macstransit.routematch.Route
  * @since Release 1.3.
  */
 class DownloadMasterSchedule(private val splashActivity: SplashActivity):
-		DownloadRouteObjects<Route>(splashActivity.viewModel) {
+		DownloadRouteObjects<HashMap<String, Route>>(splashActivity.viewModel) {
 
 	override suspend fun download(route: Route, downloadProgress: Double, progressSoFar: Double,
-	                              index: Int): Array<Route> = kotlin.coroutines.suspendCoroutine {
+	                              index: Int): HashMap<String, Route> = kotlin.coroutines.suspendCoroutine {
 
 		// Set the progress.
 		this@DownloadMasterSchedule.splashActivity.viewModel.setProgressBar(downloadProgress)
@@ -36,12 +36,15 @@ class DownloadMasterSchedule(private val splashActivity: SplashActivity):
 		})
 	}
 
-	internal class ParseMasterSchedule(continuation: kotlin.coroutines.Continuation<Array<Route>>,
+	internal class ParseMasterSchedule(continuation: kotlin.coroutines.Continuation<HashMap<String, Route>>,
 	                                   private val splashActivity: SplashActivity, viewModel: fnsb.
 			macstransit.activities.splashactivity.SplashViewModel) :
-			DownloadableCallback<Route>(continuation, viewModel, R.string.loading_bus_routes) {
+			DownloadableCallback<HashMap<String, Route>>(continuation, viewModel, R.string.loading_bus_routes) {
 
-		override fun parse(jsonArray: org.json.JSONArray): Array<Route> {
+		override fun parse(jsonArray: org.json.JSONArray): HashMap<String, Route> {
+
+			// Comments
+			val hashMap: HashMap<String, Route> = HashMap()
 
 			// If the routes length is 0, say that there are no buses for the day.
 			val count = jsonArray.length()
@@ -52,13 +55,9 @@ class DownloadMasterSchedule(private val splashActivity: SplashActivity):
 				this.splashActivity.showRetryButton()
 				this.splashActivity.loaded = true
 
-				// Return an empty array.
-				return emptyArray()
+				// Return the empty hashmap.
+				return hashMap
 			}
-
-			// Create an array to store all the generated routes.
-			val potentialRoutes = arrayOfNulls<Route>(count)
-			var routeCount = 0
 
 			// Update the progress and message.
 			val step = SplashActivity.PARSE_MASTER_SCHEDULE.toDouble() / count
@@ -79,12 +78,14 @@ class DownloadMasterSchedule(private val splashActivity: SplashActivity):
 				}
 
 				// Try to create the route using the route data obtained above.
-				// If there was a route exception thrown simply log it.
 				try {
 					val route = Route.generateRoute(routeData)
-					potentialRoutes[routeCount] = route
-					routeCount++
+
+					// Comments
+					hashMap[route.name] = route
 				} catch (Exception: Exception) {
+
+					// If there was a route exception thrown simply log it.
 					Log.e("MasterScheduleCallback", "Issue creating route from route data",
 					      Exception)
 				}
@@ -92,13 +93,8 @@ class DownloadMasterSchedule(private val splashActivity: SplashActivity):
 				progress += step
 			}
 
-			// Down size our potential routes array to fit the actual number of routes.
-			val finalRoutes: Array<Route?> = arrayOfNulls(routeCount)
-			System.arraycopy(potentialRoutes, 0, finalRoutes, 0, routeCount)
-
 			// Comments
-			@Suppress("UNCHECKED_CAST")
-			return finalRoutes as Array<Route>
+			return hashMap
 		}
 	}
 }

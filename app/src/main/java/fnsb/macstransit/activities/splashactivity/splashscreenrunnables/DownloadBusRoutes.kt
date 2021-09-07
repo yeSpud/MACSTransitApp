@@ -13,8 +13,7 @@ import org.json.JSONArray
  * @since Release 1.3.
  */
 class DownloadBusRoutes(viewModel: SplashViewModel):
-		DownloadRouteObjects<LatLng>(viewModel) {
-
+		DownloadRouteObjects<Array<LatLng>>(viewModel) {
 
 	override suspend fun download(route: fnsb.macstransit.routematch.Route, downloadProgress: Double,
 	                              progressSoFar: Double, index: Int): Array<LatLng> = kotlin.
@@ -35,9 +34,13 @@ class DownloadBusRoutes(viewModel: SplashViewModel):
 
 	internal class ParseBusRoutes(continuation: kotlin.coroutines.Continuation<Array<LatLng>>,
 	                              viewModel: SplashViewModel) :
-			DownloadableCallback<LatLng>(continuation, viewModel, fnsb.macstransit.R.string.mapping_bus_routes) {
+			DownloadableCallback<Array<LatLng>>(continuation, viewModel, fnsb.macstransit.R.string.mapping_bus_routes) {
 
 		override fun parse(jsonArray: JSONArray): Array<LatLng> {
+
+			// Comments
+			val hashMap: HashMap<String, LatLng> = HashMap()
+
 			try {
 
 				// Get the land route points object from the land route data array.
@@ -65,6 +68,8 @@ class DownloadBusRoutes(viewModel: SplashViewModel):
 					// Add the newly created LatLng object to the LatLng array.
 					coordinates[i] = LatLng(latitude, longitude)
 				}
+
+				hashMap["array", ]
 
 				// Comments
 				@Suppress("UNCHECKED_CAST")

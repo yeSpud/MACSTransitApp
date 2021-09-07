@@ -5,6 +5,7 @@ import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.ktx.addCircle
+import org.json.JSONException
 
 /**
  * Created by Spud on 2019-10-18 for the project: MACS Transit.
@@ -39,6 +40,7 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 	 * @param json  The JSONObject containing the bus stop data.
 	 * @param route The route this newly created Stop object will apply to.
 	 */
+	@Throws(JSONException::class)
 	constructor(json: org.json.JSONObject, route: Route) : this(json.getString("stopId"),
 	                                                            json.getDouble("latitude"),
 	                                                            json.getDouble("longitude"), route)
@@ -135,40 +137,6 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 		 * The starting radius size of the circle for the stop on the map (in meters).
 		 */
 		private const val STARTING_RADIUS = 50.0
-
-		/**
-		 * Creates an array of stops from the provided json array.
-		 * If the json array is null then the stop array will be 0 in length.
-		 *
-		 * @param array The json array containing the stop information.
-		 * @param route The route these stops belongs to.
-		 * @return The stop array created from the json array.
-		 */
-		@JvmStatic
-		fun generateStops(array: org.json.JSONArray, route: Route): Array<Stop> {
-
-			// Create an array of stops that will be filled using the information from the json array.
-			val count = array.length()
-			val uncheckedStops = arrayOfNulls<Stop>(count)
-
-			// Iterate though the json array.
-			for (i in 0 until count) {
-
-				// Try to create a new stop object using the information in the json array.
-				val stop: Stop = try {
-					Stop(array.getJSONObject(i), route)
-				} catch (e: org.json.JSONException) {
-
-					// If unsuccessful simply log the exception and continue iterating.
-					Log.e("generateStops", "Exception occurred while creating stop!", e)
-					continue
-				}
-				uncheckedStops[i] = stop
-			}
-
-			// Return the stop array.
-			return uncheckedStops as Array<Stop>
-		}
 
 		/**
 		 * Validates the provided array of potential stops and returned the actual stops in the route,

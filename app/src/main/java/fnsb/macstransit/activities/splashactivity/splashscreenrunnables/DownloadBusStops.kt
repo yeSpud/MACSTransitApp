@@ -1,5 +1,6 @@
 package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
 
+import android.util.Log
 import fnsb.macstransit.activities.splashactivity.SplashViewModel
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.Stop
@@ -11,14 +12,15 @@ import fnsb.macstransit.routematch.Stop
  * @version 1.0.
  * @since Release 1.3.
  */
-class DownloadBusStops(viewModel: SplashViewModel): DownloadRouteObjects<Stop>(viewModel) {
+class DownloadBusStops(viewModel: SplashViewModel): DownloadRouteObjects<HashMap<String, Stop>>(viewModel) {
 
 	override suspend fun download(route: Route, downloadProgress: Double, progressSoFar: Double,
-	                              index: Int): Array<Stop> = kotlin.coroutines.suspendCoroutine {
+	                              index: Int): HashMap<String, Stop> = kotlin.coroutines.suspendCoroutine {
 
 		this.viewModel.routeMatch.callAllStops(route, ParseBusStops(it, this.viewModel, route), {
-			error: com.android.volley.VolleyError ->
-			android.util.Log.w("loadStops", "Unable to get stops from RouteMatch server", error)
+			error: com.android.volley.VolleyError -> Log.w("loadStops",
+			                                               "Unable to get stops from RouteMatch server",
+			                                               error)
 		})
 
 		// Get the progress step.
@@ -28,47 +30,37 @@ class DownloadBusStops(viewModel: SplashViewModel): DownloadRouteObjects<Stop>(v
 		this.viewModel.setProgressBar(progressSoFar + step + index)
 	}
 
-	internal class ParseBusStops(continuation: kotlin.coroutines.Continuation<Array<Stop>>,
+	internal class ParseBusStops(continuation: kotlin.coroutines.Continuation<HashMap<String, Stop>>,
 	                             viewModel: SplashViewModel, private val route : Route) :
-			DownloadableCallback<Stop>(continuation, viewModel, fnsb.macstransit.R.string.mapping_bus_stops) {
+			DownloadableCallback<HashMap<String, Stop>>(continuation, viewModel, fnsb.macstransit.R.string.mapping_bus_stops) {
 
-		override fun parse(jsonArray: org.json.JSONArray): Array<Stop> {
+		override fun parse(jsonArray: org.json.JSONArray): HashMap<String, Stop> {
 
-			// Load in all the potential stops for the route.
-			// The reason why this is considered potential stops is because at this stage duplicate
-			// stops have not yet been handled.
-			val potentialStops: Array<Stop> = Stop.generateStops(jsonArray, this.route)
+			// Comments
+			val hashMap: HashMap<String, Stop> = HashMap()
 
-			// Create a variable to store the true size of the stops that have been validated.
-			var validatedSize = 0
+			// Create an array of stops that will be filled using the information from the json array.
+			val count = jsonArray.length()
 
-			// Create an array to store the validated stops.
-			// While we don't know the specific size of this array until done, we do know the maximum size,
-			// so use that for setting the array size.
-			val validatedStops = arrayOfNulls<Stop>(potentialStops.size)
+			// Iterate though the json array.
+			for (i in 0 until count) {
 
-			// Iterate through each stop in our array of potential stops.
-			potentialStops.forEach {
+				// Try to create a new stop object using the information in the json array.
+				val stop: Stop = try {
+					Stop(jsonArray.getJSONObject(i), route)
+				} catch (e: org.json.JSONException) {
 
-				// Check to see if the stop is in our array of validated stops. If its not,
-				// add it to the array and add 1 to the true index size of stops that have been validated.
-				if (!Stop.isDuplicate(it, validatedStops)) {
-					validatedStops[validatedSize] = it
-					validatedSize++
+					// If unsuccessful simply log the exception and continue iterating.
+					Log.e("generateStops", "Exception occurred while creating stop!", e)
+					continue
 				}
+
+				// Comments
+				hashMap[stop.name] = stop
 			}
 
-			// Create an array for our actual stops.
-			// Since we now know the number of validated stops we can use that as its size.
-			val actualStops: Array<Stop?> = arrayOfNulls(validatedSize)
-
-			// Copy our validated stops into our smaller actual stops array, and return it.
-			System.arraycopy(validatedStops, 0, actualStops, 0, actualStops.size)
-
-			// At this point duplicate stops have now been handled and removed.
-			// Return our actual stops.
-			@Suppress("UNCHECKED_CAST")
-			return actualStops as Array<Stop>
+			// Comments
+			return hashMap
 		}
 	}
 }

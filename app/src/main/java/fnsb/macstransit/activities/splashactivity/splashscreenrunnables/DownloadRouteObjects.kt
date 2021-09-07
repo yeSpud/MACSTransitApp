@@ -24,10 +24,10 @@ abstract class DownloadRouteObjects<T>(val viewModel: SplashViewModel) {
 	 * @return Documentation
 	 */
 	abstract suspend fun download(route: fnsb.macstransit.routematch.Route, downloadProgress: Double,
-	                              progressSoFar: Double, index: Int): Array<T>
+	                              progressSoFar: Double, index: Int): T
 
 	internal abstract class DownloadableCallback<T>(private val continuation: kotlin.coroutines.
-	Continuation<Array<T>>, val viewModel: SplashViewModel, private val parseMessage: Int):
+	Continuation<T>, val viewModel: SplashViewModel, private val parseMessage: Int):
 			com.android.volley.Response.Listener<JSONObject> {
 
 		/**
@@ -36,7 +36,7 @@ abstract class DownloadRouteObjects<T>(val viewModel: SplashViewModel) {
 		 *
 		 * @return Documentation
 		 */
-		abstract fun parse(jsonArray: JSONArray): Array<T>
+		abstract fun parse(jsonArray: JSONArray): T
 
 		override fun onResponse(response: JSONObject) {
 
@@ -47,7 +47,7 @@ abstract class DownloadRouteObjects<T>(val viewModel: SplashViewModel) {
 			val data: JSONArray = fnsb.macstransit.routematch.RouteMatch.parseData(response)
 
 			// Comments
-			val parsedData: Array<T> = this.parse(data)
+			val parsedData: T = this.parse(data)
 
 			// Comments
 			android.util.Log.v("DownloadRouteObject", "Finished parsing downloadable object")

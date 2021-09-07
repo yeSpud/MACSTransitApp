@@ -205,12 +205,8 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 
 		// Download and parse the master schedule. Use a filler route as the first parameter.
 		val fillerRoute = runCatching { Route("filler") }.getOrNull()
-		DownloadMasterSchedule(this@SplashActivity).download(fillerRoute!!,
-		                                                     DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble(),
-		                                                     0.0, 0).forEach {
-			// Populate the routes in the view model.
-			this@SplashActivity.viewModel.routes[it.name] = it
-		}
+		this@SplashActivity.viewModel.routes.putAll(DownloadMasterSchedule(this@SplashActivity).
+		download(fillerRoute!!, DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble(), 0.0, 0))
 
 		// If we've made it to the end without interruption or error return true (success).
 		Log.d("initialCoroutine", "Reached end of initialCoroutine")
@@ -251,19 +247,20 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 			this.launch(start = CoroutineStart.UNDISPATCHED) {
 
 				// Comments
-				val returned: Array<T> = runnable.download(route, downloadProgress, progressSoFar, i)
+				val returned: T = runnable.download(route, downloadProgress, progressSoFar, i)
 
+				// Comments
 				@Suppress("UNCHECKED_CAST")
-				when {
-
-					// If the type of array is a LatLng array then tet the polyline coordinates array to the returned array array.
-					returned.isArrayOf<LatLng>() -> route.polyLineCoordinates = returned as Array<LatLng>
+				when (returned) {
 
 					// Comments
-					returned.isArrayOf<Stop>() -> (returned as Array<Stop>).forEach { route.stops[it.name] = it }
+					is Array<*> -> route.polyLineCoordinates = returned as Array<LatLng>
 
 					// Comments
-					else -> Log.w("downloadCoroutine", "Parsed downloadable type unaccounted for: ${returned[0]!!::class}")
+					is HashMap<*,*> -> route.stops.putAll(returned as HashMap<String, Stop>)
+
+					// Comments
+					else -> Log.w("downloadCoroutine", "Parsed downloadable type unaccounted for: ${returned!!::class}")
 				}
 
 
