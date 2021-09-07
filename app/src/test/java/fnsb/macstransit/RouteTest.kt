@@ -5,6 +5,7 @@ import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import org.junit.Assert
 import org.junit.Test
+import java.io.UnsupportedEncodingException
 
 /**
  * Created by Spud on 7/16/20 for the project: MACS Transit.
@@ -19,10 +20,10 @@ class RouteTest {
 	fun routeTest() {
 
 		// Constructor test!
-		// Basically make sure it errors when its supposed to. FIXME
-		//Assert.assertThrows(RouteException::class.java) { Route("f o p") }
-		//Assert.assertThrows(RouteException::class.java) { Route("multiline\nroute") }
-		//Assert.assertThrows(RouteException::class.java) { Route("t a   b   s") }
+		// Basically make sure it errors when its supposed to.
+		Assert.assertThrows(UnsupportedEncodingException::class.java) { Route("f o p") }
+		Assert.assertThrows(UnsupportedEncodingException::class.java) { Route("multiline\nroute") }
+		Assert.assertThrows(UnsupportedEncodingException::class.java) { Route("t a   b   s") }
 
 		val fineRoute = Route("fine")
 		val blue = Route("Blue", Color.BLUE)

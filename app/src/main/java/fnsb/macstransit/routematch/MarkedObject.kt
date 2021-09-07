@@ -43,14 +43,14 @@ open class MarkedObject(val name: String, var location: LatLng, val route: Route
 
 	override fun hashCode(): Int {
 
-		// Get the hash code for the name.
-		var result = name.hashCode()
+		// Start by getting the hash code for the name.
+		var result: Int = name.hashCode()
 
-		// TODO Code shifts?
-		// Comments
-		result = 0x1F * result + location.hashCode()
-		result = 0x1F * result + route.hashCode()
-		result = 0x1F * result + (marker?.hashCode() ?: 0)
+		// Now keep multiplying the result by a shift for each marked object properties to get the hash.
+		// https://www.baeldung.com/java-hashcode
+		result = 0b00011111 * result + this.location.hashCode()
+		result = 0b00011111 * result + this.route.hashCode()
+		result = 0b00011111 * result + (this.marker?.hashCode() ?: 0)
 
 		// Return our resulting hash code.
 		return result

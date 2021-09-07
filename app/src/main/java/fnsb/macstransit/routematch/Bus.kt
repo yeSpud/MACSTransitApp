@@ -61,15 +61,15 @@ class Bus(
 	fun isBusNotInArray(buses: Array<Bus>): Boolean {
 
 		// Iterate though each bus.
-		for (bus: Bus in buses) {
+		buses.forEach {
 
 			// Check of the bus we are searching for matches our current bus.
-			Log.v("isBusNotInArray", "Comparing ${this.name} to ${bus.name}")
-			if (this.name == bus.name) {
+			Log.v("isBusNotInArray", "Comparing ${this.name} to ${it.name}")
+			if (this.name == it.name) {
 				Log.d("isBusNotInArray", "Vehicle IDs match")
 
 				// Check if the routes for the bus also match. If they do, return false (found).
-				if (this.route.name == bus.route.name) {
+				if (this.route.name == it.route.name) {
 					Log.d("isBusNotInArray", "Objects match!")
 					return false
 				}
@@ -108,29 +108,18 @@ class Bus(
 				// Get the location of the bus as a LatLng object.
 				val location = LatLng(busObject.getDouble("latitude"), busObject.getDouble("longitude"))
 
-				// Ge the route name of the bus.
-				// This will be used to determine the route object of the bus from our array of all routes.
-				val routeName = busObject.getString("masterRouteId")
-
 				// Since we have the route name we need to now find the actual route that belongs to it.
 				// First make sure all the routes have been loaded before continuing.
 				if (MapsActivity.allRoutes.isEmpty()) {
 					throw RuntimeException("There are no loaded routes!")
 				}
 
-				// Now iterate through all the routes.
-				var route: Route? = null // TODO Create route here
-				for (r in MapsActivity.allRoutes) {
+				// Tru to get the bus's route via the route name.
+				val route: Route = try {
+					MapsActivity.allRoutes[busObject.getString("masterRouteId")]
+				} catch (ClassNotFoundException: ClassNotFoundException) {
 
-					// If the route name matches that of our bus route, then that's our route object.
-					if (r.name == routeName) {
-						route = r
-						break
-					}
-				}
-
-				// If the bus route was not found in our trackable routes then throw a runtime exception.
-				if (route == null) {
+					// Comments
 					throw RuntimeException("Bus route not found in all routes")
 				}
 
@@ -153,16 +142,16 @@ class Bus(
 		 */
 		@JvmStatic
 		@UiThread
-		fun removeOldBuses(oldBuses: Array<Bus>, newBuses: Array<Bus>) { // FIXME Buses not being removed!
+		fun removeOldBuses(oldBuses: Array<Bus>, newBuses: Array<Bus>) {
 
 			// Iterate through the oldBuses
-			for (oldBus in oldBuses) {
+			oldBuses.forEach {
 
 				// Check if the new buses match the old bus.
 				// If it doesn't, then remove it from the map.
-				if (oldBus.isBusNotInArray(newBuses)) {
-					Log.d("removeOldBuses", "Removing bus ${oldBus.name} from map")
-					oldBus.removeMarker()
+				if (it.isBusNotInArray(newBuses)) {
+					Log.d("removeOldBuses", "Removing bus ${it.name} from map")
+					it.removeMarker()
 				}
 			}
 		}

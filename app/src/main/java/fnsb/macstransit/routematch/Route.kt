@@ -16,13 +16,22 @@ import java.util.regex.Pattern
  * @version 3.0.
  * @since Beta 3.
  */
-class Route(val name: String, var color: Int = 0) : java.io.Serializable {  // TODO Add ["routeName"] operator for arrays.
+class Route : java.io.Serializable {
+
+	/**
+	 * Documentation
+	 */
+	val name: String
+
+	/**
+	 * Documentation
+	 */
+	var color: Int = 0
 
 	/**
 	 * The name of the route formatted to be parsed as a URL.
 	 */
-	val urlFormattedName: String = Pattern.compile("\\+").matcher(URLEncoder.
-	encode(this.name, "UTF-8")).replaceAll("%20") // TODO Add regex check
+	val urlFormattedName: String
 
 	/**
 	 * The array of stops for this route.
@@ -64,8 +73,32 @@ class Route(val name: String, var color: Int = 0) : java.io.Serializable {  // T
 	 * contain any whitespace characters!
 	 * @throws UnsupportedEncodingException Thrown if the route name cannot be formatted to a URL.
 	 */
-	// TODO Throw UnsupportedEncodingException if the name is invalid
+	@Throws(UnsupportedEncodingException::class)
 	constructor(routeName: String) : this(routeName, 0)
+
+	/**
+	 * Documentation
+	 *
+	 * @param name
+	 * @param color
+	 * @throws UnsupportedEncodingException
+	 */
+	@Throws(UnsupportedEncodingException::class)
+	constructor(name: String, color: Int) {
+
+		// Comments
+		if (name.contains(Regex("\\s"))) {
+			throw UnsupportedEncodingException("Route name contains whitespace!")
+		}
+
+		// Comments
+		this.name = name
+		this.color = color
+
+		// Comments
+		this.urlFormattedName = Pattern.compile("\\+").matcher(URLEncoder.
+		encode(this.name, "UTF-8")).replaceAll("%20")
+	}
 
 	/**
 	 * Creates and sets the polyline for the route.
@@ -235,4 +268,20 @@ class Route(val name: String, var color: Int = 0) : java.io.Serializable {  // T
 			}
 		}
 	}
+}
+
+@Throws(ClassNotFoundException::class)
+operator fun Array<Route>.get(name: String): Route {
+
+	// Iterate though the array.
+	this.forEach {
+
+		// If the name matches our name passed as a parameter then return that route.
+		if (it.name == name) {
+			return it
+		}
+	}
+
+	// If we've made it this far that means the route was not found in the array, so throw a ClassNotFoundException.
+	throw ClassNotFoundException("$name was not found in the array!")
 }
