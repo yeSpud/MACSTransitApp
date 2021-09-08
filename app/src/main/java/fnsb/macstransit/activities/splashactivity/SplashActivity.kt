@@ -2,6 +2,9 @@ package fnsb.macstransit.activities.splashactivity
 
 import android.content.Intent
 import android.os.Build
+import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.Log
 import android.view.View
 import androidx.lifecycle.lifecycleScope
@@ -348,15 +351,20 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 				}
 
 				// Get an array of shared routes.
-				val sharedRoutes: Array<Route> = SharedStop.getSharedRoutes(route, stop)
+				val sharedRoutes: Array<Route> = SharedStop.
+				getSharedRoutes(route, stop, this@SplashActivity.viewModel.routes)
 
 				// If the shared routes array has more than one entry, create a new shared stop object.
 				if (sharedRoutes.size > 1) {
-					val sharedStop = SharedStop(stop.location, name, sharedRoutes)
+					val sharedStop = SharedStop(name, stop.location, sharedRoutes)
 
 					// Iterate though all the routes in the shared route,
 					// and add our newly created shared stop.
-					sharedRoutes.forEach { it.sharedStops[name] = sharedStop }
+					sharedRoutes.forEach {
+						Log.d("mapSharedStops", "Adding shared stop to route: " +
+						                        this@SplashActivity.viewModel.routes[it.name]!!.name)
+						this@SplashActivity.viewModel.routes[it.name]!!.sharedStops[name] = sharedStop
+					} // FIXME Shared stops not being added
 				}
 			}
 
@@ -391,6 +399,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 			// Purge the stops that have shared stops (and get the final count for debugging).
 			route.purgeStops()
 			Log.d("validateStops", "Final stop count for route $name: ${route.stops.size}")
+			Log.d("validateStops", "Final shared stop count for route $name: ${route.sharedStops.size}")
 
 			// Update the progress.
 			currentProgress += step
@@ -435,8 +444,17 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		// Get the intent to start the MapsActivity.
 		val mapsIntent = Intent(this, MapsActivity::class.java)
 
+		val bundle = Bundle()
+
+		for ((name, route) in this@SplashActivity.viewModel.routes) {
+			bundle.putParcelable(name, route)
+		}
+
+		// Get the routes as parcelables.
+		mapsIntent.putExtras(bundle)
+
 		// Start the MapsActivity, and close this splash activity.
-		this.startActivity(mapsIntent)
+		this.startActivity(mapsIntent) // FIXME Crash here
 		this.finishAfterTransition()
 	}
 

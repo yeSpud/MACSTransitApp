@@ -13,7 +13,7 @@ import com.google.maps.android.ktx.addMarker
  * @version 2.0.
  * @since Beta 8.
  */
-open class MarkedObject(val name: String, var location: LatLng, val route: Route) {
+open class MarkedObject(val name: String, var location: LatLng, val routeName: String, val color: Int) {
 
 	/**
 	 * The marker of the marker of the marked object.
@@ -49,7 +49,8 @@ open class MarkedObject(val name: String, var location: LatLng, val route: Route
 		// Now keep multiplying the result by a shift for each marked object properties to get the hash.
 		// https://www.baeldung.com/java-hashcode
 		result = 0b00011111 * result + this.location.hashCode()
-		result = 0b00011111 * result + this.route.hashCode()
+		result = 0b00011111 * result + this.routeName.hashCode()
+		result = 0b00011111 * result + this.color
 		result = 0b00011111 * result + (this.marker?.hashCode() ?: 0)
 
 		// Return our resulting hash code.
@@ -90,7 +91,7 @@ open class MarkedObject(val name: String, var location: LatLng, val route: Route
 			// Set the color of the marker.
 			Log.d("addMarker", "Applying marker color")
 			val hsv = FloatArray(3)
-			android.graphics.Color.colorToHSV(this@MarkedObject.route.color, hsv)
+			android.graphics.Color.colorToHSV(this@MarkedObject.color, hsv)
 			this.icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]))
 		}
 

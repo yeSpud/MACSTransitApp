@@ -35,7 +35,9 @@ class StopTest {
 		val blueStopJsonArray: JSONArray = RouteMatch.parseData(blueStopJson)
 		val blueRoute = Route("Blue")
 		var startTime: Long = System.nanoTime()
-		var blueStops: Array<Stop> = Stop.generateStops(blueStopJsonArray, blueRoute)
+		var blueStops: Array<Stop> = Array(blueStopJsonArray.length()) {
+			Stop(blueStopJsonArray.getJSONObject(it), blueRoute)
+		}
 		var endTime: Long = System.nanoTime()
 		Helper.printTime(startTime, endTime)
 
@@ -68,7 +70,7 @@ class StopTest {
 			try {
 				val jsonObject: JSONObject = Helper.getJSON(file)
 				val jsonArray: JSONArray = RouteMatch.parseData(jsonObject)
-				val pStops: Array<Stop> = Stop.generateStops(jsonArray, Route("Foo"))
+				val pStops: Array<Stop> = arrayOf(Stop(jsonArray.getJSONObject(0), Route("Foo")))
 				val vStops: Array<Stop> = Stop.validateGeneratedStops(pStops)
 				count += vStops.size
 			} catch (e: Exception) {
@@ -114,7 +116,9 @@ class StopTest {
 					System.out.println(String.format("%f, %f", lat, lon));
 				}
 				 */
-				val stops: Array<Stop> = Stop.generateStops(dataArray, routes[i])
+				val stops: Array<Stop> = Array(dataArray.length()) {
+					Stop(dataArray.getJSONObject(it), routes[i])
+				}
 				stopsWithDuplicates.add(stops)
 			}
 
@@ -123,7 +127,7 @@ class StopTest {
 			val validDuplicateStopCounts = intArrayOf(233, 24, 144, 78, 176, 145)
 			for (i in 0 until loadedFiles) {
 				val stops: Array<Stop> = stopsWithDuplicates[i]
-				println("Number of stops for ${stops[0].route.name} (with potential duplicates): ${stops.size}\n")
+				println("Number of stops for ${stops[0].routeName} (with potential duplicates): ${stops.size}\n")
 				Assert.assertEquals(validDuplicateStopCounts[i], stops.size)
 			}
 
@@ -132,14 +136,14 @@ class StopTest {
 			for (i in 0 until loadedFiles) {
 				val stops: Array<Stop> = stopsWithDuplicates[i]
 				val vStops: Array<Stop> = Stop.validateGeneratedStops(stops)
-				println("Number of stops for ${vStops[0].route.name}: ${vStops.size}\n")
+				println("Number of stops for ${vStops[0].routeName}: ${vStops.size}\n")
 				Assert.assertEquals(validateStopCounts[i], vStops.size)
 				vStops.forEach { routes[i].stops[it.name] = it }
 			}
 
 
 			// Temporarily set all routes to not null in order to bypass a null check.
-			MapsActivity.allRoutes = routes
+			routes.forEach { MapsActivity.allRoutes[it.name] = it }
 
 			// Now test the creation of shared stops.
 			for (routeIndex in 0 until loadedFiles) {
@@ -170,11 +174,11 @@ class StopTest {
 					}
 
 					// Get an array of shared routes.
-					val sharedRoutes = SharedStop.getSharedRoutes(route, routeIndex, stop)
+					val sharedRoutes = SharedStop.getSharedRoutes(route, stop)
 
 					// If the shared routes array has more than one entry, create a new shared stop object.
 					if (sharedRoutes.size > 1) {
-						val sharedStop = SharedStop(stop.location, name, sharedRoutes)
+						val sharedStop = SharedStop(name, stop.location, sharedRoutes)
 
 						// Iterate though all the routes in the shared route, and add our newly created shared stop.
 						sharedRoutes.forEach { it.sharedStops[name] = sharedStop }

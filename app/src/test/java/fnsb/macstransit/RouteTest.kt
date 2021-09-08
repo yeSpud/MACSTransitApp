@@ -49,7 +49,9 @@ class RouteTest {
 	fun enableFavoriteRoutesTest() {
 
 		// TODO All
-		MapsActivity.allRoutes = arrayOf(Route("Foo"), Route("Bar"), Route("Baz"))
+		MapsActivity.allRoutes["Foo"] = Route("Foo")
+		MapsActivity.allRoutes["Bar"] = Route("Bar")
+		MapsActivity.allRoutes["Baz"] = Route("Baz")
 
 		// TODO Fav
 		val favoriteRoutes: Array<Route> = arrayOf(Route("Foo"))
@@ -58,8 +60,8 @@ class RouteTest {
 		Route.enableFavoriteRoutes(favoriteRoutes)
 
 		// Check for expected values.
-		Assert.assertTrue(MapsActivity.allRoutes[0].enabled)
-		Assert.assertFalse(MapsActivity.allRoutes[1].enabled)
-		Assert.assertFalse(MapsActivity.allRoutes[2].enabled)
+		Assert.assertTrue(MapsActivity.allRoutes["Foo"]!!.enabled)
+		Assert.assertFalse(MapsActivity.allRoutes["Bar"]!!.enabled)
+		Assert.assertFalse(MapsActivity.allRoutes["Baz"]!!.enabled)
 	}
 }

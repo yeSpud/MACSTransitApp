@@ -1,8 +1,11 @@
 package fnsb.macstransit.routematch
 
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.ktx.addPolyline
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import org.json.JSONException
@@ -17,7 +20,7 @@ import java.util.regex.Pattern
  * @version 3.0.
  * @since Beta 3.
  */
-class Route {
+class Route: Parcelable {
 
 	/**
 	 * Documentation
@@ -43,13 +46,14 @@ class Route {
 	 * Whether or not the route is enabled or disabled (to be shown or hidden).
 	 * Default is false (disabled).
 	 */
+	@Transient
 	var enabled = false
 
 	/**
 	 * The array of LatLng coordinates that will be used to create the polyline (if enabled).
 	 * This is private as we don't want this variable to be set outside the class.
 	 */
-	var polyLineCoordinates: Array<com.google.android.gms.maps.model.LatLng> = emptyArray()
+	var polyLineCoordinates: Array<LatLng> = emptyArray()
 
 	/**
 	 * Documentation
@@ -59,7 +63,44 @@ class Route {
 	/**
 	 * The polyline that corresponds to this route.
 	 */
+	@Transient
 	private var polyline: com.google.android.gms.maps.model.Polyline? = null
+
+	/**
+	 * Documentation
+	 * Comments
+	 * @param parcel
+	 */
+	constructor(parcel: Parcel) {
+		Log.d("Route", "Reading from parcel")
+
+		this.name = parcel.readString()!!
+		this.color = parcel.readInt()
+		this.urlFormattedName = parcel.readString()!!
+
+		val stopArray: Array<Parcelable> = parcel.readParcelableArray(Stop::class.java.classLoader)
+				as Array<Parcelable>
+		for (entry in stopArray) {
+			val stop: Stop = entry as Stop
+			this.stops[stop.name] = stop
+		}
+
+		// Parcelable arrays can sometimes be a bitch.
+		val parcelableArray: Array<Parcelable> = parcel.readParcelableArray(LatLng::class.java.classLoader)!!
+				as Array<Parcelable>
+		val latitudeLongitudeArray: Array<LatLng?> = arrayOfNulls(parcelableArray.size)
+		for ((i, entry) in parcelableArray.withIndex()) {
+			latitudeLongitudeArray[i] = entry as LatLng
+		}
+		this.polyLineCoordinates = latitudeLongitudeArray as Array<LatLng>
+
+		// Get the array containing the shared stop data.
+		val sharedStopParcelableArray: Array<Parcelable> = parcel.readParcelableArray(SharedStop::class.java.classLoader) as Array<Parcelable>
+		for (entry in sharedStopParcelableArray) {
+			val sharedStop: SharedStop = entry as SharedStop
+			this.sharedStops[sharedStop.name] = sharedStop
+		}
+	}
 
 	/**
 	 * Constructor for the route. The name of the route is the only thing that is required.
@@ -254,5 +295,30 @@ class Route {
 				}
 			}
 		}
+
+		@JvmField
+		val CREATOR = object : Parcelable.Creator<Route> {
+
+			override fun createFromParcel(parcel: Parcel): Route {
+				return Route(parcel)
+			}
+
+			override fun newArray(size: Int): Array<Route?> {
+				return arrayOfNulls(size)
+			}
+		}
+	}
+
+	override fun describeContents(): Int {
+		return this.hashCode()
+	}
+
+	override fun writeToParcel(parcel: Parcel, flags: Int) {
+		parcel.writeString(this.name)
+		parcel.writeInt(this.color)
+		parcel.writeString(this.urlFormattedName)
+		parcel.writeParcelableArray(this.stops.values.toTypedArray(), flags)
+		parcel.writeParcelableArray(this.polyLineCoordinates, flags)
+		parcel.writeParcelableArray(this.sharedStops.values.toTypedArray(), flags)
 	}
 }

@@ -107,12 +107,17 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 			if (isSharedStop){
 				getEnabledRoutesForStop((stop as SharedStop).routes)
 			} else {
-				arrayOf((stop as Stop).route)
+				arrayOf(MapsActivity.allRoutes[stop.routeName]!!)
 			}
 		} catch (e: ClassCastException) {
 
 			// If there was an issue casting from classes log the error and return the current content of the string.
 			Log.e("postStopTimes", "Unaccounted object class: ${stop.javaClass}", e)
+			return ""
+		} catch (NullPointerException: NullPointerException) {
+
+			// Comments
+			Log.e("postStopTimes", "Could not find stop route!", NullPointerException)
 			return ""
 		}
 

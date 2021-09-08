@@ -30,16 +30,7 @@ class Bus(
 		/**
 		 * The bus's route.
 		 */
-		route: Route,
-
-		/**
-		 * The current bus's color.
-		 * This is more representative of the route its on (ie what is its route's color),
-		 * and thus is optional.
-		 *
-		 * This is an int instead of a Color object because for whatever reason android stores its colors as ints.
-		 */
-		val color: Int = route.color,
+		val route: Route,
 
 		/**
 		 * String used to store the buses current heading.
@@ -50,7 +41,7 @@ class Bus(
 		/**
 		 * Variables to store the current bus speed in mph.
 		 */
-		var speed: Int = 0) : MarkedObject("Bus $name", location, route) {
+		var speed: Int = 0) : MarkedObject("Bus $name", location, route.name, route.color) {
 
 	/**
 	 * Searches a given bus array for this bus, and returns if it was not found.

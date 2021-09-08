@@ -67,6 +67,8 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 
 		// Setup the fares popup window.
 		this.farePopupWindow = FarePopupWindow(this)
+
+		val bundle = this.intent.extras
 	}
 
 	override fun onDestroy() {

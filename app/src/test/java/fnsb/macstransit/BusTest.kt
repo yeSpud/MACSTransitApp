@@ -45,7 +45,7 @@ class BusTest {
 			for (i in buses.indices) {
 				val bus: Bus = buses[i]
 				Assert.assertEquals(ids[i], bus.name)
-				Assert.assertSame(Objects.requireNonNull(MapsActivity.allRoutes)[i], bus.route)
+				Assert.assertSame(MapsActivity.allRoutes[bus.routeName], bus.route)
 				Assert.assertEquals(lat[i], bus.location.latitude, 0.0)
 				Assert.assertEquals(lon[i], bus.location.longitude, 0.0)
 			}
@@ -121,6 +121,8 @@ class BusTest {
 	}
 
 	init {
-		MapsActivity.allRoutes = arrayOf(Route("Brown"), Route("Green"), Route("Red"))
+		MapsActivity.allRoutes["Brown"] = Route("Brown")
+		MapsActivity.allRoutes["Green"] = Route("Green")
+		MapsActivity.allRoutes["Red"] = Route("Red")
 	}
 }

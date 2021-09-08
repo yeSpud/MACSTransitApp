@@ -71,7 +71,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 			for ((_, route) in MapsActivity.allRoutes) {
 
 				// Toggle the stop visibility for each route.
-				route.stops.forEach { it.value.toggleStopVisibility(this@MapsViewModel.map!!) }
+				route.stops.forEach { it.value.toggleStopVisibility(this@MapsViewModel.map!!, route.enabled) }
 
 				// Iterate though the shared stops in the route.
 				route.sharedStops.forEach {
