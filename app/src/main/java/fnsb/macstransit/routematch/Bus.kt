@@ -114,13 +114,13 @@ class Bus(
 					throw RuntimeException("There are no loaded routes!")
 				}
 
-				// Tru to get the bus's route via the route name.
+				// Try to get the bus's route via the route name.
 				val route: Route = try {
-					MapsActivity.allRoutes[busObject.getString("masterRouteId")]
-				} catch (ClassNotFoundException: ClassNotFoundException) {
+					MapsActivity.allRoutes[busObject.getString("masterRouteId")]!!
+				} catch (NullPointerException: NullPointerException) {
 
 					// Comments
-					throw RuntimeException("Bus route not found in all routes")
+					throw RuntimeException("Bus route not found in route map!")
 				}
 
 				// Try to get the heading of the bus. This value isn't necessary, but is nice to have.

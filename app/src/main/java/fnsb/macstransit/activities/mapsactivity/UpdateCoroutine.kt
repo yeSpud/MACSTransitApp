@@ -51,7 +51,7 @@ class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewMod
 			this.mapsViewModel.routeMatch.callVehiclesByRoutes(this.callback, {
 				error: com.android.volley.VolleyError ->
 				Log.w("UpdateCoroutine", "Unable to fetch buses", error)
-			}, this, *MapsActivity.allRoutes)
+			}, this, *MapsActivity.allRoutes.values.toTypedArray())
 
 			// Wait for the specified update frequency.
 			Log.v("UpdateCoroutine", "Waiting for ${this.updateFrequency} milliseconds")

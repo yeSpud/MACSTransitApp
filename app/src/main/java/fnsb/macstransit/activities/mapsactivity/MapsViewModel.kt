@@ -68,7 +68,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		viewModelScope.launch(Dispatchers.Main) {
 
 			// Iterate though all the routes as we know at this point that they are not null.
-			MapsActivity.allRoutes.forEach { route ->
+			for ((_, route) in MapsActivity.allRoutes) {
 
 				// Toggle the stop visibility for each route.
 				route.stops.forEach { it.value.toggleStopVisibility(this@MapsViewModel.map!!) }
@@ -105,7 +105,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		}
 
 		// Toggle the polyline visibility for all the routes on the map.
-		MapsActivity.allRoutes.forEach { it.togglePolylineVisibility(this.map!!) }
+		MapsActivity.allRoutes.values.forEach { it.togglePolylineVisibility(this.map!!) }
 	}
 
 	/**
@@ -325,7 +325,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		val size = metersPerPixel * 4
 
 		// Iterate though each route.
-		MapsActivity.allRoutes.forEach { route ->
+		for ((_, route) in MapsActivity.allRoutes) {
 
 			// Start by resizing the stop circles first.
 			for ((_, stop) in route.stops) {

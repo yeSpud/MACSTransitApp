@@ -16,6 +16,7 @@ import fnsb.macstransit.settings.CurrentSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.*
+import kotlin.collections.HashMap
 
 class MapsActivity: androidx.fragment.app.FragmentActivity() {
 
@@ -77,7 +78,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 			Log.i("onDestroy", "Beginning onDestroy cleanup coroutine...")
 
 			// Iterate though each route to get access to its shared stops and regular stops.
-			allRoutes.forEach { route ->
+			for ((_, route) in allRoutes) {
 
 				// Iterate though each stop.
 				Log.d("onDestroy", "Removing stop circles")
@@ -135,10 +136,10 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		this.menuInflater.inflate(R.menu.menu, menu)
 
 		// Create the menu item that corresponds to the route object.
-		for (i in allRoutes.indices) {
+		for ((name, _) in allRoutes) {
 
 			// Make sure the item is checkable.
-			menu.add(R.id.routes, i, Menu.NONE, allRoutes[i].name).isCheckable = true
+			menu.add(R.id.routes, name.hashCode(), Menu.NONE, name).isCheckable = true
 		}
 
 		// Return what ever the default behaviour would be when calling this method if it were not overridden.
@@ -149,14 +150,14 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		Log.v("onPrepareOptionsMenu", "onPrepareOptionsMenu has been called!")
 
 		// Iterate through all the routes that can be tracked (if allRoutes isn't null).
-		for (i in allRoutes.indices) {
+		for ((name, route) in allRoutes) {
 
 			// Determine whether or not the menu item should be checked before hand.
-			val checked: Boolean = allRoutes[i].enabled
+			val checked: Boolean = route.enabled
 
 			// Set the menu item to be checked if the route it corresponds to is enabled.
-			Log.d("onPrepareOptionsMenu", "Setting ${allRoutes[i].name} to be enabled: $checked")
-			menu.findItem(i).isChecked = checked
+			Log.d("onPrepareOptionsMenu", "Setting $name to be enabled: $checked")
+			menu.findItem(name.hashCode()).isChecked = checked
 		}
 
 		// Check if night mode should be enabled by default, and set the checkbox to that value.
@@ -210,9 +211,12 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 				// Create a boolean to store the resulting value of the menu item.
 				val enabled = !item.isChecked
 
-				// Updated the selected route's enabled boolean.
-				allRoutes[item.itemId].enabled = enabled
-				Log.d("onOptionsItemSelected", "Selected route ${allRoutes[item.itemId].name}")
+				// Comments
+				val route: Route = allRoutes[item.title] ?: return super.onOptionsItemSelected(item)
+
+				// Comments
+				route.enabled = enabled
+				Log.d("onOptionsItemSelected", "Selected route ${route.name}")
 
 				// If the map is null at this point just return early (skip redrawing).
 				if (this.viewModel.map == null) {
@@ -283,7 +287,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		 * so an alternative is strongly recommend.
 		 */
 		@Deprecated("Memory leak")
-		var allRoutes: Array<Route> = emptyArray()
+		var allRoutes: HashMap<String, Route> = HashMap()
 
 		/**
 		 * Used to determine if the MapsActivity has been run before in the app's lifecycle.

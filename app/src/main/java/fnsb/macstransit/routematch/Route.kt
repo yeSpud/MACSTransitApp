@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
 import com.google.maps.android.ktx.addPolyline
+import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import org.json.JSONException
 import java.io.UnsupportedEncodingException
 import java.net.URLEncoder
@@ -16,7 +17,7 @@ import java.util.regex.Pattern
  * @version 3.0.
  * @since Beta 3.
  */
-class Route : java.io.Serializable {
+class Route {
 
 	/**
 	 * Documentation
@@ -240,35 +241,18 @@ class Route : java.io.Serializable {
 		fun enableFavoriteRoutes(favoritedRoutes: Array<Route>) {
 
 			// Iterate through all the routes that will be used in the activity.
-			fnsb.macstransit.activities.mapsactivity.MapsActivity.allRoutes.forEach {
+			for ((name, route) in MapsActivity.allRoutes) {
 
 				// Iterate though the favorite routes.
 				for (favoritedRoute: Route in favoritedRoutes) {
 
 					// If the route name matches the favorited route name, enable it in all routes.
-					if (it.name == favoritedRoute.name) {
-						it.enabled = true
+					if (name == favoritedRoute.name) {
+						route.enabled = true
 						break
 					}
 				}
 			}
 		}
 	}
-}
-
-@Throws(ClassNotFoundException::class)
-@Deprecated("Use a hashmap ya goof!")
-operator fun Array<Route>.get(name: String): Route {
-
-	// Iterate though the array.
-	this.forEach {
-
-		// If the name matches our name passed as a parameter then return that route.
-		if (it.name == name) {
-			return it
-		}
-	}
-
-	// If we've made it this far that means the route was not found in the array, so throw a ClassNotFoundException.
-	throw ClassNotFoundException("$name was not found in the array!")
 }

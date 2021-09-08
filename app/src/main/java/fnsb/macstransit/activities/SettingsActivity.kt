@@ -59,13 +59,13 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 
 		// Setup the favorites container.
 		// Begin by iterating though all the routes.
-		MapsActivity.allRoutes.forEach {
+		for ((name, route) in MapsActivity.allRoutes) {
 
 			// Create a new checkbox.
 			val checkBox = CheckBox(this)
 
 			// Set the checkbox's text to the route name.
-			checkBox.text = it.name
+			checkBox.text = name
 
 			// Set the color and size of the text to constants.
 			checkBox.textSize = CHECKBOX_TEXT_SIZE.toFloat()
@@ -83,10 +83,10 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 					                                                                    R.color.white)
 
 			// Set the checkbox tag to the route object.
-			checkBox.tag = it
+			checkBox.tag = route
 
 			// Set the checkbox to its enabled value.
-			checkBox.isChecked = isFavorited(this.settings.routes, it.name)
+			checkBox.isChecked = isFavorited(this.settings.routes, name)
 
 			// Add the box to the favorites container.
 			this.binding.favoriteRouteContainer.addView(checkBox)

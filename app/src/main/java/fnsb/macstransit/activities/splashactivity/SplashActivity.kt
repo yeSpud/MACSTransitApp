@@ -5,17 +5,11 @@ import android.os.Build
 import android.util.Log
 import android.view.View
 import androidx.lifecycle.lifecycleScope
-import com.google.android.gms.maps.model.LatLng
 import fnsb.macstransit.R
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
-import fnsb.macstransit.activities.splashactivity.splashscreenrunnables.DownloadBusRoutes
-import fnsb.macstransit.activities.splashactivity.splashscreenrunnables.DownloadBusStops
-import fnsb.macstransit.activities.splashactivity.splashscreenrunnables.DownloadMasterSchedule
-import fnsb.macstransit.activities.splashactivity.splashscreenrunnables.DownloadRouteObjects
 import fnsb.macstransit.databinding.SplashscreenBinding
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.SharedStop
-import fnsb.macstransit.routematch.Stop
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
@@ -138,8 +132,9 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 			// Download and load the bus routes (on a coroutine of course).
 			this.launch(CoroutineName("RouteCoroutine"), start = CoroutineStart.UNDISPATCHED) {
 				this@SplashActivity.downloadCoroutine(LOAD_BUS_ROUTES.toDouble(), DOWNLOAD_BUS_ROUTES.toDouble(),
-				                  (DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE).toDouble(),
-				                  DownloadBusRoutes(this@SplashActivity.viewModel))
+				                                      (DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE).toDouble(),
+				                                      fnsb.macstransit.activities.splashactivity.
+				                                      splashscreenrunnables.DownloadBusRoutes(this@SplashActivity.viewModel))
 			}.join()
 
 			// Download and load the bus stops (on a coroutine of course).
@@ -147,7 +142,8 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 				this@SplashActivity.downloadCoroutine(LOAD_BUS_STOPS.toDouble(), DOWNLOAD_BUS_STOPS.toDouble(),
 				                                      (DOWNLOAD_MASTER_SCHEDULE_PROGRESS +
 				                                       PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_ROUTES +
-				                                       LOAD_BUS_ROUTES).toDouble(), DownloadBusStops(this@SplashActivity.viewModel))
+				                                       LOAD_BUS_ROUTES).toDouble(), fnsb.macstransit.
+				activities.splashactivity.splashscreenrunnables.DownloadBusStops(this@SplashActivity.viewModel))
 			}.join()
 
 			// Map the shared stops on a coroutine (as this is work intensive).
@@ -205,7 +201,8 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 
 		// Download and parse the master schedule. Use a filler route as the first parameter.
 		val fillerRoute = runCatching { Route("filler") }.getOrNull()
-		this@SplashActivity.viewModel.routes.putAll(DownloadMasterSchedule(this@SplashActivity).
+		this@SplashActivity.viewModel.routes.putAll(fnsb.macstransit.activities.splashactivity.
+		splashscreenrunnables.DownloadMasterSchedule(this@SplashActivity).
 		download(fillerRoute!!, DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble(), 0.0, 0))
 
 		// If we've made it to the end without interruption or error return true (success).
@@ -222,8 +219,8 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 	 * @param runnable The download runnable to run.
 	 */
 	private suspend fun <T> downloadCoroutine(loadProgress: Double, downloadProgress: Double,
-	                                          progressSoFar: Double,
-	                                          runnable: DownloadRouteObjects<T>) = coroutineScope {
+	                                          progressSoFar: Double, runnable: fnsb.macstransit.
+			activities.splashactivity.splashscreenrunnables.DownloadRouteObjects<T>) = coroutineScope {
 
 		// Create a variable to store the current state of our current downloads.
 		// When the download is queued this value decreases.
@@ -254,10 +251,10 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 				when (returned) {
 
 					// Comments
-					is Array<*> -> route.polyLineCoordinates = returned as Array<LatLng>
+					is Array<*> -> route.polyLineCoordinates = returned as Array<com.google.android.gms.maps.model.LatLng>
 
 					// Comments
-					is HashMap<*,*> -> route.stops.putAll(returned as HashMap<String, Stop>)
+					is HashMap<*,*> -> route.stops.putAll(returned as HashMap<String, fnsb.macstransit.routematch.Stop>)
 
 					// Comments
 					else -> Log.w("downloadCoroutine", "Parsed downloadable type unaccounted for: ${returned!!::class}")
@@ -351,7 +348,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 				}
 
 				// Get an array of shared routes.
-				val sharedRoutes: Array<Route> = SharedStop.getSharedRoutes(route, i, stop)
+				val sharedRoutes: Array<Route> = SharedStop.getSharedRoutes(route, stop)
 
 				// If the shared routes array has more than one entry, create a new shared stop object.
 				if (sharedRoutes.size > 1) {
@@ -433,7 +430,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		MapsActivity.firstRun = true
 
 		// For now set deprecated all routes...
-		MapsActivity.allRoutes = this.viewModel.routes.values.toTypedArray()
+		MapsActivity.allRoutes.putAll(this.viewModel.routes)
 
 		// Get the intent to start the MapsActivity.
 		val mapsIntent = Intent(this, MapsActivity::class.java)

@@ -217,10 +217,10 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 			// Iterate through the JSON array and try to match the names of the routes.
 			for (i in 0 until count) {
 				val routeName = favoritedRoutes.getString(i)
-				for (route in MapsActivity.allRoutes) {
+				for ((name, route) in MapsActivity.allRoutes) {
 
 					// If the route names match, add it to the list of routes.
-					if (routeName == route.name) {
+					if (routeName == name) {
 						potentialRoutes[verifiedCount] = route
 						verifiedCount++
 						break

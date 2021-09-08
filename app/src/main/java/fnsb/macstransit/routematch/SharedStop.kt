@@ -184,65 +184,46 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
 		 * This is because its the only route to have that stop in its stop array.
 		 *
 		 * @param route      The route to compare against all other routes.
-		 * @param routeIndex The index of the route that we are comparing in all routes.
 		 * @param stop       The stop to compare against all stops in all other routes.
-		 * @return Array of routes that share the stop. This always return an array of at least one route.
+		 *
+		 * @return Documentation
 		 */
 		@JvmStatic
-		fun getSharedRoutes(route: Route, routeIndex: Int, stop: Stop): Array<Route> {
+		fun getSharedRoutes(route: Route, stop: Stop): Array<Route> {
+
+			// Comments
+			val hashMap: HashMap<String, Route> = HashMap(1)
+			hashMap[route.name] = route
 
 			// Make sure all routes isn't empty.
 			if (MapsActivity.allRoutes.isEmpty()) {
 
-				// Just return an empty array since there are no routes.
-				return emptyArray()
+				// Comments
+				return hashMap.values.toTypedArray()
 			}
 
-			// Create an array of potential routes that could share a same stop
-			// (the stop that we are iterating over).
-			// Set the array size to that of all the routes minus the current index as to make it decrease every iteration.
-			val potentialRoutes = arrayOfNulls<Route>(MapsActivity.allRoutes.size - routeIndex)
-
-			// Add the current route to the potential routes, and update the potential route index.
-			potentialRoutes[0] = route
-			var potentialRouteIndex = 1
-
-			// In order to iterate though all the routes remaining in the allRoutes array we need to get the 2nd route index.
-			// This is equal to the first route index + 1 as to not hopefully not compare the same route against itself,
-			// but also not compare against previous routes in the array.
-			for (route2Index in routeIndex + 1 until MapsActivity.allRoutes.size) {
-
-				// Get the route at the 2nd index for comparison.
-				val route2 = MapsActivity.allRoutes[route2Index]
+			// Comments
+			for ((hashName, hashRoute) in (MapsActivity.allRoutes)) {
 
 				// If the routes are the same then continue to the next iteration of the loop.
-				if (route == route2) {
+				if (route == hashRoute) {
 					continue
 				}
 
 				// If there are no stops to iterate over just continue like above.
-				val route2Stops = route2.stops
-				if (route2Stops.isEmpty()) {
+				if (hashRoute.stops.isEmpty()) {
 					continue
 				}
 
-				// Iterate though each stop in the second route and compare them to the provided stop.
-				route2Stops.forEach {
-
-					// If the stops match, add the route to the potential routes array.
-					if (stop == it.value) {
-						potentialRoutes[potentialRouteIndex] = route2
-						potentialRouteIndex++
-					}
+				// Try to get our provided stop from the has route.
+				// If the stop isn't null (was found) add the hash route to our hashmap.
+				if (hashRoute.stops[stop.name] != null) {
+					hashMap[hashName] = hashRoute
 				}
 			}
 
-			// Create a new array of routes with the actual size of shared routes between the one shared stop.
-			val actualRoutes: Array<Route?> = arrayOfNulls(potentialRouteIndex)
-
-			// Copy the content from the potential routes into the actual route, and return the actual route.
-			System.arraycopy(potentialRoutes, 0, actualRoutes, 0, potentialRouteIndex)
-			return actualRoutes as Array<Route>
+			// Comments
+			return hashMap.values.toTypedArray()
 		}
 	}
 
