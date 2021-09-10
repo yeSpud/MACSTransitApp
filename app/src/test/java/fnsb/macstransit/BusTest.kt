@@ -3,7 +3,6 @@ package fnsb.macstransit
 import com.google.android.gms.maps.model.LatLng
 import fnsb.macstransit.routematch.Bus
 import fnsb.macstransit.routematch.RouteMatch
-import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.routematch.Route
 import org.json.JSONArray
 import org.json.JSONException
@@ -11,7 +10,7 @@ import org.json.JSONObject
 import org.junit.Assert
 import org.junit.Test
 import java.lang.NullPointerException
-import java.util.*
+import kotlin.collections.HashMap
 
 /**
  * Created by Spud on 6/27/20 for the project: MACS Transit.
@@ -24,18 +23,22 @@ import java.util.*
  */
 class BusTest {
 
+	private val routes: HashMap<String, Route> = HashMap(3)
+
 	@Test
 	fun busesTest() {
 
 		// Test the individual buses.
 		// First test bad arguments,
 		val empty: Array<Bus> = emptyArray()
-		Assert.assertArrayEquals(empty, Bus.getBuses(JSONArray()))
+		Assert.assertArrayEquals(empty, Bus.getBuses(JSONArray(), this.routes))
 
 		// Now test valid buses.
 		try {
-			Assert.assertArrayEquals(empty, Bus.getBuses(RouteMatch.parseData(Helper.getJSON(Helper.ALL_VEHICLES_EMPTY_JSON))))
-			val buses: Array<Bus> = Bus.getBuses(RouteMatch.parseData(Helper.getJSON(Helper.ALL_VEHICLES_JSON)))
+			Assert.assertArrayEquals(empty, Bus.getBuses(RouteMatch.parseData(Helper.
+			getJSON(Helper.ALL_VEHICLES_EMPTY_JSON)), this.routes))
+			val buses: Array<Bus> = Bus.getBuses(RouteMatch.parseData(Helper.
+			getJSON(Helper.ALL_VEHICLES_JSON)), this.routes)
 			Assert.assertEquals(3, buses.size.toLong())
 
 			// Test the individual buses.
@@ -45,7 +48,7 @@ class BusTest {
 			for (i in buses.indices) {
 				val bus: Bus = buses[i]
 				Assert.assertEquals(ids[i], bus.name)
-				Assert.assertSame(MapsActivity.allRoutes[bus.routeName], bus.route)
+				Assert.assertSame(this.routes[bus.routeName], bus.route)
 				Assert.assertEquals(lat[i], bus.location.latitude, 0.0)
 				Assert.assertEquals(lon[i], bus.location.longitude, 0.0)
 			}
@@ -121,8 +124,8 @@ class BusTest {
 	}
 
 	init {
-		MapsActivity.allRoutes["Brown"] = Route("Brown")
-		MapsActivity.allRoutes["Green"] = Route("Green")
-		MapsActivity.allRoutes["Red"] = Route("Red")
+		this.routes["Brown"] = Route("Brown")
+		this.routes["Green"] = Route("Green")
+		this.routes["Red"] = Route("Red")
 	}
 }

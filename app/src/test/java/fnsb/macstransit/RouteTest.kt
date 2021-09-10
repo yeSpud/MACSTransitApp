@@ -2,7 +2,6 @@ package fnsb.macstransit
 
 import android.graphics.Color
 import fnsb.macstransit.routematch.Route
-import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import org.junit.Assert
 import org.junit.Test
 import java.io.UnsupportedEncodingException
@@ -49,19 +48,20 @@ class RouteTest {
 	fun enableFavoriteRoutesTest() {
 
 		// TODO All
-		MapsActivity.allRoutes["Foo"] = Route("Foo")
-		MapsActivity.allRoutes["Bar"] = Route("Bar")
-		MapsActivity.allRoutes["Baz"] = Route("Baz")
+		val routes: HashMap<String, Route> = HashMap(3)
+		routes["Foo"] = Route("Foo")
+		routes["Bar"] = Route("Bar")
+		routes["Baz"] = Route("Baz")
 
 		// TODO Fav
-		val favoriteRoutes: Array<Route> = arrayOf(Route("Foo"))
+		val favoriteRoutes: Array<String> = arrayOf("Foo")
 
 		// Enable the favoriteRoutes.
-		Route.enableFavoriteRoutes(favoriteRoutes)
+		Route.enableFavoriteRoutes(routes, favoriteRoutes)
 
 		// Check for expected values.
-		Assert.assertTrue(MapsActivity.allRoutes["Foo"]!!.enabled)
-		Assert.assertFalse(MapsActivity.allRoutes["Bar"]!!.enabled)
-		Assert.assertFalse(MapsActivity.allRoutes["Baz"]!!.enabled)
+		Assert.assertTrue(routes["Foo"]!!.enabled)
+		Assert.assertFalse(routes["Bar"]!!.enabled)
+		Assert.assertFalse(routes["Baz"]!!.enabled)
 	}
 }
