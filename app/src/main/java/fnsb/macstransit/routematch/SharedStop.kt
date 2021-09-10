@@ -20,7 +20,12 @@ class SharedStop: MarkedObject, Parcelable {
 	/**
 	 * Documentation
 	 */
-	val routes: Array<Route>
+	val routeNames: Array<String>
+
+	/**
+	 * Documentation
+	 */
+	private val routeColors: IntArray
 
 	/**
 	 * Array of circle options for each circle that represents a route.
@@ -41,23 +46,20 @@ class SharedStop: MarkedObject, Parcelable {
 	 */
 	constructor(parcel: Parcel): super(parcel.readString()!!, parcel.
 	readParcelable<LatLng>(LatLng::class.java.classLoader)!!, parcel.readString()!!, parcel.readInt()) {
-		val routeNames: Array<String> = parcel.createStringArray()!!
-		val routeColors: IntArray = parcel.createIntArray()!!
-		this.routes = Array(routeNames.size) {
-			Route(routeNames[it], routeColors[it])
-		}
+		this.routeNames = parcel.createStringArray()!!
+		this.routeColors = parcel.createIntArray()!!
 
-		this.circleOptions = Array(this.routes.size) {
-			val route = routes[it]
-			val color = route.color
-			if (color != 0) {
-				CircleOptions().center(this.location).fillColor(color).strokeColor(color)
+		this.circleOptions = Array(this.routeNames.size) {
+			if (this.routeColors[it] != 0) {
+				CircleOptions().center(this.location)
+					.fillColor(this.routeColors[it])
+					.strokeColor(this.routeColors[it])
 			} else {
 				CircleOptions().center(this.location)
 			}
 		}
 
-		this.circles = arrayOfNulls(this.routes.size)
+		this.circles = arrayOfNulls(this.routeNames.size)
 
 		// Set the initial circle size.
 		setCircleSizes(INITIAL_CIRCLE_SIZE)
@@ -72,9 +74,10 @@ class SharedStop: MarkedObject, Parcelable {
 	 */
 	constructor(name: String, location: LatLng, routes: Array<Route>): super(name, location,
 	                                                                         routes[0].name, routes[0].color) {
-		this.routes = routes
+		this.routeNames = Array(routes.size) { routes[it].name }
+		this.routeColors = IntArray(routes.size) { routes[it].color }
 
-		this.circleOptions = Array(this.routes.size) {
+		this.circleOptions = Array(routes.size) {
 			val route = routes[it]
 			val color = route.color
 			if (color != 0) {
@@ -84,7 +87,7 @@ class SharedStop: MarkedObject, Parcelable {
 			}
 		}
 
-		this.circles = arrayOfNulls(this.routes.size)
+		this.circles = arrayOfNulls(routes.size)
 
 		// Set the initial circle size.
 		setCircleSizes(INITIAL_CIRCLE_SIZE)
@@ -102,20 +105,20 @@ class SharedStop: MarkedObject, Parcelable {
 	fun showSharedStop(map: GoogleMap) {
 
 		// Iterate though each of the circles.
-		for (i in circles.indices) {
+		for (i in this.circles.indices) {
 
 			// If the circle is null, create a new shared stop circle.
-			if (circles[i] == null) {
+			if (this.circles[i] == null) {
 
 				// Since the stop circle is null try creating a new one.
 				this.createSharedStopCircle(map, i)
 			} else {
 
 				// Only set the circle to be clickable if its the 0th index circle (the biggest one).
-				circles[i]!!.isClickable = i == 0
+				this.circles[i]!!.isClickable = i == 0
 
 				// Set the circle to be visible.
-				circles[i]!!.isVisible = true
+				this.circles[i]!!.isVisible = true
 			}
 		}
 	}
@@ -128,15 +131,6 @@ class SharedStop: MarkedObject, Parcelable {
 	 */
 	@UiThread
 	fun hideStop() {
-
-		// Iterate though each route in the shared stop.
-		this.routes.forEach {
-
-			// If any route is still enabled, return early.
-			if (it.enabled) {
-				return
-			}
-		}
 
 		// Iterate though each circle in the shared stop.
 		this.circles.forEach {
@@ -298,18 +292,10 @@ class SharedStop: MarkedObject, Parcelable {
 	override fun writeToParcel(parcel: Parcel, flags: Int) {
 		parcel.writeString(this.name)
 		parcel.writeParcelable(this.location, flags)
-		parcel.writeString(this.routes[0].name)
-		parcel.writeInt(this.routes[0].color)
-
-		val routeNames: Array<String> = Array(this.routes.size) {
-			this.routes[it].name
-		}
-		parcel.writeStringArray(routeNames)
-
-		val routeColors = IntArray(this.routes.size) {
-			this.routes[it].color
-		}
-		parcel.writeIntArray(routeColors)
+		parcel.writeString(this.routeNames[0])
+		parcel.writeInt(this.routeColors[0])
+		parcel.writeStringArray(this.routeNames)
+		parcel.writeIntArray(this.routeColors)
 	}
 
 	override fun describeContents(): Int {

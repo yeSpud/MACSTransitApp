@@ -105,7 +105,7 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 		// Try setting the routes array to either enabled routes (shared stop) or our single route (stop).
 		val routes: Array<Route> = try {
 			if (isSharedStop){
-				getEnabledRoutesForStop((stop as SharedStop).routes)
+				getEnabledRoutesForStop(stop as SharedStop)
 			} else {
 				arrayOf(MapsActivity.allRoutes[stop.routeName]!!)
 			}
@@ -225,22 +225,27 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 		/**
 		 * Returns an array of routes that are enabled from all the routes in the shared stop.
 		 *
-		 * @param allRoutesForStop The routes in the shared stop.
+		 * @param sharedStop Documentation
 		 * @return The routes in the shared stop that are enabled.
 		 */
-		internal fun getEnabledRoutesForStop(allRoutesForStop: Array<Route>): Array<Route> {
+		internal fun getEnabledRoutesForStop(sharedStop: SharedStop): Array<Route> {
 
 			// Create a new routes array to store routes that have been verified to be enabled.
-			val potentialRoutes = arrayOfNulls<Route>(allRoutesForStop.size)
+			val potentialRoutes = arrayOfNulls<Route>(sharedStop.routeNames.size)
 			var routeCount = 0
 
-			// Iterate though all the routes in our shared stop.
-			allRoutesForStop.forEach {
-
-				// If the route is enabled add it to our verified routes array,
-				// and increase the verified count.
-				if (it.enabled) {
-					potentialRoutes[routeCount] = it
+			// Comments
+			for (routeName : String in sharedStop.routeNames) {
+				val route: Route = try {
+					MapsActivity.allRoutes[routeName]!!
+				} catch (NullPointerException: NullPointerException) {
+					Log.e("getEnabledRoutes",
+					      "Route for shared stop ${sharedStop.name} is invalid: $routeName}",
+					      NullPointerException)
+					continue
+				}
+				if (route.enabled) {
+					potentialRoutes[routeCount] = route
 					routeCount++
 				}
 			}

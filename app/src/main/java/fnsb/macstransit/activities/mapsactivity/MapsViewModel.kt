@@ -75,6 +75,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 
 				// Iterate though the shared stops in the route.
 				route.sharedStops.forEach {
+
 					if (route.enabled) {
 
 						// Show the shared stops.
