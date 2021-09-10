@@ -62,6 +62,7 @@
     <string name="favorited_routes">Favorited routes:</string>
     <string name="normal_map">Normal (Default)</string>
     <string name="satellite_map">Satellite</string>
+    <string name="hybrid_map">Hybrid</string>
     <string name="terrain_map">Terrain</string>
     <string name="favorite_routes_explanation">Selected favorited routes will be pre-selected upon app startup.</string>
     <string name="cancel">Cancel</string>

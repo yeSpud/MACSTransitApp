@@ -3,15 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
-
-        <variable
-            name="activity"
-            type="fnsb.macstransit.activities.SettingsActivity" />
-
-        <variable
-            name="google_map"
-            type="com.google.android.gms.maps.GoogleMap" />
-
+        <variable name="activity" type="fnsb.macstransit.activities.SettingsActivity" />
+        <variable name="google_map" type="com.google.android.gms.maps.GoogleMap" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -25,11 +18,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="25dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="15dp"
             android:text="@string/settings"
             android:textColor="@color/white"
-            android:textSize="35sp"
+            android:textSize="40sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -56,9 +49,10 @@
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/white"
                     android:checked="@{activity.settings.INSTANCE.traffic}"
+                    android:minHeight="48dp"
                     android:text="@string/enable_traffic_view"
                     android:textColor="@color/white"
-                    android:textSize="15sp" />
+                    android:textSize="20sp" />
 
                 <CheckBox
                     android:id="@+id/night_mode"
@@ -66,9 +60,10 @@
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/white"
                     android:checked="@{activity.settings.INSTANCE.darktheme}"
+                    android:minHeight="48dp"
                     android:text="@string/launch_with_night_mode"
                     android:textColor="@color/white"
-                    android:textSize="15sp" />
+                    android:textSize="20sp" />
 
                 <CheckBox
                     android:id="@+id/polylines"
@@ -76,9 +71,10 @@
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/white"
                     android:checked="@{activity.settings.INSTANCE.polylines}"
+                    android:minHeight="48dp"
                     android:text="@string/show_polylines"
                     android:textColor="@color/white"
-                    android:textSize="15sp" />
+                    android:textSize="20sp" />
 
                 <CheckBox
                     android:id="@+id/VR"
@@ -89,18 +85,17 @@
                     android:enabled="false"
                     android:text="@string/enable_street_view"
                     android:textColor="@color/white"
-                    android:textSize="15sp"
+                    android:textSize="20sp"
                     android:visibility="gone" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:layout_marginTop="25dp"
+                    android:layout_marginTop="20dp"
                     android:text="@string/default_map_type"
                     android:textColor="@color/white"
-                    android:textSize="20sp" />
-
+                    android:textSize="25sp" />
 
                 <RadioGroup
                     android:id="@+id/map_group"
@@ -113,9 +108,10 @@
                         android:layout_height="wrap_content"
                         android:buttonTint="@color/white"
                         android:checked="@{activity.settings.INSTANCE.maptype == google_map.MAP_TYPE_NORMAL}"
+                        android:minHeight="48dp"
                         android:text="@string/normal_map"
                         android:textColor="@color/white"
-                        android:textSize="15sp" />
+                        android:textSize="20sp" />
 
                     <RadioButton
                         android:id="@+id/satellite_map"
@@ -123,9 +119,21 @@
                         android:layout_height="wrap_content"
                         android:buttonTint="@color/white"
                         android:checked="@{activity.settings.INSTANCE.maptype == google_map.MAP_TYPE_SATELLITE}"
+                        android:minHeight="48dp"
                         android:text="@string/satellite_map"
                         android:textColor="@color/white"
-                        android:textSize="15sp" />
+                        android:textSize="20sp" />
+
+                    <RadioButton
+                        android:id="@+id/hybrid_map"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:buttonTint="@color/white"
+                        android:checked="@{activity.settings.INSTANCE.maptype == google_map.MAP_TYPE_HYBRID}"
+                        android:minHeight="48dp"
+                        android:text="@string/hybrid_map"
+                        android:textColor="@color/white"
+                        android:textSize="20sp" />
 
                     <RadioButton
                         android:id="@+id/terrain_map"
@@ -133,9 +141,10 @@
                         android:layout_height="wrap_content"
                         android:buttonTint="@color/white"
                         android:checked="@{activity.settings.INSTANCE.maptype == google_map.MAP_TYPE_TERRAIN}"
+                        android:minHeight="48dp"
                         android:text="@string/terrain_map"
                         android:textColor="@color/white"
-                        android:textSize="15sp" />
+                        android:textSize="20sp" />
 
                 </RadioGroup>
 
@@ -144,10 +153,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:layout_marginTop="25dp"
+                    android:layout_marginTop="20dp"
                     android:text="@string/favorited_routes"
                     android:textColor="@color/white"
-                    android:textSize="20sp" />
+                    android:textSize="25sp" />
 
                 <LinearLayout
                     android:id="@+id/favorite_route_container"

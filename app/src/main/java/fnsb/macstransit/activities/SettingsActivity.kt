@@ -4,6 +4,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.Log
+import android.util.TypedValue
 import android.view.View
 import android.widget.CheckBox
 import android.widget.Toast
@@ -41,12 +42,10 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 		// Set the layout view to the settings view.
 		this.setContentView(this.binding.root)
 
-		// TODO Move to xml?
 		// Setup the buttons.
 		// The apply settings button should run the apply settings listener.
 		this.binding.apply.setOnClickListener(ApplySettings())
 
-		// TODO Move to xml?
 		// The cancel button should just finish the class and return.
 		this.binding.cancel.setOnClickListener { this.finish() }
 
@@ -58,6 +57,7 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 		// Begin by iterating though all the routes.
 		routeParcel.forEach {
 
+			// Comments
 			val route: Route = it as Route
 
 			// Create a new checkbox.
@@ -66,8 +66,12 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			// Set the checkbox's text to the route name.
 			checkBox.text = route.name
 
+			// Comments
+			checkBox.minHeight = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 48.0F,
+			                                               this.resources.displayMetrics).toInt()
+
 			// Set the color and size of the text to constants.
-			checkBox.textSize = CHECKBOX_TEXT_SIZE.toFloat()
+			checkBox.textSize = CHECKBOX_TEXT_SIZE
 			val color = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
 				@Suppress("Deprecation")
 				this.resources.getColor(R.color.white)
@@ -96,7 +100,7 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 		/**
 		 * Constant used to set the initial size of the text for the favorite routes check box.
 		 */
-		private const val CHECKBOX_TEXT_SIZE = 15
+		private const val CHECKBOX_TEXT_SIZE: Float = 20.0F
 
 		/**
 		 * Iterates though the provided route (favorited routes),
@@ -134,9 +138,11 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 
 			// Determine the map type.
 			val mapId: Int = when (this@SettingsActivity.binding.mapGroup.checkedRadioButtonId) {
-				R.id.satellite_map -> { GoogleMap.MAP_TYPE_SATELLITE }
-				R.id.terrain_map -> { GoogleMap.MAP_TYPE_TERRAIN }
-				else -> { GoogleMap.MAP_TYPE_NORMAL }
+				R.id.normal_map -> GoogleMap.MAP_TYPE_NORMAL
+				R.id.satellite_map -> GoogleMap.MAP_TYPE_SATELLITE
+				R.id.hybrid_map -> GoogleMap.MAP_TYPE_HYBRID
+				R.id.terrain_map -> GoogleMap.MAP_TYPE_TERRAIN
+				else -> GoogleMap.MAP_TYPE_NORMAL
 			}
 
 			// Format the options into a Json string.
