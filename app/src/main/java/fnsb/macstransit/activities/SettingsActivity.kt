@@ -59,6 +59,7 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 
 		// Setup the favorites container.
 		// Begin by iterating though all the routes.
+		// TODO Get routes from intent.
 		for ((name, route) in MapsActivity.allRoutes) {
 
 			// Create a new checkbox.

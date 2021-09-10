@@ -3,7 +3,6 @@ package fnsb.macstransit.routematch
 import android.util.Log
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.model.LatLng
-import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import org.json.JSONException
 import kotlin.RuntimeException
 
@@ -79,13 +78,15 @@ class Bus(
 		 * The size of the return array is the size of the json array.
 		 *
 		 * @param vehiclesJson The json array containing the bus information.
+		 * @param routes
+		 *
 		 * @return An array of buses created from the information in the json array.
 		 * @throws RuntimeException Thrown if the bus route is not in our trackable routes.
 		 * @throws JSONException Thrown if there is an error parsing the JSON values.
 		 */
 		@JvmStatic
 		@Throws(RuntimeException::class, JSONException::class)
-		fun getBuses(vehiclesJson: org.json.JSONArray): Array<Bus> {
+		fun getBuses(vehiclesJson: org.json.JSONArray, routes: HashMap<String, Route>): Array<Bus> {
 
 			// Return the bus array from the following:
 			return Array(vehiclesJson.length()) {
@@ -101,13 +102,13 @@ class Bus(
 
 				// Since we have the route name we need to now find the actual route that belongs to it.
 				// First make sure all the routes have been loaded before continuing.
-				if (MapsActivity.allRoutes.isEmpty()) {
+				if (routes.isEmpty()) {
 					throw RuntimeException("There are no loaded routes!")
 				}
 
 				// Try to get the bus's route via the route name.
 				val route: Route = try {
-					MapsActivity.allRoutes[busObject.getString("masterRouteId")]!!
+					routes[busObject.getString("masterRouteId")]!!
 				} catch (NullPointerException: NullPointerException) {
 
 					// Comments

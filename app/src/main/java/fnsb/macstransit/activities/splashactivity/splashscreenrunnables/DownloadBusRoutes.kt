@@ -38,9 +38,6 @@ class DownloadBusRoutes(viewModel: SplashViewModel):
 
 		override fun parse(jsonArray: JSONArray): Array<LatLng> {
 
-			// Comments
-			val hashMap: HashMap<String, LatLng> = HashMap()
-
 			try {
 
 				// Get the land route points object from the land route data array.
@@ -65,11 +62,18 @@ class DownloadBusRoutes(viewModel: SplashViewModel):
 					val latitude: Double = landRoutePoint.getDouble("latitude")
 					val longitude: Double = landRoutePoint.getDouble("longitude")
 
-					// Add the newly created LatLng object to the LatLng array.
-					coordinates[i] = LatLng(latitude, longitude)
-				}
+					// Check to make sure we arent storing duplicates.
+					var unique = true
+					for (j in 0 until i) {
+						val testLatLng = coordinates[j] ?: break
+						unique = latitude != testLatLng.latitude && longitude != testLatLng.longitude
+					}
 
-				hashMap["array", ]
+					// Add the newly created LatLng object to the LatLng array.
+					if (unique) {
+						coordinates[i] = LatLng(latitude, longitude)
+					}
+				}
 
 				// Comments
 				@Suppress("UNCHECKED_CAST")

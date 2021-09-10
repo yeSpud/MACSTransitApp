@@ -26,7 +26,8 @@ import java.util.Locale
  * @since Beta 7.
  */
 class StopClicked(private val context: Context, private val routematch: RouteMatch,
-                  private val map: GoogleMap) : GoogleMap.OnCircleClickListener {
+                  private val map: GoogleMap, private val routes: HashMap<String, Route>) :
+		GoogleMap.OnCircleClickListener {
 
 	@UiThread
 	override fun onCircleClick(circle: com.google.android.gms.maps.model.Circle) {
@@ -107,7 +108,7 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 			if (isSharedStop){
 				getEnabledRoutesForStop(stop as SharedStop)
 			} else {
-				arrayOf(MapsActivity.allRoutes[stop.routeName]!!)
+				arrayOf(this.routes[stop.routeName]!!)
 			}
 		} catch (e: ClassCastException) {
 
@@ -220,45 +221,45 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 		return snippetText.toString()
 	}
 
-	companion object {
+	/**
+	 * Returns an array of routes that are enabled from all the routes in the shared stop.
+	 *
+	 * @param sharedStop Documentation
+	 * @return The routes in the shared stop that are enabled.
+	 */
+	private fun getEnabledRoutesForStop(sharedStop: SharedStop): Array<Route> {
 
-		/**
-		 * Returns an array of routes that are enabled from all the routes in the shared stop.
-		 *
-		 * @param sharedStop Documentation
-		 * @return The routes in the shared stop that are enabled.
-		 */
-		internal fun getEnabledRoutesForStop(sharedStop: SharedStop): Array<Route> {
+		// Create a new routes array to store routes that have been verified to be enabled.
+		val potentialRoutes = arrayOfNulls<Route>(sharedStop.routeNames.size)
+		var routeCount = 0
 
-			// Create a new routes array to store routes that have been verified to be enabled.
-			val potentialRoutes = arrayOfNulls<Route>(sharedStop.routeNames.size)
-			var routeCount = 0
-
-			// Comments
-			for (routeName : String in sharedStop.routeNames) {
-				val route: Route = try {
-					MapsActivity.allRoutes[routeName]!!
-				} catch (NullPointerException: NullPointerException) {
-					Log.e("getEnabledRoutes",
-					      "Route for shared stop ${sharedStop.name} is invalid: $routeName}",
-					      NullPointerException)
-					continue
-				}
-				if (route.enabled) {
-					potentialRoutes[routeCount] = route
-					routeCount++
-				}
+		// Comments
+		for (routeName : String in sharedStop.routeNames) {
+			val route: Route = try {
+				this.routes[routeName]!!
+			} catch (NullPointerException: NullPointerException) {
+				Log.e("getEnabledRoutes",
+				      "Route for shared stop ${sharedStop.name} is invalid: $routeName}",
+				      NullPointerException)
+				continue
 			}
-
-			// Create a new routes array of selected routes that has the size of our verified count.
-			val selectedRoutes = arrayOfNulls<Route>(routeCount)
-
-			// Fill the selected routes array.
-			System.arraycopy(potentialRoutes, 0, selectedRoutes, 0, routeCount)
-
-			// Return our selected routes.
-			return selectedRoutes as Array<Route>
+			if (route.enabled) {
+				potentialRoutes[routeCount] = route
+				routeCount++
+			}
 		}
+
+		// Create a new routes array of selected routes that has the size of our verified count.
+		val selectedRoutes = arrayOfNulls<Route>(routeCount)
+
+		// Fill the selected routes array.
+		System.arraycopy(potentialRoutes, 0, selectedRoutes, 0, routeCount)
+
+		// Return our selected routes.
+		return selectedRoutes as Array<Route>
+	}
+
+	companion object {
 
 		/**
 		 * Gets the the time (predicted arrival or predicted departure depending on the key)

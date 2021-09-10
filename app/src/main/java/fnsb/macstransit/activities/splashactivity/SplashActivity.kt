@@ -3,8 +3,6 @@ package fnsb.macstransit.activities.splashactivity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.os.Parcel
-import android.os.Parcelable
 import android.util.Log
 import android.view.View
 import androidx.lifecycle.lifecycleScope
@@ -46,7 +44,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 	 */
 	var loaded: Boolean = false
 
-	override fun onCreate(savedInstanceState: android.os.Bundle?) {
+	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
 		// Setup view model.
@@ -133,19 +131,22 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 			}
 
 			// Download and load the bus routes (on a coroutine of course).
+			/*
 			this.launch(CoroutineName("RouteCoroutine"), start = CoroutineStart.UNDISPATCHED) {
 				this@SplashActivity.downloadCoroutine(LOAD_BUS_ROUTES.toDouble(), DOWNLOAD_BUS_ROUTES.toDouble(),
 				                                      (DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE).toDouble(),
 				                                      fnsb.macstransit.activities.splashactivity.
 				                                      splashscreenrunnables.DownloadBusRoutes(this@SplashActivity.viewModel))
+
 			}.join()
+			 */
 
 			// Download and load the bus stops (on a coroutine of course).
 			this.launch(CoroutineName("StopCoroutine"), start = CoroutineStart.UNDISPATCHED) {
 				this@SplashActivity.downloadCoroutine(LOAD_BUS_STOPS.toDouble(), DOWNLOAD_BUS_STOPS.toDouble(),
 				                                      (DOWNLOAD_MASTER_SCHEDULE_PROGRESS +
-				                                       PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_ROUTES +
-				                                       LOAD_BUS_ROUTES).toDouble(), fnsb.macstransit.
+				                                       PARSE_MASTER_SCHEDULE /*+ DOWNLOAD_BUS_ROUTES +
+				                                       LOAD_BUS_ROUTES */).toDouble(), fnsb.macstransit.
 				activities.splashactivity.splashscreenrunnables.DownloadBusStops(this@SplashActivity.viewModel))
 			}.join()
 
@@ -254,7 +255,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 				when (returned) {
 
 					// Comments
-					is Array<*> -> route.polyLineCoordinates = returned as Array<com.google.android.gms.maps.model.LatLng>
+					//is Array<*> -> route.polyLineCoordinates = returned as Array<com.google.android.gms.maps.model.LatLng>
 
 					// Comments
 					is HashMap<*,*> -> route.stops.putAll(returned as HashMap<String, fnsb.macstransit.routematch.Stop>)
@@ -364,7 +365,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 						Log.d("mapSharedStops", "Adding shared stop to route: " +
 						                        this@SplashActivity.viewModel.routes[it.name]!!.name)
 						this@SplashActivity.viewModel.routes[it.name]!!.sharedStops[name] = sharedStop
-					} // FIXME Shared stops not being added
+					}
 				}
 			}
 
@@ -439,22 +440,17 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		MapsActivity.firstRun = true
 
 		// For now set deprecated all routes...
-		MapsActivity.allRoutes.putAll(this.viewModel.routes)
+		//MapsActivity.allRoutes.putAll(this.viewModel.routes)
 
 		// Get the intent to start the MapsActivity.
 		val mapsIntent = Intent(this, MapsActivity::class.java)
 
-		val bundle = Bundle()
-
-		for ((name, route) in this@SplashActivity.viewModel.routes) {
-			bundle.putParcelable(name, route)
-		}
-
 		// Get the routes as parcelables.
-		mapsIntent.putExtras(bundle)
+		mapsIntent.putExtra("Routes", this.viewModel.routes.values.toTypedArray())
 
 		// Start the MapsActivity, and close this splash activity.
-		this.startActivity(mapsIntent) // FIXME Crash here
+		Log.d("launchMapsActivity", "Starting maps activity")
+		this.startActivity(mapsIntent)
 		this.finishAfterTransition()
 	}
 
@@ -505,7 +501,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		 * The max progress is determined by adding all of the const values.
 		 */
 		const val MAX_PROGRESS: Short = (DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE +
-		                                 DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS +
+		                                /* DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES +*/ DOWNLOAD_BUS_STOPS +
 		                                 LOAD_BUS_STOPS + LOAD_SHARED_STOPS + VALIDATE_STOPS).toShort()
 	}
 
