@@ -130,17 +130,6 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 				return@launch
 			}
 
-			// Download and load the bus routes (on a coroutine of course).
-			/*
-			this.launch(CoroutineName("RouteCoroutine"), start = CoroutineStart.UNDISPATCHED) {
-				this@SplashActivity.downloadCoroutine(LOAD_BUS_ROUTES.toDouble(), DOWNLOAD_BUS_ROUTES.toDouble(),
-				                                      (DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE).toDouble(),
-				                                      fnsb.macstransit.activities.splashactivity.
-				                                      splashscreenrunnables.DownloadBusRoutes(this@SplashActivity.viewModel))
-
-			}.join()
-			 */
-
 			// Download and load the bus stops (on a coroutine of course).
 			this.launch(CoroutineName("StopCoroutine"), start = CoroutineStart.UNDISPATCHED) {
 				this@SplashActivity.downloadCoroutine(LOAD_BUS_STOPS.toDouble(), DOWNLOAD_BUS_STOPS.toDouble(),
@@ -330,8 +319,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		// Set the current progress.
 		val step = LOAD_SHARED_STOPS.toDouble() / this@SplashActivity.viewModel.routes.size
 		var currentProgress = (DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE +
-		                       DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS +
-		                       LOAD_BUS_STOPS).toDouble()
+		                       DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS).toDouble()
 
 		// Comments
 		var i = 0
@@ -391,8 +379,8 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		// Determine the progress step.
 		val step = VALIDATE_STOPS.toDouble() / this@SplashActivity.viewModel.routes.size
 		var currentProgress =
-				(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_ROUTES +
-				 LOAD_BUS_ROUTES + DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS + LOAD_SHARED_STOPS).toDouble()
+				(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_STOPS +
+				 LOAD_BUS_STOPS + LOAD_SHARED_STOPS).toDouble()
 
 		// Iterate though all the routes and recreate the stops for each route.
 		for ((name, route) in this@SplashActivity.viewModel.routes) {
@@ -467,16 +455,6 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		const val PARSE_MASTER_SCHEDULE: Short = 8
 
 		/**
-		 * Number of iterations (on average) it takes to download the bus routes.
-		 */
-		const val DOWNLOAD_BUS_ROUTES: Short = 8
-
-		/**
-		 * Number of iterations (on average) it takes to load the bus routes.
-		 */
-		const val LOAD_BUS_ROUTES: Short = 8
-
-		/**
 		 * Number of iterations (on average) it takes to download the bus stops.
 		 */
 		const val DOWNLOAD_BUS_STOPS: Short = 8
@@ -494,15 +472,15 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		/**
 		 * Number of iterations (on average) it takes to validate the stops and shared stops.
 		 */
-		const val VALIDATE_STOPS: Short = 8
+		const val VALIDATE_STOPS: Short = 1
 
 		/**
 		 * The max progress for the progress bar.
 		 * The max progress is determined by adding all of the const values.
 		 */
 		const val MAX_PROGRESS: Short = (DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE +
-		                                /* DOWNLOAD_BUS_ROUTES + LOAD_BUS_ROUTES +*/ DOWNLOAD_BUS_STOPS +
-		                                 LOAD_BUS_STOPS + LOAD_SHARED_STOPS + VALIDATE_STOPS).toShort()
+		                                 DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS + LOAD_SHARED_STOPS +
+		                                 VALIDATE_STOPS).toShort()
 	}
 
 }

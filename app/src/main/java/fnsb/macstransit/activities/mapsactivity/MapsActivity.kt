@@ -17,8 +17,6 @@ import fnsb.macstransit.databinding.ActivityMapsBinding
 import fnsb.macstransit.settings.CurrentSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.*
-import kotlin.collections.HashMap
 
 class MapsActivity: androidx.fragment.app.FragmentActivity() {
 
@@ -209,8 +207,17 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 					}
 
 					// Check if the item that was selected was the settings button.
-					// Launch the settings activity if it was.
-					R.id.settings -> this.startActivity(Intent(this, SettingsActivity::class.java))
+					R.id.settings -> {
+
+						// Comments
+						val settingsIntent = Intent(this, SettingsActivity::class.java)
+
+						// Comments
+						settingsIntent.putExtra("Routes", this.viewModel.routes.values.toTypedArray())
+
+						// Comments
+						this.startActivity(settingsIntent)
+					}
 
 					// Check if the item that was selected was the fares button.
 					R.id.fares -> this.farePopupWindow.showFarePopupWindow()
@@ -293,17 +300,6 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 	}
 
 	companion object {
-
-		/**
-		 * Create an array to store all the routes that we will track.
-		 * This is not to say that all routes in this array are enabled - they can also be disabled (hidden).
-		 * This array is initialized in DownloadMasterSchedule.
-		 *
-		 * Because this is a static member that stores items that take in contexts it is a potential memory leak,
-		 * so an alternative is strongly recommend.
-		 */
-		@Deprecated("Memory leak")
-		var allRoutes: HashMap<String, Route> = HashMap()
 
 		/**
 		 * Used to determine if the MapsActivity has been run before in the app's lifecycle.

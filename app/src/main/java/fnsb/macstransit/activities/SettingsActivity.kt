@@ -1,13 +1,14 @@
 package fnsb.macstransit.activities
 
 import android.os.Build
+import android.os.Bundle
+import android.os.Parcelable
 import android.util.Log
 import android.view.View
 import android.widget.CheckBox
 import android.widget.Toast
 import fnsb.macstransit.R
 import com.google.android.gms.maps.GoogleMap
-import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.databinding.SettingsBinding
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.CurrentSettings
@@ -31,7 +32,7 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 	 */
 	val settings = CurrentSettings.settingsImplementation as fnsb.macstransit.settings.V2
 
-	override fun onCreate(savedInstanceState: android.os.Bundle?) {
+	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
 		// Setup the binder.
@@ -57,16 +58,21 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 		// The cancel button should just finish the class and return.
 		this.binding.cancel.setOnClickListener { this.finish() }
 
+		// Get the routes from the intent extra.
+		val extraBundle: Bundle = this.intent.extras ?: return
+		val routeParcel: Array<Parcelable> = extraBundle.getParcelableArray("Routes") ?: return
+
 		// Setup the favorites container.
 		// Begin by iterating though all the routes.
-		// TODO Get routes from intent.
-		for ((name, route) in MapsActivity.allRoutes) {
+		routeParcel.forEach {
+
+			val route: Route = it as Route
 
 			// Create a new checkbox.
 			val checkBox = CheckBox(this)
 
 			// Set the checkbox's text to the route name.
-			checkBox.text = name
+			checkBox.text = route.name
 
 			// Set the color and size of the text to constants.
 			checkBox.textSize = CHECKBOX_TEXT_SIZE.toFloat()
@@ -79,15 +85,14 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			checkBox.setTextColor(color)
 
 			// Add button tint if the sdk supports it.
-			checkBox.buttonTintList =
-					androidx.appcompat.content.res.AppCompatResources.getColorStateList(this,
-					                                                                    R.color.white)
+			checkBox.buttonTintList = androidx.appcompat.content.res.AppCompatResources.
+			getColorStateList(this, R.color.white)
 
 			// Set the checkbox tag to the route object.
 			checkBox.tag = route
 
 			// Set the checkbox to its enabled value.
-			checkBox.isChecked = isFavorited(this.settings.routes, name)
+			checkBox.isChecked = isFavorited(this.settings.favoriteRouteNames, route.name)
 
 			// Add the box to the favorites container.
 			this.binding.favoriteRouteContainer.addView(checkBox)
@@ -105,17 +110,17 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 		 * Iterates though the provided route (favorited routes),
 		 * and returns if the provided route name matches any of them.
 		 *
-		 * @param routes    The favorited routes. This cannot be null.
-		 * @param routeName The route name. This cannot be null.
+		 * @param routes    Documentation
+		 * @param routeName The route name.
 		 * @return Whether the route name was found in the favorited routes.
 		 */
-		internal fun isFavorited(routes: Array<Route>, routeName: String): Boolean {
+		internal fun isFavorited(routes: Array<String>, routeName: String): Boolean {
 
 			// Iterate though all the routes provided.
-			for (savedRoute in routes) {
+			routes.forEach {
 
 				// If the name matches then return true. If not then keep iterating.
-				if (savedRoute.name == routeName) {
+				if (it == routeName) {
 					return true
 				}
 			}

@@ -281,24 +281,18 @@ class Route: Parcelable {
 		 * Iterates though all the routes in MapsActivity.allRoutes
 		 * and enables those that have been favorited (as determined by being in the favoritedRoutes array).
 		 *
-		 * @param routes Documentation
-		 * @param favoritedRoutes The selected routes to be enabled from MapsActivity.allRoutes.
+		 * @param routes          Documentation
+		 * @param favoriteRouteNames Documentation
 		 */
 		@JvmStatic
-		fun enableFavoriteRoutes(routes: HashMap<String, Route>, favoritedRoutes: Array<Route>) {
+		fun enableFavoriteRoutes(routes: HashMap<String, Route>, favoriteRouteNames: Array<String>) {
 
-			// Iterate through all the routes that will be used in the activity.
-			for ((name, route) in routes) {
-
-				// Iterate though the favorite routes.
-				for (favoritedRoute: Route in favoritedRoutes) {
-
-					// If the route name matches the favorited route name, enable it in all routes.
-					if (name == favoritedRoute.name) {
-						route.enabled = true
-						break
-					}
-				}
+			// Comments
+			try {
+				favoriteRouteNames.forEach { routes[it]!!.enabled = true }
+			} catch (NullPointerException: NullPointerException) {
+				Log.e("enableFavoriteRoutes", "Route $favoriteRouteNames is not a valid route",
+				      NullPointerException)
 			}
 		}
 

@@ -263,10 +263,8 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 			if (MapsActivity.firstRun) {
 
 				// Get the favorited routes from the settings object.
-				val favoritedRoutes = settings.routes
-
 				// If the favorited routes is not null, enable them.
-				Route.enableFavoriteRoutes(this.routes, favoritedRoutes)
+				Route.enableFavoriteRoutes(this.routes, settings.favoriteRouteNames)
 
 				MapsActivity.firstRun = false
 			}

@@ -12,7 +12,6 @@ import fnsb.macstransit.routematch.MarkedObject
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.routematch.SharedStop
-import fnsb.macstransit.routematch.Stop
 import org.json.JSONException
 import org.json.JSONObject
 import java.text.SimpleDateFormat
