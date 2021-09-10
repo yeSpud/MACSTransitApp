@@ -41,14 +41,6 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 		// Set the layout view to the settings view.
 		this.setContentView(this.binding.root)
 
-		// TODO Move the following to xml?
-		// Setup the radio buttons.
-		when (this.settings.maptype) {
-			GoogleMap.MAP_TYPE_SATELLITE -> this.binding.mapGroup.check(R.id.satellite_map)
-			GoogleMap.MAP_TYPE_TERRAIN -> this.binding.mapGroup.check(R.id.terrain_map)
-			else -> this.binding.mapGroup.check(R.id.normal_map)
-		}
-
 		// TODO Move to xml?
 		// Setup the buttons.
 		// The apply settings button should run the apply settings listener.
