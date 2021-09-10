@@ -1,6 +1,8 @@
 package fnsb.macstransit.activities.mapsactivity
 
 import android.content.Intent
+import android.os.Bundle
+import android.os.Parcelable
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.V2
 import fnsb.macstransit.R
@@ -15,8 +17,6 @@ import fnsb.macstransit.databinding.ActivityMapsBinding
 import fnsb.macstransit.settings.CurrentSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.*
-import kotlin.collections.HashMap
 
 class MapsActivity: androidx.fragment.app.FragmentActivity() {
 
@@ -31,7 +31,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 	 */
 	private lateinit var farePopupWindow: FarePopupWindow
 
-	override fun onCreate(savedInstanceState: android.os.Bundle?) {
+	override fun onCreate(savedInstanceState: Bundle?) {
 		Log.v("onCreate", "onCreate has been called!")
 		super.onCreate(savedInstanceState)
 
@@ -67,6 +67,20 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 
 		// Setup the fares popup window.
 		this.farePopupWindow = FarePopupWindow(this)
+
+		// Setup all our routes.
+		if (this.viewModel.routes.isEmpty()) {
+			val extraBundle: Bundle = this.intent.extras ?: return
+
+			val routesParcel: Array<Parcelable> = extraBundle.getParcelableArray("Routes") ?: return
+
+			routesParcel.forEach {
+				if (it is Route) {
+					val route: Route = it
+					this.viewModel.routes[route.name] = route
+				}
+			}
+		}
 	}
 
 	override fun onDestroy() {
@@ -78,7 +92,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 			Log.i("onDestroy", "Beginning onDestroy cleanup coroutine...")
 
 			// Iterate though each route to get access to its shared stops and regular stops.
-			for ((_, route) in allRoutes) {
+			for ((_, route) in this@MapsActivity.viewModel.routes) {
 
 				// Iterate though each stop.
 				Log.d("onDestroy", "Removing stop circles")
@@ -136,7 +150,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		this.menuInflater.inflate(R.menu.menu, menu)
 
 		// Create the menu item that corresponds to the route object.
-		for ((name, _) in allRoutes) {
+		for ((name, _) in this.viewModel.routes) {
 
 			// Make sure the item is checkable.
 			menu.add(R.id.routes, name.hashCode(), Menu.NONE, name).isCheckable = true
@@ -150,7 +164,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		Log.v("onPrepareOptionsMenu", "onPrepareOptionsMenu has been called!")
 
 		// Iterate through all the routes that can be tracked (if allRoutes isn't null).
-		for ((name, route) in allRoutes) {
+		for ((name, route) in this.viewModel.routes) {
 
 			// Determine whether or not the menu item should be checked before hand.
 			val checked: Boolean = route.enabled
@@ -193,8 +207,17 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 					}
 
 					// Check if the item that was selected was the settings button.
-					// Launch the settings activity if it was.
-					R.id.settings -> this.startActivity(Intent(this, SettingsActivity::class.java))
+					R.id.settings -> {
+
+						// Comments
+						val settingsIntent = Intent(this, SettingsActivity::class.java)
+
+						// Comments
+						settingsIntent.putExtra("Routes", this.viewModel.routes.values.toTypedArray())
+
+						// Comments
+						this.startActivity(settingsIntent)
+					}
 
 					// Check if the item that was selected was the fares button.
 					R.id.fares -> this.farePopupWindow.showFarePopupWindow()
@@ -212,7 +235,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 				val enabled = !item.isChecked
 
 				// Comments
-				val route: Route = allRoutes[item.title] ?: return super.onOptionsItemSelected(item)
+				val route: Route = this.viewModel.routes[item.title] ?: return super.onOptionsItemSelected(item)
 
 				// Comments
 				route.enabled = enabled
@@ -277,17 +300,6 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 	}
 
 	companion object {
-
-		/**
-		 * Create an array to store all the routes that we will track.
-		 * This is not to say that all routes in this array are enabled - they can also be disabled (hidden).
-		 * This array is initialized in DownloadMasterSchedule.
-		 *
-		 * Because this is a static member that stores items that take in contexts it is a potential memory leak,
-		 * so an alternative is strongly recommend.
-		 */
-		@Deprecated("Memory leak")
-		var allRoutes: HashMap<String, Route> = HashMap()
 
 		/**
 		 * Used to determine if the MapsActivity has been run before in the app's lifecycle.

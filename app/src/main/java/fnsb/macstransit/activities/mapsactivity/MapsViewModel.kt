@@ -38,6 +38,11 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	var buses: Array<Bus> = emptyArray()
 
 	/**
+	 * Documentation
+	 */
+	val routes: HashMap<String, Route> = HashMap()
+
+	/**
 	 * The RouteMatch object used to make calls to the RouteMatch server in order to update the bus positions,
 	 * and to determine the arrival and departure times for stops.
 	 */
@@ -68,13 +73,14 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		viewModelScope.launch(Dispatchers.Main) {
 
 			// Iterate though all the routes as we know at this point that they are not null.
-			for ((_, route) in MapsActivity.allRoutes) {
+			for ((_, route) in this@MapsViewModel.routes) {
 
 				// Toggle the stop visibility for each route.
-				route.stops.forEach { it.value.toggleStopVisibility(this@MapsViewModel.map!!) }
+				route.stops.forEach { it.value.toggleStopVisibility(this@MapsViewModel.map!!, route.enabled) }
 
 				// Iterate though the shared stops in the route.
 				route.sharedStops.forEach {
+
 					if (route.enabled) {
 
 						// Show the shared stops.
@@ -105,7 +111,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		}
 
 		// Toggle the polyline visibility for all the routes on the map.
-		MapsActivity.allRoutes.values.forEach { it.togglePolylineVisibility(this.map!!) }
+		this.routes.values.forEach { it.togglePolylineVisibility(this.routeMatch, this.map!!) }
 	}
 
 	/**
@@ -176,7 +182,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		                                                       -147.7684709), 11.0f))
 
 		// Only execute the following if we have routes to iterate over.
-		if (MapsActivity.allRoutes.isNotEmpty()) {
+		if (this.routes.isNotEmpty()) {
 
 			// Add a listener for when the camera has become idle (ie was moving isn't anymore).
 			Log.v("MapCoroutine", "Setting camera idle listener")
@@ -184,7 +190,8 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 
 			// Add a listener for when a stop icon (circle) is clicked.
 			Log.v("MapCoroutine", "Setting circle click listener")
-			this.map!!.setOnCircleClickListener(StopClicked(activity, this.routeMatch, this.map!!))
+			this.map!!.setOnCircleClickListener(StopClicked(activity, this.routeMatch,
+			                                                this.map!!, this.routes))
 
 			// Add a custom info window adapter, to add support for multiline snippets.
 			Log.v("MapCoroutine", "Setting info window")
@@ -256,10 +263,8 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 			if (MapsActivity.firstRun) {
 
 				// Get the favorited routes from the settings object.
-				val favoritedRoutes = settings.routes
-
 				// If the favorited routes is not null, enable them.
-				Route.enableFavoriteRoutes(favoritedRoutes)
+				Route.enableFavoriteRoutes(this.routes, settings.favoriteRouteNames)
 
 				MapsActivity.firstRun = false
 			}
@@ -325,7 +330,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		val size = metersPerPixel * 4
 
 		// Iterate though each route.
-		for ((_, route) in MapsActivity.allRoutes) {
+		for ((_, route) in this.routes) {
 
 			// Start by resizing the stop circles first.
 			for ((_, stop) in route.stops) {

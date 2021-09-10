@@ -1,5 +1,7 @@
 package fnsb.macstransit.routematch
 
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
@@ -14,14 +16,33 @@ import org.json.JSONException
  * @version 3.0.
  * @since Beta 6.
  */
-class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stopName, location, route) {
+class Stop: MarkedObject, Parcelable {
 
 	/**
 	 * The circle marking the bus stop on the map
 	 * (be sure to check if this exists first as it may be null).
 	 */
+	@Transient
 	var circle: com.google.android.gms.maps.model.Circle? = null
-	private set
+		private set
+
+	/**
+	 * Documentation
+	 *
+	 * @param parcel
+	 */
+	constructor(parcel: Parcel): super(parcel.readString()!!, parcel.
+	readParcelable<LatLng>(LatLng::class.java.classLoader)!!, parcel.readString()!!, parcel.readInt())
+
+	/**
+	 * Documentation
+	 *
+	 * @param stopName
+	 * @param location
+	 * @param route
+	 */
+	constructor(stopName: String, location: LatLng, route: Route): super(stopName, location,
+	                                                                     route.name, route.color)
 
 	/**
 	 * Stop object.
@@ -52,10 +73,11 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 	 *
 	 * @param map The google maps object that the stops will be drawn onto.
 	 *            Be sure this object has been initialized first.
+	 * @param visible Documentation
 	 * @param attempted Whether or not this function has been attempted before (default is false).
 	 */
 	@UiThread
-	fun toggleStopVisibility(map: GoogleMap, attempted: Boolean = false) {
+	fun toggleStopVisibility(map: GoogleMap, visible: Boolean, attempted: Boolean = false) {
 
 		// Check if the circle for the stop needs to be created,
 		// or just set to visible if it already exists.
@@ -69,13 +91,13 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 			}
 
 			// Create a new circle object.
-			this.createStopCircle(map)
-			this.toggleStopVisibility(map, true)
+			this.createStopCircle(map, visible)
+			this.toggleStopVisibility(map, visible,true)
 		} else {
 
 			// Since the circle already exists simply update its visibility.
-			this.circle!!.isClickable = this.route.enabled
-			this.circle!!.isVisible = this.route.enabled
+			this.circle!!.isClickable = visible
+			this.circle!!.isVisible = visible
 		}
 	}
 
@@ -98,9 +120,10 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 	 * Creates a new circle object for new Stops.
 	 *
 	 * @param map The google maps object that this newly created circle will be added to.
+	 * @param visible Documentation
 	 */
 	@UiThread
-	fun createStopCircle(map: GoogleMap) {
+	fun createStopCircle(map: GoogleMap, visible: Boolean) {
 
 		// Add our circle to the map.
 		this.circle = map.addCircle {
@@ -112,12 +135,12 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 			this.radius(STARTING_RADIUS)
 
 			// Set the colors.
-			this.fillColor(this@Stop.route.color)
-			this.strokeColor(this@Stop.route.color)
+			this.fillColor(this@Stop.color)
+			this.strokeColor(this@Stop.color)
 
-			// Set the stop to be visibility to whether or not the route is enabled.
-			this.clickable(this@Stop.route.enabled)
-			this.visible(this@Stop.route.enabled)
+			// Comments
+			this.clickable(visible)
+			this.visible(visible)
 		}
 
 		// Check if the circle is null at this point (failure to add to map).
@@ -196,10 +219,11 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 				}
 
 				// Check if the following match.
-				val routeMatch = stop.route.name == stopArrayItem.route.name
+				val routeNameMatch = stop.routeName == stopArrayItem.routeName
+				val colorMatch = stop.color == stop.color
 
 				// If all of the following match, return true.
-				if (routeMatch && stop == stopArrayItem) {
+				if (routeNameMatch && colorMatch && stop == stopArrayItem) {
 					return true
 				}
 			}
@@ -207,5 +231,28 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 			// Since nothing matched, return false.
 			return false
 		}
+
+		@JvmField
+		val CREATOR = object: Parcelable.Creator<Stop> {
+
+			override fun createFromParcel(parcel: Parcel): Stop {
+				return Stop(parcel)
+			}
+
+			override fun newArray(size: Int): Array<Stop?> {
+				return arrayOfNulls(size)
+			}
+		}
+	}
+
+	override fun writeToParcel(parcel: Parcel, flags: Int) {
+		parcel.writeString(this.name)
+		parcel.writeParcelable(this.location, flags)
+		parcel.writeString(this.routeName)
+		parcel.writeInt(this.color)
+	}
+
+	override fun describeContents(): Int {
+		return this.hashCode()
 	}
 }

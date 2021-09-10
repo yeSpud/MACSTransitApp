@@ -12,7 +12,6 @@ import fnsb.macstransit.routematch.MarkedObject
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.routematch.SharedStop
-import fnsb.macstransit.routematch.Stop
 import org.json.JSONException
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -26,7 +25,8 @@ import java.util.Locale
  * @since Beta 7.
  */
 class StopClicked(private val context: Context, private val routematch: RouteMatch,
-                  private val map: GoogleMap) : GoogleMap.OnCircleClickListener {
+                  private val map: GoogleMap, private val routes: HashMap<String, Route>) :
+		GoogleMap.OnCircleClickListener {
 
 	@UiThread
 	override fun onCircleClick(circle: com.google.android.gms.maps.model.Circle) {
@@ -105,14 +105,19 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 		// Try setting the routes array to either enabled routes (shared stop) or our single route (stop).
 		val routes: Array<Route> = try {
 			if (isSharedStop){
-				getEnabledRoutesForStop((stop as SharedStop).routes)
+				getEnabledRoutesForStop(stop as SharedStop)
 			} else {
-				arrayOf((stop as Stop).route)
+				arrayOf(this.routes[stop.routeName]!!)
 			}
 		} catch (e: ClassCastException) {
 
 			// If there was an issue casting from classes log the error and return the current content of the string.
 			Log.e("postStopTimes", "Unaccounted object class: ${stop.javaClass}", e)
+			return ""
+		} catch (NullPointerException: NullPointerException) {
+
+			// Comments
+			Log.e("postStopTimes", "Could not find stop route!", NullPointerException)
 			return ""
 		}
 
@@ -215,40 +220,45 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 		return snippetText.toString()
 	}
 
-	companion object {
+	/**
+	 * Returns an array of routes that are enabled from all the routes in the shared stop.
+	 *
+	 * @param sharedStop Documentation
+	 * @return The routes in the shared stop that are enabled.
+	 */
+	private fun getEnabledRoutesForStop(sharedStop: SharedStop): Array<Route> {
 
-		/**
-		 * Returns an array of routes that are enabled from all the routes in the shared stop.
-		 *
-		 * @param allRoutesForStop The routes in the shared stop.
-		 * @return The routes in the shared stop that are enabled.
-		 */
-		internal fun getEnabledRoutesForStop(allRoutesForStop: Array<Route>): Array<Route> {
+		// Create a new routes array to store routes that have been verified to be enabled.
+		val potentialRoutes = arrayOfNulls<Route>(sharedStop.routeNames.size)
+		var routeCount = 0
 
-			// Create a new routes array to store routes that have been verified to be enabled.
-			val potentialRoutes = arrayOfNulls<Route>(allRoutesForStop.size)
-			var routeCount = 0
-
-			// Iterate though all the routes in our shared stop.
-			allRoutesForStop.forEach {
-
-				// If the route is enabled add it to our verified routes array,
-				// and increase the verified count.
-				if (it.enabled) {
-					potentialRoutes[routeCount] = it
-					routeCount++
-				}
+		// Comments
+		for (routeName : String in sharedStop.routeNames) {
+			val route: Route = try {
+				this.routes[routeName]!!
+			} catch (NullPointerException: NullPointerException) {
+				Log.e("getEnabledRoutes",
+				      "Route for shared stop ${sharedStop.name} is invalid: $routeName}",
+				      NullPointerException)
+				continue
 			}
-
-			// Create a new routes array of selected routes that has the size of our verified count.
-			val selectedRoutes = arrayOfNulls<Route>(routeCount)
-
-			// Fill the selected routes array.
-			System.arraycopy(potentialRoutes, 0, selectedRoutes, 0, routeCount)
-
-			// Return our selected routes.
-			return selectedRoutes as Array<Route>
+			if (route.enabled) {
+				potentialRoutes[routeCount] = route
+				routeCount++
+			}
 		}
+
+		// Create a new routes array of selected routes that has the size of our verified count.
+		val selectedRoutes = arrayOfNulls<Route>(routeCount)
+
+		// Fill the selected routes array.
+		System.arraycopy(potentialRoutes, 0, selectedRoutes, 0, routeCount)
+
+		// Return our selected routes.
+		return selectedRoutes as Array<Route>
+	}
+
+	companion object {
 
 		/**
 		 * Gets the the time (predicted arrival or predicted departure depending on the key)

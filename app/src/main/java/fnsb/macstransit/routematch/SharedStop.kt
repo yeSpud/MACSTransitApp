@@ -1,11 +1,12 @@
 package fnsb.macstransit.routematch
 
+import android.os.Parcel
+import android.os.Parcelable
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
-import fnsb.macstransit.activities.mapsactivity.MapsActivity
 
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.
@@ -14,26 +15,83 @@ import fnsb.macstransit.activities.mapsactivity.MapsActivity
  * @version 4.0.
  * @since Beta 7.
  */
-class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
-		MarkedObject(stopName, location, routes[0]) {
+class SharedStop: MarkedObject, Parcelable {
+
+	/**
+	 * Documentation
+	 */
+	val routeNames: Array<String>
+
+	/**
+	 * Documentation
+	 */
+	private val routeColors: IntArray
 
 	/**
 	 * Array of circle options for each circle that represents a route.
 	 */
-	private val circleOptions: Array<CircleOptions> = Array(this.routes.size) {
-		val route = routes[it]
-		val color = route.color
-		if (color != 0) {
-			CircleOptions().center(this.location).fillColor(color).strokeColor(color)
-		} else {
-			CircleOptions().center(this.location)
-		}
-	}
+	@Transient
+	private val circleOptions: Array<CircleOptions>
 
 	/**
 	 * Array of circles that represent a route that shares this one stop.
 	 */
-	private val circles: Array<Circle?> = arrayOfNulls(this.routes.size)
+	@Transient
+	private val circles: Array<Circle?>
+
+	/**
+	 * Documentation
+	 *
+	 * @param parcel
+	 */
+	constructor(parcel: Parcel): super(parcel.readString()!!, parcel.
+	readParcelable<LatLng>(LatLng::class.java.classLoader)!!, parcel.readString()!!, parcel.readInt()) {
+		this.routeNames = parcel.createStringArray()!!
+		this.routeColors = parcel.createIntArray()!!
+
+		this.circleOptions = Array(this.routeNames.size) {
+			if (this.routeColors[it] != 0) {
+				CircleOptions().center(this.location)
+					.fillColor(this.routeColors[it])
+					.strokeColor(this.routeColors[it])
+			} else {
+				CircleOptions().center(this.location)
+			}
+		}
+
+		this.circles = arrayOfNulls(this.routeNames.size)
+
+		// Set the initial circle size.
+		setCircleSizes(INITIAL_CIRCLE_SIZE)
+	}
+
+	/**
+	 * Documentation
+	 *
+	 * @param name
+	 * @param location
+	 * @param routes
+	 */
+	constructor(name: String, location: LatLng, routes: Array<Route>): super(name, location,
+	                                                                         routes[0].name, routes[0].color) {
+		this.routeNames = Array(routes.size) { routes[it].name }
+		this.routeColors = IntArray(routes.size) { routes[it].color }
+
+		this.circleOptions = Array(routes.size) {
+			val route = routes[it]
+			val color = route.color
+			if (color != 0) {
+				CircleOptions().center(this.location).fillColor(color).strokeColor(color)
+			} else {
+				CircleOptions().center(this.location)
+			}
+		}
+
+		this.circles = arrayOfNulls(routes.size)
+
+		// Set the initial circle size.
+		setCircleSizes(INITIAL_CIRCLE_SIZE)
+	}
 
 	/**
 	 * Sets the shared stop circles to be visible.
@@ -47,20 +105,20 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
 	fun showSharedStop(map: GoogleMap) {
 
 		// Iterate though each of the circles.
-		for (i in circles.indices) {
+		for (i in this.circles.indices) {
 
 			// If the circle is null, create a new shared stop circle.
-			if (circles[i] == null) {
+			if (this.circles[i] == null) {
 
 				// Since the stop circle is null try creating a new one.
 				this.createSharedStopCircle(map, i)
 			} else {
 
 				// Only set the circle to be clickable if its the 0th index circle (the biggest one).
-				circles[i]!!.isClickable = i == 0
+				this.circles[i]!!.isClickable = i == 0
 
 				// Set the circle to be visible.
-				circles[i]!!.isVisible = true
+				this.circles[i]!!.isVisible = true
 			}
 		}
 	}
@@ -73,15 +131,6 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
 	 */
 	@UiThread
 	fun hideStop() {
-
-		// Iterate though each route in the shared stop.
-		this.routes.forEach {
-
-			// If any route is still enabled, return early.
-			if (it.enabled) {
-				return
-			}
-		}
 
 		// Iterate though each circle in the shared stop.
 		this.circles.forEach {
@@ -189,21 +238,21 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
 		 * @return Documentation
 		 */
 		@JvmStatic
-		fun getSharedRoutes(route: Route, stop: Stop): Array<Route> {
+		fun getSharedRoutes(route: Route, stop: Stop, allRoutes: HashMap<String, Route>): Array<Route> {
 
 			// Comments
 			val hashMap: HashMap<String, Route> = HashMap(1)
 			hashMap[route.name] = route
 
 			// Make sure all routes isn't empty.
-			if (MapsActivity.allRoutes.isEmpty()) {
+			if (allRoutes.isEmpty()) {
 
 				// Comments
 				return hashMap.values.toTypedArray()
 			}
 
 			// Comments
-			for ((hashName, hashRoute) in (MapsActivity.allRoutes)) {
+			for ((hashName, hashRoute) in allRoutes) {
 
 				// If the routes are the same then continue to the next iteration of the loop.
 				if (route == hashRoute) {
@@ -225,11 +274,31 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
 			// Comments
 			return hashMap.values.toTypedArray()
 		}
+
+		@JvmField
+		val CREATOR = object : Parcelable.Creator<SharedStop> {
+
+			override fun createFromParcel(parcel: Parcel): SharedStop {
+				return SharedStop(parcel)
+			}
+
+			override fun newArray(size: Int): Array<SharedStop?> {
+				return arrayOfNulls(size)
+			}
+		}
+
 	}
 
-	init {
+	override fun writeToParcel(parcel: Parcel, flags: Int) {
+		parcel.writeString(this.name)
+		parcel.writeParcelable(this.location, flags)
+		parcel.writeString(this.routeNames[0])
+		parcel.writeInt(this.routeColors[0])
+		parcel.writeStringArray(this.routeNames)
+		parcel.writeIntArray(this.routeColors)
+	}
 
-		// Set the initial circle size.
-		setCircleSizes(INITIAL_CIRCLE_SIZE)
+	override fun describeContents(): Int {
+		return this.hashCode()
 	}
 }

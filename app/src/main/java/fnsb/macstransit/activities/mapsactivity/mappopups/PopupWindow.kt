@@ -50,7 +50,7 @@ class PopupWindow(context: android.content.Context) : AlertDialog(context),
 
 			// Add the speed if it's not 0.
 			if (bus.speed != 0) {
-				text += "Speed: ${bus.speed}"
+				text += "Speed: ${bus.speed}mph"
 			}
 
 			// Set the popup window text to include whats in our heading and speed placeholder.
