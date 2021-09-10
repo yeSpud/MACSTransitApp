@@ -1,7 +1,7 @@
-package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
+package fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables
 
 import android.util.Log
-import fnsb.macstransit.activities.splashactivity.SplashViewModel
+import fnsb.macstransit.activities.loadingactivity.LoadingViewModel
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.Stop
 
@@ -12,7 +12,7 @@ import fnsb.macstransit.routematch.Stop
  * @version 1.0.
  * @since Release 1.3.
  */
-class DownloadBusStops(viewModel: SplashViewModel): DownloadRouteObjects<HashMap<String, Stop>>(viewModel) {
+class DownloadBusStops(viewModel: LoadingViewModel): DownloadRouteObjects<HashMap<String, Stop>>(viewModel) {
 
 	override suspend fun download(route: Route, downloadProgress: Double, progressSoFar: Double,
 	                              index: Int): HashMap<String, Stop> = kotlin.coroutines.suspendCoroutine {
@@ -31,7 +31,7 @@ class DownloadBusStops(viewModel: SplashViewModel): DownloadRouteObjects<HashMap
 	}
 
 	internal class ParseBusStops(continuation: kotlin.coroutines.Continuation<HashMap<String, Stop>>,
-	                             viewModel: SplashViewModel, private val route : Route) :
+	                             viewModel: LoadingViewModel, private val route : Route) :
 			DownloadableCallback<HashMap<String, Stop>>(continuation, viewModel, fnsb.macstransit.R.string.mapping_bus_stops) {
 
 		override fun parse(jsonArray: org.json.JSONArray): HashMap<String, Stop> {

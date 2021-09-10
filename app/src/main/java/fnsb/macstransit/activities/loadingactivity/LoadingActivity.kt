@@ -1,4 +1,4 @@
-package fnsb.macstransit.activities.splashactivity
+package fnsb.macstransit.activities.loadingactivity
 
 import android.content.Intent
 import android.os.Build
@@ -8,7 +8,7 @@ import android.view.View
 import androidx.lifecycle.lifecycleScope
 import fnsb.macstransit.R
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
-import fnsb.macstransit.databinding.SplashscreenBinding
+import fnsb.macstransit.databinding.LoadingscreenBinding
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.SharedStop
 import kotlinx.coroutines.CoroutineName
@@ -24,18 +24,18 @@ import kotlinx.coroutines.launch
  * @version 3.0.
  * @since Beta 7.
  */
-class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
+class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 
 	/**
 	 * The view model for the Splash Activity.
 	 */
-	lateinit var viewModel: SplashViewModel
+	lateinit var viewModel: LoadingViewModel
 		private set
 
 	/**
 	 * The binding used to get elements from the activity xml.
 	 */
-	private lateinit var binding: SplashscreenBinding
+	private lateinit var binding: LoadingscreenBinding
 
 	/**
 	 * Create a variable to check if the splash activity has already been loaded
@@ -48,10 +48,10 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		super.onCreate(savedInstanceState)
 
 		// Setup view model.
-		this.viewModel = androidx.lifecycle.ViewModelProvider(this).get(SplashViewModel::class.java)
+		this.viewModel = androidx.lifecycle.ViewModelProvider(this).get(LoadingViewModel::class.java)
 
 		// Setup data binding.
-		this.binding = SplashscreenBinding.inflate(this.layoutInflater)
+		this.binding = LoadingscreenBinding.inflate(this.layoutInflater)
 		this.binding.viewmodel = this.viewModel
 		this.binding.lifecycleOwner = this
 
@@ -122,7 +122,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 			// Do all this work on a coroutine.
 			var noContinue = true
 			this.launch(CoroutineName("InitialCoroutine"), start = CoroutineStart.UNDISPATCHED) {
-				noContinue = !this@SplashActivity.initialCoroutine()
+				noContinue = !this@LoadingActivity.initialCoroutine()
 			}.join()
 
 			// If the initial checks fail then just exit early by returning.
@@ -132,25 +132,25 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 
 			// Download and load the bus stops (on a coroutine of course).
 			this.launch(CoroutineName("StopCoroutine"), start = CoroutineStart.UNDISPATCHED) {
-				this@SplashActivity.downloadCoroutine(LOAD_BUS_STOPS.toDouble(), DOWNLOAD_BUS_STOPS.toDouble(),
+				this@LoadingActivity.downloadCoroutine(LOAD_BUS_STOPS.toDouble(), DOWNLOAD_BUS_STOPS.toDouble(),
 				                                      (DOWNLOAD_MASTER_SCHEDULE_PROGRESS +
 				                                       PARSE_MASTER_SCHEDULE /*+ DOWNLOAD_BUS_ROUTES +
 				                                       LOAD_BUS_ROUTES */).toDouble(), fnsb.macstransit.
-				activities.splashactivity.splashscreenrunnables.DownloadBusStops(this@SplashActivity.viewModel))
+				activities.loadingactivity.loadingscreenrunnables.DownloadBusStops(this@LoadingActivity.viewModel))
 			}.join()
 
 			// Map the shared stops on a coroutine (as this is work intensive).
 			this.launch(CoroutineName("SharedStopCoroutine"), start = CoroutineStart.UNDISPATCHED) {
-				this@SplashActivity.mapSharedStops() }.join()
+				this@LoadingActivity.mapSharedStops() }.join()
 
 
 			// Validate stops on a coroutine (as it can be somewhat intensive).
 			launch(CoroutineName("ValidateStopCoroutine"), start = CoroutineStart.UNDISPATCHED) {
-				this@SplashActivity.validateStops() }.join()
+				this@LoadingActivity.validateStops() }.join()
 
 			// Finally, launch the maps activity.
 			Log.d("onResume", "End of lifecycle")
-			this@SplashActivity.launchMapsActivity()
+			this@LoadingActivity.launchMapsActivity()
 		}
 
 		Log.d("onResume", "End of onResume")
@@ -166,36 +166,36 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		val hasInternet = async(start = CoroutineStart.UNDISPATCHED) {
 
 			// Check if the user has internet before continuing.
-			this@SplashActivity.viewModel.setMessage(R.string.internet_check)
+			this@LoadingActivity.viewModel.setMessage(R.string.internet_check)
 			kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { 
-				this@SplashActivity.viewModel.hasInternet() 
+				this@LoadingActivity.viewModel.hasInternet()
 			}
 		}
 
 		// Initialize the progress bar to 0.
-		this@SplashActivity.viewModel.setProgressBar(0.0)
-		this@SplashActivity.viewModel.showProgressBar()
+		this@LoadingActivity.viewModel.setProgressBar(0.0)
+		this@LoadingActivity.viewModel.showProgressBar()
 
 		// Make sure the dynamic button is invisible.
-		this@SplashActivity.binding.button.visibility = View.INVISIBLE
+		this@LoadingActivity.binding.button.visibility = View.INVISIBLE
 
 		Log.d("initialCoroutine", "Waiting for internet check...")
 
 		// If there is no internet access then run the noInternet method and return false.
 		if (!hasInternet.await()) {
-			this@SplashActivity.noInternet()
+			this@LoadingActivity.noInternet()
 			return@coroutineScope false
 		}
 
 		// Get the master schedule from the RouteMatch server
 		Log.d("initialCoroutine", "Has internet!")
-		this@SplashActivity.viewModel.setProgressBar(-1.0)
-		this@SplashActivity.viewModel.setMessage(R.string.downloading_master_schedule)
+		this@LoadingActivity.viewModel.setProgressBar(-1.0)
+		this@LoadingActivity.viewModel.setMessage(R.string.downloading_master_schedule)
 
 		// Download and parse the master schedule. Use a filler route as the first parameter.
 		val fillerRoute = runCatching { Route("filler") }.getOrNull()
-		this@SplashActivity.viewModel.routes.putAll(fnsb.macstransit.activities.splashactivity.
-		splashscreenrunnables.DownloadMasterSchedule(this@SplashActivity).
+		this@LoadingActivity.viewModel.routes.putAll(fnsb.macstransit.activities.loadingactivity.
+		loadingscreenrunnables.DownloadMasterSchedule(this@LoadingActivity).
 		download(fillerRoute!!, DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble(), 0.0, 0))
 
 		// If we've made it to the end without interruption or error return true (success).
@@ -213,7 +213,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 	 */
 	private suspend fun <T> downloadCoroutine(loadProgress: Double, downloadProgress: Double,
 	                                          progressSoFar: Double, runnable: fnsb.macstransit.
-			activities.splashactivity.splashscreenrunnables.DownloadRouteObjects<T>) = coroutineScope {
+			activities.loadingactivity.loadingscreenrunnables.DownloadRouteObjects<T>) = coroutineScope {
 
 		// Create a variable to store the current state of our current downloads.
 		// When the download is queued this value decreases.
@@ -221,14 +221,14 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 		var downloadQueue = 0
 
 		// Get the progress step.
-		val step: Double = loadProgress / this@SplashActivity.viewModel.routes.size
+		val step: Double = loadProgress / this@LoadingActivity.viewModel.routes.size
 
 		// Get the current progress.
 		val progress: Double = progressSoFar + downloadProgress
 
 		// Iterate though all the indices of all the routes that can be tracked.
 		var i = 0
-		for ((_, route) in this@SplashActivity.viewModel.routes) {
+		for ((_, route) in this@LoadingActivity.viewModel.routes) {
 
 			// Decrease the download queue (as we are queueing a new downloadable).
 			downloadQueue--
@@ -240,23 +240,18 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 				val returned: T = runnable.download(route, downloadProgress, progressSoFar, i)
 
 				// Comments
-				@Suppress("UNCHECKED_CAST")
-				when (returned) {
-
-					// Comments
-					//is Array<*> -> route.polyLineCoordinates = returned as Array<com.google.android.gms.maps.model.LatLng>
-
-					// Comments
-					is HashMap<*,*> -> route.stops.putAll(returned as HashMap<String, fnsb.macstransit.routematch.Stop>)
-
-					// Comments
-					else -> Log.w("downloadCoroutine", "Parsed downloadable type unaccounted for: ${returned!!::class}")
+				if (returned is HashMap<*,*>) {
+					@Suppress("UNCHECKED_CAST")
+					route.stops.putAll(returned as HashMap<String, fnsb.macstransit.routematch.Stop>)
+				} else {
+					Log.w("downloadCoroutine", "Parsed downloadable type unaccounted for: "
+					                           + returned!!::class)
 				}
 
 
 				// Update the current progress.
-				this@SplashActivity.viewModel.setProgressBar(progress + step + downloadQueue +
-				                                             this@SplashActivity.viewModel.routes.size)
+				this@LoadingActivity.viewModel.setProgressBar(progress + step + downloadQueue +
+				                                              this@LoadingActivity.viewModel.routes.size)
 
 				// Increase the downloaded queue as our downloadable has finished downloading.
 				downloadQueue++
@@ -314,16 +309,16 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 	private suspend fun mapSharedStops() = coroutineScope {
 
 		// Let the user know that we are checking for shared bus stops at this point.
-		this@SplashActivity.viewModel.setMessage(R.string.shared_bus_stop_check)
+		this@LoadingActivity.viewModel.setMessage(R.string.shared_bus_stop_check)
 
 		// Set the current progress.
-		val step = LOAD_SHARED_STOPS.toDouble() / this@SplashActivity.viewModel.routes.size
+		val step = LOAD_SHARED_STOPS.toDouble() / this@LoadingActivity.viewModel.routes.size
 		var currentProgress = (DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE +
 		                       DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS).toDouble()
 
 		// Comments
 		var i = 0
-		for ((_, route) in this@SplashActivity.viewModel.routes) {
+		for ((_, route) in this@LoadingActivity.viewModel.routes) {
 
 			// If there are no stops to iterate over just continue with the next iteration.
 			if (route.stops.isEmpty()) {
@@ -341,7 +336,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 
 				// Get an array of shared routes.
 				val sharedRoutes: Array<Route> = SharedStop.
-				getSharedRoutes(route, stop, this@SplashActivity.viewModel.routes)
+				getSharedRoutes(route, stop, this@LoadingActivity.viewModel.routes)
 
 				// If the shared routes array has more than one entry, create a new shared stop object.
 				if (sharedRoutes.size > 1) {
@@ -351,15 +346,15 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 					// and add our newly created shared stop.
 					sharedRoutes.forEach {
 						Log.d("mapSharedStops", "Adding shared stop to route: " +
-						                        this@SplashActivity.viewModel.routes[it.name]!!.name)
-						this@SplashActivity.viewModel.routes[it.name]!!.sharedStops[name] = sharedStop
+						                        this@LoadingActivity.viewModel.routes[it.name]!!.name)
+						this@LoadingActivity.viewModel.routes[it.name]!!.sharedStops[name] = sharedStop
 					}
 				}
 			}
 
 			// Update the progress.
 			currentProgress += step
-			this@SplashActivity.viewModel.setProgressBar(currentProgress)
+			this@LoadingActivity.viewModel.setProgressBar(currentProgress)
 
 			i++
 		}
@@ -374,16 +369,16 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 	private suspend fun validateStops() = coroutineScope {
 
 		// Let the user know that we are validating the stops (and shared stop) for each route.
-		this@SplashActivity.viewModel.setMessage(R.string.stop_validation)
+		this@LoadingActivity.viewModel.setMessage(R.string.stop_validation)
 
 		// Determine the progress step.
-		val step = VALIDATE_STOPS.toDouble() / this@SplashActivity.viewModel.routes.size
+		val step = VALIDATE_STOPS.toDouble() / this@LoadingActivity.viewModel.routes.size
 		var currentProgress =
 				(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_STOPS +
 				 LOAD_BUS_STOPS + LOAD_SHARED_STOPS).toDouble()
 
 		// Iterate though all the routes and recreate the stops for each route.
-		for ((name, route) in this@SplashActivity.viewModel.routes) {
+		for ((name, route) in this@LoadingActivity.viewModel.routes) {
 
 			// Purge the stops that have shared stops (and get the final count for debugging).
 			route.purgeStops()
@@ -392,7 +387,7 @@ class SplashActivity : androidx.appcompat.app.AppCompatActivity() {
 
 			// Update the progress.
 			currentProgress += step
-			this@SplashActivity.viewModel.setProgressBar(currentProgress)
+			this@LoadingActivity.viewModel.setProgressBar(currentProgress)
 		}
 	}
 

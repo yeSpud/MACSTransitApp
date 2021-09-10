@@ -1,6 +1,6 @@
-package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
+package fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables
 
-import fnsb.macstransit.activities.splashactivity.SplashViewModel
+import fnsb.macstransit.activities.loadingactivity.LoadingViewModel
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -11,7 +11,7 @@ import org.json.JSONObject
  * @version 1.0.
  * @since Release 1.3.1.
  */
-abstract class DownloadRouteObjects<T>(val viewModel: SplashViewModel) {
+abstract class DownloadRouteObjects<T>(val viewModel: LoadingViewModel) {
 
 	/**
 	 * Downloads specific content pertaining to the provided route.
@@ -27,7 +27,7 @@ abstract class DownloadRouteObjects<T>(val viewModel: SplashViewModel) {
 	                              progressSoFar: Double, index: Int): T
 
 	internal abstract class DownloadableCallback<T>(private val continuation: kotlin.coroutines.
-	Continuation<T>, val viewModel: SplashViewModel, private val parseMessage: Int):
+	Continuation<T>, val viewModel: LoadingViewModel, private val parseMessage: Int):
 			com.android.volley.Response.Listener<JSONObject> {
 
 		/**

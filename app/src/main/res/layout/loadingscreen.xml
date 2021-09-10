@@ -6,7 +6,7 @@
 
         <variable
             name="viewmodel"
-            type="fnsb.macstransit.activities.splashactivity.SplashViewModel" />
+            type="fnsb.macstransit.activities.loadingactivity.LoadingViewModel" />
     </data>
 
     <LinearLayout

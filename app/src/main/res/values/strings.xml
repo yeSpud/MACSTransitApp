@@ -15,8 +15,6 @@
     <!-- Networking messages -->
     <string name="downloading_master_schedule">Downloading master schedule</string>
     <string name="parsing_master_schedule">Processing master schedule</string>
-    <string name="loading_bus_routes">Downloading bus routes</string>
-    <string name="mapping_bus_routes">Processing bus routes</string>
     <string name="loading_bus_stops">Downloading bus stops</string>
     <string name="mapping_bus_stops">Processing bus stops</string>
     <string name="shared_bus_stop_check">Checking for shared bus stops</string>

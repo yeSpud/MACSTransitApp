@@ -1,8 +1,8 @@
-package fnsb.macstransit.activities.splashactivity.splashscreenrunnables
+package fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables
 
 import android.util.Log
 import fnsb.macstransit.R
-import fnsb.macstransit.activities.splashactivity.SplashActivity
+import fnsb.macstransit.activities.loadingactivity.LoadingActivity
 import fnsb.macstransit.routematch.Route
 
 /**
@@ -12,34 +12,34 @@ import fnsb.macstransit.routematch.Route
  * @version 1.0.
  * @since Release 1.3.
  */
-class DownloadMasterSchedule(private val splashActivity: SplashActivity):
-		DownloadRouteObjects<HashMap<String, Route>>(splashActivity.viewModel) {
+class DownloadMasterSchedule(private val loadingActivity: LoadingActivity):
+		DownloadRouteObjects<HashMap<String, Route>>(loadingActivity.viewModel) {
 
 	override suspend fun download(route: Route, downloadProgress: Double, progressSoFar: Double,
 	                              index: Int): HashMap<String, Route> = kotlin.coroutines.suspendCoroutine {
 
 		// Set the progress.
-		this@DownloadMasterSchedule.splashActivity.viewModel.setProgressBar(downloadProgress)
+		this@DownloadMasterSchedule.loadingActivity.viewModel.setProgressBar(downloadProgress)
 
 		// Make the network request for the master route.
-		this.splashActivity.viewModel.routeMatch.callMasterSchedule(ParseMasterSchedule(it,
-		                                                                                this.splashActivity,
-		                                                                                this.viewModel), {
+		this.loadingActivity.viewModel.routeMatch.callMasterSchedule(ParseMasterSchedule(it,
+		                                                                                 this.loadingActivity,
+		                                                                                 this.viewModel), {
 			error: com.android.volley.VolleyError ->
 
 			// Since there was an error retrieving the master route be sure to log it,
 			// and show the retry message and button.
 			Log.w("initializeApp", "MasterSchedule callback error", error)
 			Log.w("initializeApp", "Error: ${error.message}\n${error.cause.toString()}")
-			this.splashActivity.viewModel.setMessage(R.string.routematch_timeout)
-			this.splashActivity.showRetryButton()
+			this.loadingActivity.viewModel.setMessage(R.string.routematch_timeout)
+			this.loadingActivity.showRetryButton()
 		})
 	}
 
 	internal class ParseMasterSchedule(continuation: kotlin.coroutines.Continuation<HashMap<String, Route>>,
-	                                   private val splashActivity: SplashActivity, viewModel: fnsb.
-			macstransit.activities.splashactivity.SplashViewModel) :
-			DownloadableCallback<HashMap<String, Route>>(continuation, viewModel, R.string.loading_bus_routes) {
+	                                   private val loadingActivity: LoadingActivity, viewModel: fnsb.
+			macstransit.activities.loadingactivity.LoadingViewModel) :
+			DownloadableCallback<HashMap<String, Route>>(continuation, viewModel, R.string.parsing_master_schedule) {
 
 		override fun parse(jsonArray: org.json.JSONArray): HashMap<String, Route> {
 
@@ -52,17 +52,16 @@ class DownloadMasterSchedule(private val splashActivity: SplashActivity):
 				this.viewModel.setMessage(R.string.its_sunday)
 
 				// Also add a chance for the user to retry.
-				this.splashActivity.showRetryButton()
-				this.splashActivity.loaded = true
+				this.loadingActivity.showRetryButton()
+				this.loadingActivity.loaded = true
 
 				// Return the empty hashmap.
 				return hashMap
 			}
 
 			// Update the progress and message.
-			val step = SplashActivity.PARSE_MASTER_SCHEDULE.toDouble() / count
-			var progress = SplashActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble()
-			this.splashActivity.viewModel.setMessage(R.string.parsing_master_schedule)
+			val step = LoadingActivity.PARSE_MASTER_SCHEDULE.toDouble() / count
+			var progress = LoadingActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble()
 
 			// Iterate though each route in the master schedule.
 			for (index in 0 until count) {
@@ -89,7 +88,7 @@ class DownloadMasterSchedule(private val splashActivity: SplashActivity):
 					Log.e("MasterScheduleCallback", "Issue creating route from route data",
 					      Exception)
 				}
-				this.splashActivity.viewModel.setProgressBar(progress + step)
+				this.loadingActivity.viewModel.setProgressBar(progress + step)
 				progress += step
 			}
 

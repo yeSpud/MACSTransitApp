@@ -1,4 +1,4 @@
-package fnsb.macstransit.activities.splashactivity
+package fnsb.macstransit.activities.loadingactivity
 
 import android.app.Application
 import android.net.ConnectivityManager
@@ -18,7 +18,7 @@ import fnsb.macstransit.routematch.RouteMatch
  * @version 1.0.
  * @since Release 1.3.
  */
-class SplashViewModel(application: Application) : androidx.lifecycle.AndroidViewModel(application) {
+class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidViewModel(application) {
 
 
 	/**
@@ -77,7 +77,7 @@ class SplashViewModel(application: Application) : androidx.lifecycle.AndroidView
 		Log.v("setProgressBar", "Provided progress: $progress")
 
 		// Convert the progress to be an int out of 100.
-		var p: Int = (progress / SplashActivity.MAX_PROGRESS * 100).toInt()
+		var p: Int = (progress / LoadingActivity.MAX_PROGRESS * 100).toInt()
 
 		// Validate that that the progress is between 0 and 100.
 		p = if (p > 100) 100 else kotlin.math.max(p, 0)
