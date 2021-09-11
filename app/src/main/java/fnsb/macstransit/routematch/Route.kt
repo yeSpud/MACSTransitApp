@@ -286,14 +286,15 @@ class Route: Parcelable {
 		@JvmStatic
 		fun enableFavoriteRoutes(routes: HashMap<String, Route>, favoriteRouteNames: Array<String>) {
 
-			// Try iterating though each favorite route and enabling it.
-			try {
-				favoriteRouteNames.forEach { routes[it]!!.enabled = true }
-			} catch (NullPointerException: NullPointerException) {
+			// Iterate though each favorite route and try to enable it.
+			favoriteRouteNames.forEach {
+				try {
+					routes[it]!!.enabled = true
+				} catch (NullPointerException: NullPointerException) {
 
-				// If the route was not found log it as an error.
-				Log.e("enableFavoriteRoutes", "Route $favoriteRouteNames is not a valid route",
-				      NullPointerException)
+					// If the route was not found log it as an error.
+					Log.w("enableFavoriteRoutes", "$it route is not running today", NullPointerException)
+				}
 			}
 		}
 
