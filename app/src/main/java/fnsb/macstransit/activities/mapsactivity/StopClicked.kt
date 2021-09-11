@@ -1,12 +1,9 @@
 package fnsb.macstransit.activities.mapsactivity
 
-import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
 import fnsb.macstransit.R
-import fnsb.macstransit.activities.mapsactivity.mappopups.InfoWindowPopup
 import fnsb.macstransit.activities.mapsactivity.mappopups.PopupWindow
 import fnsb.macstransit.routematch.MarkedObject
 import fnsb.macstransit.routematch.Route
@@ -24,11 +21,11 @@ import java.util.Locale
  * @version 2.0.
  * @since Beta 7.
  */
-class StopClicked(private val context: Context, private val routematch: RouteMatch,
+class StopClicked(private val context: android.content.Context, private val routematch: RouteMatch,
                   private val map: GoogleMap, private val routes: HashMap<String, Route>) :
 		GoogleMap.OnCircleClickListener {
 
-	@UiThread
+	@androidx.annotation.UiThread
 	override fun onCircleClick(circle: com.google.android.gms.maps.model.Circle) {
 
 		// Get the marked object from our circle.
@@ -105,7 +102,7 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 		// Try setting the routes array to either enabled routes (shared stop) or our single route (stop).
 		val routes: Array<Route> = try {
 			if (isSharedStop){
-				getEnabledRoutesForStop(stop as SharedStop)
+				this.getEnabledRoutesForStop(stop as SharedStop)
 			} else {
 				arrayOf(this.routes[stop.routeName]!!)
 			}
@@ -114,9 +111,10 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 			// If there was an issue casting from classes log the error and return the current content of the string.
 			Log.e("postStopTimes", "Unaccounted object class: ${stop.javaClass}", e)
 			return ""
-		} catch (NullPointerException: NullPointerException) {
+		} catch (NullPointerException : NullPointerException) {
 
-			// Comments
+			// Since the route was not found in the hashmap log it as an error,
+				// and return an empty string.
 			Log.e("postStopTimes", "Could not find stop route!", NullPointerException)
 			return ""
 		}
@@ -127,7 +125,8 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 		// Check to see how many new lines there are in the display.
 		// If there are more than the maximum lines allowed bu the info window adapter,
 		// display "Click to view all the arrival and departure times.".
-		return if (getNewlineOccurrence(PopupWindow.body) <= InfoWindowPopup.MAX_LINES) {
+		return if (getNewlineOccurrence(PopupWindow.body) <= fnsb.macstransit.activities.mapsactivity
+					.mappopups.InfoWindowPopup.MAX_LINES) {
 			PopupWindow.body
 		} else {
 			this.context.getString(R.string.click_to_view_all_the_arrival_and_departure_times)
@@ -223,7 +222,7 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 	/**
 	 * Returns an array of routes that are enabled from all the routes in the shared stop.
 	 *
-	 * @param sharedStop Documentation
+	 * @param sharedStop The shared stop to get the times for.
 	 * @return The routes in the shared stop that are enabled.
 	 */
 	private fun getEnabledRoutesForStop(sharedStop: SharedStop): Array<Route> {
@@ -232,8 +231,10 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 		val potentialRoutes = arrayOfNulls<Route>(sharedStop.routeNames.size)
 		var routeCount = 0
 
-		// Comments
+		// Iterate though all the shared stop names.
 		for (routeName : String in sharedStop.routeNames) {
+
+			// Try to get the route with the shared stop route name from the hashmap of routes.
 			val route: Route = try {
 				this.routes[routeName]!!
 			} catch (NullPointerException: NullPointerException) {
@@ -242,6 +243,8 @@ class StopClicked(private val context: Context, private val routematch: RouteMat
 				      NullPointerException)
 				continue
 			}
+
+			// Since the route was found only add it to the route count if the potentials if its enabled.
 			if (route.enabled) {
 				potentialRoutes[routeCount] = route
 				routeCount++

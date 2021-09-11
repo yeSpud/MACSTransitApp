@@ -27,25 +27,25 @@ class Stop: MarkedObject, Parcelable {
 		private set
 
 	/**
-	 * Documentation
+	 * Creation of a stop object from a previously created stop object.
 	 *
-	 * @param parcel
+	 * @param parcel The parcel containing the saved information to create a stop object.
 	 */
 	constructor(parcel: Parcel): super(parcel.readString()!!, parcel.
 	readParcelable<LatLng>(LatLng::class.java.classLoader)!!, parcel.readString()!!, parcel.readInt())
 
 	/**
-	 * Documentation
+	 * A stop object.
 	 *
-	 * @param stopName
-	 * @param location
-	 * @param route
+	 * @param stopName The name of the stop.
+	 * @param location THe location of the stop.
+	 * @param route The route the stop belongs to.
 	 */
 	constructor(stopName: String, location: LatLng, route: Route): super(stopName, location,
 	                                                                     route.name, route.color)
 
 	/**
-	 * Stop object.
+	 * A stop object.
 	 *
 	 * @param stopName The name of the stop.
 	 * @param latitude The latitude of the stop.
@@ -73,7 +73,7 @@ class Stop: MarkedObject, Parcelable {
 	 *
 	 * @param map The google maps object that the stops will be drawn onto.
 	 *            Be sure this object has been initialized first.
-	 * @param visible Documentation
+	 * @param visible Whether the stop should be visible or not.
 	 * @param attempted Whether or not this function has been attempted before (default is false).
 	 */
 	@UiThread
@@ -120,7 +120,7 @@ class Stop: MarkedObject, Parcelable {
 	 * Creates a new circle object for new Stops.
 	 *
 	 * @param map The google maps object that this newly created circle will be added to.
-	 * @param visible Documentation
+	 * @param visible Whether or not the stop is visible or not.
 	 */
 	@UiThread
 	fun createStopCircle(map: GoogleMap, visible: Boolean) {
@@ -138,7 +138,7 @@ class Stop: MarkedObject, Parcelable {
 			this.fillColor(this@Stop.color)
 			this.strokeColor(this@Stop.color)
 
-			// Comments
+			// Set the stop to be clickable and visible based on the visiblity boolean.
 			this.clickable(visible)
 			this.visible(visible)
 		}

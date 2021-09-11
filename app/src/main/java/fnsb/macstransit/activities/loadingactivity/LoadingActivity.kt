@@ -2,7 +2,6 @@ package fnsb.macstransit.activities.loadingactivity
 
 import android.content.Intent
 import android.os.Build
-import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.lifecycle.lifecycleScope
@@ -44,7 +43,7 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 	 */
 	var loaded: Boolean = false
 
-	override fun onCreate(savedInstanceState: Bundle?) {
+	override fun onCreate(savedInstanceState: android.os.Bundle?) {
 		super.onCreate(savedInstanceState)
 
 		// Setup view model.
@@ -194,9 +193,10 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 
 		// Download and parse the master schedule. Use a filler route as the first parameter.
 		val fillerRoute = runCatching { Route("filler") }.getOrNull()
-		this@LoadingActivity.viewModel.routes.putAll(fnsb.macstransit.activities.loadingactivity.
-		loadingscreenrunnables.DownloadMasterSchedule(this@LoadingActivity).
-		download(fillerRoute!!, DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble(), 0.0, 0))
+		fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables.
+		DownloadMasterSchedule(this@LoadingActivity).download(fillerRoute!!,
+		                                                      DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble(),
+		                                                      0.0, 0)
 
 		// If we've made it to the end without interruption or error return true (success).
 		Log.d("initialCoroutine", "Reached end of initialCoroutine")
@@ -211,9 +211,9 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 	 * @param progressSoFar The progress that has currently elapsed out of the MAX_PROGRESS
 	 * @param runnable The download runnable to run.
 	 */
-	private suspend fun <T> downloadCoroutine(loadProgress: Double, downloadProgress: Double,
+	private suspend fun downloadCoroutine(loadProgress: Double, downloadProgress: Double,
 	                                          progressSoFar: Double, runnable: fnsb.macstransit.
-			activities.loadingactivity.loadingscreenrunnables.DownloadRouteObjects<T>) = coroutineScope {
+			activities.loadingactivity.loadingscreenrunnables.DownloadRouteObjects<Unit>) = coroutineScope {
 
 		// Create a variable to store the current state of our current downloads.
 		// When the download is queued this value decreases.
@@ -236,18 +236,8 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 			// Run the download function of our DownloadRoute object, and pass any necessary parameters.
 			this.launch(start = CoroutineStart.UNDISPATCHED) {
 
-				// Comments
-				val returned: T = runnable.download(route, downloadProgress, progressSoFar, i)
-
-				// Comments
-				if (returned is HashMap<*,*>) {
-					@Suppress("UNCHECKED_CAST")
-					route.stops.putAll(returned as HashMap<String, fnsb.macstransit.routematch.Stop>)
-				} else {
-					Log.w("downloadCoroutine", "Parsed downloadable type unaccounted for: "
-					                           + returned!!::class)
-				}
-
+				// Run the downloadable.
+				runnable.download(route, downloadProgress, progressSoFar, i)
 
 				// Update the current progress.
 				this@LoadingActivity.viewModel.setProgressBar(progress + step + downloadQueue +
@@ -316,11 +306,10 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 		var currentProgress = (DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE +
 		                       DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS).toDouble()
 
-		// Comments
-		var i = 0
+		// Iterate though each route in all our trackable routes.
 		for ((_, route) in this@LoadingActivity.viewModel.routes) {
 
-			// If there are no stops to iterate over just continue with the next iteration.
+			// If there are no stops to iterate over in our route just continue with the next iteration.
 			if (route.stops.isEmpty()) {
 				continue
 			}
@@ -355,8 +344,6 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 			// Update the progress.
 			currentProgress += step
 			this@LoadingActivity.viewModel.setProgressBar(currentProgress)
-
-			i++
 		}
 
 		Log.d("mapSharedStops", "Reached end of mapSharedStops")

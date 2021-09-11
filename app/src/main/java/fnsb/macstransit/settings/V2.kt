@@ -209,7 +209,7 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 			val favoritedRoutes: JSONArray = input.getJSONArray("favorited routes")
 			val count: Int = favoritedRoutes.length()
 
-			// Comments
+			// Iterate though the JSON Array and retrieve the favorite route names.
 			val favoriteRouteNames: Array<String?> = arrayOfNulls(count)
 			for (i in 0 until count) {
 				favoriteRouteNames[i] = favoritedRoutes.getString(i)

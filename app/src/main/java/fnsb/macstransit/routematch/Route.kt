@@ -10,8 +10,6 @@ import com.google.maps.android.ktx.addPolyline
 import org.json.JSONArray
 import org.json.JSONException
 import java.io.UnsupportedEncodingException
-import java.net.URLEncoder
-import java.util.regex.Pattern
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
@@ -23,12 +21,12 @@ import java.util.regex.Pattern
 class Route: Parcelable {
 
 	/**
-	 * Documentation
+	 * The name of the route.
 	 */
 	val name: String
 
 	/**
-	 * Documentation
+	 * The color of the route.
 	 */
 	var color: Int = 0
 
@@ -38,12 +36,12 @@ class Route: Parcelable {
 	val urlFormattedName: String
 
 	/**
-	 * Documentation
+	 * All the stops in the route.
 	 */
 	val stops: HashMap<String, Stop> = HashMap()
 
 	/**
-	 * Documentation
+	 * All the shared stops in the route.
 	 */
 	val sharedStops: HashMap<String, SharedStop> = HashMap()
 
@@ -61,17 +59,18 @@ class Route: Parcelable {
 	private var polyline: com.google.android.gms.maps.model.Polyline? = null
 
 	/**
-	 * Documentation
-	 * Comments
-	 * @param parcel
+	 * Creates a new Route object using information from the provided parcel.
+	 * @param parcel The parcel containing all the route information.
 	 */
 	constructor(parcel: Parcel) {
-		Log.d("Route", "Reading from parcel")
+		Log.v("Route", "Reading from parcel")
 
+		// Load the name, color, and formatted name from the parcel.
 		this.name = parcel.readString()!!
 		this.color = parcel.readInt()
 		this.urlFormattedName = parcel.readString()!!
 
+		// Load the array of stops from the parcel.
 		val stopArray: Array<Parcelable> = parcel.readParcelableArray(Stop::class.java.classLoader)
 				as Array<Parcelable>
 		for (entry in stopArray) {
@@ -79,8 +78,9 @@ class Route: Parcelable {
 			this.stops[stop.name] = stop
 		}
 
-		// Get the array containing the shared stop data.
-		val sharedStopParcelableArray: Array<Parcelable> = parcel.readParcelableArray(SharedStop::class.java.classLoader) as Array<Parcelable>
+		// Load the array of shared stops from the parcel.
+		val sharedStopParcelableArray: Array<Parcelable> = parcel.
+		readParcelableArray(SharedStop::class.java.classLoader) as Array<Parcelable>
 		for (entry in sharedStopParcelableArray) {
 			val sharedStop: SharedStop = entry as SharedStop
 			this.sharedStops[sharedStop.name] = sharedStop
@@ -88,47 +88,44 @@ class Route: Parcelable {
 	}
 
 	/**
-	 * Constructor for the route. The name of the route is the only thing that is required.
-	 * Be sure that the provided route name does **NOT** contain any whitespace characters!
+	 * Constructor for a new Route object with only a name.
 	 *
-	 * @param routeName The name of the route. Be sure this does **NOT**
-	 * contain any whitespace characters!
+	 * @param routeName The name of the route. This cannot contain any whitespace characters.
 	 * @throws UnsupportedEncodingException Thrown if the route name cannot be formatted to a URL.
 	 */
 	@Throws(UnsupportedEncodingException::class)
 	constructor(routeName: String) : this(routeName, 0)
 
 	/**
-	 * Documentation
+	 * Creates a new Route object.
 	 *
-	 * @param name
-	 * @param color
-	 * @throws UnsupportedEncodingException
+	 * @param name The name of the route. This cannot contain any whitespace characters.
+	 * @param color The route color.
+	 * @throws UnsupportedEncodingException Thrown if the route name contains whitespace.
 	 */
 	@Throws(UnsupportedEncodingException::class)
 	constructor(name: String, color: Int) {
 
-		// Comments
+		// Make sure the route name does not contain any whitespace characters.
 		if (name.contains(Regex("\\s"))) {
 			throw UnsupportedEncodingException("Route name contains whitespace!")
 		}
 
-		// Comments
+		// Set the route name and color.
 		this.name = name
 		this.color = color
 
-		// Comments
-		this.urlFormattedName = Pattern.compile("\\+").matcher(URLEncoder.
+		// Set the urlFormattedName from the name.
+		this.urlFormattedName = java.util.regex.Pattern.compile("\\+").matcher(java.net.URLEncoder.
 		encode(this.name, "UTF-8")).replaceAll("%20")
 	}
 
 	/**
 	 * Creates and sets the polyline for the route.
-	 * If there are no polyline coordinates for the route then this simply returns early and does not create the polyline.
 	 *
 	 * This must be run on the UI Thread.
 	 *
-	 * @param coordinates Documentation
+	 * @param coordinates The coordinates of the polyline.
 	 * @param map The map to add the polyline to.
 	 */
 	@UiThread
@@ -173,10 +170,10 @@ class Route: Parcelable {
 	 * Sets the polylines visibly to whether or not the route is enabled or not.
 	 * If the polyline didn't previously exist it will be created in this method.
 	 *
-	 * THis must be run on the UI Thread.
+	 * This must be run on the UI Thread.
 	 *
-	 * @param routeMatch
-	 * @param map The map to add the polyline to.
+	 * @param routeMatch The RouteMatch object to use if the polyline coordinates need to be retrieved.
+	 * @param map        The map to add the polyline to.
 	 */
 	@UiThread
 	fun togglePolylineVisibility(routeMatch: RouteMatch, map: GoogleMap) {
@@ -184,6 +181,7 @@ class Route: Parcelable {
 		// Check if the route has a polyline to set visible.
 		if (this.polyline == null) {
 
+			// Get the polyline coordinates for the route from the RouteMatch server.
 			routeMatch.callLandRoute(this,  {
 
 				// Get the data from all the stops and store it in a JSONArray.
@@ -217,6 +215,8 @@ class Route: Parcelable {
 
 				// Create a new polyline for the route since it didn't have one before.
 				this.createPolyline(coordinates as Array<LatLng>, map)
+
+				// Log if there was any error getting the polyline coordinates.
 			} , { error: com.android.volley.VolleyError ->
 				Log.e("togglePolylineVisible", "Unable to get polyline coordinates", error)
 			}, this)
@@ -278,19 +278,20 @@ class Route: Parcelable {
 		}
 
 		/**
-		 * Iterates though all the routes in MapsActivity.allRoutes
-		 * and enables those that have been favorited (as determined by being in the favoritedRoutes array).
+		 * Iterates though all the provided routes and enables those that have been marked favorited.
 		 *
-		 * @param routes          Documentation
-		 * @param favoriteRouteNames Documentation
+		 * @param routes             All the routes that can be tracked.
+		 * @param favoriteRouteNames The names of the favorite routes.
 		 */
 		@JvmStatic
 		fun enableFavoriteRoutes(routes: HashMap<String, Route>, favoriteRouteNames: Array<String>) {
 
-			// Comments
+			// Try iterating though each favorite route and enabling it.
 			try {
 				favoriteRouteNames.forEach { routes[it]!!.enabled = true }
 			} catch (NullPointerException: NullPointerException) {
+
+				// If the route was not found log it as an error.
 				Log.e("enableFavoriteRoutes", "Route $favoriteRouteNames is not a valid route",
 				      NullPointerException)
 			}
@@ -299,19 +300,13 @@ class Route: Parcelable {
 		@JvmField
 		val CREATOR = object : Parcelable.Creator<Route> {
 
-			override fun createFromParcel(parcel: Parcel): Route {
-				return Route(parcel)
-			}
+			override fun createFromParcel(parcel: Parcel): Route { return Route(parcel) }
 
-			override fun newArray(size: Int): Array<Route?> {
-				return arrayOfNulls(size)
-			}
+			override fun newArray(size: Int): Array<Route?> { return arrayOfNulls(size) }
 		}
 	}
 
-	override fun describeContents(): Int {
-		return this.hashCode()
-	}
+	override fun describeContents(): Int { return this.hashCode() }
 
 	override fun writeToParcel(parcel: Parcel, flags: Int) {
 		parcel.writeString(this.name)

@@ -16,12 +16,12 @@ abstract class DownloadRouteObjects<T>(val viewModel: LoadingViewModel) {
 	/**
 	 * Downloads specific content pertaining to the provided route.
 	 *
-	 * @param route The route that will be used to find the downloadable content.
-	 * @param downloadProgress Documentation
-	 * @param progressSoFar Documentation
-	 * @param index The index of the downloadable in terms of progress.
+	 * @param route            The route that will be used to find the downloadable content.
+	 * @param downloadProgress The download progress amount.
+	 * @param progressSoFar    The progress that has been completed so far.
+	 * @param index            The index of the downloadable in terms of progress.
 	 *
-	 * @return Documentation
+	 * @return The parsed data from the download.
 	 */
 	abstract suspend fun download(route: fnsb.macstransit.routematch.Route, downloadProgress: Double,
 	                              progressSoFar: Double, index: Int): T
@@ -34,7 +34,7 @@ abstract class DownloadRouteObjects<T>(val viewModel: LoadingViewModel) {
 		 * Function that parses the provided JSON Array.
 		 * @param jsonArray The JSON Array to be parsed.
 		 *
-		 * @return Documentation
+		 * @return The parsed data as a single object.
 		 */
 		abstract fun parse(jsonArray: JSONArray): T
 
@@ -46,10 +46,10 @@ abstract class DownloadRouteObjects<T>(val viewModel: LoadingViewModel) {
 			// Get the data from all the stops and store it in a JSONArray.
 			val data: JSONArray = fnsb.macstransit.routematch.RouteMatch.parseData(response)
 
-			// Comments
+			// Parse the downloaded data.
 			val parsedData: T = this.parse(data)
 
-			// Comments
+			// Resume the coroutine and return our parsed data.
 			android.util.Log.v("DownloadRouteObject", "Finished parsing downloadable object")
 			this.continuation.resumeWith(Result.success(parsedData))
 		}

@@ -38,7 +38,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	var buses: Array<Bus> = emptyArray()
 
 	/**
-	 * Documentation
+	 * All of the routes that are trackable by the app.
 	 */
 	val routes: HashMap<String, Route> = HashMap()
 

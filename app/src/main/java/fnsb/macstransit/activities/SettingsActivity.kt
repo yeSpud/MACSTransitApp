@@ -2,7 +2,6 @@ package fnsb.macstransit.activities
 
 import android.os.Build
 import android.os.Bundle
-import android.os.Parcelable
 import android.util.Log
 import android.util.TypedValue
 import android.view.View
@@ -51,13 +50,13 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 
 		// Get the routes from the intent extra.
 		val extraBundle: Bundle = this.intent.extras ?: return
-		val routeParcel: Array<Parcelable> = extraBundle.getParcelableArray("Routes") ?: return
+		val routeParcel: Array<android.os.Parcelable> = extraBundle.getParcelableArray("Routes") ?: return
 
 		// Setup the favorites container.
 		// Begin by iterating though all the routes.
 		routeParcel.forEach {
 
-			// Comments
+			// Get the route from the parcelable.
 			val route: Route = it as Route
 
 			// Create a new checkbox.
@@ -66,8 +65,8 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			// Set the checkbox's text to the route name.
 			checkBox.text = route.name
 
-			// Comments
-			checkBox.minHeight = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 48.0F,
+			// Set the minimum height for the checkbox.
+			checkBox.minHeight = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, CHECKBOX_MIN_HEIGHT,
 			                                               this.resources.displayMetrics).toInt()
 
 			// Set the color and size of the text to constants.
@@ -87,8 +86,8 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			// Set the checkbox tag to the route object.
 			checkBox.tag = route
 
-			// Set the checkbox to its enabled value.
-			checkBox.isChecked = isFavorited(this.settings.favoriteRouteNames, route.name)
+			// Set the checkbox to be checked if its route is a favorited route.
+			checkBox.isChecked = this.settings.favoriteRouteNames.contains(route.name)
 
 			// Add the box to the favorites container.
 			this.binding.favoriteRouteContainer.addView(checkBox)
@@ -98,32 +97,14 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 	companion object {
 
 		/**
-		 * Constant used to set the initial size of the text for the favorite routes check box.
+		 * Constant used to set the initial size of the text for the favorite routes checkbox.
 		 */
 		private const val CHECKBOX_TEXT_SIZE: Float = 20.0F
 
 		/**
-		 * Iterates though the provided route (favorited routes),
-		 * and returns if the provided route name matches any of them.
-		 *
-		 * @param routes    Documentation
-		 * @param routeName The route name.
-		 * @return Whether the route name was found in the favorited routes.
+		 * Constant used to set the minimum height of the checkbox for the favorite routes checkbox.
 		 */
-		internal fun isFavorited(routes: Array<String>, routeName: String): Boolean {
-
-			// Iterate though all the routes provided.
-			routes.forEach {
-
-				// If the name matches then return true. If not then keep iterating.
-				if (it == routeName) {
-					return true
-				}
-			}
-
-			// Since no names match return false.
-			return false
-		}
+		private const val CHECKBOX_MIN_HEIGHT: Float = 48.0F
 	}
 
 	/**

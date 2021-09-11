@@ -111,7 +111,7 @@ class Bus(
 					routes[busObject.getString("masterRouteId")]!!
 				} catch (NullPointerException: NullPointerException) {
 
-					// Comments
+					// If the bus route was not found in all of our trackable routes throw a RuntimeException.
 					throw RuntimeException("Bus route not found in route map!")
 				}
 

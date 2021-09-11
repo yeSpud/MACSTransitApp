@@ -13,10 +13,10 @@ import fnsb.macstransit.routematch.Route
  * @since Release 1.3.
  */
 class DownloadMasterSchedule(private val loadingActivity: LoadingActivity):
-		DownloadRouteObjects<HashMap<String, Route>>(loadingActivity.viewModel) {
+		DownloadRouteObjects<Unit>(loadingActivity.viewModel) {
 
 	override suspend fun download(route: Route, downloadProgress: Double, progressSoFar: Double,
-	                              index: Int): HashMap<String, Route> = kotlin.coroutines.suspendCoroutine {
+	                              index: Int): Unit = kotlin.coroutines.suspendCoroutine {
 
 		// Set the progress.
 		this@DownloadMasterSchedule.loadingActivity.viewModel.setProgressBar(downloadProgress)
@@ -36,27 +36,23 @@ class DownloadMasterSchedule(private val loadingActivity: LoadingActivity):
 		})
 	}
 
-	internal class ParseMasterSchedule(continuation: kotlin.coroutines.Continuation<HashMap<String, Route>>,
+	internal class ParseMasterSchedule(continuation: kotlin.coroutines.Continuation<Unit>,
 	                                   private val loadingActivity: LoadingActivity, viewModel: fnsb.
 			macstransit.activities.loadingactivity.LoadingViewModel) :
-			DownloadableCallback<HashMap<String, Route>>(continuation, viewModel, R.string.parsing_master_schedule) {
+			DownloadableCallback<Unit>(continuation, viewModel, R.string.parsing_master_schedule) {
 
-		override fun parse(jsonArray: org.json.JSONArray): HashMap<String, Route> {
+		override fun parse(jsonArray: org.json.JSONArray) {
 
-			// Comments
-			val hashMap: HashMap<String, Route> = HashMap()
+			// Get the route count from the JSON Array.
+			val count = jsonArray.length()
 
 			// If the routes length is 0, say that there are no buses for the day.
-			val count = jsonArray.length()
 			if (count == 0) {
 				this.viewModel.setMessage(R.string.its_sunday)
 
 				// Also add a chance for the user to retry.
 				this.loadingActivity.showRetryButton()
 				this.loadingActivity.loaded = true
-
-				// Return the empty hashmap.
-				return hashMap
 			}
 
 			// Update the progress and message.
@@ -80,8 +76,8 @@ class DownloadMasterSchedule(private val loadingActivity: LoadingActivity):
 				try {
 					val route = Route.generateRoute(routeData)
 
-					// Comments
-					hashMap[route.name] = route
+					// Add the route to the hashmap in the view model.
+					this.loadingActivity.viewModel.routes[route.name] = route
 				} catch (Exception: Exception) {
 
 					// If there was a route exception thrown simply log it.
@@ -91,9 +87,6 @@ class DownloadMasterSchedule(private val loadingActivity: LoadingActivity):
 				this.loadingActivity.viewModel.setProgressBar(progress + step)
 				progress += step
 			}
-
-			// Comments
-			return hashMap
 		}
 	}
 }

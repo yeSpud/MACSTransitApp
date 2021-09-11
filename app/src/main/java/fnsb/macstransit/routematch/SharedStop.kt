@@ -7,6 +7,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.ktx.addCircle
 
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.
@@ -18,12 +19,12 @@ import com.google.android.gms.maps.model.LatLng
 class SharedStop: MarkedObject, Parcelable {
 
 	/**
-	 * Documentation
+	 * Route names that correspond to this shared stop.
 	 */
 	val routeNames: Array<String>
 
 	/**
-	 * Documentation
+	 * Route colors that correspond to this shared stop.
 	 */
 	private val routeColors: IntArray
 
@@ -40,25 +41,33 @@ class SharedStop: MarkedObject, Parcelable {
 	private val circles: Array<Circle?>
 
 	/**
-	 * Documentation
+	 * Creates a new Shared Stop from the parcel data.
 	 *
-	 * @param parcel
+	 * @param parcel The parcel containing the data to load the Shared Stop.
 	 */
 	constructor(parcel: Parcel): super(parcel.readString()!!, parcel.
 	readParcelable<LatLng>(LatLng::class.java.classLoader)!!, parcel.readString()!!, parcel.readInt()) {
+
+		// Parse the route names and colors.
 		this.routeNames = parcel.createStringArray()!!
 		this.routeColors = parcel.createIntArray()!!
 
-		this.circleOptions = Array(this.routeNames.size) {
+		// Parse the circle options using the route colors.
+		this.circleOptions = Array(this.routeColors.size) {
+
+			// Set the circle location.
+			val options: CircleOptions = CircleOptions().center(this.location)
+
+			// If the route has color then set the circle color.
 			if (this.routeColors[it] != 0) {
-				CircleOptions().center(this.location)
-					.fillColor(this.routeColors[it])
-					.strokeColor(this.routeColors[it])
-			} else {
-				CircleOptions().center(this.location)
+				options.fillColor(this.routeColors[it]).strokeColor(this.routeColors[it])
 			}
+
+			// Apply the options to the array.
+			options
 		}
 
+		// Initialize the stop circles to null.
 		this.circles = arrayOfNulls(this.routeNames.size)
 
 		// Set the initial circle size.
@@ -66,27 +75,37 @@ class SharedStop: MarkedObject, Parcelable {
 	}
 
 	/**
-	 * Documentation
+	 * Creates a new Shared Stop.
 	 *
-	 * @param name
-	 * @param location
-	 * @param routes
+	 * @param name     The name of the shared stop.
+	 * @param location The location of the shared stop.
+	 * @param routes   The routes that apply to this shared stop.
 	 */
 	constructor(name: String, location: LatLng, routes: Array<Route>): super(name, location,
 	                                                                         routes[0].name, routes[0].color) {
+
+		// Set the route names and colors.
 		this.routeNames = Array(routes.size) { routes[it].name }
 		this.routeColors = IntArray(routes.size) { routes[it].color }
 
+		// Parse the circle options using the route colors.
 		this.circleOptions = Array(routes.size) {
 			val route = routes[it]
 			val color = route.color
+
+			// Set the circle location.
+			val options: CircleOptions = CircleOptions().center(this.location)
+
+			// If the route has color then set the circle color.
 			if (color != 0) {
-				CircleOptions().center(this.location).fillColor(color).strokeColor(color)
-			} else {
-				CircleOptions().center(this.location)
+				options.fillColor(color).strokeColor(color)
 			}
+
+			// Apply the options to the array.
+			options
 		}
 
+		// Initialize the stop circles to null.
 		this.circles = arrayOfNulls(routes.size)
 
 		// Set the initial circle size.
@@ -158,7 +177,7 @@ class SharedStop: MarkedObject, Parcelable {
 		for (i in this.circles.indices) {
 
 			// Get the size of the circle based on its radius.
-			val radiusSize = size * (1.0 / (i + 1))
+			val radiusSize: Double = size * (1.0 / (i + 1))
 
 			// Set the circle size.
 			this.circleOptions[i].radius(radiusSize)
@@ -202,16 +221,18 @@ class SharedStop: MarkedObject, Parcelable {
 	fun createSharedStopCircle(map: GoogleMap, index: Int) {
 
 		// Get the circle that was added to the map with the provided circle options.
-		val circle: Circle = map.addCircle(this.circleOptions[index])
+		val circle: Circle = map.addCircle {
+			this@SharedStop.circleOptions[index]
+
+			// Set the circle to be clickable depending on the clickable argument.
+			this.clickable(index == 0)
+
+			// At this point set the circle to be visible.
+			this.visible(true)
+		}
 
 		// Set the tag of the circle to the provided shared stop object.
 		circle.tag = this
-
-		// Set the circle to be clickable depending on the clickable argument.
-		circle.isClickable = index == 0
-
-		// At this point set the circle to be visible.
-		circle.isVisible = true
 
 		// Return our newly created circle.
 		this.circles[index] = circle
@@ -223,7 +244,7 @@ class SharedStop: MarkedObject, Parcelable {
 		 * The initial size to set the largest circle to.
 		 * Each of the subsequent circles are set to a smaller size dependent on this constant.
 		 */
-		const val INITIAL_CIRCLE_SIZE = 12.0
+		const val INITIAL_CIRCLE_SIZE: Double = 12.0
 
 		/**
 		 * Gets the routes that share the provided stop by iterating through all routes,
@@ -234,24 +255,27 @@ class SharedStop: MarkedObject, Parcelable {
 		 *
 		 * @param route      The route to compare against all other routes.
 		 * @param stop       The stop to compare against all stops in all other routes.
+		 * @param allRoutes  A hashmap of all the trackable routes.
 		 *
-		 * @return Documentation
+		 * @return Returns all the shared routes for the stop as an array.
 		 */
 		@JvmStatic
 		fun getSharedRoutes(route: Route, stop: Stop, allRoutes: HashMap<String, Route>): Array<Route> {
 
-			// Comments
-			val hashMap: HashMap<String, Route> = HashMap(1)
-			hashMap[route.name] = route
-
 			// Make sure all routes isn't empty.
 			if (allRoutes.isEmpty()) {
 
-				// Comments
-				return hashMap.values.toTypedArray()
+				// Since allRoutes is empty just return our the provided route as an array.
+				return arrayOf(route)
 			}
 
-			// Comments
+			// Create a hashmap that will contain all our shared routes.
+			val hashMap: HashMap<String, Route> = HashMap(1)
+
+			// Add the first provided route to the hashmap.
+			hashMap[route.name] = route
+
+			// Iterate though all the provided routes.
 			for ((hashName, hashRoute) in allRoutes) {
 
 				// If the routes are the same then continue to the next iteration of the loop.
@@ -271,22 +295,17 @@ class SharedStop: MarkedObject, Parcelable {
 				}
 			}
 
-			// Comments
+			// Return our hashmap of all the shared routes as an array.
 			return hashMap.values.toTypedArray()
 		}
 
 		@JvmField
 		val CREATOR = object : Parcelable.Creator<SharedStop> {
 
-			override fun createFromParcel(parcel: Parcel): SharedStop {
-				return SharedStop(parcel)
-			}
+			override fun createFromParcel(parcel: Parcel): SharedStop { return SharedStop(parcel) }
 
-			override fun newArray(size: Int): Array<SharedStop?> {
-				return arrayOfNulls(size)
-			}
+			override fun newArray(size: Int): Array<SharedStop?> { return arrayOfNulls(size) }
 		}
-
 	}
 
 	override fun writeToParcel(parcel: Parcel, flags: Int) {

@@ -8,7 +8,6 @@ import android.util.Log
 import androidx.annotation.MainThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 
 /**
@@ -27,9 +26,9 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 	val routeMatch: RouteMatch = RouteMatch(this.getApplication<Application>().getString(fnsb.macstransit.R.string.routematch_url), this.getApplication())
 
 	/**
-	 * Documentation
+	 * All of the routes that can be tracked by the app. This will be determined by the master schedule.
 	 */
-	val routes: HashMap<String, Route> = HashMap()
+	val routes: HashMap<String, fnsb.macstransit.routematch.Route> = HashMap()
 
 	/**
 	 * The current (adjustable) progress.

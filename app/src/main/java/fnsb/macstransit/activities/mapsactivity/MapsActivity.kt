@@ -1,21 +1,16 @@
 package fnsb.macstransit.activities.mapsactivity
 
-import android.content.Intent
 import android.os.Bundle
-import android.os.Parcelable
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.V2
 import fnsb.macstransit.R
 import android.util.Log
 import android.view.Menu
-import android.view.MenuItem
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.maps.SupportMapFragment
-import fnsb.macstransit.activities.SettingsActivity
 import fnsb.macstransit.activities.mapsactivity.mappopups.FarePopupWindow
 import fnsb.macstransit.databinding.ActivityMapsBinding
 import fnsb.macstransit.settings.CurrentSettings
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MapsActivity: androidx.fragment.app.FragmentActivity() {
@@ -70,10 +65,15 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 
 		// Setup all our routes.
 		if (this.viewModel.routes.isEmpty()) {
+
+			// Get the extras from the intent.
 			val extraBundle: Bundle = this.intent.extras ?: return
 
-			val routesParcel: Array<Parcelable> = extraBundle.getParcelableArray("Routes") ?: return
+			// Get the routes from the bundle as a parcelable array.
+			val routesParcel: Array<android.os.Parcelable> = extraBundle.
+			getParcelableArray("Routes") ?: return
 
+			// Parse the routes from the parcelable to our hashmap.
 			routesParcel.forEach {
 				if (it is Route) {
 					val route: Route = it
@@ -88,7 +88,8 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		super.onDestroy()
 
 		// Launch the following as a cleanup job (that way we can essentially multi-thread the onDestroy process)
-		lifecycleScope.launch(Dispatchers.Main, start=kotlinx.coroutines.CoroutineStart.UNDISPATCHED) {
+		lifecycleScope.launch(kotlinx.coroutines.Dispatchers.Main,
+		                      start=kotlinx.coroutines.CoroutineStart.UNDISPATCHED) {
 			Log.i("onDestroy", "Beginning onDestroy cleanup coroutine...")
 
 			// Iterate though each route to get access to its shared stops and regular stops.
@@ -181,7 +182,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		return super.onPrepareOptionsMenu(menu)
 	}
 
-	override fun onOptionsItemSelected(item: MenuItem): Boolean {
+	override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
 		Log.v("onOptionsItemSelected", "onOptionsItemSelected has been called!")
 
 		// Identify which method to call based on the item ID.
@@ -209,13 +210,14 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 					// Check if the item that was selected was the settings button.
 					R.id.settings -> {
 
-						// Comments
-						val settingsIntent = Intent(this, SettingsActivity::class.java)
+						// Create the intent to launch the settings activity.
+						val settingsIntent = android.content.
+						Intent(this, fnsb.macstransit.activities.SettingsActivity::class.java)
 
-						// Comments
+						// Add all the trackable routes as an extra to the intent.
 						settingsIntent.putExtra("Routes", this.viewModel.routes.values.toTypedArray())
 
-						// Comments
+						// Start the settings activity.
 						this.startActivity(settingsIntent)
 					}
 
@@ -234,10 +236,10 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 				// Create a boolean to store the resulting value of the menu item.
 				val enabled = !item.isChecked
 
-				// Comments
+				// Get the route that was selected.
 				val route: Route = this.viewModel.routes[item.title] ?: return super.onOptionsItemSelected(item)
 
-				// Comments
+				// Set the route to enabled.
 				route.enabled = enabled
 				Log.d("onOptionsItemSelected", "Selected route ${route.name}")
 
