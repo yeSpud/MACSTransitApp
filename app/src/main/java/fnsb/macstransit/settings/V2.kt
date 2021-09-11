@@ -17,7 +17,7 @@ import java.io.IOException
  * Created by Spud on 6/19/20 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 2.0.
+ * @version 2.1.
  * @since Release 1.2.
  */
 object V2 : BaseSettings<JSONObject>("Settings.json", 2) {

@@ -17,7 +17,7 @@ import fnsb.macstransit.settings.CurrentSettings
  * Created by Spud on 2019-11-24 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 3.0.
+ * @version 3.1.
  * @since Beta 8.
  */
 class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {

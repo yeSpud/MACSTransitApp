@@ -15,7 +15,7 @@ import java.io.UnsupportedEncodingException
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 3.0.
+ * @version 3.1.
  * @since Beta 3.
  */
 class Route: Parcelable {

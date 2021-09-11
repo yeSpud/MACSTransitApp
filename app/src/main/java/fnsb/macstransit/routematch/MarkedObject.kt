@@ -10,7 +10,7 @@ import com.google.maps.android.ktx.addMarker
  * Created by Spud on 2019-11-20 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 2.0.
+ * @version 2.1.
  * @since Beta 8.
  */
 open class MarkedObject(val name: String, var location: LatLng, val routeName: String, val color: Int) {

@@ -13,7 +13,7 @@ import com.google.maps.android.ktx.addCircle
  * Created by Spud on 2019-11-01 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 4.0.
+ * @version 4.1.
  * @since Beta 7.
  */
 class SharedStop: MarkedObject, Parcelable {

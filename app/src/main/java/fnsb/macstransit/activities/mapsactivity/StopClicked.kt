@@ -18,7 +18,7 @@ import java.util.Locale
  * Created by Spud on 2019-10-30 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 2.0.
+ * @version 2.1.
  * @since Beta 7.
  */
 class StopClicked(private val context: android.content.Context, private val routematch: RouteMatch,

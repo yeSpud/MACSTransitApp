@@ -8,7 +8,7 @@ import org.json.JSONObject
  * Created by Spud on 9/1/21 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.0.
+ * @version 2.0.
  * @since Release 1.3.1.
  */
 abstract class DownloadRouteObjects<T>(val viewModel: LoadingViewModel) {

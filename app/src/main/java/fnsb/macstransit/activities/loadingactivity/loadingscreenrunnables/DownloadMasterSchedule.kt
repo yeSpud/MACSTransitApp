@@ -9,7 +9,7 @@ import fnsb.macstransit.routematch.Route
  * Created by Spud on 8/16/21 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.0.
+ * @version 1.1.
  * @since Release 1.3.
  */
 class DownloadMasterSchedule(private val loadingActivity: LoadingActivity):
