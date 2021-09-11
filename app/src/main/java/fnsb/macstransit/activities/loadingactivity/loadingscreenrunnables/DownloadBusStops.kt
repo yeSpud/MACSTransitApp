@@ -1,6 +1,7 @@
 package fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables
 
 import android.util.Log
+import fnsb.macstransit.R
 import fnsb.macstransit.activities.loadingactivity.LoadingViewModel
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.Stop
@@ -18,6 +19,10 @@ class DownloadBusStops(viewModel: LoadingViewModel): DownloadRouteObjects<Unit>(
 	override suspend fun download(route: Route, downloadProgress: Double, progressSoFar: Double,
 	                              index: Int): Unit = kotlin.coroutines.suspendCoroutine {
 
+		// Set the message that we are downloading bus stops.
+		this.viewModel.setMessage(R.string.loading_bus_stops)
+
+		// Download the bus stops.
 		this.viewModel.routeMatch.callAllStops(route, ParseBusStops(it, this.viewModel, route), {
 			error: com.android.volley.VolleyError -> Log.w("loadStops",
 			                                               "Unable to get stops from RouteMatch server",
@@ -33,7 +38,7 @@ class DownloadBusStops(viewModel: LoadingViewModel): DownloadRouteObjects<Unit>(
 
 	internal class ParseBusStops(continuation: kotlin.coroutines.Continuation<Unit>,
 	                             viewModel: LoadingViewModel, private val route : Route) :
-			DownloadableCallback<Unit>(continuation, viewModel, fnsb.macstransit.R.string.mapping_bus_stops) {
+			DownloadableCallback<Unit>(continuation, viewModel, R.string.mapping_bus_stops) {
 
 		override fun parse(jsonArray: org.json.JSONArray) {
 

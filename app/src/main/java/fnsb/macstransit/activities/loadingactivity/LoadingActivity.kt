@@ -133,8 +133,7 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 			this.launch(CoroutineName("StopCoroutine"), start = CoroutineStart.UNDISPATCHED) {
 				this@LoadingActivity.downloadCoroutine(LOAD_BUS_STOPS.toDouble(), DOWNLOAD_BUS_STOPS.toDouble(),
 				                                      (DOWNLOAD_MASTER_SCHEDULE_PROGRESS +
-				                                       PARSE_MASTER_SCHEDULE /*+ DOWNLOAD_BUS_ROUTES +
-				                                       LOAD_BUS_ROUTES */).toDouble(), fnsb.macstransit.
+				                                       PARSE_MASTER_SCHEDULE).toDouble(), fnsb.macstransit.
 				activities.loadingactivity.loadingscreenrunnables.DownloadBusStops(this@LoadingActivity.viewModel))
 			}.join()
 

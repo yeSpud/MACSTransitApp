@@ -2,12 +2,10 @@
     <string name="app_name">MACS Transit</string>
     <string name="routematch_url">https://fnsb.routematch.com/feed/</string>
     <string name="macs_transit_logo">MACS Transit logo</string>
-    <string name="loading">Loading…</string>
 
     <!-- Splash screen messages -->
     <string name="open_network_settings">Open network settings</string>
     <string name="internet_check">Checking internet connection</string>
-    <string name="routematch_creation_fail">An incorrect URL has been provided for the RouteMatch server</string>
     <string name="its_sunday">There are no buses scheduled to run at this time</string>
     <string name="cannot_connect_internet">Cannot connect to the internet</string>
     <string name="retry">Retry</string>
