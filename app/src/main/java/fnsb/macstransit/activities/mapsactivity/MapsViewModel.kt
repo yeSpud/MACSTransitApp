@@ -25,7 +25,7 @@ import kotlin.math.pow
  * Created by Spud on 8/21/21 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.0.
+ * @version 1.1.
  * @since Release 1.3.
  */
 class MapsViewModel(application: Application) : AndroidViewModel(application) {
@@ -36,6 +36,11 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	 * For now just initialize this array to 0.
 	 */
 	var buses: Array<Bus> = emptyArray()
+
+	/**
+	 * All of the routes that are trackable by the app.
+	 */
+	val routes: HashMap<String, Route> = HashMap()
 
 	/**
 	 * The RouteMatch object used to make calls to the RouteMatch server in order to update the bus positions,
@@ -68,22 +73,23 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		viewModelScope.launch(Dispatchers.Main) {
 
 			// Iterate though all the routes as we know at this point that they are not null.
-			MapsActivity.allRoutes.forEach { route ->
+			for ((_, route) in this@MapsViewModel.routes) {
 
 				// Toggle the stop visibility for each route.
-				route.stops.forEach { it.toggleStopVisibility(this@MapsViewModel.map!!) }
+				route.stops.forEach { it.value.toggleStopVisibility(this@MapsViewModel.map!!, route.enabled) }
 
 				// Iterate though the shared stops in the route.
 				route.sharedStops.forEach {
+
 					if (route.enabled) {
 
 						// Show the shared stops.
-						it.showSharedStop(this@MapsViewModel.map!!)
+						it.value.showSharedStop(this@MapsViewModel.map!!)
 					} else {
 
 						// Hide the shared stops on the map.
 						// Note that the stops should be hidden - not destroyed.
-						it.hideStop()
+						it.value.hideStop()
 					}
 				}
 			}
@@ -105,7 +111,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		}
 
 		// Toggle the polyline visibility for all the routes on the map.
-		MapsActivity.allRoutes.forEach { it.togglePolylineVisibility(this.map!!) }
+		this.routes.values.forEach { it.togglePolylineVisibility(this.routeMatch, this.map!!) }
 	}
 
 	/**
@@ -176,7 +182,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		                                                       -147.7684709), 11.0f))
 
 		// Only execute the following if we have routes to iterate over.
-		if (MapsActivity.allRoutes.isNotEmpty()) {
+		if (this.routes.isNotEmpty()) {
 
 			// Add a listener for when the camera has become idle (ie was moving isn't anymore).
 			Log.v("MapCoroutine", "Setting camera idle listener")
@@ -184,7 +190,8 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 
 			// Add a listener for when a stop icon (circle) is clicked.
 			Log.v("MapCoroutine", "Setting circle click listener")
-			this.map!!.setOnCircleClickListener(StopClicked(activity, this.routeMatch, this.map!!))
+			this.map!!.setOnCircleClickListener(StopClicked(activity, this.routeMatch,
+			                                                this.map!!, this.routes))
 
 			// Add a custom info window adapter, to add support for multiline snippets.
 			Log.v("MapCoroutine", "Setting info window")
@@ -256,10 +263,8 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 			if (MapsActivity.firstRun) {
 
 				// Get the favorited routes from the settings object.
-				val favoritedRoutes = settings.routes
-
 				// If the favorited routes is not null, enable them.
-				Route.enableFavoriteRoutes(favoritedRoutes)
+				Route.enableFavoriteRoutes(this.routes, settings.favoriteRouteNames)
 
 				MapsActivity.firstRun = false
 			}
@@ -325,17 +330,17 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		val size = metersPerPixel * 4
 
 		// Iterate though each route.
-		MapsActivity.allRoutes.forEach { route ->
+		for ((_, route) in this.routes) {
 
 			// Start by resizing the stop circles first.
-			for (stop in route.stops) {
+			for ((_, stop) in route.stops) {
 				if (stop.circle != null) {
 					stop.circle!!.radius = size
 				}
 			}
 
 			// Then resize the route's shared stop circles.
-			route.sharedStops.forEach { it.setCircleSizes(size) }
+			route.sharedStops.forEach { it.value.setCircleSizes(size) }
 		}
 	}
 

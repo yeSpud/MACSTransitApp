@@ -1,4 +1,4 @@
-package fnsb.macstransit.activities.splashactivity
+package fnsb.macstransit.activities.loadingactivity
 
 import android.app.Application
 import android.net.ConnectivityManager
@@ -14,16 +14,21 @@ import fnsb.macstransit.routematch.RouteMatch
  * Created by Spud on 8/16/21 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.0.
+ * @version 1.1.
  * @since Release 1.3.
  */
-class SplashViewModel(application: Application) : androidx.lifecycle.AndroidViewModel(application) {
+class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidViewModel(application) {
 
 
 	/**
 	 * The RouteMatch object used to retrieve data from the RouteMatch servers.
 	 */
 	val routeMatch: RouteMatch = RouteMatch(this.getApplication<Application>().getString(fnsb.macstransit.R.string.routematch_url), this.getApplication())
+
+	/**
+	 * All of the routes that can be tracked by the app. This will be determined by the master schedule.
+	 */
+	val routes: HashMap<String, fnsb.macstransit.routematch.Route> = HashMap()
 
 	/**
 	 * The current (adjustable) progress.
@@ -71,7 +76,7 @@ class SplashViewModel(application: Application) : androidx.lifecycle.AndroidView
 		Log.v("setProgressBar", "Provided progress: $progress")
 
 		// Convert the progress to be an int out of 100.
-		var p: Int = (progress / SplashActivity.MAX_PROGRESS * 100).toInt()
+		var p: Int = (progress / LoadingActivity.MAX_PROGRESS * 100).toInt()
 
 		// Validate that that the progress is between 0 and 100.
 		p = if (p > 100) 100 else kotlin.math.max(p, 0)

@@ -123,6 +123,24 @@ class ConceptsTest {
 
 	}
 
+	@Test
+	fun hashMapSepuku() {
+		val hashMap: HashMap<String, Int> = HashMap(3)
+		hashMap["Foo"] = 0
+		hashMap["Bar"] = 1
+		hashMap["Baz"] = 2
+
+
+		// Try removing a entry from the hashmap while iterating though it.
+		Assert.assertThrows(ConcurrentModificationException::class.java) {
+			hashMap.forEach {
+				if (it.value == 1 ) {
+					hashMap.remove(it.key)
+				}
+			}
+		}
+	}
+
 	companion object {
 
 		private fun ArrayListTest(inputArray: Array<String>): Array<Int> {

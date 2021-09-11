@@ -1,13 +1,14 @@
 package fnsb.macstransit.activities
 
 import android.os.Build
+import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import android.view.View
 import android.widget.CheckBox
 import android.widget.Toast
 import fnsb.macstransit.R
 import com.google.android.gms.maps.GoogleMap
-import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.databinding.SettingsBinding
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.CurrentSettings
@@ -16,7 +17,7 @@ import fnsb.macstransit.settings.CurrentSettings
  * Created by Spud on 2019-11-24 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 3.0.
+ * @version 3.1.
  * @since Beta 8.
  */
 class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
@@ -31,7 +32,7 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 	 */
 	val settings = CurrentSettings.settingsImplementation as fnsb.macstransit.settings.V2
 
-	override fun onCreate(savedInstanceState: android.os.Bundle?) {
+	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
 		// Setup the binder.
@@ -40,35 +41,36 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 		// Set the layout view to the settings view.
 		this.setContentView(this.binding.root)
 
-		// TODO Move the following to xml?
-		// Setup the radio buttons.
-		when (this.settings.maptype) {
-			GoogleMap.MAP_TYPE_SATELLITE -> this.binding.mapGroup.check(R.id.satellite_map)
-			GoogleMap.MAP_TYPE_TERRAIN -> this.binding.mapGroup.check(R.id.terrain_map)
-			else -> this.binding.mapGroup.check(R.id.normal_map)
-		}
-
-		// TODO Move to xml?
 		// Setup the buttons.
 		// The apply settings button should run the apply settings listener.
 		this.binding.apply.setOnClickListener(ApplySettings())
 
-		// TODO Move to xml?
 		// The cancel button should just finish the class and return.
 		this.binding.cancel.setOnClickListener { this.finish() }
 
+		// Get the routes from the intent extra.
+		val extraBundle: Bundle = this.intent.extras ?: return
+		val routeParcel: Array<android.os.Parcelable> = extraBundle.getParcelableArray("Routes") ?: return
+
 		// Setup the favorites container.
 		// Begin by iterating though all the routes.
-		MapsActivity.allRoutes.forEach {
+		routeParcel.forEach {
+
+			// Get the route from the parcelable.
+			val route: Route = it as Route
 
 			// Create a new checkbox.
 			val checkBox = CheckBox(this)
 
 			// Set the checkbox's text to the route name.
-			checkBox.text = it.name
+			checkBox.text = route.name
+
+			// Set the minimum height for the checkbox.
+			checkBox.minHeight = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, CHECKBOX_MIN_HEIGHT,
+			                                               this.resources.displayMetrics).toInt()
 
 			// Set the color and size of the text to constants.
-			checkBox.textSize = CHECKBOX_TEXT_SIZE.toFloat()
+			checkBox.textSize = CHECKBOX_TEXT_SIZE
 			val color = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
 				@Suppress("Deprecation")
 				this.resources.getColor(R.color.white)
@@ -78,15 +80,14 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			checkBox.setTextColor(color)
 
 			// Add button tint if the sdk supports it.
-			checkBox.buttonTintList =
-					androidx.appcompat.content.res.AppCompatResources.getColorStateList(this,
-					                                                                    R.color.white)
+			checkBox.buttonTintList = androidx.appcompat.content.res.AppCompatResources.
+			getColorStateList(this, R.color.white)
 
 			// Set the checkbox tag to the route object.
-			checkBox.tag = it
+			checkBox.tag = route
 
-			// Set the checkbox to its enabled value.
-			checkBox.isChecked = isFavorited(this.settings.routes, it.name)
+			// Set the checkbox to be checked if its route is a favorited route.
+			checkBox.isChecked = this.settings.favoriteRouteNames.contains(route.name)
 
 			// Add the box to the favorites container.
 			this.binding.favoriteRouteContainer.addView(checkBox)
@@ -96,32 +97,14 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 	companion object {
 
 		/**
-		 * Constant used to set the initial size of the text for the favorite routes check box.
+		 * Constant used to set the initial size of the text for the favorite routes checkbox.
 		 */
-		private const val CHECKBOX_TEXT_SIZE = 15
+		private const val CHECKBOX_TEXT_SIZE: Float = 20.0F
 
 		/**
-		 * Iterates though the provided route (favorited routes),
-		 * and returns if the provided route name matches any of them.
-		 *
-		 * @param routes    The favorited routes. This cannot be null.
-		 * @param routeName The route name. This cannot be null.
-		 * @return Whether the route name was found in the favorited routes.
+		 * Constant used to set the minimum height of the checkbox for the favorite routes checkbox.
 		 */
-		internal fun isFavorited(routes: Array<Route>, routeName: String): Boolean {
-
-			// Iterate though all the routes provided.
-			for (savedRoute in routes) {
-
-				// If the name matches then return true. If not then keep iterating.
-				if (savedRoute.name == routeName) {
-					return true
-				}
-			}
-
-			// Since no names match return false.
-			return false
-		}
+		private const val CHECKBOX_MIN_HEIGHT: Float = 48.0F
 	}
 
 	/**
@@ -136,9 +119,11 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 
 			// Determine the map type.
 			val mapId: Int = when (this@SettingsActivity.binding.mapGroup.checkedRadioButtonId) {
-				R.id.satellite_map -> { GoogleMap.MAP_TYPE_SATELLITE }
-				R.id.terrain_map -> { GoogleMap.MAP_TYPE_TERRAIN }
-				else -> { GoogleMap.MAP_TYPE_NORMAL }
+				R.id.normal_map -> GoogleMap.MAP_TYPE_NORMAL
+				R.id.satellite_map -> GoogleMap.MAP_TYPE_SATELLITE
+				R.id.hybrid_map -> GoogleMap.MAP_TYPE_HYBRID
+				R.id.terrain_map -> GoogleMap.MAP_TYPE_TERRAIN
+				else -> GoogleMap.MAP_TYPE_NORMAL
 			}
 
 			// Format the options into a Json string.

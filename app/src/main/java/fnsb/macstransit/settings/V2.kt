@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import com.google.android.gms.maps.GoogleMap
-import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.CurrentSettings.readFile
 import org.json.JSONArray
@@ -18,7 +17,7 @@ import java.io.IOException
  * Created by Spud on 6/19/20 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 2.0.
+ * @version 2.1.
  * @since Release 1.2.
  */
 object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
@@ -59,7 +58,7 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 	 * These routes should be enabled / selected as soon as the app has finished initialization.
 	 * This is null as it should not be set by any other method except ones defined by this class.
 	 */
-	var routes: Array<Route> = emptyArray()
+	var favoriteRouteNames: Array<String> = emptyArray()
 		private set
 
 	/**
@@ -210,28 +209,12 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 			val favoritedRoutes: JSONArray = input.getJSONArray("favorited routes")
 			val count: Int = favoritedRoutes.length()
 
-			// Create a temp array to store our routes.
-			val potentialRoutes: Array<Route?> = arrayOfNulls(count)
-			var verifiedCount = 0
-
-			// Iterate through the JSON array and try to match the names of the routes.
+			// Iterate though the JSON Array and retrieve the favorite route names.
+			val favoriteRouteNames: Array<String?> = arrayOfNulls(count)
 			for (i in 0 until count) {
-				val routeName = favoritedRoutes.getString(i)
-				for (route in MapsActivity.allRoutes) {
-
-					// If the route names match, add it to the list of routes.
-					if (routeName == route.name) {
-						potentialRoutes[verifiedCount] = route
-						verifiedCount++
-						break
-					}
-				}
+				favoriteRouteNames[i] = favoritedRoutes.getString(i)
 			}
-
-			// Copy the verified potential routes to our confirmed routes array.
-			val newRoutes: Array<Route?> = arrayOfNulls(verifiedCount)
-			System.arraycopy(potentialRoutes, 0, newRoutes, 0, verifiedCount)
-			this.routes = newRoutes.requireNoNulls()
+			this.favoriteRouteNames = favoriteRouteNames as Array<String>
 
 		} catch (e: JSONException) {
 			Log.e("parseSettings", "Cannot parse settings", e)

@@ -2,9 +2,9 @@ package fnsb.macstransit
 
 import android.graphics.Color
 import fnsb.macstransit.routematch.Route
-import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import org.junit.Assert
 import org.junit.Test
+import java.io.UnsupportedEncodingException
 
 /**
  * Created by Spud on 7/16/20 for the project: MACS Transit.
@@ -19,10 +19,10 @@ class RouteTest {
 	fun routeTest() {
 
 		// Constructor test!
-		// Basically make sure it errors when its supposed to. FIXME
-		//Assert.assertThrows(RouteException::class.java) { Route("f o p") }
-		//Assert.assertThrows(RouteException::class.java) { Route("multiline\nroute") }
-		//Assert.assertThrows(RouteException::class.java) { Route("t a   b   s") }
+		// Basically make sure it errors when its supposed to.
+		Assert.assertThrows(UnsupportedEncodingException::class.java) { Route("f o p") }
+		Assert.assertThrows(UnsupportedEncodingException::class.java) { Route("multiline\nroute") }
+		Assert.assertThrows(UnsupportedEncodingException::class.java) { Route("t a   b   s") }
 
 		val fineRoute = Route("fine")
 		val blue = Route("Blue", Color.BLUE)
@@ -48,17 +48,20 @@ class RouteTest {
 	fun enableFavoriteRoutesTest() {
 
 		// TODO All
-		MapsActivity.allRoutes = arrayOf(Route("Foo"), Route("Bar"), Route("Baz"))
+		val routes: HashMap<String, Route> = HashMap(3)
+		routes["Foo"] = Route("Foo")
+		routes["Bar"] = Route("Bar")
+		routes["Baz"] = Route("Baz")
 
 		// TODO Fav
-		val favoriteRoutes: Array<Route> = arrayOf(Route("Foo"))
+		val favoriteRoutes: Array<String> = arrayOf("Foo")
 
 		// Enable the favoriteRoutes.
-		Route.enableFavoriteRoutes(favoriteRoutes)
+		Route.enableFavoriteRoutes(routes, favoriteRoutes)
 
 		// Check for expected values.
-		Assert.assertTrue(MapsActivity.allRoutes[0].enabled)
-		Assert.assertFalse(MapsActivity.allRoutes[1].enabled)
-		Assert.assertFalse(MapsActivity.allRoutes[2].enabled)
+		Assert.assertTrue(routes["Foo"]!!.enabled)
+		Assert.assertFalse(routes["Bar"]!!.enabled)
+		Assert.assertFalse(routes["Baz"]!!.enabled)
 	}
 }

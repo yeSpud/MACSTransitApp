@@ -1,40 +1,115 @@
 package fnsb.macstransit.routematch
 
-import android.util.Log
+import android.os.Parcel
+import android.os.Parcelable
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
-import fnsb.macstransit.activities.mapsactivity.MapsActivity
 
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 4.0.
+ * @version 4.1.
  * @since Beta 7.
  */
-class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
-		MarkedObject(stopName, location, routes[0]) {
+class SharedStop: MarkedObject, Parcelable {
+
+	/**
+	 * Route names that correspond to this shared stop.
+	 */
+	val routeNames: Array<String>
+
+	/**
+	 * Route colors that correspond to this shared stop.
+	 */
+	private val routeColors: IntArray
 
 	/**
 	 * Array of circle options for each circle that represents a route.
 	 */
-	private val circleOptions: Array<CircleOptions> = Array(this.routes.size) {
-		val route = routes[it]
-		val color = route.color
-		if (color != 0) {
-			CircleOptions().center(this.location).fillColor(color).strokeColor(color)
-		} else {
-			CircleOptions().center(this.location)
-		}
-	}
+	@Transient
+	private val circleOptions: Array<CircleOptions>
 
 	/**
 	 * Array of circles that represent a route that shares this one stop.
 	 */
-	private val circles: Array<Circle?> = arrayOfNulls(this.routes.size)
+	@Transient
+	private val circles: Array<Circle?>
+
+	/**
+	 * Creates a new Shared Stop from the parcel data.
+	 *
+	 * @param parcel The parcel containing the data to load the Shared Stop.
+	 */
+	constructor(parcel: Parcel): super(parcel.readString()!!, parcel.
+	readParcelable<LatLng>(LatLng::class.java.classLoader)!!, parcel.readString()!!, parcel.readInt()) {
+
+		// Parse the route names and colors.
+		this.routeNames = parcel.createStringArray()!!
+		this.routeColors = parcel.createIntArray()!!
+
+		// Parse the circle options using the route colors.
+		this.circleOptions = Array(this.routeColors.size) {
+
+			// Set the circle location.
+			val options: CircleOptions = CircleOptions().center(this.location)
+
+			// If the route has color then set the circle color.
+			if (this.routeColors[it] != 0) {
+				options.fillColor(this.routeColors[it]).strokeColor(this.routeColors[it])
+			}
+
+			// Apply the options to the array.
+			options
+		}
+
+		// Initialize the stop circles to null.
+		this.circles = arrayOfNulls(this.routeNames.size)
+
+		// Set the initial circle size.
+		setCircleSizes(INITIAL_CIRCLE_SIZE)
+	}
+
+	/**
+	 * Creates a new Shared Stop.
+	 *
+	 * @param name     The name of the shared stop.
+	 * @param location The location of the shared stop.
+	 * @param routes   The routes that apply to this shared stop.
+	 */
+	constructor(name: String, location: LatLng, routes: Array<Route>): super(name, location,
+	                                                                         routes[0].name, routes[0].color) {
+
+		// Set the route names and colors.
+		this.routeNames = Array(routes.size) { routes[it].name }
+		this.routeColors = IntArray(routes.size) { routes[it].color }
+
+		// Parse the circle options using the route colors.
+		this.circleOptions = Array(routes.size) {
+			val route = routes[it]
+			val color = route.color
+
+			// Set the circle location.
+			val options: CircleOptions = CircleOptions().center(this.location)
+
+			// If the route has color then set the circle color.
+			if (color != 0) {
+				options.fillColor(color).strokeColor(color)
+			}
+
+			// Apply the options to the array.
+			options
+		}
+
+		// Initialize the stop circles to null.
+		this.circles = arrayOfNulls(routes.size)
+
+		// Set the initial circle size.
+		setCircleSizes(INITIAL_CIRCLE_SIZE)
+	}
 
 	/**
 	 * Sets the shared stop circles to be visible.
@@ -48,20 +123,20 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
 	fun showSharedStop(map: GoogleMap) {
 
 		// Iterate though each of the circles.
-		for (i in circles.indices) {
+		for (i in this.circles.indices) {
 
 			// If the circle is null, create a new shared stop circle.
-			if (circles[i] == null) {
+			if (this.circles[i] == null) {
 
 				// Since the stop circle is null try creating a new one.
 				this.createSharedStopCircle(map, i)
 			} else {
 
 				// Only set the circle to be clickable if its the 0th index circle (the biggest one).
-				circles[i]!!.isClickable = i == 0
+				this.circles[i]!!.isClickable = i == 0
 
 				// Set the circle to be visible.
-				circles[i]!!.isVisible = true
+				this.circles[i]!!.isVisible = true
 			}
 		}
 	}
@@ -74,15 +149,6 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
 	 */
 	@UiThread
 	fun hideStop() {
-
-		// Iterate though each route in the shared stop.
-		this.routes.forEach {
-
-			// If any route is still enabled, return early.
-			if (it.enabled) {
-				return
-			}
-		}
 
 		// Iterate though each circle in the shared stop.
 		this.circles.forEach {
@@ -110,7 +176,7 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
 		for (i in this.circles.indices) {
 
 			// Get the size of the circle based on its radius.
-			val radiusSize = size * (1.0 / (i + 1))
+			val radiusSize: Double = size * (1.0 / (i + 1))
 
 			// Set the circle size.
 			this.circleOptions[i].radius(radiusSize)
@@ -154,16 +220,16 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
 	fun createSharedStopCircle(map: GoogleMap, index: Int) {
 
 		// Get the circle that was added to the map with the provided circle options.
-		val circle: Circle = map.addCircle(this.circleOptions[index])
-
-		// Set the tag of the circle to the provided shared stop object.
-		circle.tag = this
+		val circle: Circle = map.addCircle(this@SharedStop.circleOptions[index])
 
 		// Set the circle to be clickable depending on the clickable argument.
-		circle.isClickable = index == 0
+		circle.isClickable = (index == 0)
 
 		// At this point set the circle to be visible.
 		circle.isVisible = true
+
+		// Set the tag of the circle to the provided shared stop object.
+		circle.tag = this
 
 		// Return our newly created circle.
 		this.circles[index] = circle
@@ -175,7 +241,7 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
 		 * The initial size to set the largest circle to.
 		 * Each of the subsequent circles are set to a smaller size dependent on this constant.
 		 */
-		const val INITIAL_CIRCLE_SIZE = 12.0
+		const val INITIAL_CIRCLE_SIZE: Double = 12.0
 
 		/**
 		 * Gets the routes that share the provided stop by iterating through all routes,
@@ -185,119 +251,70 @@ class SharedStop(location: LatLng, stopName: String, val routes: Array<Route>):
 		 * This is because its the only route to have that stop in its stop array.
 		 *
 		 * @param route      The route to compare against all other routes.
-		 * @param routeIndex The index of the route that we are comparing in all routes.
 		 * @param stop       The stop to compare against all stops in all other routes.
-		 * @return Array of routes that share the stop. This always return an array of at least one route.
+		 * @param allRoutes  A hashmap of all the trackable routes.
+		 *
+		 * @return Returns all the shared routes for the stop as an array.
 		 */
 		@JvmStatic
-		fun getSharedRoutes(route: Route, routeIndex: Int, stop: Stop): Array<Route> {
+		fun getSharedRoutes(route: Route, stop: Stop, allRoutes: HashMap<String, Route>): Array<Route> {
 
-			// Create an array of potential routes that could share a same stop
-			// (the stop that we are iterating over).
-			// Set the array size to that of all the routes minus the current index as to make it decrease every iteration.
-			val potentialRoutes = arrayOfNulls<Route>(MapsActivity.allRoutes.size - routeIndex)
+			// Make sure all routes isn't empty.
+			if (allRoutes.isEmpty()) {
 
-			// Add the current route to the potential routes, and update the potential route index.
-			potentialRoutes[0] = route
-			var potentialRouteIndex = 1
+				// Since allRoutes is empty just return our the provided route as an array.
+				return arrayOf(route)
+			}
 
-			// In order to iterate though all the routes remaining in the allRoutes array we need to get the 2nd route index.
-			// This is equal to the first route index + 1 as to not hopefully not compare the same route against itself,
-			// but also not compare against previous routes in the array.
-			for (route2Index in routeIndex + 1 until MapsActivity.allRoutes.size) {
+			// Create a hashmap that will contain all our shared routes.
+			val hashMap: HashMap<String, Route> = HashMap(1)
 
-				// Get the route at the 2nd index for comparison.
-				val route2 = MapsActivity.allRoutes[route2Index]
+			// Add the first provided route to the hashmap.
+			hashMap[route.name] = route
+
+			// Iterate though all the provided routes.
+			for ((hashName, hashRoute) in allRoutes) {
 
 				// If the routes are the same then continue to the next iteration of the loop.
-				if (route == route2) {
+				if (route == hashRoute) {
 					continue
 				}
 
 				// If there are no stops to iterate over just continue like above.
-				val route2Stops = route2.stops
-				if (route2Stops.isEmpty()) {
+				if (hashRoute.stops.isEmpty()) {
 					continue
 				}
 
-				// Iterate though each stop in the second route and compare them to the provided stop.
-				for (stop2 in route2Stops) {
-
-					// If the stops match, add the route to the potential routes array.
-					if (stop == stop2) {
-						potentialRoutes[potentialRouteIndex] = route2
-						potentialRouteIndex++
-					}
+				// Try to get our provided stop from the has route.
+				// If the stop isn't null (was found) add the hash route to our hashmap.
+				if (hashRoute.stops[stop.name] != null) {
+					hashMap[hashName] = hashRoute
 				}
 			}
 
-			// Create a new array of routes with the actual size of shared routes between the one shared stop.
-			val actualRoutes: Array<Route?> = arrayOfNulls(potentialRouteIndex)
-
-			// Copy the content from the potential routes into the actual route, and return the actual route.
-			System.arraycopy(potentialRoutes, 0, actualRoutes, 0, potentialRouteIndex)
-			return actualRoutes as Array<Route>
+			// Return our hashmap of all the shared routes as an array.
+			return hashMap.values.toTypedArray()
 		}
 
-		/**
-		 * Compares stops against shared stops and only returns the stops that are not shared stops.
-		 *
-		 * @param stops       The original stops for the route that may be shared with shared stops.
-		 * @param sharedStops The shared stops for the route.
-		 * @return Returns an array of stops that are unique to the route (not shared by any other routes or shared stops).
-		 */
-		@JvmStatic
-		fun removeStopsWithSharedStops(stops: Array<Stop>, sharedStops: Array<SharedStop>): Array<Stop> {
+		@JvmField
+		val CREATOR = object : Parcelable.Creator<SharedStop> {
 
-			// Create an of potential stops with a maximum size of the original stop array.
-			val potentialStops = arrayOfNulls<Stop>(stops.size)
-			var finalIndex = 0
+			override fun createFromParcel(parcel: Parcel): SharedStop { return SharedStop(parcel) }
 
-			// Iterate though each stop in the provided stop array.
-			stops.forEach { stop ->
-
-				// Check if the stop matches the shared stop (same name, location).
-				var noMatch = true
-				for (sharedStop: SharedStop in sharedStops) {
-					if (sharedStop.equals(stop)) {
-						noMatch = false
-						break
-					}
-				}
-
-				// If the stop doesn't match add it to the potential stops array since its not shared.
-				if (noMatch) {
-					try {
-						potentialStops[finalIndex] = stop
-						finalIndex++
-					} catch (e: ArrayIndexOutOfBoundsException) {
-
-						// If the array was out of bounds then log it (catastrophic if left unchecked).
-						Log.e("remvStpsWthShredStps",
-						      "Failed to add stop ${stop.name} " +
-						      "from route ${stop.route.name} to array\n" +
-						      "Final stops array is too small!", e)
-					}
-				}
-			}
-
-			// If the final index does match the stop length minus shared stop length log how much it was off by.
-			// This is left over from debugging, but is still useful to know.
-			if (finalIndex != stops.size - sharedStops.size) {
-				Log.i("remvStpsWthShredStps", "Final index differs from standard number! " +
-				      "(${stops.size - sharedStops.size}d vs $finalIndex)")
-			}
-
-			// Return our final stop array.
-			val finalStops: Array<Stop?> = arrayOfNulls(finalIndex)
-			System.arraycopy(potentialStops, 0, finalStops, 0, finalIndex)
-			return finalStops as Array<Stop>
+			override fun newArray(size: Int): Array<SharedStop?> { return arrayOfNulls(size) }
 		}
 	}
 
-	init {
+	override fun writeToParcel(parcel: Parcel, flags: Int) {
+		parcel.writeString(this.name)
+		parcel.writeParcelable(this.location, flags)
+		parcel.writeString(this.routeNames[0])
+		parcel.writeInt(this.routeColors[0])
+		parcel.writeStringArray(this.routeNames)
+		parcel.writeIntArray(this.routeColors)
+	}
 
-		// Set the initial circle size.
-		setCircleSizes(INITIAL_CIRCLE_SIZE)
+	override fun describeContents(): Int {
+		return this.hashCode()
 	}
 }

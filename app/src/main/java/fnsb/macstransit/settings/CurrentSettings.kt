@@ -176,7 +176,7 @@ object CurrentSettings {
 	 * @param file The file to read from.
 	 * @return The content of the file as a string. This may be an empty string.
 	 */
-	fun readFile(file: File): String { // TODO Move this to NDK.
+	fun readFile(file: File): String {
 
 		// Try to create a file input stream in order to read the data from the file.
 		val input: FileInputStream = try {

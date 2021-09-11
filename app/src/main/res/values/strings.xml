@@ -2,12 +2,10 @@
     <string name="app_name">MACS Transit</string>
     <string name="routematch_url">https://fnsb.routematch.com/feed/</string>
     <string name="macs_transit_logo">MACS Transit logo</string>
-    <string name="loading">Loading…</string>
 
     <!-- Splash screen messages -->
     <string name="open_network_settings">Open network settings</string>
     <string name="internet_check">Checking internet connection</string>
-    <string name="routematch_creation_fail">An incorrect URL has been provided for the RouteMatch server</string>
     <string name="its_sunday">There are no buses scheduled to run at this time</string>
     <string name="cannot_connect_internet">Cannot connect to the internet</string>
     <string name="retry">Retry</string>
@@ -15,8 +13,6 @@
     <!-- Networking messages -->
     <string name="downloading_master_schedule">Downloading master schedule</string>
     <string name="parsing_master_schedule">Processing master schedule</string>
-    <string name="loading_bus_routes">Downloading bus routes</string>
-    <string name="mapping_bus_routes">Processing bus routes</string>
     <string name="loading_bus_stops">Downloading bus stops</string>
     <string name="mapping_bus_stops">Processing bus stops</string>
     <string name="shared_bus_stop_check">Checking for shared bus stops</string>
@@ -64,6 +60,7 @@
     <string name="favorited_routes">Favorited routes:</string>
     <string name="normal_map">Normal (Default)</string>
     <string name="satellite_map">Satellite</string>
+    <string name="hybrid_map">Hybrid</string>
     <string name="terrain_map">Terrain</string>
     <string name="favorite_routes_explanation">Selected favorited routes will be pre-selected upon app startup.</string>
     <string name="cancel">Cancel</string>

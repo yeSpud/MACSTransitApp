@@ -1,29 +1,51 @@
 package fnsb.macstransit.routematch
 
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.ktx.addCircle
+import org.json.JSONException
 
 /**
  * Created by Spud on 2019-10-18 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 3.0.
+ * @version 3.1.
  * @since Beta 6.
  */
-class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stopName, location, route) {
+class Stop: MarkedObject, Parcelable {
 
 	/**
 	 * The circle marking the bus stop on the map
 	 * (be sure to check if this exists first as it may be null).
 	 */
+	@Transient
 	var circle: com.google.android.gms.maps.model.Circle? = null
-	private set
+		private set
 
 	/**
-	 * Stop object.
+	 * Creation of a stop object from a previously created stop object.
+	 *
+	 * @param parcel The parcel containing the saved information to create a stop object.
+	 */
+	constructor(parcel: Parcel): super(parcel.readString()!!, parcel.
+	readParcelable<LatLng>(LatLng::class.java.classLoader)!!, parcel.readString()!!, parcel.readInt())
+
+	/**
+	 * A stop object.
+	 *
+	 * @param stopName The name of the stop.
+	 * @param location THe location of the stop.
+	 * @param route The route the stop belongs to.
+	 */
+	constructor(stopName: String, location: LatLng, route: Route): super(stopName, location,
+	                                                                     route.name, route.color)
+
+	/**
+	 * A stop object.
 	 *
 	 * @param stopName The name of the stop.
 	 * @param latitude The latitude of the stop.
@@ -39,6 +61,7 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 	 * @param json  The JSONObject containing the bus stop data.
 	 * @param route The route this newly created Stop object will apply to.
 	 */
+	@Throws(JSONException::class)
 	constructor(json: org.json.JSONObject, route: Route) : this(json.getString("stopId"),
 	                                                            json.getDouble("latitude"),
 	                                                            json.getDouble("longitude"), route)
@@ -50,10 +73,11 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 	 *
 	 * @param map The google maps object that the stops will be drawn onto.
 	 *            Be sure this object has been initialized first.
+	 * @param visible Whether the stop should be visible or not.
 	 * @param attempted Whether or not this function has been attempted before (default is false).
 	 */
 	@UiThread
-	fun toggleStopVisibility(map: GoogleMap, attempted: Boolean = false) {
+	fun toggleStopVisibility(map: GoogleMap, visible: Boolean, attempted: Boolean = false) {
 
 		// Check if the circle for the stop needs to be created,
 		// or just set to visible if it already exists.
@@ -67,13 +91,13 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 			}
 
 			// Create a new circle object.
-			this.createStopCircle(map)
-			this.toggleStopVisibility(map, true)
+			this.createStopCircle(map, visible)
+			this.toggleStopVisibility(map, visible,true)
 		} else {
 
 			// Since the circle already exists simply update its visibility.
-			this.circle!!.isClickable = this.route.enabled
-			this.circle!!.isVisible = this.route.enabled
+			this.circle!!.isClickable = visible
+			this.circle!!.isVisible = visible
 		}
 	}
 
@@ -96,9 +120,10 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 	 * Creates a new circle object for new Stops.
 	 *
 	 * @param map The google maps object that this newly created circle will be added to.
+	 * @param visible Whether or not the stop is visible or not.
 	 */
 	@UiThread
-	fun createStopCircle(map: GoogleMap) {
+	fun createStopCircle(map: GoogleMap, visible: Boolean) {
 
 		// Add our circle to the map.
 		this.circle = map.addCircle {
@@ -110,17 +135,23 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 			this.radius(STARTING_RADIUS)
 
 			// Set the colors.
-			this.fillColor(this@Stop.route.color)
-			this.strokeColor(this@Stop.route.color)
+			this.fillColor(this@Stop.color)
+			this.strokeColor(this@Stop.color)
 
-			// Set the stop to be visibility to whether or not the route is enabled.
-			this.clickable(this@Stop.route.enabled)
-			this.visible(this@Stop.route.enabled)
+			// Set the stop to be clickable and visible based on the visiblity boolean.
+			this.clickable(visible)
+			this.visible(visible)
+		}
+
+		// Check if the circle is null at this point (failure to add to map).
+		if (this.circle == null) {
+			Log.w("createStopCircle", "Failed to add stop circle to map!")
+			return
 		}
 
 		// Set the tag of the circle to Stop so that it can differentiate between this class
 		// and other stop-like classes (such as shared stops).
-		this.circle!!.tag = this // TODO Set me after check
+		this.circle!!.tag = this
 	}
 
 	companion object {
@@ -129,40 +160,6 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 		 * The starting radius size of the circle for the stop on the map (in meters).
 		 */
 		private const val STARTING_RADIUS = 50.0
-
-		/**
-		 * Creates an array of stops from the provided json array.
-		 * If the json array is null then the stop array will be 0 in length.
-		 *
-		 * @param array The json array containing the stop information.
-		 * @param route The route these stops belongs to.
-		 * @return The stop array created from the json array.
-		 */
-		@JvmStatic
-		fun generateStops(array: org.json.JSONArray, route: Route): Array<Stop> {
-
-			// Create an array of stops that will be filled using the information from the json array.
-			val count = array.length()
-			val uncheckedStops = arrayOfNulls<Stop>(count)
-
-			// Iterate though the json array.
-			for (i in 0 until count) {
-
-				// Try to create a new stop object using the information in the json array.
-				val stop: Stop = try {
-					Stop(array.getJSONObject(i), route)
-				} catch (e: org.json.JSONException) {
-
-					// If unsuccessful simply log the exception and continue iterating.
-					Log.e("generateStops", "Exception occurred while creating stop!", e)
-					continue
-				}
-				uncheckedStops[i] = stop
-			}
-
-			// Return the stop array.
-			return uncheckedStops as Array<Stop>
-		}
 
 		/**
 		 * Validates the provided array of potential stops and returned the actual stops in the route,
@@ -213,7 +210,7 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 		@JvmStatic
 		fun isDuplicate(stop: Stop, stopArray: Array<Stop?>): Boolean {
 
-			// Iterate though each potentail stop in the stop array.
+			// Iterate though each potential stop in the stop array.
 			for (stopArrayItem: Stop? in stopArray) {
 
 				// If the array item is null just return false.
@@ -222,10 +219,11 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 				}
 
 				// Check if the following match.
-				val routeMatch = stop.route.name == stopArrayItem.route.name
+				val routeNameMatch = stop.routeName == stopArrayItem.routeName
+				val colorMatch = stop.color == stop.color
 
 				// If all of the following match, return true.
-				if (routeMatch && stop == stopArrayItem) {
+				if (routeNameMatch && colorMatch && stop == stopArrayItem) {
 					return true
 				}
 			}
@@ -233,5 +231,28 @@ class Stop(stopName: String, location: LatLng, route: Route) : MarkedObject(stop
 			// Since nothing matched, return false.
 			return false
 		}
+
+		@JvmField
+		val CREATOR = object: Parcelable.Creator<Stop> {
+
+			override fun createFromParcel(parcel: Parcel): Stop {
+				return Stop(parcel)
+			}
+
+			override fun newArray(size: Int): Array<Stop?> {
+				return arrayOfNulls(size)
+			}
+		}
+	}
+
+	override fun writeToParcel(parcel: Parcel, flags: Int) {
+		parcel.writeString(this.name)
+		parcel.writeParcelable(this.location, flags)
+		parcel.writeString(this.routeName)
+		parcel.writeInt(this.color)
+	}
+
+	override fun describeContents(): Int {
+		return this.hashCode()
 	}
 }

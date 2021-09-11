@@ -51,7 +51,7 @@ class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewMod
 			this.mapsViewModel.routeMatch.callVehiclesByRoutes(this.callback, {
 				error: com.android.volley.VolleyError ->
 				Log.w("UpdateCoroutine", "Unable to fetch buses", error)
-			}, this, *MapsActivity.allRoutes)
+			}, this, *this.mapsViewModel.routes.values.toTypedArray())
 
 			// Wait for the specified update frequency.
 			Log.v("UpdateCoroutine", "Waiting for ${this.updateFrequency} milliseconds")
@@ -77,7 +77,7 @@ class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewMod
 
 			// Convert the JSON Array of Buses into an Array of Buses.
 			val buses: Array<Bus> = try {
-				Bus.getBuses(vehiclesJson)
+				Bus.getBuses(vehiclesJson, this@UpdateCoroutine.mapsViewModel.routes)
 			} catch (exception: org.json.JSONException) {
 				Log.e("Callback", "Could not parse bus json", exception)
 				return
