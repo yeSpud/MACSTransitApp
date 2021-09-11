@@ -7,7 +7,6 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.ktx.addCircle
 
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.
@@ -221,15 +220,13 @@ class SharedStop: MarkedObject, Parcelable {
 	fun createSharedStopCircle(map: GoogleMap, index: Int) {
 
 		// Get the circle that was added to the map with the provided circle options.
-		val circle: Circle = map.addCircle {
-			this@SharedStop.circleOptions[index]
+		val circle: Circle = map.addCircle(this@SharedStop.circleOptions[index])
 
-			// Set the circle to be clickable depending on the clickable argument.
-			this.clickable(index == 0)
+		// Set the circle to be clickable depending on the clickable argument.
+		circle.isClickable = (index == 0)
 
-			// At this point set the circle to be visible.
-			this.visible(true)
-		}
+		// At this point set the circle to be visible.
+		circle.isVisible = true
 
 		// Set the tag of the circle to the provided shared stop object.
 		circle.tag = this
