@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
  * Created by Spud on 2019-11-04 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 3.1.
+ * @version 3.2.
  * @since Beta 7.
  */
 class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
@@ -115,41 +115,40 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 		super.onResume()
 
 		// As there are a lot of operations to run to get the app started be sure to run all of them on a coroutine.
-		this.lifecycleScope.launch {
+		this.lifecycleScope.launch(CoroutineName("StartupCoroutine"), start = CoroutineStart.LAZY) {
 
 			// Run various initial checks and download the master schedule.
-			// Do all this work on a coroutine.
-			var noContinue = true
-			this.launch(CoroutineName("InitialCoroutine"), start = CoroutineStart.UNDISPATCHED) {
-				noContinue = !this@LoadingActivity.initialCoroutine()
-			}.join()
+			val passedInit: Boolean = this@LoadingActivity.initialCoroutine()
 
 			// If the initial checks fail then just exit early by returning.
-			if (noContinue) {
+			Log.d("StartupCoroutine", "Passed init: $passedInit")
+			if (passedInit) {
 				return@launch
 			}
 
-			// Download and load the bus stops (on a coroutine of course).
-			this.launch(CoroutineName("StopCoroutine"), start = CoroutineStart.UNDISPATCHED) {
-				this@LoadingActivity.downloadCoroutine(LOAD_BUS_STOPS.toDouble(), DOWNLOAD_BUS_STOPS.toDouble(),
+			// Check if there are routes available for the day.
+			if (this@LoadingActivity.viewModel.routes.isEmpty()) {
+				this@LoadingActivity.viewModel.setMessage(R.string.its_sunday)
+				this@LoadingActivity.showRetryButton()
+				return@launch
+			}
+
+			// Download and load the bus stops.
+			this@LoadingActivity.downloadCoroutine(LOAD_BUS_STOPS.toDouble(), DOWNLOAD_BUS_STOPS.toDouble(),
 				                                      (DOWNLOAD_MASTER_SCHEDULE_PROGRESS +
 				                                       PARSE_MASTER_SCHEDULE).toDouble(), fnsb.macstransit.
-				activities.loadingactivity.loadingscreenrunnables.DownloadBusStops(this@LoadingActivity.viewModel))
-			}.join()
+			activities.loadingactivity.loadingscreenrunnables.DownloadBusStops(this@LoadingActivity.viewModel))
 
-			// Map the shared stops on a coroutine (as this is work intensive).
-			this.launch(CoroutineName("SharedStopCoroutine"), start = CoroutineStart.UNDISPATCHED) {
-				this@LoadingActivity.mapSharedStops() }.join()
+			// Map the shared stops on a coroutine.
+			this@LoadingActivity.mapSharedStops()
 
-
-			// Validate stops on a coroutine (as it can be somewhat intensive).
-			launch(CoroutineName("ValidateStopCoroutine"), start = CoroutineStart.UNDISPATCHED) {
-				this@LoadingActivity.validateStops() }.join()
+			// Validate the stops.
+			this@LoadingActivity.validateStops()
 
 			// Finally, launch the maps activity.
 			Log.d("onResume", "End of lifecycle")
 			this@LoadingActivity.launchMapsActivity()
-		}
+		}.start()
 
 		Log.d("onResume", "End of onResume")
 	}
