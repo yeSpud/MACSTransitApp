@@ -1,13 +1,17 @@
 package fnsb.macstransit.activities.loadingactivity
 
 import android.app.Application
+import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
 import androidx.annotation.MainThread
+import androidx.annotation.UiThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import fnsb.macstransit.R
 import fnsb.macstransit.routematch.RouteMatch
 
 /**
@@ -34,25 +38,25 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 	 * The current (adjustable) progress.
 	 * This is private as we only want to adjust it the values in the view model.
 	 */
-	private val _currentProgress: MutableLiveData<Int> = MutableLiveData()
+	private val _currentProgress: MutableLiveData<Int> = MutableLiveData(0)
 
 	/**
 	 * The (unmodifiable) progress of the progressbar.
 	 */
 	val currentProgress: LiveData<Int>
-		get() = _currentProgress
+		get() = this._currentProgress
 
 	/**
 	 * The current (adjustable) visibility of the progressbar.
 	 * This is private as we only want to adjust the visibility in the view model.
 	 */
-	private val _progressBarVisible: MutableLiveData<Boolean> = MutableLiveData()
+	private val _progressBarVisible: MutableLiveData<Boolean> = MutableLiveData(true)
 
 	/**
 	 * The (unmodifiable) visibility of the progressbar.
 	 */
 	val progressBarVisible: LiveData<Boolean>
-		get() = _progressBarVisible
+		get() = this._progressBarVisible
 
 	/**
 	 * The current (adjustable) text of the textview.
@@ -64,7 +68,19 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 	 * The (unmodifiable) text in the text data.
 	 */
 	val textviewText: LiveData<String>
-		get() = _textviewText
+		get() = this._textviewText
+
+	/**
+	 * Documentation
+	 */
+	private val _buttonVisible: MutableLiveData<Boolean> = MutableLiveData(false)
+
+	/**
+	 * Documentation
+	 */
+	val buttonVisible: LiveData<Boolean>
+		get() = this._buttonVisible
+
 
 	/**
 	 * Update the progress bar to the current progress.
@@ -89,6 +105,7 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 	 * Shows the progress bar.
 	 */
 	@MainThread
+	@Deprecated("Move to inline sets")
 	fun showProgressBar() {
 		this._progressBarVisible.value = true
 	}
@@ -97,6 +114,7 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 	 * Hides the progress bar.
 	 */
 	@MainThread
+	@Deprecated("Move to inline sets")
 	fun hideProgressBar() {
 		this._progressBarVisible.value = false
 	}
@@ -167,5 +185,39 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 			return networkInfo.isConnected
 
 		}
+	}
+
+	/**
+	 * Changes the splash screen display when there is no internet.
+	 * This method involves making the progress bar invisible,
+	 * and setting the button to launch the wireless settings.
+	 * It will also close the application when the button is clicked (as to force a restart of the app).
+	 */
+	@UiThread
+	fun noInternet(activity: LoadingActivity) {
+
+		// Then, set the message of the text view to notify the user that there is no internet connection.
+		this.setMessage(R.string.cannot_connect_internet)
+
+		// Then setup the button to open the internet settings when clicked on, and make it visible.
+		activity.binding.button.setText(R.string.open_network_settings)
+		activity.binding.button.setOnClickListener {
+
+			// Open the WiFi settings.
+			activity.startActivity(Intent(Settings.ACTION_WIRELESS_SETTINGS))
+
+			// Also, close this application when the button clicked.
+			// (Like closing the door on its way out).
+			activity.finish()
+		}
+
+		// Hide the progress bar.
+		this._progressBarVisible.value = false
+
+		// Set the button to invisible.
+		this._buttonVisible.value = true
+
+		// Since technically everything (which is nothing) has been loaded, set the variable as so
+		activity.loaded = true
 	}
 }

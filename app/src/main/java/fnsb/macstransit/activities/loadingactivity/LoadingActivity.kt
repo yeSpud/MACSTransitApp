@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import android.view.View
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import fnsb.macstransit.R
 import fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables.DownloadBusStops
@@ -36,7 +37,7 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 	/**
 	 * The binding used to get elements from the activity xml.
 	 */
-	private lateinit var binding: LoadingscreenBinding
+	lateinit var binding: LoadingscreenBinding
 
 	/**
 	 * Create a variable to check if the splash activity has already been loaded
@@ -52,12 +53,9 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 		this.viewModel = androidx.lifecycle.ViewModelProvider(this).get(LoadingViewModel::class.java)
 
 		// Setup data binding.
-		this.binding = LoadingscreenBinding.inflate(this.layoutInflater)
+		this.binding = DataBindingUtil.setContentView(this, R.layout.loadingscreen)
 		this.binding.viewmodel = this.viewModel
 		this.binding.lifecycleOwner = this
-
-		// Set the view to that of the splash screen.
-		this.setContentView(this.binding.root)
 
 		// Psst. Hey. Wanna know a secret?
 		// In the debug build you can click on the logo to launch right into the maps activity.
@@ -68,15 +66,11 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 
 		// Set the button widget to have no current onClickListener, and set it to be invisible for now.
 		this.binding.button.setOnClickListener(null)
-		this.binding.button.visibility = View.INVISIBLE
 
 		// If the SDK supports it, assign the progress minimum.
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			this.binding.progressBar.min = 0
 		}
-
-		// Make sure the progress bar is visible to the user.
-		this.binding.progressBar.visibility = View.VISIBLE
 
 		// Set how the progress bar updates.
 		this.viewModel.currentProgress.observe(this, {
@@ -91,15 +85,6 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 
 				// Set the progress bar to the current progress.
 				this.binding.progressBar.progress = it
-			}
-		})
-
-		// Set how the progress bar appears and disappears.
-		this.viewModel.progressBarVisible.observe(this, {
-			if (it) {
-				this.binding.progressBar.visibility = View.VISIBLE
-			} else {
-				this.binding.progressBar.visibility = View.INVISIBLE
 			}
 		})
 	}
@@ -175,7 +160,7 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 
 		// If there is no internet access then run the noInternet method and return false.
 		if (!this.viewModel.hasInternet()) {
-			this.noInternet()
+			this.viewModel.noInternet(this)
 			return false
 		}
 
@@ -243,40 +228,6 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 			}
 			i++
 		}
-	}
-
-	/**
-	 * Changes the splash screen display when there is no internet.
-	 * This method involves making the progress bar invisible,
-	 * and setting the button to launch the wireless settings.
-	 * It will also close the application when the button is clicked (as to force a restart of the app).
-	 */
-	@androidx.annotation.UiThread
-	private fun noInternet() {
-
-		// Then, set the message of the text view to notify the user that there is no internet connection.
-		this.viewModel.setMessage(R.string.cannot_connect_internet)
-
-		// Then setup the button to open the internet settings when clicked on, and make it visible.
-		this.binding.button.setText(R.string.open_network_settings)
-		this.binding.button.setOnClickListener {
-
-			// Open the WiFi settings.
-			this.startActivity(Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS))
-
-			// Also, close this application when the button clicked.
-			// (Like closing the door on its way out).
-			this.finish()
-		}
-
-		// Hide the progress bar.
-		this.viewModel.hideProgressBar()
-
-		// Set the button to invisible.
-		this.binding.button.visibility = View.VISIBLE
-
-		// Since technically everything (which is nothing) has been loaded, set the variable as so
-		this.loaded = true
 	}
 
 	/**
@@ -393,9 +344,6 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 
 		// Set the selected favorites routes to be false for the maps activity.
 		MapsActivity.firstRun = true
-
-		// For now set deprecated all routes...
-		//MapsActivity.allRoutes.putAll(this.viewModel.routes)
 
 		// Get the intent to start the MapsActivity.
 		val mapsIntent = Intent(this, MapsActivity::class.java)

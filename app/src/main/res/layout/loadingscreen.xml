@@ -4,6 +4,8 @@
 
     <data>
 
+        <import type="android.view.View" />
+
         <variable
             name="viewmodel"
             type="fnsb.macstransit.activities.loadingactivity.LoadingViewModel" />
@@ -32,6 +34,7 @@
             android:layout_marginEnd="20dp"
             android:layout_marginBottom="30dp"
             android:max="100"
+            android:visibility="@{viewmodel.progressBarVisible ? View.VISIBLE : View.INVISIBLE}"
             app:layout_constraintStart_toStartOf="parent" />
 
         <TextView
@@ -52,7 +55,8 @@
             android:layout_gravity="bottom|center_horizontal"
             android:layout_marginBottom="20dp"
             android:text="@string/retry"
-            android:textSize="25sp" />
+            android:textSize="25sp"
+            android:visibility="@{viewmodel.buttonVisible? View.VISIBLE : View.INVISIBLE}" />
 
     </LinearLayout>
 </layout>
