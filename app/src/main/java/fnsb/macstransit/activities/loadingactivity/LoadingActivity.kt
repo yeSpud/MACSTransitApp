@@ -12,7 +12,6 @@ import fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables.Downlo
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.databinding.LoadingscreenBinding
 import fnsb.macstransit.routematch.Route
-import fnsb.macstransit.routematch.SharedStop
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -93,19 +92,17 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 		super.onPause()
 
 		// Simply close the application, since it hasn't finished loading.
-		if (!this.loaded) {
-			this.finishAffinity()
-		}
+		if (!this.loaded) { this.finishAffinity() }
 	}
 
 	override fun onResume() {
 		super.onResume()
 
 		// Comments
-		this.viewModel.hideButton()
+		this.viewModel.resetVisibilities()
 
 		// As there are a lot of operations to run to get the app started be sure to run all of them on a coroutine.
-		this.lifecycleScope.launch(Dispatchers.Main, CoroutineStart.LAZY) {
+		this.lifecycleScope.launch(Dispatchers.IO, CoroutineStart.LAZY) {
 
 			// Run various initial checks and download the master schedule.
 			val passedInit: Boolean = this@LoadingActivity.initialCoroutine()
@@ -130,10 +127,24 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 			}
 
 			// Map the shared stops on a coroutine.
-			this@LoadingActivity.mapSharedStops()
+			this@LoadingActivity.viewModel.mapSharedStops()
 
 			// Validate the stops.
-			this@LoadingActivity.validateStops()
+			// Let the user know that we are validating the stops (and shared stop) for each route.
+			this@LoadingActivity.viewModel.setMessage(R.string.stop_validation)
+
+			// Comments
+			this@LoadingActivity.viewModel.setProgressBar((DOWNLOAD_MASTER_SCHEDULE_PROGRESS +
+			                                               PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_STOPS +
+			                                               LOAD_BUS_STOPS + LOAD_SHARED_STOPS).toDouble())
+
+			// Iterate though all the routes and recreate the stops for each route.
+			// Purge the stops that have shared stops.
+			for ((_, route) in this@LoadingActivity.viewModel.routes) { route.purgeStops() }
+
+
+			// Comments
+			this@LoadingActivity.viewModel.setProgressBar(MAX_PROGRESS.toDouble())
 
 			// Finally, launch the maps activity.
 			Log.d("onResume", "End of lifecycle")
@@ -147,6 +158,7 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 	 * Documentation
 	 */
 	fun allowForRetry() {
+
 		// TODO Log and comment
 		this.viewModel.showRetryButton { this.onResume() }
 	}
@@ -162,7 +174,6 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 
 		// Initialize the progress bar to 0.
 		this.viewModel.setProgressBar(0.0)
-		this.viewModel.showProgressBar()
 
 		Log.d("initialCoroutine", "Waiting for internet check...")
 
@@ -246,90 +257,6 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 				}
 			}
 			i++
-		}
-	}
-
-	/**
-	 * Adds the shared stops to the map.
-	 * This is done by iterating through all the stops in each route and checking for duplicates.
-	 * If there are any found they will be added to all the routes the stop belongs to as a shared stop.
-	 * At this point the original stop is still present in the route.
-	 */
-	private fun mapSharedStops() {
-
-		// Let the user know that we are checking for shared bus stops at this point.
-		this.viewModel.setMessage(R.string.shared_bus_stop_check)
-
-		// Set the current progress.
-		val step = LOAD_SHARED_STOPS.toDouble() / this.viewModel.routes.size
-		var currentProgress = (DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE +
-		                       DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS).toDouble()
-
-		// Iterate though each route in all our trackable routes.
-		for ((_, route) in this.viewModel.routes) {
-
-			// If there are no stops to iterate over in our route just continue with the next iteration.
-			if (route.stops.isEmpty()) { continue }
-
-			// Iterate through all the stops in our first comparison route.
-			for ((name, stop) in route.stops) {
-
-				// Make sure the stop is not already in the route's shared stops.
-				// If the stop was found as a shared stop then skip this iteration of the loop by continuing.
-				if (route.sharedStops[name] != null) { continue }
-
-				// Get an array of shared routes.
-				val sharedRoutes: Array<Route> = SharedStop.getSharedRoutes(route, stop, this.viewModel.routes)
-
-				// If the shared routes array has more than one entry, create a new shared stop object.
-				if (sharedRoutes.size > 1) {
-					val sharedStop = SharedStop(name, stop.location, sharedRoutes)
-
-					// Iterate though all the routes in the shared route,
-					// and add our newly created shared stop.
-					sharedRoutes.forEach {
-						Log.d("mapSharedStops", "Adding shared stop to route: ${this.
-						viewModel.routes[it.name]!!.name}")
-
-						this.viewModel.routes[it.name]!!.sharedStops[name] = sharedStop
-					}
-				}
-			}
-
-			// Update the progress.
-			currentProgress += step
-			this.viewModel.setProgressBar(currentProgress)
-		}
-
-		Log.d("mapSharedStops", "Reached end of mapSharedStops")
-	}
-
-	/**
-	 * Validates the stops and shared stops.
-	 * Meaning this method removes the stops that are shared stops as to not duplicate the stop.
-	 */
-	private fun validateStops() {
-
-		// Let the user know that we are validating the stops (and shared stop) for each route.
-		this@LoadingActivity.viewModel.setMessage(R.string.stop_validation)
-
-		// Determine the progress step.
-		val step = VALIDATE_STOPS.toDouble() / this.viewModel.routes.size
-		var currentProgress =
-				(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_STOPS +
-				 LOAD_BUS_STOPS + LOAD_SHARED_STOPS).toDouble()
-
-		// Iterate though all the routes and recreate the stops for each route.
-		for ((name, route) in this.viewModel.routes) {
-
-			// Purge the stops that have shared stops (and get the final count for debugging).
-			route.purgeStops()
-			Log.d("validateStops", "Final stop count for route $name: ${route.stops.size}")
-			Log.d("validateStops", "Final shared stop count for route $name: ${route.sharedStops.size}")
-
-			// Update the progress.
-			currentProgress += step
-			this.viewModel.setProgressBar(currentProgress)
 		}
 	}
 

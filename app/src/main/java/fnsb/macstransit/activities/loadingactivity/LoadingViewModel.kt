@@ -15,7 +15,9 @@ import androidx.annotation.UiThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import fnsb.macstransit.R
+import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
+import fnsb.macstransit.routematch.SharedStop
 
 /**
  * Created by Spud on 8/16/21 for the project: MACS Transit.
@@ -127,28 +129,11 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 	}
 
 	/**
-	 * Shows the progress bar.
-	 */
-	@MainThread
-	@Deprecated("Move to inline sets")
-	fun showProgressBar() {
-		this._progressBarVisible.value = true
-	}
-
-	/**
-	 * Hides the progress bar.
-	 */
-	@MainThread
-	@Deprecated("Move to inline sets")
-	fun hideProgressBar() {
-		this._progressBarVisible.value = false
-	}
-
-	/**
 	 * Documentation
 	 */
 	@AnyThread
-	fun hideButton() {
+	fun resetVisibilities() {
+		this._progressBarVisible.postValue(true)
 		this._buttonVisible.postValue(false)
 	}
 
@@ -170,7 +155,7 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 	 *
 	 * @return Whether or not the device has an internet connection.
 	 */
-	@androidx.annotation.AnyThread
+	@AnyThread
 	fun hasInternet(): Boolean {
 
 		Log.d("hasInternet", "Checking internet...")
@@ -257,5 +242,63 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 		this._buttonText.postValue(this.getApplication<Application>().getString(R.string.retry))
 		this._buttonRunnable.postValue(retryRunnable)
 		this._buttonVisible.postValue(true)
+
+		// Comments
+		this._progressBarVisible.postValue(false)
+	}
+
+	/**
+	 * Adds the shared stops to the map.
+	 * This is done by iterating through all the stops in each route and checking for duplicates.
+	 * If there are any found they will be added to all the routes the stop belongs to as a shared stop.
+	 * At this point the original stop is still present in the route.
+	 */
+	fun mapSharedStops() {
+
+		// Let the user know that we are checking for shared bus stops at this point.
+		this.setMessage(R.string.shared_bus_stop_check)
+
+		// Set the current progress.
+		val step = LoadingActivity.LOAD_SHARED_STOPS.toDouble() / this.routes.size
+		var currentProgress = (LoadingActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + LoadingActivity.
+		PARSE_MASTER_SCHEDULE + LoadingActivity.DOWNLOAD_BUS_STOPS + LoadingActivity.LOAD_BUS_STOPS).toDouble()
+
+		// Iterate though each route in all our trackable routes.
+		for ((_, route) in this.routes) {
+
+			// If there are no stops to iterate over in our route just continue with the next iteration.
+			if (route.stops.isEmpty()) { continue }
+
+			// Iterate through all the stops in our first comparison route.
+			for ((name, stop) in route.stops) {
+
+				// Make sure the stop is not already in the route's shared stops.
+				// If the stop was found as a shared stop then skip this iteration of the loop by continuing.
+				if (route.sharedStops[name] != null) { continue }
+
+				// Get an array of shared routes.
+				val sharedRoutes: Array<Route> = SharedStop.getSharedRoutes(route, stop, this.routes)
+
+				// If the shared routes array has more than one entry, create a new shared stop object.
+				if (sharedRoutes.size > 1) {
+					val sharedStop = SharedStop(name, stop.location, sharedRoutes)
+
+					// Iterate though all the routes in the shared route,
+					// and add our newly created shared stop.
+					sharedRoutes.forEach {
+						Log.d("mapSharedStops", "Adding shared stop to route: ${this
+							.routes[it.name]!!.name}")
+
+						this.routes[it.name]!!.sharedStops[name] = sharedStop
+					}
+				}
+			}
+
+			// Update the progress.
+			currentProgress += step
+			this.setProgressBar(currentProgress)
+		}
+
+		Log.d("mapSharedStops", "Reached end of mapSharedStops")
 	}
 }
