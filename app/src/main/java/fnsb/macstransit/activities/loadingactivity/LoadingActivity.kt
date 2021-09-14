@@ -14,7 +14,6 @@ import fnsb.macstransit.databinding.LoadingscreenBinding
 import fnsb.macstransit.routematch.Route
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -120,8 +119,8 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 
 			// Download and load the bus stops.
 			withContext(this.coroutineContext) {
-				this@LoadingActivity.
-				downloadCoroutine(LOAD_BUS_STOPS.toDouble(), DOWNLOAD_BUS_STOPS.toDouble(),
+				this@LoadingActivity.viewModel.downloadCoroutine(LOAD_BUS_STOPS.toDouble(),
+				                                                 DOWNLOAD_BUS_STOPS.toDouble(),
 				                  (DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE).toDouble(),
 				                  DownloadBusStops(this@LoadingActivity.viewModel))
 			}
@@ -175,8 +174,6 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 		// Initialize the progress bar to 0.
 		this.viewModel.setProgressBar(0.0)
 
-		Log.d("initialCoroutine", "Waiting for internet check...")
-
 		// If there is no internet access then run the noInternet method and return false.
 		if (!this.viewModel.hasInternet()) {
 			this.viewModel.noInternet {
@@ -194,8 +191,7 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 			return false
 		}
 
-		// Get the master schedule from the RouteMatch server
-		Log.d("initialCoroutine", "Has internet!")
+		// Get the master schedule from the RouteMatch server.
 		this.viewModel.setProgressBar(-1.0)
 		this.viewModel.setMessage(R.string.downloading_master_schedule)
 
@@ -206,58 +202,6 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 		// If we've made it to the end without interruption or error return true (success).
 		Log.d("initialCoroutine", "Reached end of initialCoroutine")
 		return true
-	}
-
-	/**
-	 * Runs the download runnable on a coroutine and updates the progress while doing so.
-	 *
-	 * @param loadProgress The load progress value that will be added once the downloadable has been parsed.
-	 * @param downloadProgress The download progress value that will be added once the download has finished.
-	 * @param progressSoFar The progress that has currently elapsed out of the MAX_PROGRESS
-	 * @param runnable The download runnable to run.
-	 */
-	private suspend fun downloadCoroutine(loadProgress: Double, downloadProgress: Double,
-	                                          progressSoFar: Double, runnable: fnsb.macstransit.
-			activities.loadingactivity.loadingscreenrunnables.DownloadRouteObjects<Unit>) = coroutineScope {
-
-		// Create a variable to store the current state of our current downloads.
-		// When the download is queued this value decreases.
-		// When the download has completed this value increases.
-		var downloadQueue = 0
-
-		// Get the progress step.
-		val step: Double = loadProgress / this@LoadingActivity.viewModel.routes.size
-
-		// Get the current progress.
-		val progress: Double = progressSoFar + downloadProgress
-
-		// Iterate though all the indices of all the routes that can be tracked.
-		var i = 0
-		for ((_, route) in this@LoadingActivity.viewModel.routes) {
-
-			// Decrease the download queue (as we are queueing a new downloadable).
-			downloadQueue--
-
-			// Run the download function of our DownloadRoute object, and pass any necessary parameters.
-			this.launch(start = CoroutineStart.UNDISPATCHED) {
-
-				// Run the downloadable.
-				runnable.download(route, downloadProgress, progressSoFar, i)
-
-				// Update the current progress.
-				this@LoadingActivity.viewModel.setProgressBar(progress + step + downloadQueue +
-				                                              this@LoadingActivity.viewModel.routes.size)
-
-				// Increase the downloaded queue as our downloadable has finished downloading.
-				downloadQueue++
-
-				// If the download queue has returned back to 0 log that downloading has been completed.
-				if (downloadQueue == 0) {
-					Log.d("downloadCoroutine", "Done mapping downloadable!")
-				}
-			}
-			i++
-		}
 	}
 
 	/**

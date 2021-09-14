@@ -1,23 +1,23 @@
 package fnsb.macstransit.activities.loadingactivity
 
 import android.app.Application
-import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
-import android.provider.Settings
 import android.util.Log
 import android.view.View
 import androidx.annotation.AnyThread
-import androidx.annotation.MainThread
 import androidx.annotation.StringRes
-import androidx.annotation.UiThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import fnsb.macstransit.R
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.routematch.SharedStop
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 /**
  * Created by Spud on 8/16/21 for the project: MACS Transit.
@@ -245,6 +245,59 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 
 		// Comments
 		this._progressBarVisible.postValue(false)
+	}
+
+
+	/**
+	 * Runs the download runnable on a coroutine and updates the progress while doing so.
+	 *
+	 * @param loadProgress The load progress value that will be added once the downloadable has been parsed.
+	 * @param downloadProgress The download progress value that will be added once the download has finished.
+	 * @param progressSoFar The progress that has currently elapsed out of the MAX_PROGRESS
+	 * @param runnable The download runnable to run.
+	 */
+	suspend fun downloadCoroutine(loadProgress: Double, downloadProgress: Double,
+	                                      progressSoFar: Double, runnable: fnsb.macstransit.
+			activities.loadingactivity.loadingscreenrunnables.DownloadRouteObjects<Unit>) = coroutineScope {
+
+		// Create a variable to store the current state of our current downloads.
+		// When the download is queued this value decreases.
+		// When the download has completed this value increases.
+		var downloadQueue = 0
+
+		// Get the progress step.
+		val step: Double = loadProgress / this@LoadingViewModel.routes.size
+
+		// Get the current progress.
+		val progress: Double = progressSoFar + downloadProgress
+
+		// Iterate though all the indices of all the routes that can be tracked.
+		var i = 0
+		for ((_, route) in this@LoadingViewModel.routes) {
+
+			// Decrease the download queue (as we are queueing a new downloadable).
+			downloadQueue--
+
+			// Run the download function of our DownloadRoute object, and pass any necessary parameters.
+			this.launch(Dispatchers.IO, CoroutineStart.DEFAULT) {
+
+				// Run the downloadable.
+				runnable.download(route, downloadProgress, progressSoFar, i)
+
+				// Update the current progress.
+				this@LoadingViewModel.setProgressBar(progress + step + downloadQueue +
+				                                     this@LoadingViewModel.routes.size)
+
+				// Increase the downloaded queue as our downloadable has finished downloading.
+				downloadQueue++
+
+				// If the download queue has returned back to 0 log that downloading has been completed.
+				if (downloadQueue == 0) {
+					Log.d("downloadCoroutine", "Done mapping downloadable!")
+				}
+			}
+			i++
+		}
 	}
 
 	/**
