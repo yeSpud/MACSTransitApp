@@ -6,15 +6,17 @@ import android.util.Log
 import android.view.View
 import androidx.lifecycle.lifecycleScope
 import fnsb.macstransit.R
+import fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables.DownloadBusStops
+import fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables.DownloadMasterSchedule
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.databinding.LoadingscreenBinding
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.SharedStop
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.async
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Created by Spud on 2019-11-04 for the project: MACS Transit.
@@ -115,16 +117,14 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 		super.onResume()
 
 		// As there are a lot of operations to run to get the app started be sure to run all of them on a coroutine.
-		this.lifecycleScope.launch(CoroutineName("StartupCoroutine"), start = CoroutineStart.LAZY) {
+		this.lifecycleScope.launch(Dispatchers.Main, CoroutineStart.LAZY) {
 
 			// Run various initial checks and download the master schedule.
 			val passedInit: Boolean = this@LoadingActivity.initialCoroutine()
 
 			// If the initial checks fail then just exit early by returning.
 			Log.d("StartupCoroutine", "Passed init: $passedInit")
-			if (passedInit) {
-				return@launch
-			}
+			if (!passedInit) { return@launch }
 
 			// Check if there are routes available for the day.
 			if (this@LoadingActivity.viewModel.routes.isEmpty()) {
@@ -134,10 +134,12 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 			}
 
 			// Download and load the bus stops.
-			this@LoadingActivity.downloadCoroutine(LOAD_BUS_STOPS.toDouble(), DOWNLOAD_BUS_STOPS.toDouble(),
-				                                      (DOWNLOAD_MASTER_SCHEDULE_PROGRESS +
-				                                       PARSE_MASTER_SCHEDULE).toDouble(), fnsb.macstransit.
-			activities.loadingactivity.loadingscreenrunnables.DownloadBusStops(this@LoadingActivity.viewModel))
+			withContext(this.coroutineContext) {
+				this@LoadingActivity.
+				downloadCoroutine(LOAD_BUS_STOPS.toDouble(), DOWNLOAD_BUS_STOPS.toDouble(),
+				                  (DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE).toDouble(),
+				                  DownloadBusStops(this@LoadingActivity.viewModel))
+			}
 
 			// Map the shared stops on a coroutine.
 			this@LoadingActivity.mapSharedStops()
@@ -156,49 +158,39 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 	/**
 	 * Runs various initial checks such as checking for internet and downloading (and parsing) the master schedule.
 	 */
-	private suspend fun initialCoroutine() = coroutineScope {
+	private suspend fun initialCoroutine(): Boolean {
 		Log.d("initialCoroutine", "Starting initialCoroutine")
 
-		// Check if there is an internet connection.
-		val hasInternet = async(start = CoroutineStart.UNDISPATCHED) {
-
-			// Check if the user has internet before continuing.
-			this@LoadingActivity.viewModel.setMessage(R.string.internet_check)
-			kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { 
-				this@LoadingActivity.viewModel.hasInternet()
-			}
-		}
+		// Check if the user has internet before continuing.
+		this.viewModel.setMessage(R.string.internet_check)
 
 		// Initialize the progress bar to 0.
-		this@LoadingActivity.viewModel.setProgressBar(0.0)
-		this@LoadingActivity.viewModel.showProgressBar()
+		this.viewModel.setProgressBar(0.0)
+		this.viewModel.showProgressBar()
 
 		// Make sure the dynamic button is invisible.
-		this@LoadingActivity.binding.button.visibility = View.INVISIBLE
+		this.binding.button.visibility = View.INVISIBLE
 
 		Log.d("initialCoroutine", "Waiting for internet check...")
 
 		// If there is no internet access then run the noInternet method and return false.
-		if (!hasInternet.await()) {
-			this@LoadingActivity.noInternet()
-			return@coroutineScope false
+		if (!this.viewModel.hasInternet()) {
+			this.noInternet()
+			return false
 		}
 
 		// Get the master schedule from the RouteMatch server
 		Log.d("initialCoroutine", "Has internet!")
-		this@LoadingActivity.viewModel.setProgressBar(-1.0)
-		this@LoadingActivity.viewModel.setMessage(R.string.downloading_master_schedule)
+		this.viewModel.setProgressBar(-1.0)
+		this.viewModel.setMessage(R.string.downloading_master_schedule)
 
 		// Download and parse the master schedule. Use a filler route as the first parameter.
-		val fillerRoute = runCatching { Route("filler") }.getOrNull()
-		fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables.
-		DownloadMasterSchedule(this@LoadingActivity).download(fillerRoute!!,
-		                                                      DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble(),
-		                                                      0.0, 0)
+		val fillerRoute = Route("filler")
+		DownloadMasterSchedule(this@LoadingActivity).download(fillerRoute, DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble(), 0.0, 0)
 
 		// If we've made it to the end without interruption or error return true (success).
 		Log.d("initialCoroutine", "Reached end of initialCoroutine")
-		return@coroutineScope true
+		return true
 	}
 
 	/**
@@ -249,7 +241,6 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 					Log.d("downloadCoroutine", "Done mapping downloadable!")
 				}
 			}
-
 			i++
 		}
 	}
@@ -294,36 +285,31 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 	 * If there are any found they will be added to all the routes the stop belongs to as a shared stop.
 	 * At this point the original stop is still present in the route.
 	 */
-	private suspend fun mapSharedStops() = coroutineScope {
+	private fun mapSharedStops() {
 
 		// Let the user know that we are checking for shared bus stops at this point.
-		this@LoadingActivity.viewModel.setMessage(R.string.shared_bus_stop_check)
+		this.viewModel.setMessage(R.string.shared_bus_stop_check)
 
 		// Set the current progress.
-		val step = LOAD_SHARED_STOPS.toDouble() / this@LoadingActivity.viewModel.routes.size
+		val step = LOAD_SHARED_STOPS.toDouble() / this.viewModel.routes.size
 		var currentProgress = (DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE +
 		                       DOWNLOAD_BUS_STOPS + LOAD_BUS_STOPS).toDouble()
 
 		// Iterate though each route in all our trackable routes.
-		for ((_, route) in this@LoadingActivity.viewModel.routes) {
+		for ((_, route) in this.viewModel.routes) {
 
 			// If there are no stops to iterate over in our route just continue with the next iteration.
-			if (route.stops.isEmpty()) {
-				continue
-			}
+			if (route.stops.isEmpty()) { continue }
 
 			// Iterate through all the stops in our first comparison route.
 			for ((name, stop) in route.stops) {
 
 				// Make sure the stop is not already in the route's shared stops.
 				// If the stop was found as a shared stop then skip this iteration of the loop by continuing.
-				if (route.sharedStops[name] != null) {
-					continue
-				}
+				if (route.sharedStops[name] != null) { continue }
 
 				// Get an array of shared routes.
-				val sharedRoutes: Array<Route> = SharedStop.
-				getSharedRoutes(route, stop, this@LoadingActivity.viewModel.routes)
+				val sharedRoutes: Array<Route> = SharedStop.getSharedRoutes(route, stop, this.viewModel.routes)
 
 				// If the shared routes array has more than one entry, create a new shared stop object.
 				if (sharedRoutes.size > 1) {
@@ -332,16 +318,17 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 					// Iterate though all the routes in the shared route,
 					// and add our newly created shared stop.
 					sharedRoutes.forEach {
-						Log.d("mapSharedStops", "Adding shared stop to route: " +
-						                        this@LoadingActivity.viewModel.routes[it.name]!!.name)
-						this@LoadingActivity.viewModel.routes[it.name]!!.sharedStops[name] = sharedStop
+						Log.d("mapSharedStops", "Adding shared stop to route: ${this.
+						viewModel.routes[it.name]!!.name}")
+
+						this.viewModel.routes[it.name]!!.sharedStops[name] = sharedStop
 					}
 				}
 			}
 
 			// Update the progress.
 			currentProgress += step
-			this@LoadingActivity.viewModel.setProgressBar(currentProgress)
+			this.viewModel.setProgressBar(currentProgress)
 		}
 
 		Log.d("mapSharedStops", "Reached end of mapSharedStops")
@@ -351,19 +338,19 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 	 * Validates the stops and shared stops.
 	 * Meaning this method removes the stops that are shared stops as to not duplicate the stop.
 	 */
-	private suspend fun validateStops() = coroutineScope {
+	private fun validateStops() {
 
 		// Let the user know that we are validating the stops (and shared stop) for each route.
 		this@LoadingActivity.viewModel.setMessage(R.string.stop_validation)
 
 		// Determine the progress step.
-		val step = VALIDATE_STOPS.toDouble() / this@LoadingActivity.viewModel.routes.size
+		val step = VALIDATE_STOPS.toDouble() / this.viewModel.routes.size
 		var currentProgress =
 				(DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_STOPS +
 				 LOAD_BUS_STOPS + LOAD_SHARED_STOPS).toDouble()
 
 		// Iterate though all the routes and recreate the stops for each route.
-		for ((name, route) in this@LoadingActivity.viewModel.routes) {
+		for ((name, route) in this.viewModel.routes) {
 
 			// Purge the stops that have shared stops (and get the final count for debugging).
 			route.purgeStops()
@@ -372,7 +359,7 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 
 			// Update the progress.
 			currentProgress += step
-			this@LoadingActivity.viewModel.setProgressBar(currentProgress)
+			this.viewModel.setProgressBar(currentProgress)
 		}
 	}
 
