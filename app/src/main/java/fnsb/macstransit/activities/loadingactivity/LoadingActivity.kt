@@ -2,16 +2,13 @@ package fnsb.macstransit.activities.loadingactivity
 
 import android.content.Intent
 import android.os.Build
-import android.provider.Settings
 import android.util.Log
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import fnsb.macstransit.R
 import fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables.DownloadBusStops
-import fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables.DownloadMasterSchedule
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.databinding.LoadingscreenBinding
-import fnsb.macstransit.routematch.Route
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -104,7 +101,7 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 		this.lifecycleScope.launch(Dispatchers.IO, CoroutineStart.LAZY) {
 
 			// Run various initial checks and download the master schedule.
-			val passedInit: Boolean = this@LoadingActivity.initialCoroutine()
+			val passedInit: Boolean = this@LoadingActivity.viewModel.masterScheduleCoroutine(this@LoadingActivity)
 
 			// If the initial checks fail then just exit early by returning.
 			Log.d("StartupCoroutine", "Passed init: $passedInit")
@@ -160,48 +157,6 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 
 		// TODO Log and comment
 		this.viewModel.showRetryButton { this.onResume() }
-	}
-
-	/**
-	 * Runs various initial checks such as checking for internet and downloading (and parsing) the master schedule.
-	 */
-	private suspend fun initialCoroutine(): Boolean {
-		Log.d("initialCoroutine", "Starting initialCoroutine")
-
-		// Check if the user has internet before continuing.
-		this.viewModel.setMessage(R.string.internet_check)
-
-		// Initialize the progress bar to 0.
-		this.viewModel.setProgressBar(0.0)
-
-		// If there is no internet access then run the noInternet method and return false.
-		if (!this.viewModel.hasInternet()) {
-			this.viewModel.noInternet {
-
-				// Open the WiFi settings.
-				this.startActivity(Intent(Settings.ACTION_WIRELESS_SETTINGS))
-
-				// Also, close this application when the button clicked.
-				// (Like closing the door on its way out).
-				this.finish()
-			}
-
-			// Since technically everything (which is nothing) has been loaded, set the variable as so.
-			this.loaded = true
-			return false
-		}
-
-		// Get the master schedule from the RouteMatch server.
-		this.viewModel.setProgressBar(-1.0)
-		this.viewModel.setMessage(R.string.downloading_master_schedule)
-
-		// Download and parse the master schedule. Use a filler route as the first parameter.
-		val fillerRoute = Route("filler")
-		DownloadMasterSchedule(this@LoadingActivity).download(fillerRoute, DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble(), 0.0, 0)
-
-		// If we've made it to the end without interruption or error return true (success).
-		Log.d("initialCoroutine", "Reached end of initialCoroutine")
-		return true
 	}
 
 	/**
