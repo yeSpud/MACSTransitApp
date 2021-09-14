@@ -32,7 +32,7 @@ class DownloadMasterSchedule(private val loadingActivity: LoadingActivity):
 			Log.w("initializeApp", "MasterSchedule callback error", error)
 			Log.w("initializeApp", "Error: ${error.message}\n${error.cause.toString()}")
 			this.loadingActivity.viewModel.setMessage(R.string.routematch_timeout)
-			this.loadingActivity.showRetryButton()
+			this.loadingActivity.allowForRetry()
 		})
 	}
 
@@ -51,7 +51,7 @@ class DownloadMasterSchedule(private val loadingActivity: LoadingActivity):
 				this.viewModel.setMessage(R.string.its_sunday)
 
 				// Also add a chance for the user to retry.
-				this.loadingActivity.showRetryButton()
+				this.loadingActivity.allowForRetry()
 				this.loadingActivity.loaded = true
 			}
 
