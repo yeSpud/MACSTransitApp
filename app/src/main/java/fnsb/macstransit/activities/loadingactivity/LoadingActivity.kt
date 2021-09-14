@@ -2,8 +2,8 @@ package fnsb.macstransit.activities.loadingactivity
 
 import android.content.Intent
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
-import android.view.View
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import fnsb.macstransit.R
@@ -65,7 +65,7 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 		}
 
 		// Set the button widget to have no current onClickListener, and set it to be invisible for now.
-		this.binding.button.setOnClickListener(null)
+		//this.binding.button.setOnClickListener(null)
 
 		// If the SDK supports it, assign the progress minimum.
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -101,6 +101,9 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 	override fun onResume() {
 		super.onResume()
 
+		// Comments
+		this.viewModel.hideButton()
+
 		// As there are a lot of operations to run to get the app started be sure to run all of them on a coroutine.
 		this.lifecycleScope.launch(Dispatchers.Main, CoroutineStart.LAZY) {
 
@@ -114,7 +117,7 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 			// Check if there are routes available for the day.
 			if (this@LoadingActivity.viewModel.routes.isEmpty()) {
 				this@LoadingActivity.viewModel.setMessage(R.string.its_sunday)
-				this@LoadingActivity.showRetryButton()
+				this@LoadingActivity.viewModel.showRetryButton { this@LoadingActivity.onResume() }
 				return@launch
 			}
 
@@ -141,6 +144,14 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 	}
 
 	/**
+	 * Documentation
+	 */
+	fun allowForRetry() {
+		// TODO Log and comment
+		this.viewModel.showRetryButton { this.onResume() }
+	}
+
+	/**
 	 * Runs various initial checks such as checking for internet and downloading (and parsing) the master schedule.
 	 */
 	private suspend fun initialCoroutine(): Boolean {
@@ -153,14 +164,22 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 		this.viewModel.setProgressBar(0.0)
 		this.viewModel.showProgressBar()
 
-		// Make sure the dynamic button is invisible.
-		this.binding.button.visibility = View.INVISIBLE
-
 		Log.d("initialCoroutine", "Waiting for internet check...")
 
 		// If there is no internet access then run the noInternet method and return false.
 		if (!this.viewModel.hasInternet()) {
-			this.viewModel.noInternet(this)
+			this.viewModel.noInternet {
+
+				// Open the WiFi settings.
+				this.startActivity(Intent(Settings.ACTION_WIRELESS_SETTINGS))
+
+				// Also, close this application when the button clicked.
+				// (Like closing the door on its way out).
+				this.finish()
+			}
+
+			// Since technically everything (which is nothing) has been loaded, set the variable as so.
+			this.loaded = true
 			return false
 		}
 
@@ -311,26 +330,6 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 			// Update the progress.
 			currentProgress += step
 			this.viewModel.setProgressBar(currentProgress)
-		}
-	}
-
-	/**
-	 * Shows the retry button by setting the view to visible, hiding the progress bar,
-	 * and by setting the click action of the button to launch the onResume() method once again.
-	 */
-	@androidx.annotation.AnyThread
-	fun showRetryButton() {
-
-		// Since we are updating UI elements, run the following on the UI thread.
-		this.runOnUiThread {
-
-			// First hide the progress bar since it is no longer of use.
-			this.viewModel.hideProgressBar()
-
-			// Then setup the button to relaunch the activity, and make it visible.
-			this.binding.button.setText(R.string.retry)
-			this.binding.button.setOnClickListener { this.onResume() }
-			this.binding.button.visibility = View.VISIBLE
 		}
 	}
 

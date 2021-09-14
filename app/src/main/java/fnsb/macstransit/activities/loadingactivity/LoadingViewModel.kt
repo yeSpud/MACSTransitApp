@@ -7,7 +7,10 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import android.view.View
+import androidx.annotation.AnyThread
 import androidx.annotation.MainThread
+import androidx.annotation.StringRes
 import androidx.annotation.UiThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -81,13 +84,35 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 	val buttonVisible: LiveData<Boolean>
 		get() = this._buttonVisible
 
+	/**
+	 * Documentation
+	 */
+	private val _buttonText: MutableLiveData<String> = MutableLiveData(this.getApplication<Application>().getString(R.string.retry))
+
+	/**
+	 * Documentation
+	 */
+	val buttonText: LiveData<String>
+		get() = this._buttonText
+
+	/**
+	 * Documentation
+	 */
+	private val _buttonRunnable: MutableLiveData<View.OnClickListener> = MutableLiveData()
+
+	/**
+	 * Documentation
+	 */
+	val buttonRunnable: LiveData<View.OnClickListener>
+		get() = this._buttonRunnable
+
 
 	/**
 	 * Update the progress bar to the current progress.
 	 *
 	 * @param progress The current progress out of SplashActivity.maxProgress.
 	 */
-	@MainThread
+	@AnyThread
 	fun setProgressBar(progress: Double) {
 		Log.v("setProgressBar", "Provided progress: $progress")
 
@@ -98,7 +123,7 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 		p = if (p > 100) 100 else kotlin.math.max(p, 0)
 
 		// Set the current progress to the int out of 100.
-		this._currentProgress.value = p
+		this._currentProgress.postValue(p)
 	}
 
 	/**
@@ -120,16 +145,24 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 	}
 
 	/**
+	 * Documentation
+	 */
+	@AnyThread
+	fun hideButton() {
+		this._buttonVisible.postValue(false)
+	}
+
+	/**
 	 * Sets the message content to be displayed to the user on the splash screen.
 	 *
 	 * @param resID The string ID of the message. This can be retrieved by calling R.string.STRING_ID.
 	 */
-	@MainThread
-	fun setMessage(@androidx.annotation.StringRes resID: Int) {
+	@AnyThread
+	fun setMessage(@StringRes resID: Int) {
 
 		// Set the textview value to the provided string.
 		// Because this is a live data object it will then call any observers.
-		this._textviewText.value = this.getApplication<Application>().getString(resID)
+		this._textviewText.postValue(this.getApplication<Application>().getString(resID))
 	}
 
 	/**
@@ -193,31 +226,36 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 	 * and setting the button to launch the wireless settings.
 	 * It will also close the application when the button is clicked (as to force a restart of the app).
 	 */
-	@UiThread
-	fun noInternet(activity: LoadingActivity) {
+	@AnyThread
+	fun noInternet(buttonRunnable: View.OnClickListener) {
 
 		// Then, set the message of the text view to notify the user that there is no internet connection.
 		this.setMessage(R.string.cannot_connect_internet)
 
 		// Then setup the button to open the internet settings when clicked on, and make it visible.
-		activity.binding.button.setText(R.string.open_network_settings)
-		activity.binding.button.setOnClickListener {
-
-			// Open the WiFi settings.
-			activity.startActivity(Intent(Settings.ACTION_WIRELESS_SETTINGS))
-
-			// Also, close this application when the button clicked.
-			// (Like closing the door on its way out).
-			activity.finish()
-		}
+		this._buttonText.postValue(this.getApplication<Application>().getString(R.string.open_network_settings))
+		this._buttonRunnable.postValue(buttonRunnable)
 
 		// Hide the progress bar.
-		this._progressBarVisible.value = false
+		this._progressBarVisible.postValue(false)
 
 		// Set the button to invisible.
-		this._buttonVisible.value = true
+		this._buttonVisible.postValue(true)
+	}
 
-		// Since technically everything (which is nothing) has been loaded, set the variable as so
-		activity.loaded = true
+	/**
+	 * Shows the retry button by setting the view to visible, hiding the progress bar,
+	 * and by setting the click action of the button to launch the onResume() method once again.
+	 */
+	@AnyThread
+	fun showRetryButton(retryRunnable: View.OnClickListener) {
+
+		// First hide the progress bar since it is no longer of use.
+		this._progressBarVisible.postValue(false)
+
+		// Then setup the button to relaunch the activity, and make it visible.
+		this._buttonText.postValue(this.getApplication<Application>().getString(R.string.retry))
+		this._buttonRunnable.postValue(retryRunnable)
+		this._buttonVisible.postValue(true)
 	}
 }
