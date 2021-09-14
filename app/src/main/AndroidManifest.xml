@@ -21,35 +21,35 @@
         android:supportsRtl="true">
 
         <!--
-             The API key for Google Maps-based APIs is defined as a string resource.
-             (See the file "res/values/google_maps_api.xml").
-             Note that the API key is linked to the encryption key used to sign the APK.
-             You need a different API key for each encryption key, including the release key that is used to
-             sign the APK for publishing.
-             You can define the keys for the debug and release targets in src/debug/ and src/release/.
+            The API key should be set in the file local.properties
+            at the root of your project under the key MAPS_API_KEY
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/google_maps_key" />
+            android:value="${MAPS_API_KEY}" />
 
         <activity
-            android:name=".Activities.MapsActivity"
+            android:name=".activities.mapsactivity.MapsActivity"
             android:label="@string/app_name"
+            android:launchMode="standard"
             android:screenOrientation="unspecified"
             android:theme="@style/AppTheme" />
 
         <activity
-            android:name=".Activities.SettingsActivity"
+            android:name=".activities.SettingsActivity"
             android:label="@string/settings"
+            android:launchMode="singleInstance"
             android:screenOrientation="portrait"
             android:theme="@style/AppThemeNoActionBar"
             tools:ignore="LockedOrientationActivity" />
 
         <activity
-            android:name=".Activities.SplashActivity"
+            android:name=".activities.loadingactivity.LoadingActivity"
             android:label="@string/app_name"
+            android:launchMode="singleInstance"
             android:screenOrientation="portrait"
             android:theme="@style/AppThemeNoActionBar"
+            android:exported="true"
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -57,7 +57,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activities.StreetViewActivity" />
     </application>
 
 </manifest>

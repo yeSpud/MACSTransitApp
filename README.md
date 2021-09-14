@@ -1,5 +1,6 @@
 # MACS Transit Android App
-![Developer Build Status](https://github.com/yeSpud/MACSTransitApp/workflows/Android%20CI/badge.svg?branch=master)
+![Production Build Status](https://github.com/yeSpud/MACSTransitApp/workflows/Production%20Build/badge.svg?branch=Production)
+![Open Testing Build Status](https://github.com/yeSpud/MACSTransitApp/workflows/Open%20Testing/badge.svg?branch=Open-Testing)
 
 This is the source code for the dedicated [bus tracker app](https://play.google.com/store/apps/details?id=fnsb.macstransit) for android devices for the [MACS Transit system](http://www.co.fairbanks.ak.us/transportation/Pages/MACS.aspx) in Fairbanks, Alaska. 
 This project was originally intended as an entry for the [AK Dev alliance](https://akdevalliance.com) Hackathon in 2019, but development has continued after the event finalized. 
@@ -25,6 +26,6 @@ See the [LICENSE](LICENSE) file for details.
 
 ## Disclaimer(s)
 
-MACS (Metropolitan Area Commuter System) Transit is not affilIated with the MACSTransitApp or its contributors, and is Copyright © 2015 FNSB - All Rights Reserved.
+MACS (Metropolitan Area Commuter System) Transit is not affiliated with the MACSTransitApp or its contributors, and is Copyright © 2015 FNSB - All Rights Reserved.
 
-RouteMatch, and RouteMatch Software is not affiliated with the MACSTransitApp or its contributors, and is Copyright © 2019 Routematch Software - All Rights Reserved. 
+RouteMatch, and RouteMatch Software is not affiliated with the MACSTransitApp or its contributors, and is Copyright © 2021 Routematch Software - All Rights Reserved. 
