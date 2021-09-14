@@ -8,7 +8,7 @@ import fnsb.macstransit.activities.mapsactivity.MapsActivity
  * Created by Spud on 2019-11-04 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project
  *
- * @version 3.2.
+ * @version 3.3.
  * @since Beta 7.
  */
 class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
@@ -83,10 +83,10 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 		Log.v("onResume", "Start of onResume")
 		super.onResume()
 
-		// Comments
+		// Reset the button and progress bar visibilities.
 		this.viewModel.resetVisibilities()
 
-		// Comments
+		// Run all the startup actions on a coroutine.
 		this.viewModel.startupCoroutine(this).start()
 
 		// Log that the end of onResume has been reached.
@@ -94,11 +94,11 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 	}
 
 	/**
-	 * Documentation
+	 * Shows the retry button and sets the runnable action to the onResume method.
 	 */
 	fun allowForRetry() {
 
-		// TODO Log and comment
+		// Set the button to launch the onResume method.
 		this.viewModel.showRetryButton { this.onResume() }
 	}
 

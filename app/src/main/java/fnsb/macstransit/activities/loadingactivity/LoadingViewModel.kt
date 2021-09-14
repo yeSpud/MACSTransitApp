@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
  * Created by Spud on 8/16/21 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.1.
+ * @version 1.2.
  * @since Release 1.3.
  */
 class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidViewModel(application) {
@@ -75,34 +75,37 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 		get() = this._textviewText
 
 	/**
-	 * Documentation
+	 * The current (adjustable) visibility of the view's button.
+	 * This is private as we only want to adjust the visibility in the view model.
 	 */
 	private val _buttonVisible: MutableLiveData<Boolean> = MutableLiveData(false)
 
 	/**
-	 * Documentation
+	 * The (unmodifiable) view of the view's button.
 	 */
 	val buttonVisible: LiveData<Boolean>
 		get() = this._buttonVisible
 
 	/**
-	 * Documentation
+	 * The current (adjustable) text of the view's button.
+	 * This is private as we only want to set the text from the view model.
 	 */
 	private val _buttonText: MutableLiveData<String> = MutableLiveData(this.getApplication<Application>().getString(R.string.retry))
 
 	/**
-	 * Documentation
+	 * The (unmodifiable) text of the view's button.
 	 */
 	val buttonText: LiveData<String>
 		get() = this._buttonText
 
 	/**
-	 * Documentation
+	 * The current (adjustable) runnable for the view's button.
+	 * This is private as we only want to set the runnable from the view model.
 	 */
 	private val _buttonRunnable: MutableLiveData<View.OnClickListener> = MutableLiveData()
 
 	/**
-	 * Documentation
+	 * The (unmodifiable) runnable of the view's button.
 	 */
 	val buttonRunnable: LiveData<View.OnClickListener>
 		get() = this._buttonRunnable
@@ -128,7 +131,7 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 	}
 
 	/**
-	 * Documentation
+	 * Resets the visibility of the progress bar and the view's button.
 	 */
 	@AnyThread
 	fun resetVisibilities() {
@@ -242,7 +245,7 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 		this._buttonRunnable.postValue(retryRunnable)
 		this._buttonVisible.postValue(true)
 
-		// Comments
+		// Be sure to hide the progress bar.
 		this._progressBarVisible.postValue(false)
 	}
 
@@ -281,7 +284,7 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 			// Let the user know that we are validating the stops (and shared stop) for each route.
 			this@LoadingViewModel.setMessage(R.string.stop_validation)
 
-			// Comments
+			// Update the progress bar.
 			this@LoadingViewModel.setProgressBar((LoadingActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS
 			                                      + LoadingActivity.PARSE_MASTER_SCHEDULE +
 			                                      LoadingActivity.DOWNLOAD_BUS_STOPS +
@@ -293,7 +296,7 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 			for ((_, route) in this@LoadingViewModel.routes) { route.purgeStops() }
 
 
-			// Comments
+			// Update the progress bar to the maximum value since we've reached the end.
 			this@LoadingViewModel.setProgressBar(LoadingActivity.MAX_PROGRESS.toDouble())
 
 			// Finally, launch the maps activity.
