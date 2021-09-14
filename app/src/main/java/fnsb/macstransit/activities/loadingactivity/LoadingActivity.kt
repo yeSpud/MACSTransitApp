@@ -1,18 +1,8 @@
 package fnsb.macstransit.activities.loadingactivity
 
-import android.content.Intent
 import android.os.Build
 import android.util.Log
-import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.lifecycleScope
-import fnsb.macstransit.R
-import fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables.DownloadBusStops
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
-import fnsb.macstransit.databinding.LoadingscreenBinding
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * Created by Spud on 2019-11-04 for the project: MACS Transit.
@@ -32,7 +22,7 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 	/**
 	 * The binding used to get elements from the activity xml.
 	 */
-	lateinit var binding: LoadingscreenBinding
+	lateinit var binding: fnsb.macstransit.databinding.LoadingscreenBinding
 
 	/**
 	 * Create a variable to check if the splash activity has already been loaded
@@ -48,7 +38,8 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 		this.viewModel = androidx.lifecycle.ViewModelProvider(this).get(LoadingViewModel::class.java)
 
 		// Setup data binding.
-		this.binding = DataBindingUtil.setContentView(this, R.layout.loadingscreen)
+		this.binding = androidx.databinding.DataBindingUtil
+			.setContentView(this, fnsb.macstransit.R.layout.loadingscreen)
 		this.binding.viewmodel = this.viewModel
 		this.binding.lifecycleOwner = this
 
@@ -58,9 +49,6 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 		if (fnsb.macstransit.BuildConfig.DEBUG) {
 			this.binding.logo.setOnClickListener { this.launchMapsActivity() }
 		}
-
-		// Set the button widget to have no current onClickListener, and set it to be invisible for now.
-		//this.binding.button.setOnClickListener(null)
 
 		// If the SDK supports it, assign the progress minimum.
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -92,61 +80,16 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 	}
 
 	override fun onResume() {
+		Log.v("onResume", "Start of onResume")
 		super.onResume()
 
 		// Comments
 		this.viewModel.resetVisibilities()
 
-		// As there are a lot of operations to run to get the app started be sure to run all of them on a coroutine.
-		this.lifecycleScope.launch(Dispatchers.IO, CoroutineStart.LAZY) {
+		// Comments
+		this.viewModel.startupCoroutine(this).start()
 
-			// Run various initial checks and download the master schedule.
-			val passedInit: Boolean = this@LoadingActivity.viewModel.masterScheduleCoroutine(this@LoadingActivity)
-
-			// If the initial checks fail then just exit early by returning.
-			Log.d("StartupCoroutine", "Passed init: $passedInit")
-			if (!passedInit) { return@launch }
-
-			// Check if there are routes available for the day.
-			if (this@LoadingActivity.viewModel.routes.isEmpty()) {
-				this@LoadingActivity.viewModel.setMessage(R.string.its_sunday)
-				this@LoadingActivity.viewModel.showRetryButton { this@LoadingActivity.onResume() }
-				return@launch
-			}
-
-			// Download and load the bus stops.
-			withContext(this.coroutineContext) {
-				this@LoadingActivity.viewModel.downloadCoroutine(LOAD_BUS_STOPS.toDouble(),
-				                                                 DOWNLOAD_BUS_STOPS.toDouble(),
-				                  (DOWNLOAD_MASTER_SCHEDULE_PROGRESS + PARSE_MASTER_SCHEDULE).toDouble(),
-				                  DownloadBusStops(this@LoadingActivity.viewModel))
-			}
-
-			// Map the shared stops on a coroutine.
-			this@LoadingActivity.viewModel.mapSharedStops()
-
-			// Validate the stops.
-			// Let the user know that we are validating the stops (and shared stop) for each route.
-			this@LoadingActivity.viewModel.setMessage(R.string.stop_validation)
-
-			// Comments
-			this@LoadingActivity.viewModel.setProgressBar((DOWNLOAD_MASTER_SCHEDULE_PROGRESS +
-			                                               PARSE_MASTER_SCHEDULE + DOWNLOAD_BUS_STOPS +
-			                                               LOAD_BUS_STOPS + LOAD_SHARED_STOPS).toDouble())
-
-			// Iterate though all the routes and recreate the stops for each route.
-			// Purge the stops that have shared stops.
-			for ((_, route) in this@LoadingActivity.viewModel.routes) { route.purgeStops() }
-
-
-			// Comments
-			this@LoadingActivity.viewModel.setProgressBar(MAX_PROGRESS.toDouble())
-
-			// Finally, launch the maps activity.
-			Log.d("onResume", "End of lifecycle")
-			this@LoadingActivity.launchMapsActivity()
-		}.start()
-
+		// Log that the end of onResume has been reached.
 		Log.d("onResume", "End of onResume")
 	}
 
@@ -162,7 +105,7 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 	/**
 	 * Launches the maps activity.
 	 */
-	private fun launchMapsActivity() {
+	fun launchMapsActivity() {
 
 		// Set the loaded state to true as everything was loaded (or should have been loaded).
 		this.loaded = true
@@ -171,7 +114,7 @@ class LoadingActivity : androidx.appcompat.app.AppCompatActivity() {
 		MapsActivity.firstRun = true
 
 		// Get the intent to start the MapsActivity.
-		val mapsIntent = Intent(this, MapsActivity::class.java)
+		val mapsIntent = android.content.Intent(this, MapsActivity::class.java)
 
 		// Get the routes as parcelables.
 		mapsIntent.putExtra("Routes", this.viewModel.routes.values.toTypedArray())

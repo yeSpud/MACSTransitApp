@@ -1,25 +1,21 @@
 package fnsb.macstransit.activities.loadingactivity
 
 import android.app.Application
-import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
-import android.provider.Settings
 import android.util.Log
 import android.view.View
 import androidx.annotation.AnyThread
-import androidx.annotation.StringRes
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import fnsb.macstransit.R
-import fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables.DownloadMasterSchedule
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.routematch.SharedStop
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 /**
@@ -146,7 +142,7 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 	 * @param resID The string ID of the message. This can be retrieved by calling R.string.STRING_ID.
 	 */
 	@AnyThread
-	fun setMessage(@StringRes resID: Int) {
+	fun setMessage(@androidx.annotation.StringRes resID: Int) {
 
 		// Set the textview value to the provided string.
 		// Because this is a live data object it will then call any observers.
@@ -250,6 +246,61 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 		this._progressBarVisible.postValue(false)
 	}
 
+	fun startupCoroutine(activity: LoadingActivity): kotlinx.coroutines.Job {
+
+		// As there are a lot of operations to run to get the app started be sure to run all of them on a coroutine.
+		return this.viewModelScope.launch(Dispatchers.IO, CoroutineStart.LAZY) {
+
+			// Run various initial checks and download the master schedule.
+			val passedInit: Boolean = this@LoadingViewModel.masterScheduleCoroutine(activity)
+
+			// If the initial checks fail then just exit early by returning.
+			Log.d("StartupCoroutine", "Passed init: $passedInit")
+			if (!passedInit) { return@launch }
+
+			// Check if there are routes available for the day.
+			if (this@LoadingViewModel.routes.isEmpty()) {
+				this@LoadingViewModel.setMessage(R.string.its_sunday)
+				activity.allowForRetry()
+				return@launch
+			}
+
+			// Download and load the bus stops.
+			kotlinx.coroutines.withContext(this.coroutineContext) {
+				this@LoadingViewModel.downloadCoroutine(LoadingActivity.LOAD_BUS_STOPS.
+				toDouble(), LoadingActivity.DOWNLOAD_BUS_STOPS.toDouble(), (LoadingActivity.
+				DOWNLOAD_MASTER_SCHEDULE_PROGRESS + LoadingActivity.PARSE_MASTER_SCHEDULE).
+				toDouble(), fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables.
+				DownloadBusStops(this@LoadingViewModel))
+			}
+
+			// Map the shared stops on a coroutine.
+			this@LoadingViewModel.mapSharedStops()
+
+			// Validate the stops.
+			// Let the user know that we are validating the stops (and shared stop) for each route.
+			this@LoadingViewModel.setMessage(R.string.stop_validation)
+
+			// Comments
+			this@LoadingViewModel.setProgressBar((LoadingActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS
+			                                      + LoadingActivity.PARSE_MASTER_SCHEDULE +
+			                                      LoadingActivity.DOWNLOAD_BUS_STOPS +
+			                                      LoadingActivity.LOAD_BUS_STOPS +
+			                                      LoadingActivity.LOAD_SHARED_STOPS).toDouble())
+
+			// Iterate though all the routes and recreate the stops for each route.
+			// Purge the stops that have shared stops.
+			for ((_, route) in this@LoadingViewModel.routes) { route.purgeStops() }
+
+
+			// Comments
+			this@LoadingViewModel.setProgressBar(LoadingActivity.MAX_PROGRESS.toDouble())
+
+			// Finally, launch the maps activity.
+			Log.d("onResume", "End of lifecycle")
+			activity.launchMapsActivity()
+		}
+	}
 
 	/**
 	 * Runs the download runnable on a coroutine and updates the progress while doing so.
@@ -259,9 +310,9 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 	 * @param progressSoFar The progress that has currently elapsed out of the MAX_PROGRESS
 	 * @param runnable The download runnable to run.
 	 */
-	suspend fun downloadCoroutine(loadProgress: Double, downloadProgress: Double,
+	private suspend fun downloadCoroutine(loadProgress: Double, downloadProgress: Double,
 	                                      progressSoFar: Double, runnable: fnsb.macstransit.
-			activities.loadingactivity.loadingscreenrunnables.DownloadRouteObjects<Unit>) = coroutineScope {
+			activities.loadingactivity.loadingscreenrunnables.DownloadRouteObjects<Unit>) = kotlinx.coroutines.coroutineScope {
 
 		// Create a variable to store the current state of our current downloads.
 		// When the download is queued this value decreases.
@@ -306,7 +357,7 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 	/**
 	 * Runs various initial checks such as checking for internet and downloading (and parsing) the master schedule.
 	 */
-	suspend fun masterScheduleCoroutine(activity: LoadingActivity): Boolean {
+	private suspend fun masterScheduleCoroutine(activity: LoadingActivity): Boolean {
 		Log.d("initialCoroutine", "Starting initialCoroutine")
 
 		// Check if the user has internet before continuing.
@@ -320,7 +371,7 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 			this.noInternet {
 
 				// Open the WiFi settings.
-				activity.startActivity(Intent(Settings.ACTION_WIRELESS_SETTINGS))
+				activity.startActivity(android.content.Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS))
 
 				// Also, close this application when the button clicked.
 				// (Like closing the door on its way out).
@@ -338,7 +389,7 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 
 		// Download and parse the master schedule. Use a filler route as the first parameter.
 		val fillerRoute = Route("filler")
-		DownloadMasterSchedule(activity).
+		fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables.DownloadMasterSchedule(activity).
 		download(fillerRoute, LoadingActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS.toDouble(), 0.0, 0)
 
 		// If we've made it to the end without interruption or error return true (success).
@@ -352,7 +403,7 @@ class LoadingViewModel(application: Application) : androidx.lifecycle.AndroidVie
 	 * If there are any found they will be added to all the routes the stop belongs to as a shared stop.
 	 * At this point the original stop is still present in the route.
 	 */
-	fun mapSharedStops() {
+	private fun mapSharedStops() {
 
 		// Let the user know that we are checking for shared bus stops at this point.
 		this.setMessage(R.string.shared_bus_stop_check)
