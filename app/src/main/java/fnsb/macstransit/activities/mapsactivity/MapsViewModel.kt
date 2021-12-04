@@ -7,6 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.ktx.awaitMap
 import fnsb.macstransit.R
@@ -25,7 +26,7 @@ import kotlin.math.pow
  * Created by Spud on 8/21/21 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 1.1.
+ * @version 1.2.
  * @since Release 1.3.
  */
 class MapsViewModel(application: Application) : AndroidViewModel(application) {
@@ -168,6 +169,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 	 *
 	 * @param supportFragment The map component view in the activity.
 	 */
+	@android.annotation.SuppressLint("PotentialBehaviorOverride")
 	suspend fun mapCoroutine(supportFragment: SupportMapFragment, activity: MapsActivity) {
 
 		// Wait until the map object is ready.
@@ -178,15 +180,32 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 		// Move the camera to the 'home' position.
 		Log.v("MapCoroutine", "Moving camera to home position")
 		this.map!!.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.
-		newLatLngZoom(com.google.android.gms.maps.model.LatLng(64.8391975,
-		                                                       -147.7684709), 11.0f))
+		newLatLngZoom(LatLng(64.8391975, -147.7684709), 11.0f))
+
+		// Set the minimum zoom, maximum zoom, and bounds for the camera.
+		this.map!!.setMinZoomPreference(10.0F)
+		this.map!!.setMaxZoomPreference(18.5F)
+		this.map!!.setLatLngBoundsForCameraTarget(com.google.android.gms.maps.model.LatLngBounds(
+				LatLng(64.7164252379029, -148.05900312960148),
+				LatLng(64.91343346034542, -147.3037289455533)))
 
 		// Only execute the following if we have routes to iterate over.
 		if (this.routes.isNotEmpty()) {
 
 			// Add a listener for when the camera has become idle (ie was moving isn't anymore).
 			Log.v("MapCoroutine", "Setting camera idle listener")
-			this.map!!.setOnCameraIdleListener { this.resizeStops() }
+			this.map!!.setOnCameraIdleListener {
+
+				// Resize the stops and shared stops.
+				this.resizeStops()
+
+				// Log the camera information.
+				val cameraPosition: com.google.android.gms.maps.model.CameraPosition = this.map!!.cameraPosition
+				Log.v("OnCameraIdle", "Bearing: ${cameraPosition.bearing}")
+				Log.v("OnCameraIdle", "Target: ${cameraPosition.target}")
+				Log.v("OnCameraIdle", "Tilt: ${cameraPosition.tilt}")
+				Log.v("OnCameraIdle", "Zoom: ${cameraPosition.zoom}")
+			}
 
 			// Add a listener for when a stop icon (circle) is clicked.
 			Log.v("MapCoroutine", "Setting circle click listener")
