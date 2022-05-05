@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">MACS Transit</string>
-    <string name="routematch_url">https://fnsb.routematch.com/feed/</string>
+    <string name="routematch_url">https://fnsb.ubertransit.io/feed/</string>
     <string name="macs_transit_logo">MACS Transit logo</string>
 
     <!-- Splash screen messages -->
@@ -47,7 +47,7 @@
     <string name="twentydollars">$20.00</string>
     <string name="half_month_pass">Half Month Pass</string>
     <string name="covid19_notice">EFFECTIVE MARCH 2020\nAll MACS Transit and van tran fares for all riders are suspended</string>
-    <string name="disclaimer">Last updated December 4th, 2021.\nPrices may be inaccurate.\nPlease refer to the official MACS website for more details on pricing.</string>
+    <string name="disclaimer">Last updated May 4th, 2022.\nPrices may be inaccurate.\nPlease refer to the official MACS website for more details on pricing.</string>
     <string name="macs_website">MACS Website</string>
     <string name="close">Close</string>
 
