@@ -45,5 +45,6 @@ jobs:
           serviceAccountJsonPlainText: ${{secrets.SERVICE_ACCOUNT}}
           packageName: fnsb.macstransit
           releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          status: draft
           track: beta
           whatsNewDirectory: whatsnew
