@@ -26,6 +26,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!--
             <TextView
                 android:id="@+id/covid19"
                 android:layout_width="wrap_content"
@@ -34,7 +35,7 @@
                 android:text="@string/covid19_notice"
                 android:textAlignment="center"
                 android:textColor="#FF0000"
-                android:textSize="25sp" />
+                android:textSize="25sp" /> -->
 
             <TableLayout
                 android:layout_width="wrap_content"
