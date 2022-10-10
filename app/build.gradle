@@ -47,7 +47,6 @@ android {
         includeInApk true
         includeInBundle true
     }
-    ndkVersion '25.0.8151533 rc1'
 }
 
 dependencies {
