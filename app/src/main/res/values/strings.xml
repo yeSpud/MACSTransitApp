@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">MACS Transit</string>
-    <string name="routematch_url" translatable="false">https://fnsb.ubertransit.io/feed/</string>
+    <string name="routematch_url" translatable="false">https://fnsb.routematch.io/feed/</string>
     <string name="macs_transit_logo">MACS Transit logo</string>
 
     <!-- Splash screen messages -->
