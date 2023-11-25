@@ -1,15 +1,21 @@
 package fnsb.macstransit.routematch
 
+import android.graphics.Color
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.UiThread
+import com.android.volley.VolleyError
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Polyline
 import com.google.maps.android.ktx.addPolyline
 import org.json.JSONArray
 import org.json.JSONException
+import org.json.JSONObject
 import java.io.UnsupportedEncodingException
+import java.net.URLEncoder
+import java.util.regex.Pattern
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
@@ -56,7 +62,7 @@ class Route: Parcelable {
 	 * The polyline that corresponds to this route.
 	 */
 	@Transient
-	private var polyline: com.google.android.gms.maps.model.Polyline? = null
+	private var polyline: Polyline? = null
 
 	/**
 	 * Creates a new Route object using information from the provided parcel.
@@ -66,24 +72,24 @@ class Route: Parcelable {
 		Log.v("Route", "Reading from parcel")
 
 		// Load the name, color, and formatted name from the parcel.
-		this.name = parcel.readString()!!
-		this.color = parcel.readInt()
-		this.urlFormattedName = parcel.readString()!!
+		name = parcel.readString()!!
+		color = parcel.readInt()
+		urlFormattedName = parcel.readString()!!
 
 		// Load the array of stops from the parcel.
-		val stopArray: Array<Parcelable> = parcel.readParcelableArray(Stop::class.java.classLoader)
-				as Array<Parcelable>
-		for (entry in stopArray) {
-			val stop: Stop = entry as Stop
-			this.stops[stop.name] = stop
+		val stopArray: Array<Stop>? = parcel.readParcelableArray(Stop::class.java.classLoader, Stop::class.java)
+		if (stopArray != null) {
+			for (stop in stopArray) {
+				stops[stop.name] = stop
+			}
 		}
 
 		// Load the array of shared stops from the parcel.
-		val sharedStopParcelableArray: Array<Parcelable> = parcel.
-		readParcelableArray(SharedStop::class.java.classLoader) as Array<Parcelable>
-		for (entry in sharedStopParcelableArray) {
-			val sharedStop: SharedStop = entry as SharedStop
-			this.sharedStops[sharedStop.name] = sharedStop
+		val sharedStopParcelableArray: Array<SharedStop>? = parcel.readParcelableArray(SharedStop::class.java.classLoader, SharedStop::class.java)
+		if (sharedStopParcelableArray != null) {
+			for (sharedStop in sharedStopParcelableArray) {
+				sharedStops[sharedStop.name] = sharedStop
+			}
 		}
 	}
 
@@ -116,8 +122,8 @@ class Route: Parcelable {
 		this.color = color
 
 		// Set the urlFormattedName from the name.
-		this.urlFormattedName = java.util.regex.Pattern.compile("\\+").matcher(java.net.URLEncoder.
-		encode(this.name, "UTF-8")).replaceAll("%20")
+		urlFormattedName = Pattern.compile("\\+").matcher(URLEncoder.encode(this.name, "UTF-8"))
+			.replaceAll("%20")
 	}
 
 	/**
@@ -133,19 +139,19 @@ class Route: Parcelable {
 		Log.v("createPolyline", "Creating route polyline")
 
 		// Add the polyline to the map with the following options:
-		this.polyline = map.addPolyline {
+		polyline = map.addPolyline {
 
 			// Create new polyline options from the array of polyline coordinates stored for the route.
-			this.add(*coordinates)
+			add(*coordinates)
 
 			// Make sure its not clickable.
-			this.clickable(false)
+			clickable(false)
 
 			// Set the color of the polylines based on the route color.
-			this.color(this@Route.color)
+			color(color)
 
 			// Set the polyline visibility to whether or not the route is enabled.
-			this.visible(this@Route.enabled)
+			visible(enabled)
 		}
 	}
 
@@ -154,14 +160,13 @@ class Route: Parcelable {
 	 */
 	fun purgeStops() {
 
-		// Iterate though each shared stop.
-		this.sharedStops.forEach {
+		for (stopName: String in sharedStops.keys) {
 
 			// Try to remove stops by shared stop name.
-			if (this.stops.remove(it.key) != null) {
+			if (stops.remove(stopName) != null) {
 
 				// If the value for removed wasn't null then log the stop for debugging.
-				Log.d("purgeStops", "Stop removed: ${it.key}")
+				Log.d("purgeStops", "Stop removed: $stopName")
 			}
 		}
 	}
@@ -178,54 +183,51 @@ class Route: Parcelable {
 	@UiThread
 	fun togglePolylineVisibility(routeMatch: RouteMatch, map: GoogleMap) {
 
-		// Check if the route has a polyline to set visible.
-		if (this.polyline == null) {
-
-			// Get the polyline coordinates for the route from the RouteMatch server.
-			routeMatch.callLandRoute(this,  {
-
-				// Get the data from all the stops and store it in a JSONArray.
-				val data: JSONArray = RouteMatch.parseData(it)
-
-				// Get the land route points object from the land route data array.
-				val landRoutePoints: org.json.JSONObject = data.getJSONObject(0)
-
-				// Get the land route points array from the land route points object.
-				val landRoutePointsArray: JSONArray = landRoutePoints.getJSONArray("points")
-
-				// Get the number of points in the array.
-				val count: Int = landRoutePointsArray.length()
-
-				// Create a new LatLng array to store all the coordinates.
-				val coordinates = arrayOfNulls<LatLng>(count)
-
-				// Initialize the array of coordinates by iterating through the land route points array.
-				for (i in 0 until count) {
-
-					// Get the land route point object from the land route points array.
-					val landRoutePoint = landRoutePointsArray.getJSONObject(i)
-
-					// Get the latitude and longitude from the land route point.
-					val latitude: Double = landRoutePoint.getDouble("latitude")
-					val longitude: Double = landRoutePoint.getDouble("longitude")
-
-					// Add the newly created LatLng object to the LatLng array.
-					coordinates[i] = LatLng(latitude, longitude)
-				}
-
-				// Create a new polyline for the route since it didn't have one before.
-				this.createPolyline(coordinates as Array<LatLng>, map)
-
-				// Log if there was any error getting the polyline coordinates.
-			} , { error: com.android.volley.VolleyError ->
-				Log.e("togglePolylineVisible", "Unable to get polyline coordinates", error)
-			}, this)
-		} else {
-
-			// Set the polyline's visibility to whether the route is enabled or not
-			Log.d("togglePolyline", "Setting route ${this.name} to visible: ${this.enabled}")
-			this.polyline!!.isVisible = this.enabled
+		if (polyline != null) {
+			Log.d("togglePolyline", "Setting route $name to visible: $enabled")
+			polyline!!.isVisible = enabled
+			return
 		}
+
+		// We know the polyline is null here...
+		// Get the polyline coordinates for the route from the RouteMatch server.
+		routeMatch.callLandRoute(this,  {
+
+			// Get the data from all the stops and store it in a JSONArray.
+			val data: JSONArray = RouteMatch.parseData(it)
+
+			// Get the land route points object from the land route data array.
+			val landRoutePoints: JSONObject = data.getJSONObject(0)
+
+			// Get the land route points array from the land route points object.
+			val landRoutePointsArray: JSONArray = landRoutePoints.getJSONArray("points")
+
+			// Get the number of points in the array.
+			val count: Int = landRoutePointsArray.length()
+
+			// Create a new LatLng array to store all the coordinates.
+			val coordinates = arrayOfNulls<LatLng>(count)
+
+			// Initialize the array of coordinates by iterating through the land route points array.
+			for (i in 0 until count) {
+
+				// Get the land route point object from the land route points array.
+				val landRoutePoint = landRoutePointsArray.getJSONObject(i)
+
+				// Get the latitude and longitude from the land route point.
+				val latitude: Double = landRoutePoint.getDouble("latitude")
+				val longitude: Double = landRoutePoint.getDouble("longitude")
+
+				// Add the newly created LatLng object to the LatLng array.
+				coordinates[i] = LatLng(latitude, longitude)
+			}
+
+			// Create a new polyline for the route since it didn't have one before.
+			createPolyline(coordinates as Array<LatLng>, map)
+
+			// Log if there was any error getting the polyline coordinates.
+		} , { error: VolleyError -> Log.e("togglePolylineVisible", "Unable to get polyline coordinates", error) }, this)
+
 	}
 
 	/**
@@ -255,7 +257,7 @@ class Route: Parcelable {
 		 */
 		@JvmStatic
 		@Throws(JSONException::class, UnsupportedEncodingException::class)
-		fun generateRoute(jsonObject: org.json.JSONObject): Route {
+		fun generateRoute(jsonObject: JSONObject): Route {
 
 			// First, parse the name.
 			val name = jsonObject.getString("routeId")
@@ -264,12 +266,12 @@ class Route: Parcelable {
 
 				// Now try to parse the route color.
 				val colorName = jsonObject.getString("routeColor")
-				val color = android.graphics.Color.parseColor(colorName)
+				val color = Color.parseColor(colorName)
 
 				// Return our newly created route with color!
 				Route(name, color)
-			} catch (Exception: Exception) {
-				Log.w("generateRoute", "Unable to parse color", Exception)
+			} catch (exception: Exception) {
+				Log.w("generateRoute", "Unable to parse color", exception)
 
 				// Since there was an issue parsing the color,
 				// and we have the name at this point simply create the route without a color.
@@ -286,14 +288,13 @@ class Route: Parcelable {
 		@JvmStatic
 		fun enableFavoriteRoutes(routes: HashMap<String, Route>, favoriteRouteNames: Array<String>) {
 
-			// Iterate though each favorite route and try to enable it.
-			favoriteRouteNames.forEach {
+			for (routeName: String in favoriteRouteNames) {
 				try {
-					routes[it]!!.enabled = true
-				} catch (NullPointerException: NullPointerException) {
+					routes[routeName]!!.enabled = true
+				} catch (nullPointerException: NullPointerException) {
 
 					// If the route was not found log it as an error.
-					Log.w("enableFavoriteRoutes", "$it route is not running today", NullPointerException)
+					Log.w("enableFavoriteRoutes", "$routeName route is not running today", nullPointerException)
 				}
 			}
 		}

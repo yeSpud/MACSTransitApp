@@ -2,16 +2,21 @@ package fnsb.macstransit.activities
 
 import android.os.Build
 import android.os.Bundle
+import android.os.Parcelable
 import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.widget.CheckBox
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import fnsb.macstransit.R
 import com.google.android.gms.maps.GoogleMap
 import fnsb.macstransit.databinding.SettingsBinding
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.CurrentSettings
+import fnsb.macstransit.settings.V2
+import org.json.JSONException
+import org.json.JSONObject
 
 /**
  * Created by Spud on 2019-11-24 for the project: MACS Transit.
@@ -20,7 +25,7 @@ import fnsb.macstransit.settings.CurrentSettings
  * @version 3.1.
  * @since Beta 8.
  */
-class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
+class SettingsActivity : AppCompatActivity() {
 
 	/**
 	 * The binding used to retrieve elements from the activity layout.
@@ -30,34 +35,31 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 	/**
 	 * The current settings implementation.
 	 */
-	val settings = CurrentSettings.settingsImplementation as fnsb.macstransit.settings.V2
+	val settings = CurrentSettings.settingsImplementation as V2
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
 		// Setup the binder.
-		this.binding = SettingsBinding.inflate(this.layoutInflater)
+		binding = SettingsBinding.inflate(this.layoutInflater)
 
 		// Set the layout view to the settings view.
-		this.setContentView(this.binding.root)
+		setContentView(binding.root)
 
 		// Setup the buttons.
 		// The apply settings button should run the apply settings listener.
-		this.binding.apply.setOnClickListener(ApplySettings())
+		binding.apply.setOnClickListener(ApplySettings())
 
 		// The cancel button should just finish the class and return.
-		this.binding.cancel.setOnClickListener { this.finish() }
+		binding.cancel.setOnClickListener { finish() }
 
 		// Get the routes from the intent extra.
-		val extraBundle: Bundle = this.intent.extras ?: return
-		val routeParcel: Array<android.os.Parcelable> = extraBundle.getParcelableArray("Routes") ?: return
+		val extraBundle: Bundle = intent.extras ?: return
+		val routeParcel: Array<Route> = extraBundle.getParcelableArray("Routes", Route::class.java) ?: return
 
 		// Setup the favorites container.
 		// Begin by iterating though all the routes.
-		routeParcel.forEach {
-
-			// Get the route from the parcelable.
-			val route: Route = it as Route
+		for (route in routeParcel) {
 
 			// Create a new checkbox.
 			val checkBox = CheckBox(this)
@@ -67,17 +69,11 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 
 			// Set the minimum height for the checkbox.
 			checkBox.minHeight = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, CHECKBOX_MIN_HEIGHT,
-			                                               this.resources.displayMetrics).toInt()
+			                                               resources.displayMetrics).toInt()
 
 			// Set the color and size of the text to constants.
 			checkBox.textSize = CHECKBOX_TEXT_SIZE
-			val color = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-				@Suppress("Deprecation")
-				this.resources.getColor(R.color.white)
-			} else {
-				this.resources.getColor(R.color.white, null)
-			}
-			checkBox.setTextColor(color)
+			checkBox.setTextColor(resources.getColor(R.color.white, null))
 
 			// Add button tint if the sdk supports it.
 			checkBox.buttonTintList = androidx.appcompat.content.res.AppCompatResources.
@@ -87,10 +83,10 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			checkBox.tag = route
 
 			// Set the checkbox to be checked if its route is a favorited route.
-			checkBox.isChecked = this.settings.favoriteRouteNames.contains(route.name)
+			checkBox.isChecked = settings.favoriteRouteNames.contains(route.name)
 
 			// Add the box to the favorites container.
-			this.binding.favoriteRouteContainer.addView(checkBox)
+			binding.favoriteRouteContainer.addView(checkBox)
 		}
 	}
 
@@ -118,7 +114,7 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			val favoritedRoutes: Array<Route> = favoritedRoutes()
 
 			// Determine the map type.
-			val mapId: Int = when (this@SettingsActivity.binding.mapGroup.checkedRadioButtonId) {
+			val mapId: Int = when (binding.mapGroup.checkedRadioButtonId) {
 				R.id.normal_map -> GoogleMap.MAP_TYPE_NORMAL
 				R.id.satellite_map -> GoogleMap.MAP_TYPE_SATELLITE
 				R.id.hybrid_map -> GoogleMap.MAP_TYPE_HYBRID
@@ -127,13 +123,10 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			}
 
 			// Format the options into a Json string.
-			val json: org.json.JSONObject = try {
-				this@SettingsActivity.settings.formatSettingsToJsonString(
-						this@SettingsActivity.binding.traffic.isChecked,
-						this@SettingsActivity.binding.nightMode.isChecked,
-						this@SettingsActivity.binding.polylines.isChecked,
-						this@SettingsActivity.binding.VR.isChecked, mapId, *favoritedRoutes)
-			} catch (e: org.json.JSONException) {
+			val json: JSONObject = try {
+				settings.formatSettingsToJsonString(binding.traffic.isChecked, binding.nightMode.isChecked,
+						binding.polylines.isChecked, binding.VR.isChecked, mapId, *favoritedRoutes)
+			} catch (e: JSONException) {
 				Log.e("ApplySettings", "Exception on settings button click", e)
 				Toast.makeText(v.context, "An exception occurred while applying settings",
 				               Toast.LENGTH_LONG).show()
@@ -141,14 +134,13 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			}
 
 			// Write that string to the file
-			CurrentSettings.settingsImplementation.writeSettingsToFile(json.toString(),
-			                                                           this@SettingsActivity)
+			CurrentSettings.settingsImplementation.writeSettingsToFile(json.toString(), this@SettingsActivity)
 
 			// Reload the settings.
 			CurrentSettings.settingsImplementation.parseSettings(json)
 
 			// Close the activity.
-			this@SettingsActivity.finish()
+			finish()
 		}
 
 		/**
@@ -159,8 +151,7 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 		private fun favoritedRoutes(): Array<Route> {
 
 			// Get the number of potential favorite routes.
-			val potentialRoutesCount: Int =
-					this@SettingsActivity.binding.favoriteRouteContainer.childCount
+			val potentialRoutesCount: Int = binding.favoriteRouteContainer.childCount
 			Log.d("getFavoritedRoutes", "Potential count: $potentialRoutesCount")
 
 			// Create an array of potential routes.
@@ -172,14 +163,12 @@ class SettingsActivity : androidx.appcompat.app.AppCompatActivity() {
 			for (i in 0 until potentialRoutesCount) {
 
 				// Get a specific checkbox from the favorites container.
-				val box: CheckBox = this@SettingsActivity.binding.favoriteRouteContainer.
-				getChildAt(i) as CheckBox
+				val box: CheckBox = binding.favoriteRouteContainer.getChildAt(i) as CheckBox
 
 				// Add the route to the array if its checked.
 				if (box.isChecked) {
 					potentialRoutes[routesPosition] = box.tag as Route
-					Log.d("getFavoritedRoutes",
-					      "Adding route ${potentialRoutes[routesPosition]!!.name}")
+					Log.d("getFavoritedRoutes", "Adding route ${potentialRoutes[routesPosition]!!.name}")
 
 					// Add one to a tally of verified favorite routes.
 					routesPosition++

@@ -31,8 +31,7 @@ class Stop: MarkedObject, Parcelable {
 	 *
 	 * @param parcel The parcel containing the saved information to create a stop object.
 	 */
-	constructor(parcel: Parcel): super(parcel.readString()!!, parcel.
-	readParcelable<LatLng>(LatLng::class.java.classLoader)!!, parcel.readString()!!, parcel.readInt())
+	constructor(parcel: Parcel): super(parcel.readString()!!, parcel.readParcelable<LatLng>(LatLng::class.java.classLoader)!!, parcel.readString()!!, parcel.readInt())
 
 	/**
 	 * A stop object.
@@ -220,7 +219,7 @@ class Stop: MarkedObject, Parcelable {
 
 				// Check if the following match.
 				val routeNameMatch = stop.routeName == stopArrayItem.routeName
-				val colorMatch = stop.color == stop.color
+				val colorMatch = stop.color == stopArrayItem.color
 
 				// If all of the following match, return true.
 				if (routeNameMatch && colorMatch && stop == stopArrayItem) {

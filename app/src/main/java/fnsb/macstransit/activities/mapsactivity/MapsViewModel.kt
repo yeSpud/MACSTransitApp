@@ -148,10 +148,10 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
 						try {
 							it.addMarker(this@MapsViewModel.map!!)
 							it.marker!!.isVisible = true // Marker may be null here if unsuccessful!
-						} catch (NullPointerException: NullPointerException) {
+						} catch (nullPointerException: NullPointerException) {
 
 							// Log that the marker was unable to be added to the map.
-							Log.e("drawBuses", "Unable to add marker to map", NullPointerException)
+							Log.e("drawBuses", "Unable to add marker to map", nullPointerException)
 						}
 					} else {
 

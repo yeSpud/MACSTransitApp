@@ -44,8 +44,7 @@ class SharedStop: MarkedObject, Parcelable {
 	 *
 	 * @param parcel The parcel containing the data to load the Shared Stop.
 	 */
-	constructor(parcel: Parcel): super(parcel.readString()!!, parcel.
-	readParcelable<LatLng>(LatLng::class.java.classLoader)!!, parcel.readString()!!, parcel.readInt()) {
+	constructor(parcel: Parcel): super(parcel.readString()!!, parcel.readParcelable<LatLng>(LatLng::class.java.classLoader)!!, parcel.readString()!!, parcel.readInt()) {
 
 		// Parse the route names and colors.
 		this.routeNames = parcel.createStringArray()!!

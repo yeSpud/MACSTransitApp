@@ -109,7 +109,7 @@ class Bus(
 				// Try to get the bus's route via the route name.
 				val route: Route = try {
 					routes[busObject.getString("masterRouteId")]!!
-				} catch (NullPointerException: NullPointerException) {
+				} catch (npe: NullPointerException) {
 
 					// If the bus route was not found in all of our trackable routes throw a RuntimeException.
 					throw RuntimeException("Bus route not found in route map!")

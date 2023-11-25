@@ -36,14 +36,14 @@
         <activity
             android:name=".activities.SettingsActivity"
             android:label="@string/settings"
-            android:launchMode="singleInstance"
+            android:launchMode="standard"
             android:screenOrientation="portrait"
             android:theme="@style/AppThemeNoActionBar"
             tools:ignore="LockedOrientationActivity" />
 
         <activity
             android:name=".activities.loadingactivity.LoadingActivity"
-            android:launchMode="singleInstance"
+            android:launchMode="standard"
             android:screenOrientation="portrait"
             android:theme="@style/AppThemeNoActionBar"
             android:exported="true"

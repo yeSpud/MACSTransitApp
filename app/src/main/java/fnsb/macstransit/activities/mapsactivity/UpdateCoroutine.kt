@@ -1,8 +1,14 @@
 package fnsb.macstransit.activities.mapsactivity
 
 import android.util.Log
+import com.android.volley.Response
+import com.android.volley.VolleyError
 import com.google.android.gms.maps.GoogleMap
 import fnsb.macstransit.routematch.Bus
+import fnsb.macstransit.routematch.RouteMatch
+import kotlinx.coroutines.delay
+import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 
 /**
@@ -38,29 +44,28 @@ class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewMod
 
 		// Set the running variable to true.
 		Log.i("UpdateCoroutine", "Starting up...")
-		this.isRunning = true
+		isRunning = true
 
 		// Continue looping while the run variable is true.
-		while(this.run) {
+		while(run) {
 			Log.d("UpdateCoroutine", "Looping...")
 
 			// Cancel any network requests with this as the tag as they have essentially timed out.
-			this.mapsViewModel.routeMatch.networkQueue.cancelAll(this)
+			mapsViewModel.routeMatch.networkQueue.cancelAll(this)
 
 			// Get all the buses that can be tracked (even the ones that are disabled).
-			this.mapsViewModel.routeMatch.callVehiclesByRoutes(this.callback, {
-				error: com.android.volley.VolleyError ->
-				Log.w("UpdateCoroutine", "Unable to fetch buses", error)
-			}, this, *this.mapsViewModel.routes.values.toTypedArray())
+			mapsViewModel.routeMatch.callVehiclesByRoutes(callback, {
+				error: VolleyError -> Log.w("UpdateCoroutine", "Unable to fetch buses", error)
+			}, this, *mapsViewModel.routes.values.toTypedArray())
 
 			// Wait for the specified update frequency.
-			Log.v("UpdateCoroutine", "Waiting for ${this.updateFrequency} milliseconds")
-			kotlinx.coroutines.delay(this.updateFrequency)
+			Log.v("UpdateCoroutine", "Waiting for $updateFrequency milliseconds")
+			delay(updateFrequency)
 		}
 
 		// Since we have broken out of the while loop,
 		// and are about to exist set the running variable to false.
-		this.isRunning = false
+		isRunning = false
 		Log.i("UpdateCoroutine", "Shutting down...")
 	}
 
@@ -68,17 +73,17 @@ class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewMod
 	 * Callback used once the bus network call has finished.
 	 * This is the function that updates the buses on the map.
 	 */
-	internal inner class Callback(private val map: GoogleMap): com.android.volley.Response.Listener<JSONObject> {
+	internal inner class Callback(private val map: GoogleMap): Response.Listener<JSONObject> {
 
 		override fun onResponse(response: JSONObject) {
 
 			// Get all the vehicles from the JSON Object as a JSON Array.
-			val vehiclesJson: org.json.JSONArray = fnsb.macstransit.routematch.RouteMatch.parseData(response)
+			val vehiclesJson: JSONArray = RouteMatch.parseData(response)
 
 			// Convert the JSON Array of Buses into an Array of Buses.
 			val buses: Array<Bus> = try {
-				Bus.getBuses(vehiclesJson, this@UpdateCoroutine.mapsViewModel.routes)
-			} catch (exception: org.json.JSONException) {
+				Bus.getBuses(vehiclesJson, mapsViewModel.routes)
+			} catch (exception: JSONException) {
 				Log.e("Callback", "Could not parse bus json", exception)
 				return
 			}
@@ -86,18 +91,16 @@ class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewMod
 			// Get the array of new buses.
 			// These buses are buses that were not previously on the map until now.
 			Log.d("Callback", "Adding new buses to map")
-			val newBuses: Array<Bus> = Bus.addNewBuses(this@UpdateCoroutine.mapsViewModel.buses,
-			                                           buses, this.map)
+			val newBuses: Array<Bus> = Bus.addNewBuses(mapsViewModel.buses, buses, map)
 
 			// Update the current position of our current buses.
 			// This also removes old buses from the array, but they still have markers on the map.
 			Log.d("Callback", "Updating current buses on map")
-			val currentBuses: Array<Bus> = Bus.updateCurrentBuses(this@UpdateCoroutine.mapsViewModel.
-			buses, buses)
+			val currentBuses: Array<Bus> = Bus.updateCurrentBuses(mapsViewModel.buses, buses)
 
 			// Remove the markers of the old buses that are no longer on the map.
 			Log.d("Callback", "Removing old buses from map")
-			Bus.removeOldBuses(this@UpdateCoroutine.mapsViewModel.buses, buses)
+			Bus.removeOldBuses(mapsViewModel.buses, buses)
 
 			// Create a new bus array that will store our new and updated buses.
 			val finalBusArray: Array<Bus?> = arrayOfNulls(newBuses.size + currentBuses.size)
@@ -112,7 +115,7 @@ class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewMod
 			}
 
 			// Set our bus array.
-			this@UpdateCoroutine.mapsViewModel.buses = finalBusArray as Array<Bus>
+			mapsViewModel.buses = finalBusArray as Array<Bus>
 		}
 	}
 }

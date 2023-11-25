@@ -1,25 +1,41 @@
 package fnsb.macstransit.activities.mapsactivity
 
+import android.os.Build
+import android.os.Build.VERSION
 import android.os.Bundle
+import android.os.Parcelable
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.V2
 import fnsb.macstransit.R
 import android.util.Log
 import android.view.Menu
+import androidx.annotation.RequiresApi
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.gms.maps.SupportMapFragment
+import fnsb.macstransit.BuildConfig
+import fnsb.macstransit.activities.SettingsActivity
 import fnsb.macstransit.activities.mapsactivity.mappopups.FarePopupWindow
 import fnsb.macstransit.databinding.ActivityMapsBinding
+import fnsb.macstransit.routematch.Bus
+import fnsb.macstransit.routematch.SharedStop
+import fnsb.macstransit.routematch.Stop
 import fnsb.macstransit.settings.CurrentSettings
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.json.JSONException
 
-class MapsActivity: androidx.fragment.app.FragmentActivity() {
+class MapsActivity: FragmentActivity() {
 
 	/**
 	 * The view model for the maps activity.
 	 * This is usually where all the large functions and additional properties are.
 	 */
-	lateinit var viewModel: MapsViewModel
+	private lateinit var viewModel: MapsViewModel
 
 	/**
 	 * Create a variable to store our fare popup window instance.
@@ -31,20 +47,20 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		super.onCreate(savedInstanceState)
 
 		// Setup view model.
-		this.viewModel = androidx.lifecycle.ViewModelProvider(this).get(MapsViewModel::class.java)
+		viewModel = ViewModelProvider(this)[MapsViewModel::class.java]
 
 		// Setup binding.
-		val binding: ActivityMapsBinding = ActivityMapsBinding.inflate(this.layoutInflater)
-		binding.viewmodel = this.viewModel
+		val binding: ActivityMapsBinding = ActivityMapsBinding.inflate(layoutInflater)
+		binding.viewmodel = viewModel
 		binding.lifecycleOwner = this
 
 		// Set the activity view to the map activity layout.
-		this.setContentView(binding.root)
+		setContentView(binding.root)
 
 		// Load in the current settings.
 		try {
 			CurrentSettings.loadSettings(this)
-		} catch (e: org.json.JSONException) {
+		} catch (e: JSONException) {
 
 			// If there was an exception loading the settings simply log it and return.
 			Log.e("onCreate", "Exception when loading settings", e)
@@ -52,32 +68,36 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		}
 
 		// Obtain the SupportMapFragment and get notified when the map is ready to be used.
-		val supportFragment: SupportMapFragment =
-				(this.supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment)
+		val supportFragment: SupportMapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
 
 		// Launch the maps coroutine (which sets up the Google Map object).
-		this.lifecycleScope.launchWhenCreated {
-			this@MapsActivity.viewModel.mapCoroutine(supportFragment, this@MapsActivity)
-		}
+		lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) { viewModel.mapCoroutine(supportFragment, this@MapsActivity) } }
 
 		// Setup the fares popup window.
-		this.farePopupWindow = FarePopupWindow(this)
+		farePopupWindow = FarePopupWindow(this)
 
 		// Setup all our routes.
-		if (this.viewModel.routes.isEmpty()) {
+		if (viewModel.routes.isEmpty()) {
 
 			// Get the extras from the intent.
-			val extraBundle: Bundle = this.intent.extras ?: return
+			val extraBundle: Bundle = intent.extras ?: return
 
 			// Get the routes from the bundle as a parcelable array.
-			val routesParcel: Array<android.os.Parcelable> = extraBundle.
-			getParcelableArray("Routes") ?: return
+			if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+				val routes: Array<Route> = extraBundle.getParcelableArray("Routes", Route::class.java) ?: return
 
-			// Parse the routes from the parcelable to our hashmap.
-			routesParcel.forEach {
-				if (it is Route) {
-					val route: Route = it
-					this.viewModel.routes[route.name] = route
+				// Parse the routes from the parcelable to our hashmap.
+				for (route in routes) {
+					viewModel.routes[route.name] = route
+				}
+			} else {
+				@Suppress("DEPRECATION") // Suppressed because corrected version doesn't exist for APIs earlier than Tiramisu
+				val routesParcelable: Array<Parcelable> = extraBundle.getParcelableArray("Routes") ?: return
+
+				for (route in routesParcelable) {
+					if (route is Route) {
+						viewModel.routes[route.name] = route
+					}
 				}
 			}
 		}
@@ -88,33 +108,22 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		super.onDestroy()
 
 		// Launch the following as a cleanup job (that way we can essentially multi-thread the onDestroy process)
-		lifecycleScope.launch(kotlinx.coroutines.Dispatchers.Main,
-		                      start=kotlinx.coroutines.CoroutineStart.UNDISPATCHED) {
+		lifecycleScope.launch(Dispatchers.Main, start= CoroutineStart.UNDISPATCHED) {
 			Log.i("onDestroy", "Beginning onDestroy cleanup coroutine...")
 
 			// Iterate though each route to get access to its shared stops and regular stops.
-			for ((_, route) in this@MapsActivity.viewModel.routes) {
+			for (route: Route in viewModel.routes.values) {
 
-				// Iterate though each stop.
 				Log.d("onDestroy", "Removing stop circles")
-				route.stops.forEach {
-
-					// Remove the stop's circle.
-					it.value.removeStopCircle()
-
-					// Remove stop's marker.
-					it.value.removeMarker()
+				for (stop: Stop in route.stops.values) {
+					stop.removeStopCircle()
+					stop.removeMarker()
 				}
 
-				// Get the shared stops for the route.
 				Log.d("onDestroy", "Removing shared stop circles")
-				route.sharedStops.forEach {
-
-					// Remove each shared stop circles.
-					it.value.removeSharedStopCircles()
-
-					// Remove the shared stop's marker.
-					it.value.removeMarker()
+				for (sharedStop: SharedStop in route.sharedStops.values) {
+					sharedStop.removeSharedStopCircles()
+					sharedStop.removeMarker()
 				}
 
 				// Remove route polylines.
@@ -125,21 +134,24 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 			Log.i("onDestroy", "Finished onDestroy cleanup coroutine")
 		}
 
-		// Iterate though all the buses, and remove its marker.
 		Log.d("onDestroy", "Removing bus markers")
-		this.viewModel.buses.forEach { it.removeMarker() }
+		for (bus: Bus in viewModel.buses) {
+			bus.removeMarker()
+		}
 
 		// Stop the update thread.
-		if (this.viewModel.updater != null) {
-			this.viewModel.updater!!.run = false
-			this.viewModel.updater = null
+		if (viewModel.updater != null) {
+			viewModel.updater!!.run = false
+			viewModel.updater = null
 		}
 
 		// Be sure to clear the map.
-		if (this.viewModel.map != null) {
-			this.viewModel.map!!.clear()
-			this.viewModel.map = null
+		if (viewModel.map != null) {
+			viewModel.map!!.clear()
+			viewModel.map = null
 		}
+
+
 
 		Log.v("onDestroy", "Finished onDestroy")
 	}
@@ -148,10 +160,10 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		Log.v("onCreateOptionsMenu", "onCreateOptionsMenu has been called!")
 
 		// Setup the inflater.
-		this.menuInflater.inflate(R.menu.menu, menu)
+		menuInflater.inflate(R.menu.menu, menu)
 
 		// Create the menu item that corresponds to the route object.
-		for ((name, _) in this.viewModel.routes) {
+		for (name in viewModel.routes.keys) {
 
 			// Make sure the item is checkable.
 			menu.add(R.id.routes, name.hashCode(), Menu.NONE, name).isCheckable = true
@@ -165,7 +177,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		Log.v("onPrepareOptionsMenu", "onPrepareOptionsMenu has been called!")
 
 		// Iterate through all the routes that can be tracked (if allRoutes isn't null).
-		for ((name, route) in this.viewModel.routes) {
+		for ((name, route) in viewModel.routes) {
 
 			// Determine whether or not the menu item should be checked before hand.
 			val checked: Boolean = route.enabled
@@ -201,7 +213,7 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 						val enabled = !item.isChecked
 
 						// Toggle night mode
-						this.viewModel.toggleNightMode(enabled)
+						viewModel.toggleNightMode(enabled)
 
 						// Set the menu item's checked value to that of the enabled value.
 						item.isChecked = enabled
@@ -212,21 +224,20 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 
 						// Create the intent to launch the settings activity.
 						val settingsIntent = android.content.
-						Intent(this, fnsb.macstransit.activities.SettingsActivity::class.java)
+						Intent(this, SettingsActivity::class.java)
 
 						// Add all the trackable routes as an extra to the intent.
-						settingsIntent.putExtra("Routes", this.viewModel.routes.values.toTypedArray())
+						settingsIntent.putExtra("Routes", viewModel.routes.values.toTypedArray())
 
 						// Start the settings activity.
-						this.startActivity(settingsIntent)
+						startActivity(settingsIntent)
 					}
 
 					// Check if the item that was selected was the fares button.
-					R.id.fares -> this.farePopupWindow.showFarePopupWindow()
+					R.id.fares -> farePopupWindow.showFarePopupWindow()
 
 					// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!
-					else -> Log.w("onOptionsItemSelected",
-					              "Unaccounted menu item in the other group was checked!")
+					else -> Log.w("onOptionsItemSelected", "Unaccounted menu item in the other group was checked!")
 				}
 			}
 
@@ -237,14 +248,14 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 				val enabled = !item.isChecked
 
 				// Get the route that was selected.
-				val route: Route = this.viewModel.routes[item.title] ?: return super.onOptionsItemSelected(item)
+				val route: Route = viewModel.routes[item.title] ?: return super.onOptionsItemSelected(item)
 
 				// Set the route to enabled.
 				route.enabled = enabled
 				Log.d("onOptionsItemSelected", "Selected route ${route.name}")
 
 				// If the map is null at this point just return early (skip redrawing).
-				if (this.viewModel.map == null) {
+				if (viewModel.map == null) {
 					return super.onOptionsItemSelected(item)
 				}
 
@@ -252,18 +263,18 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 				// Because we are iterating a static variable that is modified on a different thread
 				// there is a possibility of a concurrent modification.
 				try {
-					this.viewModel.drawBuses()
+					viewModel.drawBuses()
 				} catch (e: ConcurrentModificationException) {
 					Log.e("onOptionsItemSelected",
 					      "Unable to redraw all buses due to concurrent modification", e)
 				}
 
 				// (Re) draw the stops onto the map.
-				this.viewModel.drawStops()
+				viewModel.drawStops()
 
 				// (Re) draw the routes onto the map (if enabled).
 				if ((CurrentSettings.settingsImplementation as V2).polylines) {
-					this.viewModel.drawRoutes()
+					viewModel.drawRoutes()
 				}
 
 				// Set the menu item's checked value to that of the enabled value
@@ -283,11 +294,11 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		super.onResume()
 
 		// Update the map's dynamic settings.
-		this.viewModel.updateMapSettings()
+		viewModel.updateMapSettings()
 
 		// Resume the coroutine
-		if (this.viewModel.updater != null) {
-			this.viewModel.runUpdater()
+		if (viewModel.updater != null) {
+			viewModel.runUpdater()
 		}
 	}
 
@@ -296,8 +307,8 @@ class MapsActivity: androidx.fragment.app.FragmentActivity() {
 		super.onPause()
 
 		// Stop the coroutine
-		if (this.viewModel.updater != null) {
-			this.viewModel.updater!!.run = false
+		if (viewModel.updater != null) {
+			viewModel.updater!!.run = false
 		}
 	}
 
