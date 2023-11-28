@@ -175,7 +175,7 @@ class Route: Parcelable {
 			clickable(false)
 
 			// Set the color of the polylines based on the route color.
-			color(color)
+			color(this@Route.color)
 
 			// Set the polyline visibility to whether or not the route is enabled.
 			visible(enabled)
