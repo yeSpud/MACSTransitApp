@@ -1,6 +1,7 @@
 package fnsb.macstransit.activities
 
 import android.os.Build
+import android.os.Build.VERSION
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.Log
@@ -55,39 +56,61 @@ class SettingsActivity : AppCompatActivity() {
 
 		// Get the routes from the intent extra.
 		val extraBundle: Bundle = intent.extras ?: return
-		val routeParcel: Array<Route> = extraBundle.getParcelableArray("Routes", Route::class.java) ?: return
 
-		// Setup the favorites container.
-		// Begin by iterating though all the routes.
-		for (route in routeParcel) {
+		if (VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
 
-			// Create a new checkbox.
-			val checkBox = CheckBox(this)
+			@Suppress("DEPRECATION") // Suppressed because the new function does not exist in earlier APIs
+			val routesParcelable: Array<Parcelable> = extraBundle.getParcelableArray("Routes") ?: return
+			for (parcelableRoute in routesParcelable) {
+				if (parcelableRoute is Route) {
+					addRouteToCheckbox(parcelableRoute)
+				}
+			}
+		} else {
 
-			// Set the checkbox's text to the route name.
-			checkBox.text = route.name
-
-			// Set the minimum height for the checkbox.
-			checkBox.minHeight = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, CHECKBOX_MIN_HEIGHT,
-			                                               resources.displayMetrics).toInt()
-
-			// Set the color and size of the text to constants.
-			checkBox.textSize = CHECKBOX_TEXT_SIZE
-			checkBox.setTextColor(resources.getColor(R.color.white, null))
-
-			// Add button tint if the sdk supports it.
-			checkBox.buttonTintList = androidx.appcompat.content.res.AppCompatResources.
-			getColorStateList(this, R.color.white)
-
-			// Set the checkbox tag to the route object.
-			checkBox.tag = route
-
-			// Set the checkbox to be checked if its route is a favorited route.
-			checkBox.isChecked = settings.favoriteRouteNames.contains(route.name)
-
-			// Add the box to the favorites container.
-			binding.favoriteRouteContainer.addView(checkBox)
+			val routes: Array<Route> = extraBundle.getParcelableArray("Routes", Route::class.java) ?: return
+			for (route in routes) {
+				addRouteToCheckbox(route)
+			}
 		}
+
+	}
+
+	private fun addRouteToCheckbox(route: Route) {
+
+		// Create a new checkbox.
+		val checkBox = CheckBox(this)
+
+		// Set the checkbox's text to the route name.
+		checkBox.text = route.name
+
+		// Set the minimum height for the checkbox.
+		checkBox.minHeight = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, CHECKBOX_MIN_HEIGHT,
+		                                               resources.displayMetrics).toInt()
+
+		// Set the color and size of the text to constants.
+		checkBox.textSize = CHECKBOX_TEXT_SIZE
+		val color = if (VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			resources.getColor(R.color.white, null)
+		} else {
+
+			@Suppress("DEPRECATION") // Suppressed because the function is replaced in newer APIs
+			resources.getColor(R.color.white)
+		}
+		checkBox.setTextColor(color)
+
+		// Add button tint if the sdk supports it.
+		checkBox.buttonTintList = androidx.appcompat.content.res.AppCompatResources.
+		getColorStateList(this, R.color.white)
+
+		// Set the checkbox tag to the route object.
+		checkBox.tag = route
+
+		// Set the checkbox to be checked if its route is a favorited route.
+		checkBox.isChecked = settings.favoriteRouteNames.contains(route.name)
+
+		// Add the box to the favorites container.
+		binding.favoriteRouteContainer.addView(checkBox)
 	}
 
 	companion object {
@@ -180,6 +203,7 @@ class SettingsActivity : AppCompatActivity() {
 			System.arraycopy(potentialRoutes, 0, routes, 0, routesPosition)
 
 			// Return the newly created array.
+			@Suppress("UNCHECKED_CAST") // Suppressed because we are asserting that none of the routes are null
 			return routes as Array<Route>
 		}
 	}

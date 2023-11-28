@@ -115,6 +115,7 @@ class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewMod
 			}
 
 			// Set our bus array.
+			@Suppress("UNCHECKED_CAST") // Suppressed because we are asserting that none of the buses are null
 			mapsViewModel.buses = finalBusArray as Array<Bus>
 		}
 	}

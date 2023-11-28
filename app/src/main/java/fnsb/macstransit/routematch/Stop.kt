@@ -1,5 +1,6 @@
 package fnsb.macstransit.routematch
 
+import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
@@ -31,7 +32,16 @@ class Stop: MarkedObject, Parcelable {
 	 *
 	 * @param parcel The parcel containing the saved information to create a stop object.
 	 */
-	constructor(parcel: Parcel): super(parcel.readString()!!, parcel.readParcelable<LatLng>(LatLng::class.java.classLoader)!!, parcel.readString()!!, parcel.readInt())
+	constructor(parcel: Parcel): super(parcel.readString()!!,
+	                                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+		                                   parcel.readParcelable<LatLng>(
+				                                   LatLng::class.java.classLoader,
+				                                   LatLng::class.java)!!
+	                                   } else {
+		                                   @Suppress("DEPRECATION") // Suppressed because the function is replaced in newer APIs
+		                                   parcel.readParcelable<LatLng>(
+				                                   LatLng::class.java.classLoader)!!
+	                                   }, parcel.readString()!!, parcel.readInt())
 
 	/**
 	 * A stop object.
@@ -51,8 +61,10 @@ class Stop: MarkedObject, Parcelable {
 	 * @param longitude The longitude of the stop.
 	 * @param route The route of the stop.
 	 */
-	constructor(stopName: String, latitude: Double, longitude: Double, route: Route) :
-			this(stopName, LatLng(latitude, longitude), route)
+	constructor(stopName: String, latitude: Double, longitude: Double, route: Route): this(stopName,
+	                                                                                       LatLng(latitude,
+	                                                                                              longitude),
+	                                                                                       route)
 
 	/**
 	 * Lazy creation of a new Stop object using the provided JSON and the route.
@@ -61,9 +73,9 @@ class Stop: MarkedObject, Parcelable {
 	 * @param route The route this newly created Stop object will apply to.
 	 */
 	@Throws(JSONException::class)
-	constructor(json: org.json.JSONObject, route: Route) : this(json.getString("stopId"),
-	                                                            json.getDouble("latitude"),
-	                                                            json.getDouble("longitude"), route)
+	constructor(json: org.json.JSONObject, route: Route): this(json.getString("stopId"),
+	                                                           json.getDouble("latitude"),
+	                                                           json.getDouble("longitude"), route)
 
 	/**
 	 * Shows the stops for the given route.
@@ -80,7 +92,7 @@ class Stop: MarkedObject, Parcelable {
 
 		// Check if the circle for the stop needs to be created,
 		// or just set to visible if it already exists.
-		if (this.circle == null) {
+		if (circle == null) {
 
 			// If this function was already attempted return early.
 			// There may be a reason why the stop was unable to be created
@@ -90,13 +102,13 @@ class Stop: MarkedObject, Parcelable {
 			}
 
 			// Create a new circle object.
-			this.createStopCircle(map, visible)
-			this.toggleStopVisibility(map, visible,true)
+			createStopCircle(map, visible)
+			toggleStopVisibility(map, visible, true)
 		} else {
 
 			// Since the circle already exists simply update its visibility.
-			this.circle!!.isClickable = visible
-			this.circle!!.isVisible = visible
+			circle!!.isClickable = visible
+			circle!!.isVisible = visible
 		}
 	}
 
@@ -125,32 +137,32 @@ class Stop: MarkedObject, Parcelable {
 	fun createStopCircle(map: GoogleMap, visible: Boolean) {
 
 		// Add our circle to the map.
-		this.circle = map.addCircle {
+		circle = map.addCircle {
 
 			// Set the location of the circle to the location of the stop.
-			this.center(this@Stop.location)
+			center(location)
 
 			// Set the initial size of the circle to the STARTING_RADIUS constant.
-			this.radius(STARTING_RADIUS)
+			radius(STARTING_RADIUS)
 
 			// Set the colors.
-			this.fillColor(this@Stop.color)
-			this.strokeColor(this@Stop.color)
+			fillColor(color)
+			strokeColor(color)
 
-			// Set the stop to be clickable and visible based on the visiblity boolean.
-			this.clickable(visible)
-			this.visible(visible)
+			// Set the stop to be clickable and visible based on the visibility boolean.
+			clickable(visible)
+			visible(visible)
 		}
 
 		// Check if the circle is null at this point (failure to add to map).
-		if (this.circle == null) {
+		if (circle == null) {
 			Log.w("createStopCircle", "Failed to add stop circle to map!")
 			return
 		}
 
 		// Set the tag of the circle to Stop so that it can differentiate between this class
 		// and other stop-like classes (such as shared stops).
-		this.circle!!.tag = this
+		circle!!.tag = this
 	}
 
 	companion object {
@@ -195,6 +207,8 @@ class Stop: MarkedObject, Parcelable {
 
 			// Copy our validated stops into our smaller actual stops array, and return it.
 			System.arraycopy(validatedStops, 0, actualStops, 0, actualStops.size)
+
+			@Suppress("UNCHECKED_CAST") // Suppressed because we are asserting that none of the coordinates are null
 			return actualStops as Array<Stop>
 		}
 
@@ -245,10 +259,10 @@ class Stop: MarkedObject, Parcelable {
 	}
 
 	override fun writeToParcel(parcel: Parcel, flags: Int) {
-		parcel.writeString(this.name)
-		parcel.writeParcelable(this.location, flags)
-		parcel.writeString(this.routeName)
-		parcel.writeInt(this.color)
+		parcel.writeString(name)
+		parcel.writeParcelable(location, flags)
+		parcel.writeString(routeName)
+		parcel.writeInt(color)
 	}
 
 	override fun describeContents(): Int {

@@ -1,5 +1,7 @@
 package fnsb.macstransit.routematch
 
+import android.os.Build
+import android.os.Build.VERSION
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.annotation.UiThread
@@ -44,21 +46,31 @@ class SharedStop: MarkedObject, Parcelable {
 	 *
 	 * @param parcel The parcel containing the data to load the Shared Stop.
 	 */
-	constructor(parcel: Parcel): super(parcel.readString()!!, parcel.readParcelable<LatLng>(LatLng::class.java.classLoader)!!, parcel.readString()!!, parcel.readInt()) {
+	constructor(parcel: Parcel): super(parcel.readString()!!,
+	                                   if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+		                                   parcel.readParcelable<LatLng>(
+				                                   LatLng::class.java.classLoader,
+				                                   LatLng::class.java)!!
+	                                   } else {
+		                                   @Suppress(
+				                                   "DEPRECATION") // Suppressed because the function is replaced in newer APIs
+		                                   parcel.readParcelable<LatLng>(
+				                                   LatLng::class.java.classLoader)!!
+	                                   }, parcel.readString()!!, parcel.readInt()) {
 
 		// Parse the route names and colors.
-		this.routeNames = parcel.createStringArray()!!
-		this.routeColors = parcel.createIntArray()!!
+		routeNames = parcel.createStringArray()!!
+		routeColors = parcel.createIntArray()!!
 
 		// Parse the circle options using the route colors.
-		this.circleOptions = Array(this.routeColors.size) {
+		circleOptions = Array(routeColors.size) {
 
 			// Set the circle location.
-			val options: CircleOptions = CircleOptions().center(this.location)
+			val options: CircleOptions = CircleOptions().center(location)
 
 			// If the route has color then set the circle color.
-			if (this.routeColors[it] != 0) {
-				options.fillColor(this.routeColors[it]).strokeColor(this.routeColors[it])
+			if (routeColors[it] != 0) {
+				options.fillColor(routeColors[it]).strokeColor(routeColors[it])
 			}
 
 			// Apply the options to the array.
@@ -66,7 +78,7 @@ class SharedStop: MarkedObject, Parcelable {
 		}
 
 		// Initialize the stop circles to null.
-		this.circles = arrayOfNulls(this.routeNames.size)
+		circles = arrayOfNulls(routeNames.size)
 
 		// Set the initial circle size.
 		setCircleSizes(INITIAL_CIRCLE_SIZE)
@@ -80,19 +92,20 @@ class SharedStop: MarkedObject, Parcelable {
 	 * @param routes   The routes that apply to this shared stop.
 	 */
 	constructor(name: String, location: LatLng, routes: Array<Route>): super(name, location,
-	                                                                         routes[0].name, routes[0].color) {
+	                                                                         routes[0].name,
+	                                                                         routes[0].color) {
 
 		// Set the route names and colors.
-		this.routeNames = Array(routes.size) { routes[it].name }
-		this.routeColors = IntArray(routes.size) { routes[it].color }
+		routeNames = Array(routes.size) { routes[it].name }
+		routeColors = IntArray(routes.size) { routes[it].color }
 
 		// Parse the circle options using the route colors.
-		this.circleOptions = Array(routes.size) {
+		circleOptions = Array(routes.size) {
 			val route = routes[it]
 			val color = route.color
 
 			// Set the circle location.
-			val options: CircleOptions = CircleOptions().center(this.location)
+			val options: CircleOptions = CircleOptions().center(location)
 
 			// If the route has color then set the circle color.
 			if (color != 0) {
@@ -104,7 +117,7 @@ class SharedStop: MarkedObject, Parcelable {
 		}
 
 		// Initialize the stop circles to null.
-		this.circles = arrayOfNulls(routes.size)
+		circles = arrayOfNulls(routes.size)
 
 		// Set the initial circle size.
 		setCircleSizes(INITIAL_CIRCLE_SIZE)
@@ -122,20 +135,20 @@ class SharedStop: MarkedObject, Parcelable {
 	fun showSharedStop(map: GoogleMap) {
 
 		// Iterate though each of the circles.
-		for (i in this.circles.indices) {
+		for (i in circles.indices) {
 
 			// If the circle is null, create a new shared stop circle.
-			if (this.circles[i] == null) {
+			if (circles[i] == null) {
 
 				// Since the stop circle is null try creating a new one.
-				this.createSharedStopCircle(map, i)
+				createSharedStopCircle(map, i)
 			} else {
 
 				// Only set the circle to be clickable if its the 0th index circle (the biggest one).
-				this.circles[i]!!.isClickable = i == 0
+				circles[i]!!.isClickable = i == 0
 
 				// Set the circle to be visible.
-				this.circles[i]!!.isVisible = true
+				circles[i]!!.isVisible = true
 			}
 		}
 	}
@@ -150,12 +163,12 @@ class SharedStop: MarkedObject, Parcelable {
 	fun hideStop() {
 
 		// Iterate though each circle in the shared stop.
-		this.circles.forEach {
+		for (circle:Circle? in circles) {
 
 			// If the circle is not null set it to not be clickable, and hide it.
-			if (it != null) {
-				it.isClickable = false
-				it.isVisible = false
+			if (circle != null) {
+				circle.isClickable = false
+				circle.isVisible = false
 			}
 		}
 	}
@@ -172,15 +185,15 @@ class SharedStop: MarkedObject, Parcelable {
 	fun setCircleSizes(size: Double) {
 
 		// Iterate though each circle option (and circle if its not null) and reset its radius.
-		for (i in this.circles.indices) {
+		for (i in circles.indices) {
 
 			// Get the size of the circle based on its radius.
 			val radiusSize: Double = size * (1.0 / (i + 1))
 
 			// Set the circle size.
-			this.circleOptions[i].radius(radiusSize)
-			if (this.circles[i] != null) {
-				this.circles[i]!!.radius = radiusSize
+			circleOptions[i].radius(radiusSize)
+			if (circles[i] != null) {
+				circles[i]!!.radius = radiusSize
 			}
 		}
 	}
@@ -198,10 +211,10 @@ class SharedStop: MarkedObject, Parcelable {
 		for (i in circles.indices) {
 
 			// Get the circle from the shared stop, and remove it.
-			this.circles[i]?.remove()
+			circles[i]?.remove()
 
 			// Set all the circles to null.
-			this.circles[i] = null
+			circles[i] = null
 		}
 	}
 
@@ -219,7 +232,7 @@ class SharedStop: MarkedObject, Parcelable {
 	fun createSharedStopCircle(map: GoogleMap, index: Int) {
 
 		// Get the circle that was added to the map with the provided circle options.
-		val circle: Circle = map.addCircle(this@SharedStop.circleOptions[index])
+		val circle: Circle = map.addCircle(circleOptions[index])
 
 		// Set the circle to be clickable depending on the clickable argument.
 		circle.isClickable = (index == 0)
@@ -231,7 +244,7 @@ class SharedStop: MarkedObject, Parcelable {
 		circle.tag = this
 
 		// Return our newly created circle.
-		this.circles[index] = circle
+		circles[index] = circle
 	}
 
 	companion object {
@@ -296,11 +309,15 @@ class SharedStop: MarkedObject, Parcelable {
 		}
 
 		@JvmField
-		val CREATOR = object : Parcelable.Creator<SharedStop> {
+		val CREATOR = object: Parcelable.Creator<SharedStop> {
 
-			override fun createFromParcel(parcel: Parcel): SharedStop { return SharedStop(parcel) }
+			override fun createFromParcel(parcel: Parcel): SharedStop {
+				return SharedStop(parcel)
+			}
 
-			override fun newArray(size: Int): Array<SharedStop?> { return arrayOfNulls(size) }
+			override fun newArray(size: Int): Array<SharedStop?> {
+				return arrayOfNulls(size)
+			}
 		}
 	}
 

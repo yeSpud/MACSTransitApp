@@ -1,6 +1,8 @@
 package fnsb.macstransit.routematch
 
 import android.graphics.Color
+import android.os.Build
+import android.os.Build.VERSION
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
@@ -77,20 +79,45 @@ class Route: Parcelable {
 		urlFormattedName = parcel.readString()!!
 
 		// Load the array of stops from the parcel.
-		val stopArray: Array<Stop>? = parcel.readParcelableArray(Stop::class.java.classLoader, Stop::class.java)
-		if (stopArray != null) {
-			for (stop in stopArray) {
-				stops[stop.name] = stop
+		if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			val stopArray: Array<Stop>? = parcel.readParcelableArray(Stop::class.java.classLoader, Stop::class.java)
+			if (stopArray != null) {
+				for (stop in stopArray) {
+					stops[stop.name] = stop
+				}
+			}
+		} else {
+			@Suppress("DEPRECATION") // Suppressed because the function is replaced in newer APIs
+			val stopParcelableArray: Array<Parcelable>? = parcel.readParcelableArray(Stop::class.java.classLoader)
+			if (stopParcelableArray != null) {
+				for (stop in stopParcelableArray) {
+					if (stop is Stop) {
+						stops[stop.name] = stop
+					}
+				}
 			}
 		}
 
 		// Load the array of shared stops from the parcel.
-		val sharedStopParcelableArray: Array<SharedStop>? = parcel.readParcelableArray(SharedStop::class.java.classLoader, SharedStop::class.java)
-		if (sharedStopParcelableArray != null) {
-			for (sharedStop in sharedStopParcelableArray) {
-				sharedStops[sharedStop.name] = sharedStop
+		if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			val sharedStopParcelableArray: Array<SharedStop>? = parcel.readParcelableArray(SharedStop::class.java.classLoader, SharedStop::class.java)
+			if (sharedStopParcelableArray != null) {
+				for (sharedStop in sharedStopParcelableArray) {
+					sharedStops[sharedStop.name] = sharedStop
+				}
+			}
+		} else {
+			@Suppress("DEPRECATION") // Suppressed because the function is replaced in newer APIs
+			val sharedStopParcelableArray: Array<Parcelable>? = parcel.readParcelableArray(SharedStop::class.java.classLoader)
+			if (sharedStopParcelableArray != null) {
+				for (sharedStop in sharedStopParcelableArray) {
+					if (sharedStop is SharedStop) {
+						sharedStops[sharedStop.name] = sharedStop
+					}
+				}
 			}
 		}
+
 	}
 
 	/**
@@ -223,6 +250,7 @@ class Route: Parcelable {
 			}
 
 			// Create a new polyline for the route since it didn't have one before.
+			@Suppress("UNCHECKED_CAST") // Suppressed because we are asserting that none of the coordinates are null
 			createPolyline(coordinates as Array<LatLng>, map)
 
 			// Log if there was any error getting the polyline coordinates.
