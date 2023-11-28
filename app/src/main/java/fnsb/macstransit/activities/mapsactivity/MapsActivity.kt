@@ -71,12 +71,15 @@ class MapsActivity: FragmentActivity() {
 		// Launch the maps coroutine (which sets up the Google Map object).
 		lifecycleScope.launch {
 			val setupJob = launch(Dispatchers.Main, CoroutineStart.LAZY) { viewModel.setupMap(supportFragment, this@MapsActivity) }
+			Log.v("onCreate", "Setting up map")
 			setupJob.start()
 			setupJob.join()
+			Log.v("onCreate", "Map finished")
 			repeatOnLifecycle(Lifecycle.State.STARTED) { viewModel.runUpdater() }
 		}
 
 		// Setup the fares popup window.
+		Log.v("onCreate", "Setting up fare window")
 		farePopupWindow = FarePopupWindow(this)
 
 		// Setup all our routes.
