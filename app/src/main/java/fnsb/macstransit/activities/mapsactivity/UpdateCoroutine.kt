@@ -18,13 +18,12 @@ import org.json.JSONObject
  * @version 1.0.
  * @since Release 1.3.
  */
-class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewModel: MapsViewModel,
-                      map: GoogleMap) {
+class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewModel: MapsViewModel) {
 
 	/**
 	 * The callback to execute once the vehicles json has been returned from the server.
 	 */
-	private val callback: Callback = Callback(map)
+	private val callback: Callback = Callback(mapsViewModel.map!!)
 
 	/**
 	 * Boolean to determine whether or not to continue running the coroutine's update loop.

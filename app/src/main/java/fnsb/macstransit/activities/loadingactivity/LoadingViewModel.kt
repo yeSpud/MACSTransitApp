@@ -6,10 +6,13 @@ import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
+import android.net.NetworkInfo
+import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.view.View
 import androidx.annotation.AnyThread
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -176,36 +179,12 @@ class LoadingViewModel(application: Application) : AndroidViewModel(application)
 		val connectivityManager: ConnectivityManager = getApplication<Application>()
 			.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-		// Newer API.
-		// Get the network, and its capabilities for the app.
-		val network: Network? = connectivityManager.activeNetwork
-		val networkCapabilities: NetworkCapabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
-
-		// Return true if the app has access to any of the network capabilities:
-		return when {
-			// WiFi
-			networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-
-			// Cellular Data
-			networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-
-			// Ethernet
-			networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
-
-			// Bluetooth
-			networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) -> true
-
-			// No connectivity.
-			else -> false
-		}
-
-		/*
 		// Check the current API version (as behavior changes in later APIs).
 		return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 			hasNetworkCapabilities(connectivityManager)
 		} else {
 			isConnected(connectivityManager)
-		}*/
+		}
 	}
 
 
@@ -339,7 +318,7 @@ class LoadingViewModel(application: Application) : AndroidViewModel(application)
 				runnable.download(route, downloadProgress, progressSoFar, i)
 
 				// Update the current progress.
-				setProgressBar(progress + step + downloadQueue + this@LoadingViewModel.routes.size)
+				setProgressBar(progress + step + downloadQueue + routes.size)
 
 				// Increase the downloaded queue as our downloadable has finished downloading.
 				downloadQueue++
@@ -446,7 +425,6 @@ class LoadingViewModel(application: Application) : AndroidViewModel(application)
 		Log.d("mapSharedStops", "Reached end of mapSharedStops")
 	}
 
-	/*
 	companion object {
 
 		/**
@@ -482,7 +460,7 @@ class LoadingViewModel(application: Application) : AndroidViewModel(application)
 		/**
 		 * Older API for getting internet connectivity. Used for versions older than Android M
 		 */
-		@TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
+		@Suppress("DEPRECATION") // Suppressed because the new way does not exist in this version of android
 		internal fun isConnected(connectivityManager: ConnectivityManager): Boolean {
 
 			// Older API.
@@ -492,5 +470,5 @@ class LoadingViewModel(application: Application) : AndroidViewModel(application)
 			// Return if we are connected or not.
 			return networkInfo.isConnected
 		}
-	}*/
+	}
 }

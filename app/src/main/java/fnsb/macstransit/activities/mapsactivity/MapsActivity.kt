@@ -9,14 +9,12 @@ import fnsb.macstransit.settings.V2
 import fnsb.macstransit.R
 import android.util.Log
 import android.view.Menu
-import androidx.annotation.RequiresApi
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.gms.maps.SupportMapFragment
-import fnsb.macstransit.BuildConfig
 import fnsb.macstransit.activities.SettingsActivity
 import fnsb.macstransit.activities.mapsactivity.mappopups.FarePopupWindow
 import fnsb.macstransit.databinding.ActivityMapsBinding
@@ -71,7 +69,12 @@ class MapsActivity: FragmentActivity() {
 		val supportFragment: SupportMapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
 
 		// Launch the maps coroutine (which sets up the Google Map object).
-		lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) { viewModel.mapCoroutine(supportFragment, this@MapsActivity) } }
+		lifecycleScope.launch {
+			val setupJob = launch(Dispatchers.Main, CoroutineStart.LAZY) { viewModel.setupMap(supportFragment, this@MapsActivity) }
+			setupJob.start()
+			setupJob.join()
+			repeatOnLifecycle(Lifecycle.State.STARTED) { viewModel.runUpdater() }
+		}
 
 		// Setup the fares popup window.
 		farePopupWindow = FarePopupWindow(this)
@@ -207,13 +210,17 @@ class MapsActivity: FragmentActivity() {
 
 					// Check if the item that was selected was the night mode toggle.
 					R.id.night_mode -> {
+						if (viewModel.map == null) {
+							return false
+						}
+
 						Log.d("onOptionsItemSelected", "Toggling night mode...")
 
 						// Create a boolean to store the resulting value of the menu item.
 						val enabled = !item.isChecked
 
 						// Toggle night mode
-						viewModel.toggleNightMode(enabled)
+						MapsViewModel.toggleNightMode(viewModel.map!!, this, enabled)
 
 						// Set the menu item's checked value to that of the enabled value.
 						item.isChecked = enabled
