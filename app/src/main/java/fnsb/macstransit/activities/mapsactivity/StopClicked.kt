@@ -4,6 +4,7 @@ import android.util.Log
 import android.widget.Toast
 import com.google.android.gms.maps.GoogleMap
 import fnsb.macstransit.R
+import fnsb.macstransit.activities.mapsactivity.mappopups.InfoWindowPopup
 import fnsb.macstransit.activities.mapsactivity.mappopups.PopupWindow
 import fnsb.macstransit.routematch.MarkedObject
 import fnsb.macstransit.routematch.Route
@@ -35,14 +36,14 @@ class StopClicked(private val context: android.content.Context, private val rout
 		if (markedObject.marker == null) {
 
 			// Create a new marker for our marked object using the newly determined location and color.
-			markedObject.addMarker(this.map)
+			markedObject.addMarker(map)
 
 			// Check if the marker was added successfully.
 			if (markedObject.marker == null) {
 				Log.w("onCircleClick", "Unable to add marker to map!")
 
 				// Since the marker was unable to be added to the map just default to toast.
-				Toast.makeText(this.context, markedObject.name, Toast.LENGTH_LONG).show()
+				Toast.makeText(context, markedObject.name, Toast.LENGTH_LONG).show()
 				return
 			}
 		}
@@ -56,10 +57,10 @@ class StopClicked(private val context: android.content.Context, private val rout
 		// Set the snippet text to "retrieving stop times".
 		// Once the stop times for this stop are retrieved and parsed
 		// the callback function will set the snippet text to the actual times.
-		markedObject.marker!!.snippet = this.context.getString(R.string.retrieving_stop_times)
+		markedObject.marker!!.snippet = context.getString(R.string.retrieving_stop_times)
 
 		// Start the callback to retrieve the actual stop times.
-		this.routematch.callDeparturesByStop(name, {
+		routematch.callDeparturesByStop(name, {
 
 			// Update the snippet text of the marker's info window.
 			markedObject.marker!!.snippet = postStopTimes(markedObject.marker!!.tag as MarkedObject, it)
@@ -73,7 +74,7 @@ class StopClicked(private val context: android.content.Context, private val rout
 			Log.e("showMarker", "Unable to get departure times", error)
 
 			// Be sure to update the stop snippet to let the user know there was an error.
-			markedObject.marker!!.snippet = this.context.getString(R.string.stop_times_retrieval_error, markedObject.name)
+			markedObject.marker!!.snippet = context.getString(R.string.stop_times_retrieval_error, markedObject.name)
 			markedObject.marker!!.showInfoWindow()
 		}, markedObject.marker!!)
 
@@ -104,32 +105,31 @@ class StopClicked(private val context: android.content.Context, private val rout
 			if (isSharedStop){
 				this.getEnabledRoutesForStop(stop as SharedStop)
 			} else {
-				arrayOf(this.routes[stop.routeName]!!)
+				arrayOf(routes[stop.routeName]!!)
 			}
 		} catch (e: ClassCastException) {
 
 			// If there was an issue casting from classes log the error and return the current content of the string.
 			Log.e("postStopTimes", "Unaccounted object class: ${stop.javaClass}", e)
 			return ""
-		} catch (NullPointerException : NullPointerException) {
+		} catch (nullPointerException : NullPointerException) {
 
 			// Since the route was not found in the hashmap log it as an error,
 				// and return an empty string.
-			Log.e("postStopTimes", "Could not find stop route!", NullPointerException)
+			Log.e("postStopTimes", "Could not find stop route!", nullPointerException)
 			return ""
 		}
 
 		// Get the formatted time string for the marked object, and load it into the popup window.
-		PopupWindow.body = this.generateTimeString(stopData, routes, isSharedStop)
+		PopupWindow.body = generateTimeString(stopData, routes, isSharedStop)
 
 		// Check to see how many new lines there are in the display.
 		// If there are more than the maximum lines allowed bu the info window adapter,
 		// display "Click to view all the arrival and departure times.".
-		return if (getNewlineOccurrence(PopupWindow.body) <= fnsb.macstransit.activities.mapsactivity
-					.mappopups.InfoWindowPopup.MAX_LINES) {
+		return if (getNewlineOccurrence(PopupWindow.body) <= InfoWindowPopup.MAX_LINES) {
 			PopupWindow.body
 		} else {
-			this.context.getString(R.string.click_to_view_all_the_arrival_and_departure_times)
+			context.getString(R.string.click_to_view_all_the_arrival_and_departure_times)
 		}
 	}
 
@@ -184,7 +184,7 @@ class StopClicked(private val context: android.content.Context, private val rout
 					var departureTime = getTime(jsonObject, "predictedDepartureTime")
 
 					// If the user doesn't use 24-hour time, convert to 12-hour time.
-					if (!android.text.format.DateFormat.is24HourFormat(this.context)) {
+					if (!android.text.format.DateFormat.is24HourFormat(context)) {
 						Log.d("generateTimeString", "Converting time to 12 hour time")
 						arrivalTime = formatTime(arrivalTime)
 						departureTime = formatTime(departureTime)
@@ -197,8 +197,8 @@ class StopClicked(private val context: android.content.Context, private val rout
 					}
 
 					// Append the arrival and departure times to the snippet text.
-					snippetText.append("${this.context.getString(R.string.expected_arrival)} $arrivalTime\n" +
-					                   "${this.context.getString(R.string.expected_departure)} $departureTime\n\n")
+					snippetText.append("${context.getString(R.string.expected_arrival)} $arrivalTime\n" +
+					                   "${context.getString(R.string.expected_departure)} $departureTime\n\n")
 				}
 			}
 		}
@@ -236,11 +236,10 @@ class StopClicked(private val context: android.content.Context, private val rout
 
 			// Try to get the route with the shared stop route name from the hashmap of routes.
 			val route: Route = try {
-				this.routes[routeName]!!
-			} catch (NullPointerException: NullPointerException) {
-				Log.e("getEnabledRoutes",
-				      "Route for shared stop ${sharedStop.name} is invalid: $routeName}",
-				      NullPointerException)
+				routes[routeName]!!
+			} catch (nullPointerException: NullPointerException) {
+				Log.e("getEnabledRoutes", "Route for shared stop ${sharedStop.name} is invalid: $routeName}",
+				      nullPointerException)
 				continue
 			}
 
@@ -258,6 +257,7 @@ class StopClicked(private val context: android.content.Context, private val rout
 		System.arraycopy(potentialRoutes, 0, selectedRoutes, 0, routeCount)
 
 		// Return our selected routes.
+		@Suppress("UNCHECKED_CAST") // Suppressed because we are asserting that none of the routes are null
 		return selectedRoutes as Array<Route>
 	}
 
@@ -301,8 +301,8 @@ class StopClicked(private val context: android.content.Context, private val rout
 			return if (matcher.find()) {
 				try {
 					matcher.group(0)!!
-				} catch (NullPointerException: NullPointerException) {
-					Log.e("getTime", "Regex returned null!", NullPointerException)
+				} catch (nullPointerException: NullPointerException) {
+					Log.e("getTime", "Regex returned null!", nullPointerException)
 					""
 				}
 			} else {
@@ -329,10 +329,10 @@ class StopClicked(private val context: android.content.Context, private val rout
 
 				// Try to get the 24 hour time as a date.
 				fullTime.parse(time)!!
-			} catch (Exception: Exception) {
+			} catch (exception: Exception) {
 
 				// If there was an exception raised during parsing simply return the parameter.
-				Log.e("formatTime", "Could not parse full 24 hour time", Exception)
+				Log.e("formatTime", "Could not parse full 24 hour time", exception)
 				return time
 			}
 

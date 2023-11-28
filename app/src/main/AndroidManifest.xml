@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="fnsb.macstransit">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
@@ -37,14 +36,14 @@
         <activity
             android:name=".activities.SettingsActivity"
             android:label="@string/settings"
-            android:launchMode="singleInstance"
+            android:launchMode="standard"
             android:screenOrientation="portrait"
             android:theme="@style/AppThemeNoActionBar"
             tools:ignore="LockedOrientationActivity" />
 
         <activity
             android:name=".activities.loadingactivity.LoadingActivity"
-            android:launchMode="singleInstance"
+            android:launchMode="standard"
             android:screenOrientation="portrait"
             android:theme="@style/AppThemeNoActionBar"
             android:exported="true"
