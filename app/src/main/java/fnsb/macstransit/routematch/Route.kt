@@ -80,11 +80,15 @@ class Route: Parcelable {
 
 		// Load the array of stops from the parcel.
 		if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-			val stopArray: Array<Stop>? = parcel.readParcelableArray(Stop::class.java.classLoader, Stop::class.java)
-			if (stopArray != null) {
-				for (stop in stopArray) {
-					stops[stop.name] = stop
+			try {
+				val stopArray: Array<Stop>? = parcel.readParcelableArray(Stop::class.java.classLoader, Stop::class.java)
+				if (stopArray != null) {
+					for (stop in stopArray) {
+						stops[stop.name] = stop
+					}
 				}
+			} catch (nullPointerException: NullPointerException) {
+				Log.e("Route", "Error getting route from parcel", nullPointerException)
 			}
 		} else {
 			@Suppress("DEPRECATION") // Suppressed because the function is replaced in newer APIs

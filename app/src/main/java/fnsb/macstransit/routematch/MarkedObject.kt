@@ -1,7 +1,10 @@
 package fnsb.macstransit.routematch
 
+import android.graphics.Color
 import android.util.Log
 import androidx.annotation.UiThread
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.maps.android.ktx.addMarker
@@ -79,32 +82,34 @@ open class MarkedObject(val name: String, var location: LatLng, val routeName: S
 	 * @return The newly added marker.
 	 */
 	@UiThread
-	fun addMarker(map: com.google.android.gms.maps.GoogleMap) {
+	fun addMarker(map: GoogleMap) {
 
 		// Add the marker to the map.
 		Log.d("addMarker", "Adding marker to the map")
 		val marker: Marker? = map.addMarker {
 
 			// Set the position of the marker via the latitude and longitude.
-			this.position(this@MarkedObject.location)
+			position(location)
 
 			// Set the color of the marker.
 			Log.d("addMarker", "Applying marker color")
 			val hsv = FloatArray(3)
-			android.graphics.Color.colorToHSV(this@MarkedObject.color, hsv)
-			this.icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]))
+			Color.colorToHSV(color, hsv)
+			icon(BitmapDescriptorFactory.defaultMarker(hsv[0]))
 		}
 
 		// If the marker isn't null add more fields.
 		if (marker != null) {
 
 			// Set the marker title.
-			Log.d("addMarker", "Setting marker title to: ${this.name}")
-			marker.title = this.name
+			Log.d("addMarker", "Setting marker title to: $name")
+			marker.title = name
 
 			// Set the marker's tag.
-			Log.d("addMarker", "Setting the markers tag to: ${this.javaClass}")
+			Log.d("addMarker", "Setting the markers tag to: $javaClass")
 			marker.tag = this
+		} else {
+			Log.w("addMarker", "Error adding marker to the map")
 		}
 
 		// Set the marker to the generated marker

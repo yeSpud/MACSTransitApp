@@ -2,6 +2,7 @@ package fnsb.macstransit.activities.mapsactivity
 
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
 import fnsb.macstransit.R
 import fnsb.macstransit.activities.mapsactivity.mappopups.InfoWindowPopup
@@ -26,7 +27,7 @@ class StopClicked(private val context: android.content.Context, private val rout
                   private val map: GoogleMap, private val routes: HashMap<String, Route>) :
 		GoogleMap.OnCircleClickListener {
 
-	@androidx.annotation.UiThread
+	@UiThread
 	override fun onCircleClick(circle: com.google.android.gms.maps.model.Circle) {
 
 		// Get the marked object from our circle.
@@ -51,16 +52,13 @@ class StopClicked(private val context: android.content.Context, private val rout
 		// Since the marker is not null, show it the marker by setting it to visible.
 		markedObject.marker!!.isVisible = true
 
-		// Get the name of the stop.
-		val name = markedObject.marker!!.title ?: return
-
 		// Set the snippet text to "retrieving stop times".
 		// Once the stop times for this stop are retrieved and parsed
 		// the callback function will set the snippet text to the actual times.
 		markedObject.marker!!.snippet = context.getString(R.string.retrieving_stop_times)
 
 		// Start the callback to retrieve the actual stop times.
-		routematch.callDeparturesByStop(name, {
+		routematch.callDeparturesByStop(markedObject.name, {
 
 			// Update the snippet text of the marker's info window.
 			markedObject.marker!!.snippet = postStopTimes(markedObject.marker!!.tag as MarkedObject, it)
