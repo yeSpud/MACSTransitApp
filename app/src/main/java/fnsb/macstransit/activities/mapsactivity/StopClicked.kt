@@ -23,6 +23,7 @@ import java.util.Locale
  * @version 2.1.
  * @since Beta 7.
  */
+@Deprecated("Use only one one map marker instead of a marker for every stop")
 class StopClicked(private val context: android.content.Context, private val routematch: RouteMatch,
                   private val map: GoogleMap, private val routes: HashMap<String, Route>) :
 		GoogleMap.OnCircleClickListener {

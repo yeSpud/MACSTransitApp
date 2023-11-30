@@ -5,7 +5,6 @@ apply plugin: 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
 
 android {
     compileSdk 34
-    buildToolsVersion '34.0.0'
     defaultConfig {
         applicationId "fnsb.macstransit"
         minSdkVersion 21
@@ -38,6 +37,7 @@ android {
     buildFeatures {
         viewBinding true
         dataBinding true
+        buildConfig true
     }
     compileOptions {
         sourceCompatibility = 17
