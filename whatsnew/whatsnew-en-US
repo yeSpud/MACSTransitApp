@@ -1,2 +1,1 @@
-* Updated live-feed url
-* Updated app dependencies
+* Fixed a bug with multiple instances of the app being launched

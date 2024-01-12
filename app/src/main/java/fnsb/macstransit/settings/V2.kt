@@ -97,7 +97,7 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 		Log.i("readFromSettingsFile", "Supposed file location: " + file.absolutePath)
 
 		// Return the JSON object from the file determined by the context.
-		return this.readFromSettingsFile(file)
+		return readFromSettingsFile(file)
 	}
 
 	/**
@@ -199,11 +199,11 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 
 		// Parse the simpler JSON objects from the settings file first.
 		try {
-			this.traffic = input.getBoolean("enable traffic view")
-			this.darktheme = input.getBoolean("enable dark theme")
-			this.polylines = input.getBoolean("enable polylines")
-			this.streetView = input.getBoolean("enable streetview")
-			this.maptype = input.getInt("map type")
+			traffic = input.getBoolean("enable traffic view")
+			darktheme = input.getBoolean("enable dark theme")
+			polylines = input.getBoolean("enable polylines")
+			streetView = input.getBoolean("enable streetview")
+			maptype = input.getInt("map type")
 
 			// Now try to parse the more dynamic content (favorited routes array).
 			val favoritedRoutes: JSONArray = input.getJSONArray("favorited routes")
@@ -214,6 +214,8 @@ object V2 : BaseSettings<JSONObject>("Settings.json", 2) {
 			for (i in 0 until count) {
 				favoriteRouteNames[i] = favoritedRoutes.getString(i)
 			}
+
+			@Suppress("UNCHECKED_CAST") // Suppressed because we are asserting that none of the names are null
 			this.favoriteRouteNames = favoriteRouteNames as Array<String>
 
 		} catch (e: JSONException) {

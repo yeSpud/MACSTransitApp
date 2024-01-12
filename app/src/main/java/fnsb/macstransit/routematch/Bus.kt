@@ -51,15 +51,14 @@ class Bus(
 	fun isBusNotInArray(buses: Array<Bus>): Boolean {
 
 		// Iterate though each bus.
-		buses.forEach {
-
+		for (bus: Bus in buses) {
 			// Check of the bus we are searching for matches our current bus.
-			Log.v("isBusNotInArray", "Comparing ${this.name} to ${it.name}")
-			if (this.name == it.name) {
+			Log.v("isBusNotInArray", "Comparing $name to ${bus.name}")
+			if (name == bus.name) {
 				Log.d("isBusNotInArray", "Vehicle IDs match")
 
 				// Check if the routes for the bus also match. If they do, return false (found).
-				if (this.route.name == it.route.name) {
+				if (route.name == bus.route.name) {
 					Log.d("isBusNotInArray", "Objects match!")
 					return false
 				}
@@ -109,7 +108,7 @@ class Bus(
 				// Try to get the bus's route via the route name.
 				val route: Route = try {
 					routes[busObject.getString("masterRouteId")]!!
-				} catch (NullPointerException: NullPointerException) {
+				} catch (npe: NullPointerException) {
 
 					// If the bus route was not found in all of our trackable routes throw a RuntimeException.
 					throw RuntimeException("Bus route not found in route map!")
@@ -137,13 +136,10 @@ class Bus(
 		fun removeOldBuses(oldBuses: Array<Bus>, newBuses: Array<Bus>) {
 
 			// Iterate through the oldBuses
-			oldBuses.forEach {
-
-				// Check if the new buses match the old bus.
-				// If it doesn't, then remove it from the map.
-				if (it.isBusNotInArray(newBuses)) {
-					Log.d("removeOldBuses", "Removing bus ${it.name} from map")
-					it.removeMarker()
+			for (bus in oldBuses) {
+				if (bus.isBusNotInArray(newBuses)) {
+					Log.d("removeOldBuses", "Removing bus ${bus.name} from map")
+					bus.removeMarker()
 				}
 			}
 		}
@@ -195,6 +191,8 @@ class Bus(
 			// Down size the array to its actual size and return it.
 			val buses = arrayOfNulls<Bus>(busSize)
 			System.arraycopy(potentialBuses, 0, buses, 0, busSize)
+
+			@Suppress("UNCHECKED_CAST") // Suppressed because we are asserting that none of the buses are null
 			return buses as Array<Bus>
 		}
 
@@ -244,6 +242,8 @@ class Bus(
 			// Down size the array to its actual size and return it.
 			val buses = arrayOfNulls<Bus>(busSize)
 			System.arraycopy(potentialBuses, 0, buses, 0, busSize)
+
+			@Suppress("UNCHECKED_CAST") // Suppressed because we are asserting that none of the buses are null
 			return buses as Array<Bus>
 		}
 	}
