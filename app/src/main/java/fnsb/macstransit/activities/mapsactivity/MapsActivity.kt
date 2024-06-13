@@ -79,33 +79,6 @@ class MapsActivity: FragmentActivity() {
 		// Setup the fares popup window.
 		Log.v("onCreate", "Setting up fare window")
 		farePopupWindow = FarePopupWindow(this)
-
-		// Setup all our routes.
-		/*
-		if (viewModel.routes.isEmpty()) {
-
-			// Get the extras from the intent.
-			val extraBundle: Bundle = intent.extras ?: return
-
-			// Get the routes from the bundle as a parcelable array.
-			if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-				val routes: Array<Route> = extraBundle.getParcelableArray("Routes", Route::class.java) ?: return
-
-				// Parse the routes from the parcelable to our hashmap.
-				for (route in routes) {
-					viewModel.routes[route.name] = route
-				}
-			} else {
-				@Suppress("DEPRECATION") // Suppressed because corrected version doesn't exist for APIs earlier than Tiramisu
-				val routesParcelable: Array<Parcelable> = extraBundle.getParcelableArray("Routes") ?: return
-
-				for (route in routesParcelable) {
-					if (route is Route) {
-						viewModel.routes[route.name] = route
-					}
-				}
-			}
-		}*/
 	}
 
 	override fun onDestroy() {
@@ -229,9 +202,6 @@ class MapsActivity: FragmentActivity() {
 
 						// Create the intent to launch the settings activity.
 						val settingsIntent = android.content.Intent(this, SettingsActivity::class.java)
-
-						// Add all the trackable routes as an extra to the intent.
-						// settingsIntent.putExtra("Routes", LoadedRoutes.routes.values.toTypedArray())
 
 						// Start the settings activity.
 						startActivity(settingsIntent)

@@ -41,16 +41,10 @@ import kotlin.math.max
  */
 class LoadingViewModel(application: Application) : AndroidViewModel(application) {
 
-
 	/**
 	 * The RouteMatch object used to retrieve data from the RouteMatch servers.
 	 */
 	val routeMatch: RouteMatch = RouteMatch(getApplication<Application>().getString(R.string.routematch_url), getApplication())
-
-	/**
-	 * All of the routes that can be tracked by the app. This will be determined by the master schedule.
-	 */
-	//val routes: HashMap<String, Route> = HashMap()
 
 	/**
 	 * The current (adjustable) progress.
