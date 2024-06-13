@@ -114,7 +114,7 @@ class LoadingActivity : AppCompatActivity() {
 		val mapsIntent = Intent(this, MapsActivity::class.java)
 
 		// Get the routes as parcelables.
-		mapsIntent.putExtra("Routes", binding.viewmodel!!.routes.values.toTypedArray())
+		// mapsIntent.putExtra("Routes", binding.viewmodel!!.routes.values.toTypedArray())
 
 		// Start the MapsActivity, and close this splash activity.
 		Log.d("launchMapsActivity", "Starting maps activity")

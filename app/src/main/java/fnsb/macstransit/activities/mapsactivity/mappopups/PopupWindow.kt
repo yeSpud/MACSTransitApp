@@ -18,14 +18,15 @@ class PopupWindow(context: android.content.Context) : AlertDialog(context),
 	override fun onInfoWindowClick(marker: com.google.android.gms.maps.model.Marker) {
 
 		// Get the binder for the popup info window.
-		val binder: InfoWindowPopupBinding = InfoWindowPopupBinding.inflate(this.layoutInflater)
+		val binder: InfoWindowPopupBinding = InfoWindowPopupBinding.inflate(layoutInflater)
 
 		// Set the title of the window to the title of the marker.
 		binder.title.text = marker.title
 
 		// Check the marker instance to determine the content text.
 		// If its a stop or shared stop, just set it to the body.
-		if (marker.tag is fnsb.macstransit.routematch.Stop || marker.tag is fnsb.macstransit.routematch.SharedStop) {
+		if (marker.tag is fnsb.macstransit.routematch.Stop || marker.tag is
+						fnsb.macstransit.routematch.SharedStop) {
 			binder.body.text = body
 		} else if (marker.tag is Bus) {
 

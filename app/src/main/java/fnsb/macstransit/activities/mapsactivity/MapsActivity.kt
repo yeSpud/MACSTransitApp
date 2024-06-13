@@ -1,9 +1,6 @@
 package fnsb.macstransit.activities.mapsactivity
 
-import android.os.Build
-import android.os.Build.VERSION
 import android.os.Bundle
-import android.os.Parcelable
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.V2
 import fnsb.macstransit.R
@@ -15,6 +12,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.gms.maps.SupportMapFragment
+import fnsb.macstransit.activities.LoadedRoutes
 import fnsb.macstransit.activities.SettingsActivity
 import fnsb.macstransit.activities.mapsactivity.mappopups.FarePopupWindow
 import fnsb.macstransit.databinding.ActivityMapsBinding
@@ -83,6 +81,7 @@ class MapsActivity: FragmentActivity() {
 		farePopupWindow = FarePopupWindow(this)
 
 		// Setup all our routes.
+		/*
 		if (viewModel.routes.isEmpty()) {
 
 			// Get the extras from the intent.
@@ -106,7 +105,7 @@ class MapsActivity: FragmentActivity() {
 					}
 				}
 			}
-		}
+		}*/
 	}
 
 	override fun onDestroy() {
@@ -118,18 +117,16 @@ class MapsActivity: FragmentActivity() {
 			Log.i("onDestroy", "Beginning onDestroy cleanup coroutine...")
 
 			// Iterate though each route to get access to its shared stops and regular stops.
-			for (route: Route in viewModel.routes.values) {
+			for (route: Route in LoadedRoutes.routes.values) {
 
 				Log.d("onDestroy", "Removing stop circles")
 				for (stop: Stop in route.stops.values) {
-					stop.removeStopCircle()
-					stop.removeMarker()
+					stop.close()
 				}
 
 				Log.d("onDestroy", "Removing shared stop circles")
 				for (sharedStop: SharedStop in route.sharedStops.values) {
-					sharedStop.removeSharedStopCircles()
-					sharedStop.removeMarker()
+					sharedStop.close()
 				}
 
 				// Remove route polylines.
@@ -142,7 +139,7 @@ class MapsActivity: FragmentActivity() {
 
 		Log.d("onDestroy", "Removing bus markers")
 		for (bus: Bus in viewModel.buses) {
-			bus.removeMarker()
+			bus.close()
 		}
 
 		// Stop the update thread.
@@ -157,8 +154,6 @@ class MapsActivity: FragmentActivity() {
 			viewModel.map = null
 		}
 
-
-
 		Log.v("onDestroy", "Finished onDestroy")
 	}
 
@@ -169,7 +164,7 @@ class MapsActivity: FragmentActivity() {
 		menuInflater.inflate(R.menu.menu, menu)
 
 		// Create the menu item that corresponds to the route object.
-		for (name in viewModel.routes.keys) {
+		for (name in LoadedRoutes.routes.keys) {
 
 			// Make sure the item is checkable.
 			menu.add(R.id.routes, name.hashCode(), Menu.NONE, name).isCheckable = true
@@ -183,7 +178,7 @@ class MapsActivity: FragmentActivity() {
 		Log.v("onPrepareOptionsMenu", "onPrepareOptionsMenu has been called!")
 
 		// Iterate through all the routes that can be tracked (if allRoutes isn't null).
-		for ((name, route) in viewModel.routes) {
+		for ((name, route) in LoadedRoutes.routes) {
 
 			// Determine whether or not the menu item should be checked before hand.
 			val checked: Boolean = route.enabled
@@ -233,11 +228,10 @@ class MapsActivity: FragmentActivity() {
 					R.id.settings -> {
 
 						// Create the intent to launch the settings activity.
-						val settingsIntent = android.content.
-						Intent(this, SettingsActivity::class.java)
+						val settingsIntent = android.content.Intent(this, SettingsActivity::class.java)
 
 						// Add all the trackable routes as an extra to the intent.
-						settingsIntent.putExtra("Routes", viewModel.routes.values.toTypedArray())
+						// settingsIntent.putExtra("Routes", LoadedRoutes.routes.values.toTypedArray())
 
 						// Start the settings activity.
 						startActivity(settingsIntent)
@@ -258,7 +252,7 @@ class MapsActivity: FragmentActivity() {
 				val enabled = !item.isChecked
 
 				// Get the route that was selected.
-				val route: Route = viewModel.routes[item.title] ?: return super.onOptionsItemSelected(item)
+				val route: Route = LoadedRoutes.routes[item.title] ?: return super.onOptionsItemSelected(item)
 
 				// Set the route to enabled.
 				route.enabled = enabled

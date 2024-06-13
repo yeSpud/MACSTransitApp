@@ -2,7 +2,9 @@ package fnsb.macstransit.routematch
 
 import android.util.Log
 import androidx.annotation.UiThread
+import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.ktx.addMarker
 import org.json.JSONException
 import kotlin.RuntimeException
 
@@ -19,17 +21,22 @@ class Bus(
 		 * The ID (name) of the bus.
 		 * This must not have any prefix (as that will be added later).
 		 */
-		name: String,
+		val name: String,
 
 		/**
 		 * The current location of the bus (as a LatLng object)
 		 */
-		location: LatLng,
+		var location: LatLng,
 
 		/**
 		 * The bus's route.
 		 */
 		val route: Route,
+
+		/**
+		 * The map to add the bus to.
+		 */
+		map: GoogleMap,
 
 		/**
 		 * String used to store the buses current heading.
@@ -40,7 +47,28 @@ class Bus(
 		/**
 		 * Variables to store the current bus speed in mph.
 		 */
-		var speed: Int = 0) : MarkedObject("Bus $name", location, route.name, route.color) {
+		var speed: Int = 0): java.io.Closeable {
+
+	/**
+	 * The bus's marker on the map.
+	 */
+	val marker: com.google.android.gms.maps.model.Marker = map.addMarker {
+		title(name)
+		position(location)
+
+		val hsv = FloatArray(3)
+		android.graphics.Color.colorToHSV(route.color, hsv)
+		icon(com.google.android.gms.maps.model.BitmapDescriptorFactory.defaultMarker(hsv[0]))
+
+		var snippetText = ""
+		if (heading != "") {
+			snippetText += "Heading: $heading"
+		}
+
+		if (speed > 0) {
+			snippetText += "\nSpeed: $speed"
+		}
+	}!!
 
 	/**
 	 * Searches a given bus array for this bus, and returns if it was not found.
@@ -70,6 +98,10 @@ class Bus(
 		return true
 	}
 
+	override fun close() {
+		marker.remove()
+	}
+
 	companion object {
 
 		/**
@@ -85,13 +117,13 @@ class Bus(
 		 */
 		@JvmStatic
 		@Throws(RuntimeException::class, JSONException::class)
-		fun getBuses(vehiclesJson: org.json.JSONArray, routes: HashMap<String, Route>): Array<Bus> {
+		fun getBuses(vehiclesJson: org.json.JSONArray, routes: HashMap<String, Route>, map: GoogleMap): Array<Bus> {
 
 			// Return the bus array from the following:
 			return Array(vehiclesJson.length()) {
 
 				// Get the json object corresponding to the bus.
-				val busObject: org.json.JSONObject = vehiclesJson.getJSONObject(it)
+				val busObject = vehiclesJson.getJSONObject(it)
 
 				// Get the bus ID.
 				val name: String = busObject.getString("vehicleId")
@@ -121,7 +153,7 @@ class Bus(
 				val speed: Int = busObject.optInt("speed", 0)
 
 				// Create a new bus object using the content in the json object.
-				Bus(name, location, route, heading = heading, speed = speed)
+				Bus("Bus $name", location, route, map, heading = heading, speed = speed)
 			}
 		}
 
@@ -139,7 +171,7 @@ class Bus(
 			for (bus in oldBuses) {
 				if (bus.isBusNotInArray(newBuses)) {
 					Log.d("removeOldBuses", "Removing bus ${bus.name} from map")
-					bus.removeMarker()
+					bus.marker.remove()
 				}
 			}
 		}
@@ -171,7 +203,7 @@ class Bus(
 					if (newBus.name == oldBuses[i].name) {
 
 						// Update the buses position, heading, and speed.
-						oldBuses[i].updateLocation(newBus.location)
+						oldBuses[i].marker.position = newBus.location
 						oldBuses[i].heading = newBus.heading
 						oldBuses[i].speed = newBus.speed
 						try {
@@ -205,8 +237,7 @@ class Bus(
 		 */
 		@JvmStatic
 		@UiThread
-		fun addNewBuses(oldBuses: Array<Bus>, newBuses: Array<Bus>,
-		                map: com.google.android.gms.maps.GoogleMap): Array<Bus> {
+		fun addNewBuses(oldBuses: Array<Bus>, newBuses: Array<Bus>): Array<Bus> {
 
 			// Create an array with the maximum size of the size of our new buses.
 			// We will resize the array later,
@@ -223,15 +254,8 @@ class Bus(
 				if (newBus.isBusNotInArray(oldBuses)) {
 					Log.d("addNewBuses", "Adding new bus to map: ${newBus.name}")
 
-					// Create the bus marker.
-					newBus.addMarker(map)
-					if (newBus.marker != null) {
-
-						// Determine whether or not to show the bus marker.
-						newBus.marker!!.isVisible = newBus.route.enabled
-					} else {
-						Log.w("addNewBus", "Unable to add bus marker!")
-					}
+					// Determine whether or not to show the bus marker.
+					newBus.marker.isVisible = newBus.route.enabled
 
 					// Add the bus to the bus array.
 					potentialBuses[busSize] = newBus

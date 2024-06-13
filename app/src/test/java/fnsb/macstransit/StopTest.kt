@@ -131,7 +131,7 @@ class StopTest {
 			val validDuplicateStopCounts = intArrayOf(233, 24, 144, 78, 176, 145)
 			for (i in 0 until loadedFiles) {
 				val stops: Array<Stop> = stopsWithDuplicates[i]
-				println("Number of stops for ${stops[0].routeName} (with potential duplicates): ${stops.size}\n")
+				// println("Number of stops for ${stops[0].routeName} (with potential duplicates): ${stops.size}\n")
 				Assert.assertEquals(validDuplicateStopCounts[i], stops.size)
 			}
 
@@ -140,9 +140,9 @@ class StopTest {
 			for (i in 0 until loadedFiles) {
 				val stops: Array<Stop> = stopsWithDuplicates[i]
 				val vStops: Array<Stop> = Stop.validateGeneratedStops(stops)
-				println("Number of stops for ${vStops[0].routeName}: ${vStops.size}\n")
+				// println("Number of stops for ${vStops[0].routeName}: ${vStops.size}\n")
 				Assert.assertEquals(validateStopCounts[i], vStops.size)
-				vStops.forEach { routes[it.routeName]!!.stops[it.name] = it }
+				// vStops.forEach { routes[it.routeName]!!.stops[it.name] = it }
 			}
 
 			// Now test the creation of shared stops.

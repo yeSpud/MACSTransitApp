@@ -2,6 +2,7 @@ package fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables
 
 import android.util.Log
 import fnsb.macstransit.R
+import fnsb.macstransit.activities.LoadedRoutes
 import fnsb.macstransit.activities.loadingactivity.LoadingViewModel
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.Stop
@@ -30,7 +31,7 @@ class DownloadBusStops(viewModel: LoadingViewModel): DownloadRouteObjects<Unit>(
 		})
 
 		// Get the progress step.
-		val step: Double = downloadProgress / this.viewModel.routes.size
+		val step: Double = downloadProgress /LoadedRoutes.routes.size
 
 		// Update the progress bar.
 		this.viewModel.setProgressBar(progressSoFar + step + index)
@@ -50,7 +51,7 @@ class DownloadBusStops(viewModel: LoadingViewModel): DownloadRouteObjects<Unit>(
 
 				// Try to create a new stop object using the information in the json array.
 				val stop: Stop = try {
-					Stop(jsonArray.getJSONObject(i), this.route)
+					Stop(jsonArray.getJSONObject(i), route)
 				} catch (e: org.json.JSONException) {
 
 					// If unsuccessful simply log the exception and continue iterating.
@@ -60,7 +61,7 @@ class DownloadBusStops(viewModel: LoadingViewModel): DownloadRouteObjects<Unit>(
 
 				// Try to add the stop the route's stop hashmap in the view model.
 				try {
-					this.viewModel.routes[this.route.name]!!.stops[stop.name] = stop
+					LoadedRoutes.routes[this.route.name]!!.stops[stop.name] = stop
 				} catch (NullPointerException : NullPointerException) {
 
 					// If the route of the stop is not in the routes hashmap then log it as an error.

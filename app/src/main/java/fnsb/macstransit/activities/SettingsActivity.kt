@@ -54,7 +54,12 @@ class SettingsActivity : AppCompatActivity() {
 		// The cancel button should just finish the class and return.
 		binding.cancel.setOnClickListener { finish() }
 
+		for (route in LoadedRoutes.routes.values) {
+			addRouteToCheckbox(route)
+		}
+
 		// Get the routes from the intent extra.
+		/*
 		val extraBundle: Bundle = intent.extras ?: return
 
 		if (VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
@@ -72,7 +77,7 @@ class SettingsActivity : AppCompatActivity() {
 			for (route in routes) {
 				addRouteToCheckbox(route)
 			}
-		}
+		}*/
 
 	}
 
