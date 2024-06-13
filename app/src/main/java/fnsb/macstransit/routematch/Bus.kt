@@ -204,6 +204,7 @@ class Bus(
 
 						// Update the buses position, heading, and speed.
 						oldBuses[i].marker.position = newBus.location
+						newBus.marker.remove()
 						oldBuses[i].heading = newBus.heading
 						oldBuses[i].speed = newBus.speed
 						try {
