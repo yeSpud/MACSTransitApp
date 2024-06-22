@@ -10,16 +10,12 @@ import com.google.maps.android.ktx.addMarker
 import com.google.maps.android.ktx.awaitMap
 import fnsb.macstransit.R
 import fnsb.macstransit.activities.LoadedRoutes
-import fnsb.macstransit.activities.mapsactivity.mappopups.InfoWindowPopup
-import fnsb.macstransit.activities.mapsactivity.mappopups.PopupWindow
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 import fnsb.macstransit.routematch.SharedStop
 import fnsb.macstransit.routematch.Stop
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.json.JSONException
-import org.json.JSONObject
 import java.lang.NullPointerException
 import java.text.SimpleDateFormat
 import java.util.ConcurrentModificationException
@@ -190,7 +186,8 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 
 			// Add a custom info window adapter, to add support for multiline snippets.
 			Log.v("MapCoroutine", "Setting info window")
-			map.setInfoWindowAdapter(InfoWindowPopup(activity))
+			map.setInfoWindowAdapter(fnsb.macstransit.activities.mapsactivity.mappopups
+								.InfoWindowPopup(activity))
 
 			// Set it so that if the info window was closed for a Stop marker,
 			// make that marker invisible, so its just the dot.
@@ -203,7 +200,8 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 
 			// Set it so that when an info window is clicked on, it launches a popup window
 			Log.v("MapCoroutine", "Setting info window click listener")
-			map.setOnInfoWindowClickListener(PopupWindow(activity))
+			map.setOnInfoWindowClickListener(fnsb.macstransit.activities.mapsactivity.mappopups
+										.PopupWindow(activity))
 
 			// Add a listener for when a stop icon (circle) is clicked.
 			Log.v("MapCoroutine", "Setting circle click listener")
@@ -243,45 +241,12 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 
 				selectedStop!!.isVisible = true
 
-				// Set the snippet text to "retrieving stop times".
-				// Once the stop times for this stop are retrieved and parsed
-				// the callback function will set the snippet text to the actual times.
-				selectedStop!!.snippet = getApplication<Application>().getString(R.string.retrieving_stop_times)
+				val stopDialog = com.orhanobut.dialogplus.DialogPlus.newDialog(activity)
+					.setAdapter(fnsb.macstransit.activities.mapsactivity.mappopups.
+					StopDialog(activity, selectedStop!!.title!!, stopRoutes))
+					.setExpanded(true).create()
 
-				// Start the callback to retrieve the actual stop times.
-				routeMatch.callDeparturesByStop(selectedStop!!.title!!, {
-
-					// Get the stop data from the retrieved json.
-					val stopData = RouteMatch.parseData(it)
-
-					// Get the formatted time string for the marked object, and load it into the popup window.
-					PopupWindow.body = generateTimeString(stopData, stopRoutes, circle.tag is SharedStop)
-
-					// Check to see how many new lines there are in the display.
-					// If there are more than the maximum lines allowed bu the info window adapter,
-					// display "Click to view all the arrival and departure times.".
-					selectedStop!!.snippet = if (getNewlineOccurrence(PopupWindow.body) <= InfoWindowPopup.MAX_LINES) {
-						PopupWindow.body
-					} else {
-						getApplication<Application>().getString(
-								R.string.click_to_view_all_the_arrival_and_departure_times)
-					}
-
-					// Refresh the info window by calling showInfoWindow().
-					Log.v("showMarker", "Refreshing info window")
-					selectedStop!!.showInfoWindow()
-				}, { error: com.android.volley.VolleyError? ->
-					// Log that we are unable to get the departure times, and provide the error.
-                    Log.e("showMarker", "Unable to get departure times", error)
-
-                    // Be sure to update the stop snippet to let the user know there was an error.
-                    selectedStop!!.snippet = getApplication<Application>().getString(
-									                                R.string.stop_times_retrieval_error,
-									                                selectedStop!!.title)
-					selectedStop!!.showInfoWindow()
-				   }, selectedStop!!)
-
-				selectedStop!!.showInfoWindow()
+				stopDialog.show()
 			}
 
 			this.map = map
@@ -337,91 +302,6 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 		// Return our selected routes.
 		@Suppress("UNCHECKED_CAST") // Suppressed because we are asserting that none of the routes are null
 		return selectedRoutes as Array<Route>
-	}
-
-	/**
-	 * Generates the large string that is used to display the departure and arrival times of a
-	 * particular stop when clicked on.
-	 *
-	 * @param stopArray        The JSONArray that contains all the stops for the route.
-	 * @param activeRoutes           The active (enabled) routes to get the times for.
-	 * @param includeRouteName Whether or not to include the route name in the final string.
-	 * @return The string containing all the departure and arrival times for the particular stop.
-	 */
-	private fun generateTimeString(stopArray: org.json.JSONArray, activeRoutes: Array<Route>,
-	                               includeRouteName: Boolean): String {
-
-		// Get the number of entries in our json array.
-		val count = stopArray.length()
-
-		// Create a new string with the size of our capacity times 5 (0:00\n).
-		val snippetText = StringBuilder(count * 5)
-
-		// Iterate though each entry in our json array.
-		for (index in 0 until count) {
-			Log.d("generateTimeString", "Parsing stop times for stop $index/$count")
-
-			// Get the json object from the json array.
-			val jsonObject: JSONObject = try {
-				stopArray.getJSONObject(index)
-			} catch (e: JSONException) {
-				Log.e("generateTimeString", "Could not get json object from json array", e)
-				continue
-			}
-
-			// Get the route name from the json object.
-			// This is not to be confused with the route name from the route.
-			val routeId: String = try {
-				jsonObject.getString("routeId")
-			} catch (e: JSONException) {
-				Log.e("generateTimeString", "Could not get route name from json array", e)
-				continue
-			}
-
-			// Iterate though each of our active routes. If the route is one that is listed,
-			// append the time to the string builder.
-			for (activeRoute in activeRoutes) {
-				if (activeRoute.name == routeId) {
-
-					// Set the arrival and departure time to the arrival and departure time in the JSONObject.
-					// At this point this is stored in 24-hour time.
-					var arrivalTime = getTime(jsonObject, "predictedArrivalTime")
-					var departureTime = getTime(jsonObject, "predictedDepartureTime")
-
-					// If the user doesn't use 24-hour time, convert to 12-hour time.
-					if (!android.text.format.DateFormat.is24HourFormat(getApplication())) {
-						Log.d("generateTimeString", "Converting time to 12 hour time")
-						arrivalTime = formatTime(arrivalTime)
-						departureTime = formatTime(departureTime)
-					}
-
-					// Append the route name if there is one.
-					if (includeRouteName) {
-						Log.d("generateTimeString", "Adding route: ${activeRoute.name}")
-						snippetText.append("Route: ${activeRoute.name}\n")
-					}
-
-					// Append the arrival and departure times to the snippet text.
-					snippetText.append("${getApplication<Application>().getString(R.string.expected_arrival)} $arrivalTime\n" +
-					                   "${getApplication<Application>().getString(R.string.expected_departure)} $departureTime\n\n")
-				}
-			}
-		}
-
-		// Be sure to trim the snippet text at this point.
-		snippetText.trimToSize()
-
-		// Get the length of the original snippet text.
-		val length = snippetText.length
-
-		// Replace the last 2 new lines (this is to mitigate a side effect of the final append).
-		if (length > 2) {
-			snippetText.deleteCharAt(length - 1)
-			snippetText.deleteCharAt(length - 2)
-		}
-
-		// Finally, build the text and return it.
-		return snippetText.toString()
 	}
 
 	/**
@@ -568,12 +448,12 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 		 * @param key  The specific key to search for within the JSONObject.
 		 * @return The time found within the JSONObject.
 		 */
-		fun getTime(json: JSONObject, key: String): String {
+		fun getTime(json: org.json.JSONObject, key: String): String {
 
 			// Try to get the time string from the json object based on the key.
 			val timeString: String = try {
 				json.getString(key)
-			} catch (e: JSONException) {
+			} catch (e: org.json.JSONException) {
 
 				// Try to manage the exception, as it may be thrown if the value is actually null.
 				val message = e.message
@@ -637,30 +517,6 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 			val formattedTime = halfTime.format(fullTimeDate)
 			Log.d("formatTime", "Formatted time: $formattedTime")
 			return formattedTime
-		}
-
-		/**
-		 * Function that finds the number of times a character occurs within a given string.
-		 *
-		 * @param string The string to search.
-		 * @return The number of times the character occurs within the string.
-		 */
-		fun getNewlineOccurrence(string: CharSequence): Int {
-
-			// Create a variable to store the occurrence.
-			var count = 0
-
-			// Iterate through the string.
-			string.forEach {
-
-				// If the character at the current index matches our character, increase the count.
-				if (it == '\n') {
-					count++
-				}
-			}
-
-			// Finally, return the count.
-			return count
 		}
 	}
 }
