@@ -81,7 +81,7 @@ class StopDialog(private val context: Context, private val stopName: String,
 	 * @param activeRoutes           The active (enabled) routes to get the times for.
 	 * @return The string containing all the departure and arrival times for the particular stop.
 	 */
-	private fun generateTimeString(stopArray: org.json.JSONArray, activeRoutes: Array<Route>): String {
+	private fun generateTimeString(stopArray: org.json.JSONArray, activeRoutes: Array<Route>): String  {
 
 		// Get the number of entries in our json array.
 		val count = stopArray.length()
