@@ -1,12 +1,14 @@
 package fnsb.macstransit.activities.mapsactivity.mappopups
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import com.android.volley.VolleyError
 import fnsb.macstransit.R
@@ -45,6 +47,7 @@ class StopDialog(private val context: Context, private val stopName: String,
 
 		val stopNameText: TextView = view.findViewById(R.id.stop_name)
 		val timesContainer: LinearLayout = view.findViewById(R.id.times_container)
+		val progressBar: ProgressBar = view.findViewById(R.id.progress)
 
 		stopNameText.text = stopName
 
@@ -52,20 +55,9 @@ class StopDialog(private val context: Context, private val stopName: String,
 
 			// Get the stop data from the retrieved json.
 			val stopData = RouteMatch.parseData(json)
-
-			// Get the formatted time string for the marked object, and load it into the popup window.
-			PopupWindow.body = generateTimeString(stopData, stopRoutes)
-
-			// Check to see how many new lines there are in the display.
-			// If there are more than the maximum lines allowed bu the info window adapter,
-			// display "Click to view all the arrival and departure times.".
-			/*
-			selectedStop!!.snippet = if (getNewlineOccurrence(PopupWindow.body) <= InfoWindowPopup.MAX_LINES) {
-				PopupWindow.body
-			} else {
-				context.getString(R.string.click_to_view_all_the_arrival_and_departure_times)
-			}
-			 */
+			generateStopEntries(stopData, stopRoutes, timesContainer)
+			timesContainer.visibility = View.VISIBLE
+			progressBar.visibility = View.GONE
 
 		}, { error: VolleyError? -> Log.e("showMarker", "Unable to get departure times", error) },
 		                                this)
@@ -73,21 +65,11 @@ class StopDialog(private val context: Context, private val stopName: String,
 		return view
 	}
 
-	/**
-	 * Generates the large string that is used to display the departure and arrival times of a
-	 * particular stop when clicked on.
-	 *
-	 * @param stopArray        The JSONArray that contains all the stops for the route.
-	 * @param activeRoutes           The active (enabled) routes to get the times for.
-	 * @return The string containing all the departure and arrival times for the particular stop.
-	 */
-	private fun generateTimeString(stopArray: org.json.JSONArray, activeRoutes: Array<Route>): String  {
+	private fun generateStopEntries(stopArray: org.json.JSONArray, activeRoutes: Array<Route>,
+	                                view: LinearLayout) {
 
 		// Get the number of entries in our json array.
 		val count = stopArray.length()
-
-		// Create a new string with the size of our capacity times 5 (0:00\n).
-		val snippetText = StringBuilder(count * 5)
 
 		// Iterate though each entry in our json array.
 		for (index in 0 until count) {
@@ -127,30 +109,15 @@ class StopDialog(private val context: Context, private val stopName: String,
 						departureTime = formatTime(departureTime)
 					}
 
-					// Append the route name if there is one.
-					snippetText.append("Route: ${activeRoute.name}\n")
+					val stopEntry = StopEntry(context)
+					stopEntry.routeName?.text = routeId
+					stopEntry.routeName?.backgroundTintList = ColorStateList.valueOf(activeRoute.color)
+					stopEntry.stopTime?.text = departureTime
 
-					// Append the arrival and departure times to the snippet text.
-					snippetText.append("${context.getString(R.string.expected_arrival)} $arrivalTime\n" +
-					                   "${context.getString(R.string.expected_departure)} $departureTime\n\n")
+					view.addView(stopEntry)
 				}
 			}
 		}
-
-		// Be sure to trim the snippet text at this point.
-		snippetText.trimToSize()
-
-		// Get the length of the original snippet text.
-		val length = snippetText.length
-
-		// Replace the last 2 new lines (this is to mitigate a side effect of the final append).
-		if (length > 2) {
-			snippetText.deleteCharAt(length - 1)
-			snippetText.deleteCharAt(length - 2)
-		}
-
-		// Finally, build the text and return it.
-		return snippetText.toString()
 	}
 
 	companion object {

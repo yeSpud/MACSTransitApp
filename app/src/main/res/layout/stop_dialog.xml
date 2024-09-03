@@ -14,12 +14,13 @@
         android:layout_marginTop="10dp"
         android:textAlignment="center"/>
 
-    <!--
     <ProgressBar
         style="?android:attr/progressBarStyleHorizontal"
+        android:id="@+id/progress"
         android:layout_width="match_parent"
         android:layout_height="10dp"
-        android:indeterminate="true" />-->
+        android:indeterminate="true"
+        android:visibility="visible"/>
 
     <ScrollView
         android:layout_width="match_parent"
@@ -29,19 +30,8 @@
             android:id="@+id/times_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <fnsb.macstransit.activities.mapsactivity.mappopups.StopEntry
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <fnsb.macstransit.activities.mapsactivity.mappopups.StopEntry
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-
-            <fnsb.macstransit.activities.mapsactivity.mappopups.StopEntry
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+            android:orientation="vertical"
+            android:visibility="invisible">
 
         </LinearLayout>
 

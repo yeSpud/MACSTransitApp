@@ -9,13 +9,11 @@
         android:id="@+id/route_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Blue"
         android:textColor="@color/white"
         android:textSize="30sp"
         android:layout_gravity="center"
         android:layout_marginStart="20dp"
-        android:background="@drawable/rounded_corner"
-        android:backgroundTint="@color/blue"/>
+        android:background="@drawable/rounded_corner" />
 
     <Space
         android:layout_width="0dp"
@@ -28,7 +26,6 @@
         android:layout_height="wrap_content"
         android:textColor="@color/white"
         android:textSize="35sp"
-        android:layout_marginEnd="20dp"
-        android:text="99:99 PM"/>
+        android:layout_marginEnd="20dp"/>
 
 </LinearLayout>
