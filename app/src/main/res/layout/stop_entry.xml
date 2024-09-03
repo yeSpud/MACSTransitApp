@@ -9,12 +9,13 @@
         android:id="@+id/route_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Yellow"
+        android:text="Blue"
         android:textColor="@color/white"
         android:textSize="30sp"
         android:layout_gravity="center"
         android:layout_marginStart="20dp"
-        android:background="@drawable/rounded_corner" />
+        android:background="@drawable/rounded_corner"
+        android:backgroundTint="@color/blue"/>
 
     <Space
         android:layout_width="0dp"
