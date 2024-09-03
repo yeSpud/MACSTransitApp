@@ -110,9 +110,14 @@ class StopDialog(private val context: Context, private val stopName: String,
 					}
 
 					val stopEntry = StopEntry(context)
-					stopEntry.routeName?.text = routeId
-					stopEntry.routeName?.backgroundTintList = ColorStateList.valueOf(activeRoute.color)
-					stopEntry.stopTime?.text = departureTime
+					val params = view.layoutParams
+					params.height = ViewGroup.LayoutParams.WRAP_CONTENT
+					params.width = ViewGroup.LayoutParams.MATCH_PARENT
+					stopEntry.layoutParams = params
+
+					stopEntry.routeName.text = routeId
+					stopEntry.routeName.backgroundTintList = ColorStateList.valueOf(activeRoute.color)
+					stopEntry.stopTime.text = departureTime
 
 					view.addView(stopEntry)
 				}
