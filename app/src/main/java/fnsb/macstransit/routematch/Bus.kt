@@ -70,6 +70,10 @@ class Bus(
 		}
 	}!!
 
+	init {
+		marker.tag = this
+	}
+
 	/**
 	 * Searches a given bus array for this bus, and returns if it was not found.
 	 *
