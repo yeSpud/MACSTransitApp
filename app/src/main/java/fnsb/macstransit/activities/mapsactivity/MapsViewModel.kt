@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.ktx.addMarker
@@ -190,16 +191,6 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 			map.setInfoWindowAdapter(fnsb.macstransit.activities.mapsactivity.mappopups
 								.InfoWindowPopup(activity)) // For now this is kept for buses
 
-			// Set it so that if the info window was closed for a Stop marker,
-			// make that marker invisible, so its just the dot.
-			/*
-			Log.v("MapCoroutine", "Setting info window close listener")
-			map.setOnInfoWindowCloseListener {
-				if (selectedStop != null) {
-					selectedStop!!.isVisible = false
-				}
-			}*/
-
 			// Set it so that when an info window is clicked on, it launches a popup window
 			Log.v("MapCoroutine", "Setting info window click listener")
 			map.setOnInfoWindowClickListener(fnsb.macstransit.activities.mapsactivity.mappopups
@@ -209,31 +200,23 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 			Log.v("MapCoroutine", "Setting circle click listener")
 			map.setOnCircleClickListener { circle: com.google.android.gms.maps.model.Circle ->
 
-				var stopRoutes: Array<Route> = emptyArray()
-
-				if (circle.tag is Stop) {
-					val stop = circle.tag as Stop
-
-					if (selectedStop == null) {
-						selectedStop = this.map!!.addMarker {
-							title(stop.name)
-							position(stop.location)
-							icon(getMarkerColor(stop.route.color))
-						}
-					} else {
-						selectedStop!!.title = stop.name
-						selectedStop!!.position = stop.location
-						selectedStop!!.setIcon(getMarkerColor(stop.route.color))
+				val stopRoutes: Array<Route>
+				when (circle.tag) {
+					is Stop -> {
+						val stop = circle.tag as Stop
+						stopRoutes = arrayOf(stop.route)
+						addStopMarkerToMap(stop.name, stop.location, getMarkerColor(stop.route.color))
 					}
-
-					stopRoutes = arrayOf(stop.route)
-				}
-
-				if (circle.tag is SharedStop) {
-					val sharedStop = circle.tag as SharedStop
-					// TODO
-
-					stopRoutes = getEnabledRoutesForStop(sharedStop)
+					is SharedStop -> {
+						val sharedStop = circle.tag as SharedStop
+						stopRoutes = getEnabledRoutesForStop(sharedStop)
+						addStopMarkerToMap(sharedStop.name, sharedStop.location,
+						                   getMarkerColor(sharedStop.routes[0].color))
+					}
+					else -> {
+						Log.w("circleListener", "Tag unaccounted for: " + circle.tag?.javaClass?.name)
+						return@setOnCircleClickListener
+					}
 				}
 
 				if (circle.tag !is Stop && circle.tag !is SharedStop) {
@@ -266,6 +249,20 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 		// Update the map's dynamic settings.
 		Log.v("MapCoroutine", "Updating map settings")
 		updateMapSettings()
+	}
+
+	private fun addStopMarkerToMap(title: String, position: LatLng, icon: BitmapDescriptor) {
+		if (selectedStop == null) {
+			selectedStop = this.map!!.addMarker {
+				title(title)
+				position(position)
+				icon(icon)
+			}
+		} else {
+			selectedStop!!.title = title
+			selectedStop!!.position = position
+			selectedStop!!.setIcon(icon)
+		}
 	}
 
 	/**

@@ -12,7 +12,7 @@ import com.google.android.gms.maps.model.CircleOptions
  * @version 4.1.
  * @since Beta 7.
  */
-class SharedStop(val name: String, private val location: com.google.android.gms.maps.model.LatLng,
+class SharedStop(val name: String, val location: com.google.android.gms.maps.model.LatLng,
                  val routes: Array<Route>): java.io.Closeable {
 
 	/**
