@@ -15,6 +15,7 @@ import fnsb.macstransit.activities.mapsactivity.MapsActivity
  * @since Beta 7.
  */
 @androidx.annotation.UiThread
+@Deprecated("Use dialog plus window")
 class InfoWindowPopup(private val activity: MapsActivity) :
 		com.google.android.gms.maps.GoogleMap.InfoWindowAdapter {
 

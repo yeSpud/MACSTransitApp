@@ -1,5 +1,6 @@
 package fnsb.macstransit.routematch
 
+import android.graphics.Color
 import android.util.Log
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
@@ -231,7 +232,12 @@ class Route {
 
 				// Now try to parse the route color.
 				val colorName = jsonObject.getString("routeColor")
-				val color = android.graphics.Color.parseColor(colorName)
+				val color = if (name == "Yellow") {
+					Log.i("generateRoute", "Hardcoding yellow route color")
+					0xFFE9D700.toInt()
+				} else {
+					Color.parseColor(colorName)
+				}
 
 				// Return our newly created route with color!
 				Route(name, color)

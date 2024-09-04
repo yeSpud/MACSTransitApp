@@ -8,6 +8,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.ktx.addMarker
 import com.google.maps.android.ktx.awaitMap
+import com.orhanobut.dialogplus.OnDismissListener
 import fnsb.macstransit.R
 import fnsb.macstransit.activities.LoadedRoutes
 import fnsb.macstransit.routematch.Route
@@ -187,16 +188,17 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 			// Add a custom info window adapter, to add support for multiline snippets.
 			Log.v("MapCoroutine", "Setting info window")
 			map.setInfoWindowAdapter(fnsb.macstransit.activities.mapsactivity.mappopups
-								.InfoWindowPopup(activity))
+								.InfoWindowPopup(activity)) // For now this is kept for buses
 
 			// Set it so that if the info window was closed for a Stop marker,
 			// make that marker invisible, so its just the dot.
+			/*
 			Log.v("MapCoroutine", "Setting info window close listener")
 			map.setOnInfoWindowCloseListener {
 				if (selectedStop != null) {
 					selectedStop!!.isVisible = false
 				}
-			}
+			}*/
 
 			// Set it so that when an info window is clicked on, it launches a popup window
 			Log.v("MapCoroutine", "Setting info window click listener")
@@ -244,7 +246,11 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 				val stopDialog = com.orhanobut.dialogplus.DialogPlus.newDialog(activity)
 					.setAdapter(fnsb.macstransit.activities.mapsactivity.mappopups.
 					StopDialog(activity, selectedStop!!.title!!, stopRoutes))
-					.setExpanded(true).create()
+					.setExpanded(true).setOnDismissListener {
+						if (selectedStop != null) {
+							selectedStop!!.isVisible = false
+						}
+					}.create()
 
 				stopDialog.show()
 			}
