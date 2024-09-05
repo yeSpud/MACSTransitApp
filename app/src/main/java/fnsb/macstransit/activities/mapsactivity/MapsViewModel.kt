@@ -9,7 +9,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.ktx.addMarker
 import com.google.maps.android.ktx.awaitMap
-import com.orhanobut.dialogplus.OnDismissListener
 import fnsb.macstransit.R
 import fnsb.macstransit.activities.LoadedRoutes
 import fnsb.macstransit.routematch.Route
@@ -214,21 +213,17 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 						                   getMarkerColor(sharedStop.routes[0].color))
 					}
 					else -> {
-						Log.w("circleListener", "Tag unaccounted for: " + circle.tag?.javaClass?.name)
+						Log.w("circleListener", "Unknown class: " + circle.tag?.javaClass?.name)
 						return@setOnCircleClickListener
 					}
-				}
-
-				if (circle.tag !is Stop && circle.tag !is SharedStop) {
-					Log.w("onCircleClick", "Unknown class:" + circle.tag!!.javaClass)
-					return@setOnCircleClickListener
 				}
 
 				selectedStop!!.isVisible = true
 
 				val stopDialog = com.orhanobut.dialogplus.DialogPlus.newDialog(activity)
-					.setAdapter(fnsb.macstransit.activities.mapsactivity.mappopups.
-					StopDialog(activity, selectedStop!!.title!!, stopRoutes))
+					.setContentHolder(com.orhanobut.dialogplus.ViewHolder(
+							fnsb.macstransit.activities.mapsactivity.mappopups.
+							StopDialog(selectedStop!!.title!!, stopRoutes, activity)))
 					.setExpanded(true).setOnDismissListener {
 						if (selectedStop != null) {
 							selectedStop!!.isVisible = false

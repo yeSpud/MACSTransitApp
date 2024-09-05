@@ -234,7 +234,7 @@ class Route {
 				val colorName = jsonObject.getString("routeColor")
 				val color = if (name == "Yellow") {
 					Log.i("generateRoute", "Hardcoding yellow route color")
-					0xFFE9D700.toInt()
+					0xFFD5B60A.toInt()
 				} else {
 					Color.parseColor(colorName)
 				}

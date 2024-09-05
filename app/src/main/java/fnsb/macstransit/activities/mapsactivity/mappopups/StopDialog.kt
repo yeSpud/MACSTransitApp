@@ -2,11 +2,10 @@ package fnsb.macstransit.activities.mapsactivity.mappopups
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.util.AttributeSet
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.BaseAdapter
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -19,8 +18,7 @@ import fnsb.macstransit.routematch.RouteMatch
 import org.json.JSONException
 import org.json.JSONObject
 
-class StopDialog(private val context: Context, private val stopName: String,
-                 private val stopRoutes: Array<Route>): BaseAdapter() {
+class StopDialog: LinearLayout {
 
 	/**
 	 * The RouteMatch object used to make calls to the RouteMatch server in order to update the bus positions,
@@ -28,26 +26,17 @@ class StopDialog(private val context: Context, private val stopName: String,
 	 */
 	private val routeMatch: RouteMatch = RouteMatch(context.getString(R.string.routematch_url), context)
 
-	override fun getCount(): Int {
-		return 1
-	}
+	constructor(stopName: String, stopRoutes: Array<Route>, context: Context): this(stopName, stopRoutes,
+	                                                                                context, null)
+	constructor(stopName: String, stopRoutes: Array<Route>, context: Context, attributeSet: AttributeSet?):
+			this(stopName, stopRoutes, context, attributeSet, 0)
+	constructor(stopName: String, stopRoutes: Array<Route>, context: Context, attributeSet: AttributeSet?,
+	            defStyleAttr: Int) : super(context, attributeSet, defStyleAttr) {
+		inflate(context, R.layout.stop_dialog, this)
 
-	override fun getItem(position: Int): Any {
-		return position // Todo properly implement me?
-	}
-
-	override fun getItemId(position: Int): Long {
-		return position.toLong() // Todo properly implement me?
-	}
-
-	override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-
-		val layoutInflater: LayoutInflater = LayoutInflater.from(context)
-		val view = convertView ?: layoutInflater.inflate(R.layout.stop_dialog, parent, false)
-
-		val stopNameText: TextView = view.findViewById(R.id.stop_name)
-		val timesContainer: LinearLayout = view.findViewById(R.id.times_container)
-		val progressBar: ProgressBar = view.findViewById(R.id.progress)
+		val stopNameText: TextView = findViewById(R.id.stop_name)
+		val timesContainer: LinearLayout = findViewById(R.id.times_container)
+		val progressBar: ProgressBar = findViewById(R.id.progress)
 
 		stopNameText.text = stopName
 
@@ -61,25 +50,24 @@ class StopDialog(private val context: Context, private val stopName: String,
 
 		}, { error: VolleyError? -> Log.e("showMarker", "Unable to get departure times", error) },
 		                                this)
-
-		return view
 	}
 
 	private fun generateStopEntries(stopArray: org.json.JSONArray, activeRoutes: Array<Route>,
 	                                view: LinearLayout) {
+		val tag = "generateStopEntries"
 
 		// Get the number of entries in our json array.
 		val count = stopArray.length()
 
 		// Iterate though each entry in our json array.
 		for (index in 0 until count) {
-			Log.d("generateTimeString", "Parsing stop times for stop $index/$count")
+			Log.d(tag, "Parsing stop times for stop $index/$count")
 
 			// Get the json object from the json array.
 			val jsonObject: JSONObject = try {
 				stopArray.getJSONObject(index)
 			} catch (e: JSONException) {
-				Log.e("generateTimeString", "Could not get json object from json array", e)
+				Log.e(tag, "Could not get json object from json array", e)
 				continue
 			}
 
@@ -88,7 +76,7 @@ class StopDialog(private val context: Context, private val stopName: String,
 			val routeId: String = try {
 				jsonObject.getString("routeId")
 			} catch (e: JSONException) {
-				Log.e("generateTimeString", "Could not get route name from json array", e)
+				Log.e(tag, "Could not get route name from json array", e)
 				continue
 			}
 
@@ -104,7 +92,7 @@ class StopDialog(private val context: Context, private val stopName: String,
 
 					// If the user doesn't use 24-hour time, convert to 12-hour time.
 					if (!android.text.format.DateFormat.is24HourFormat(context)) {
-						Log.d("generateTimeString", "Converting time to 12 hour time")
+						Log.d(tag, "Converting time to 12 hour time")
 						arrivalTime = formatTime(arrivalTime)
 						departureTime = formatTime(departureTime)
 					}
@@ -119,38 +107,10 @@ class StopDialog(private val context: Context, private val stopName: String,
 					stopEntry.routeName.backgroundTintList = ColorStateList.valueOf(activeRoute.color)
 					stopEntry.stopTime.text = departureTime
 
+					Log.v(tag, "Adding ${stopEntry.routeName.text} ${stopEntry.stopTime.text} to dialog")
 					view.addView(stopEntry)
 				}
 			}
 		}
 	}
-
-	companion object {
-
-		/**
-		 * Function that finds the number of times a character occurs within a given string.
-		 *
-		 * @param string The string to search.
-		 * @return The number of times the character occurs within the string.
-		 */
-		fun getNewlineOccurrence(string: CharSequence): Int {
-
-			// Create a variable to store the occurrence.
-			var count = 0
-
-			// Iterate through the string.
-			string.forEach {
-
-				// If the character at the current index matches our character, increase the count.
-				if (it == '\n') {
-					count++
-				}
-			}
-
-			// Finally, return the count.
-			return count
-		}
-
-	}
-
 }
