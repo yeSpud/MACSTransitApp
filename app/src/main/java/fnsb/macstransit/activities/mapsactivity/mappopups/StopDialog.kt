@@ -1,8 +1,6 @@
 package fnsb.macstransit.activities.mapsactivity.mappopups
 
-import android.content.Context
 import android.content.res.ColorStateList
-import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -11,16 +9,21 @@ import android.widget.BaseAdapter
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.lifecycle.lifecycleScope
 import com.android.volley.VolleyError
 import fnsb.macstransit.R
+import fnsb.macstransit.activities.mapsactivity.MapsActivity
 import fnsb.macstransit.activities.mapsactivity.MapsViewModel.Companion.formatTime
 import fnsb.macstransit.activities.mapsactivity.MapsViewModel.Companion.getTime
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
-class StopDialog(private val context: Context, private val stopName: String,
+class StopDialog(private val context: MapsActivity, private val stopName: String,
                  private val stopRoutes: Array<Route>): BaseAdapter() {
 
 					 private var shown = false
@@ -57,23 +60,25 @@ class StopDialog(private val context: Context, private val stopName: String,
 			return view
 		}
 
-		routeMatch.callDeparturesByStop(stopName, { json: JSONObject ->
+		context.lifecycleScope.launch(Dispatchers.Main) {
+			routeMatch.callDeparturesByStop(stopName, { json: JSONObject ->
 
-			// Get the stop data from the retrieved json.
-			val stopData = RouteMatch.parseData(json)
-			generateStopEntries(stopData, stopRoutes, timesContainer)
-			timesContainer.visibility = View.VISIBLE
-			progressBar.visibility = View.GONE
+				// Get the stop data from the retrieved json.
+				val stopData = RouteMatch.parseData(json)
+				generateStopEntries(stopData, stopRoutes, timesContainer)
+				timesContainer.visibility = View.VISIBLE
+				progressBar.visibility = View.GONE
 
-			shown = true
+				shown = true
 
-		}, { error: VolleyError? -> Log.e("showMarker", "Unable to get departure times", error) },
-		                                this)
+			}, { error: VolleyError? -> Log.e("showMarker", "Unable to get departure times", error) },
+			                                this)
+		}
 
 		return view
 	}
 
-	private fun generateStopEntries(stopArray: org.json.JSONArray, activeRoutes: Array<Route>,
+	private fun generateStopEntries(stopArray: JSONArray, activeRoutes: Array<Route>,
 	                                view: LinearLayout) {
 		val tag = "generateStopEntries"
 

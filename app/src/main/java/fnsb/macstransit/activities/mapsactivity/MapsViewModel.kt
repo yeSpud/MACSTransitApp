@@ -223,11 +223,14 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 				val stopDialog = com.orhanobut.dialogplus.DialogPlus.newDialog(activity)
 					.setAdapter(fnsb.macstransit.activities.mapsactivity.mappopups.
 							StopDialog(activity, selectedStop!!.title!!, stopRoutes))
-					.setExpanded(true).setOnDismissListener {
+					.setContentBackgroundResource(R.color.colorPrimaryDark)
+					.setExpanded(true)
+					.setOnDismissListener {
 						if (selectedStop != null) {
 							selectedStop!!.isVisible = false
 						}
-					}.create()
+					}
+					.create()
 
 				stopDialog.show()
 			}

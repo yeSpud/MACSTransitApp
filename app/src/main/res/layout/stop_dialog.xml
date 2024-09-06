@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:background="@color/colorPrimaryDark"
     android:orientation="vertical">
 
@@ -18,13 +18,20 @@
         style="?android:attr/progressBarStyleHorizontal"
         android:id="@+id/progress"
         android:layout_width="match_parent"
-        android:layout_height="10dp"
+        android:layout_height="20dp"
+        android:layout_gravity="clip_horizontal"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="30dp"
         android:indeterminate="true"
+        android:progress="1"
+        android:max="2"
         android:visibility="visible"/>
 
-    <ScrollView
+    <!--<ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:fillViewport="true">-->
 
         <LinearLayout
             android:id="@+id/times_container"
@@ -37,6 +44,6 @@
 
         </LinearLayout>
 
-    </ScrollView>
+    <!--</ScrollView>-->
 
 </LinearLayout>
