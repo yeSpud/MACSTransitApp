@@ -221,9 +221,8 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 				selectedStop!!.isVisible = true
 
 				val stopDialog = com.orhanobut.dialogplus.DialogPlus.newDialog(activity)
-					.setContentHolder(com.orhanobut.dialogplus.ViewHolder(
-							fnsb.macstransit.activities.mapsactivity.mappopups.
-							StopDialog(selectedStop!!.title!!, stopRoutes, activity)))
+					.setAdapter(fnsb.macstransit.activities.mapsactivity.mappopups.
+							StopDialog(activity, selectedStop!!.title!!, stopRoutes))
 					.setExpanded(true).setOnDismissListener {
 						if (selectedStop != null) {
 							selectedStop!!.isVisible = false

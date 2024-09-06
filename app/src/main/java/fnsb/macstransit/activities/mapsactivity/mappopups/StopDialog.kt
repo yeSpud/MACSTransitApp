@@ -4,8 +4,10 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.util.AttributeSet
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.BaseAdapter
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -18,7 +20,10 @@ import fnsb.macstransit.routematch.RouteMatch
 import org.json.JSONException
 import org.json.JSONObject
 
-class StopDialog: LinearLayout {
+class StopDialog(private val context: Context, private val stopName: String,
+                 private val stopRoutes: Array<Route>): BaseAdapter() {
+
+					 private var shown = false
 
 	/**
 	 * The RouteMatch object used to make calls to the RouteMatch server in order to update the bus positions,
@@ -26,19 +31,31 @@ class StopDialog: LinearLayout {
 	 */
 	private val routeMatch: RouteMatch = RouteMatch(context.getString(R.string.routematch_url), context)
 
-	constructor(stopName: String, stopRoutes: Array<Route>, context: Context): this(stopName, stopRoutes,
-	                                                                                context, null)
-	constructor(stopName: String, stopRoutes: Array<Route>, context: Context, attributeSet: AttributeSet?):
-			this(stopName, stopRoutes, context, attributeSet, 0)
-	constructor(stopName: String, stopRoutes: Array<Route>, context: Context, attributeSet: AttributeSet?,
-	            defStyleAttr: Int) : super(context, attributeSet, defStyleAttr) {
-		inflate(context, R.layout.stop_dialog, this)
+	override fun getCount(): Int {
+		return 1
+	}
 
-		val stopNameText: TextView = findViewById(R.id.stop_name)
-		val timesContainer: LinearLayout = findViewById(R.id.times_container)
-		val progressBar: ProgressBar = findViewById(R.id.progress)
+	override fun getItem(position: Int): Any {
+		return position // Todo properly implement me?
+	}
+
+	override fun getItemId(position: Int): Long {
+		return position.toLong() // Todo properly implement me?
+	}
+
+	override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+		val layoutInflater: LayoutInflater = LayoutInflater.from(context)
+		val view = convertView ?: layoutInflater.inflate(R.layout.stop_dialog, parent, false)
+
+		val stopNameText: TextView = view.findViewById(R.id.stop_name)
+		val timesContainer: LinearLayout = view.findViewById(R.id.times_container)
+		val progressBar: ProgressBar = view.findViewById(R.id.progress)
 
 		stopNameText.text = stopName
+
+		if (shown) {
+			return view
+		}
 
 		routeMatch.callDeparturesByStop(stopName, { json: JSONObject ->
 
@@ -48,8 +65,12 @@ class StopDialog: LinearLayout {
 			timesContainer.visibility = View.VISIBLE
 			progressBar.visibility = View.GONE
 
+			shown = true
+
 		}, { error: VolleyError? -> Log.e("showMarker", "Unable to get departure times", error) },
 		                                this)
+
+		return view
 	}
 
 	private fun generateStopEntries(stopArray: org.json.JSONArray, activeRoutes: Array<Route>,
