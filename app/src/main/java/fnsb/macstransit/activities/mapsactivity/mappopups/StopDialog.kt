@@ -18,6 +18,7 @@ import fnsb.macstransit.activities.mapsactivity.MapsViewModel.Companion.getTime
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONException
@@ -60,20 +61,18 @@ class StopDialog(private val context: MapsActivity, private val stopName: String
 			return view
 		}
 
-		context.lifecycleScope.launch(Dispatchers.Main) {
-			routeMatch.callDeparturesByStop(stopName, { json: JSONObject ->
+		routeMatch.callDeparturesByStop(stopName, { json: JSONObject ->
 
-				// Get the stop data from the retrieved json.
-				val stopData = RouteMatch.parseData(json)
-				generateStopEntries(stopData, stopRoutes, timesContainer)
-				timesContainer.visibility = View.VISIBLE
-				progressBar.visibility = View.GONE
+			// Get the stop data from the retrieved json.
+			val stopData = RouteMatch.parseData(json)
+			generateStopEntries(stopData, stopRoutes, timesContainer)
+			timesContainer.visibility = View.VISIBLE
+			progressBar.visibility = View.GONE
 
-				shown = true
+			shown = true
 
-			}, { error: VolleyError? -> Log.e("showMarker", "Unable to get departure times", error) },
-			                                this)
-		}
+		}, { error: VolleyError? -> Log.e("showMarker", "Unable to get departure times", error) },
+		                                this)
 
 		return view
 	}
