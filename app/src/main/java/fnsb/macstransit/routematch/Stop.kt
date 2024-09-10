@@ -71,6 +71,13 @@ class Stop(val name: String, val location: LatLng, val route: Route): java.io.Cl
 		circle!!.isVisible = visible
 	}
 
+	override fun equals(other: Any?): Boolean {
+		if (other is Stop) {
+			return other.name == this.name && other.route.name == this.route.name
+		}
+		return false
+	}
+
 	companion object {
 
 		/**
@@ -101,7 +108,7 @@ class Stop(val name: String, val location: LatLng, val route: Route): java.io.Cl
 
 				// Check to see if the stop is in our array of validated stops. If its not,
 				// add it to the array and add 1 to the true index size of stops that have been validated.
-				if (!isDuplicate(stop, validatedStops)) {
+				if (!validatedStops.contains(stop)) {
 					validatedStops[validatedSize] = stop
 					validatedSize++
 				}
@@ -117,39 +124,6 @@ class Stop(val name: String, val location: LatLng, val route: Route): java.io.Cl
 			// Suppressed because we are asserting that none of the coordinates are null
 			@Suppress("UNCHECKED_CAST")
 			return actualStops as Array<Stop>
-		}
-
-		/**
-		 * Checks the provided stop against an array of stops to check if its already contained in the array
-		 * (and is therefore a would-be duplicate).
-		 *
-		 * @param stop      The Stop object to check for.
-		 * @param stopArray The stop array to compare the Stop object against.
-		 * @return Returns true if the Stop object was found within the array - otherwise it returns false.
-		 */
-		@JvmStatic
-		fun isDuplicate(stop: Stop, stopArray: Array<Stop?>): Boolean {
-
-			// Iterate though each potential stop in the stop array.
-			for (stopArrayItem: Stop? in stopArray) {
-
-				// If the array item is null just return false.
-				if (stopArrayItem == null) {
-					return false
-				}
-
-				// Check if the following match.
-				val routeNameMatch = stop.route.name == stopArrayItem.route.name
-				val colorMatch = stop.route.color == stopArrayItem.route.color
-
-				// If all of the following match, return true.
-				if (routeNameMatch && colorMatch && stop == stopArrayItem) {
-					return true
-				}
-			}
-
-			// Since nothing matched, return false.
-			return false
 		}
 	}
 

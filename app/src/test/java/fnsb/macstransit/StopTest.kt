@@ -142,7 +142,7 @@ class StopTest {
 				val vStops: Array<Stop> = Stop.validateGeneratedStops(stops)
 				// println("Number of stops for ${vStops[0].routeName}: ${vStops.size}\n")
 				Assert.assertEquals(validateStopCounts[i], vStops.size)
-				// vStops.forEach { routes[it.routeName]!!.stops[it.name] = it }
+				vStops.forEach { routes[it.route.name]!!.stops[it.name] = it }
 			}
 
 			// Now test the creation of shared stops.
@@ -199,6 +199,7 @@ class StopTest {
 			}
 
 			// Test the number of shared stops.
+			// FIXME
 			val sharedStopsCount = intArrayOf(14, 3, 10, 10, 12, 17)
 			for ((i, stopJsonFile) in files.withIndex()) {
 
