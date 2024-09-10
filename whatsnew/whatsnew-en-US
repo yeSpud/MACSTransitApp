@@ -1,1 +1,2 @@
-* Fixed a bug with multiple instances of the app being launched
++ Added new stop dialog box
++ Added support for android API 35

@@ -4,14 +4,13 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
 
 android {
-    compileSdk 34
-    buildToolsVersion '34.0.0'
+    compileSdk 35
     defaultConfig {
         applicationId "fnsb.macstransit"
         minSdkVersion 21
-        targetSdk 34
-        versionCode 30
-        versionName 'Release 1.3.9'
+        targetSdk 35
+        versionCode 31
+        versionName 'Release 1.4'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -38,6 +37,7 @@ android {
     buildFeatures {
         viewBinding true
         dataBinding true
+        buildConfig true
     }
     compileOptions {
         sourceCompatibility = 17
@@ -51,24 +51,27 @@ android {
         includeInBundle true
     }
     namespace 'fnsb.macstransit'
+    buildToolsVersion '35.0.0'
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.gms:play-services-maps:18.2.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.gms:play-services-maps:19.0.0'
     implementation 'org.jetbrains:annotations:24.1.0'
     implementation 'com.android.volley:volley:1.2.1'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
-    implementation 'com.google.maps.android:maps-ktx:5.0.0'
-    implementation 'com.google.maps.android:maps-utils-ktx:5.0.0'
-    implementation 'com.google.maps.android:android-maps-utils:3.8.0'
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.json:json:20231013'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.5'
+    implementation 'com.google.maps.android:maps-ktx:5.1.1'
+    implementation 'com.google.maps.android:maps-utils-ktx:5.1.1'
+    implementation 'com.google.maps.android:android-maps-utils:3.8.2'
+    implementation 'androidx.annotation:annotation-jvm:1.8.2'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.12'
+    implementation 'com.orhanobut:dialogplus:1.11@aar'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20240303'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
 }

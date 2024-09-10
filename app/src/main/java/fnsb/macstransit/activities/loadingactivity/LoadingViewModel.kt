@@ -18,6 +18,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import fnsb.macstransit.R
+import fnsb.macstransit.activities.LoadedRoutes
 import fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables.DownloadBusStops
 import fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables.DownloadMasterSchedule
 import fnsb.macstransit.activities.loadingactivity.loadingscreenrunnables.DownloadRouteObjects
@@ -40,16 +41,10 @@ import kotlin.math.max
  */
 class LoadingViewModel(application: Application) : AndroidViewModel(application) {
 
-
 	/**
 	 * The RouteMatch object used to retrieve data from the RouteMatch servers.
 	 */
 	val routeMatch: RouteMatch = RouteMatch(getApplication<Application>().getString(R.string.routematch_url), getApplication())
-
-	/**
-	 * All of the routes that can be tracked by the app. This will be determined by the master schedule.
-	 */
-	val routes: HashMap<String, Route> = HashMap()
 
 	/**
 	 * The current (adjustable) progress.
@@ -187,8 +182,6 @@ class LoadingViewModel(application: Application) : AndroidViewModel(application)
 		}
 	}
 
-
-
 	/**
 	 * Changes the splash screen display when there is no internet.
 	 * This method involves making the progress bar invisible,
@@ -244,7 +237,7 @@ class LoadingViewModel(application: Application) : AndroidViewModel(application)
 			if (!passedInit) { return@launch }
 
 			// Check if there are routes available for the day.
-			if (routes.isEmpty()) {
+			if (LoadedRoutes.routes.isEmpty()) {
 				setMessage(R.string.its_sunday)
 				activity.allowForRetry()
 				return@launch
@@ -271,7 +264,7 @@ class LoadingViewModel(application: Application) : AndroidViewModel(application)
 
 			// Iterate though all the routes and recreate the stops for each route.
 			// Purge the stops that have shared stops.
-			for (route in routes.values) { route.purgeStops() }
+			for (route in LoadedRoutes.routes.values) { route.purgeStops() }
 
 
 			// Update the progress bar to the maximum value since we've reached the end.
@@ -300,13 +293,13 @@ class LoadingViewModel(application: Application) : AndroidViewModel(application)
 		var downloadQueue = 0
 
 		// Get the progress step.
-		val step: Double = loadProgress / routes.size
+		val step: Double = loadProgress / LoadedRoutes.routes.size
 
 		// Get the current progress.
 		val progress: Double = progressSoFar + downloadProgress
 
 		// Iterate though all the indices of all the routes that can be tracked.
-		for ((i, route) in routes.values.withIndex()) {
+		for ((i, route) in LoadedRoutes.routes.values.withIndex()) {
 
 			// Decrease the download queue (as we are queueing a new downloadable).
 			downloadQueue--
@@ -318,7 +311,7 @@ class LoadingViewModel(application: Application) : AndroidViewModel(application)
 				runnable.download(route, downloadProgress, progressSoFar, i)
 
 				// Update the current progress.
-				setProgressBar(progress + step + downloadQueue + routes.size)
+				setProgressBar(progress + step + downloadQueue + LoadedRoutes.routes.size)
 
 				// Increase the downloaded queue as our downloadable has finished downloading.
 				downloadQueue++
@@ -384,12 +377,12 @@ class LoadingViewModel(application: Application) : AndroidViewModel(application)
 		setMessage(R.string.shared_bus_stop_check)
 
 		// Set the current progress.
-		val step = LoadingActivity.LOAD_SHARED_STOPS.toDouble() / routes.size
+		val step = LoadingActivity.LOAD_SHARED_STOPS.toDouble() / LoadedRoutes.routes.size
 		var currentProgress = (LoadingActivity.DOWNLOAD_MASTER_SCHEDULE_PROGRESS + LoadingActivity.
 		PARSE_MASTER_SCHEDULE + LoadingActivity.DOWNLOAD_BUS_STOPS + LoadingActivity.LOAD_BUS_STOPS).toDouble()
 
 		// Iterate though each route in all our trackable routes.
-		for (route in routes.values) {
+		for (route in LoadedRoutes.routes.values) {
 
 			// If there are no stops to iterate over in our route just continue with the next iteration.
 			if (route.stops.isEmpty()) { continue }
@@ -402,7 +395,7 @@ class LoadingViewModel(application: Application) : AndroidViewModel(application)
 				if (route.sharedStops[name] != null) { continue }
 
 				// Get an array of shared routes.
-				val sharedRoutes: Array<Route> = SharedStop.getSharedRoutes(route, stop, routes)
+				val sharedRoutes: Array<Route> = SharedStop.getSharedRoutes(route, stop, LoadedRoutes.routes)
 
 				// If the shared routes array has more than one entry, create a new shared stop object.
 				if (sharedRoutes.size > 1) {
@@ -411,8 +404,8 @@ class LoadingViewModel(application: Application) : AndroidViewModel(application)
 					// Iterate though all the routes in the shared route,
 					// and add our newly created shared stop.
 					for (sharedStopRoute: Route in sharedRoutes) {
-						Log.d("mapSharedStops", "Adding shared stop to route: ${routes[sharedStopRoute.name]!!.name}")
-						routes[sharedStopRoute.name]!!.sharedStops[name] = sharedStop
+						Log.d("mapSharedStops", "Adding shared stop to route: ${LoadedRoutes.routes[sharedStopRoute.name]!!.name}")
+						LoadedRoutes.routes[sharedStopRoute.name]!!.sharedStops[name] = sharedStop
 					}
 				}
 			}

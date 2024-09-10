@@ -54,26 +54,9 @@ class SettingsActivity : AppCompatActivity() {
 		// The cancel button should just finish the class and return.
 		binding.cancel.setOnClickListener { finish() }
 
-		// Get the routes from the intent extra.
-		val extraBundle: Bundle = intent.extras ?: return
-
-		if (VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-
-			@Suppress("DEPRECATION") // Suppressed because the new function does not exist in earlier APIs
-			val routesParcelable: Array<Parcelable> = extraBundle.getParcelableArray("Routes") ?: return
-			for (parcelableRoute in routesParcelable) {
-				if (parcelableRoute is Route) {
-					addRouteToCheckbox(parcelableRoute)
-				}
-			}
-		} else {
-
-			val routes: Array<Route> = extraBundle.getParcelableArray("Routes", Route::class.java) ?: return
-			for (route in routes) {
-				addRouteToCheckbox(route)
-			}
+		for (route in LoadedRoutes.routes.values) {
+			addRouteToCheckbox(route)
 		}
-
 	}
 
 	private fun addRouteToCheckbox(route: Route) {
