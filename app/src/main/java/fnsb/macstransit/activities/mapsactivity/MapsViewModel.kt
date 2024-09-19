@@ -67,9 +67,7 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 	fun drawStops() {
 
 		// If the map is null at this point return early.
-		if (map == null) {
-			return
-		}
+		val mapCopy = map ?: return
 
 		// Launch the toggle function on a coroutine to free up some of the work on the main thread.
 		viewModelScope.launch(Dispatchers.Main) {
@@ -79,16 +77,14 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 
 				// Toggle the stop visibility for each route.
 				for (stop: Stop in route.stops.values) {
-					stop.toggleStopVisibility(map!!, route.enabled)
+					stop.toggleStopVisibility(mapCopy, route.enabled)
 				}
 
 				// Iterate though the shared stops in the route.
 				for (sharedStop: SharedStop in route.sharedStops.values) {
-					if (route.enabled) {
-						sharedStop.showSharedStop(map!!)
-					} else {
-						sharedStop.hideStop()
-					}
+
+					// Show the shared stop if it contains at least 1 active route
+					sharedStop.toggleSharedStopVisibility(mapCopy)
 				}
 			}
 
