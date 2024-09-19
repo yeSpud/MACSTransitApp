@@ -63,6 +63,22 @@ class SharedStop(val name: String, val location: com.google.android.gms.maps.mod
 	}
 
 	/**
+	 * Toggles the visibility of the shared stop based on if it contains at least one enabled route.
+	 * Otherwise it is hidden.
+	 */
+	@UiThread
+	fun toggleSharedStopVisibility(map: GoogleMap) {
+		for (route in routes) {
+			if (route.enabled) {
+				showSharedStop(map)
+				return
+			}
+		}
+
+		hideStop()
+	}
+
+	/**
 	 * Sets the shared stop circles to be visible.
 	 * Circles will be created at this point if they were non-existent before (null).
 	 */

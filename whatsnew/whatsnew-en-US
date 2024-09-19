@@ -1,2 +1,3 @@
 + Added new stop dialog box
 + Added support for android API 35
+* Fixed bug where shared stops would not show
