@@ -77,7 +77,7 @@ class DownloadMasterSchedule(private val loadingActivity: LoadingActivity):
 					val route = Route.generateRoute(routeData)
 
 					// Add the route to the hashmap in the view model.
-					loadingActivity.binding.viewmodel!!.routes[route.name] = route
+					fnsb.macstransit.activities.LoadedRoutes.routes[route.name] = route
 				} catch (exception: Exception) {
 
 					// If there was a route exception thrown simply log it.

@@ -15,6 +15,7 @@ import fnsb.macstransit.activities.mapsactivity.MapsActivity
  * @since Beta 7.
  */
 @androidx.annotation.UiThread
+@Deprecated("Use dialog plus window")
 class InfoWindowPopup(private val activity: MapsActivity) :
 		com.google.android.gms.maps.GoogleMap.InfoWindowAdapter {
 
@@ -29,9 +30,7 @@ class InfoWindowPopup(private val activity: MapsActivity) :
 	 * @return A custom info window for marker, or null to use the default info window frame with custom contents.
 	 * (In this case its always going to be null, sorry).
 	 */
-	override fun getInfoWindow(marker: Marker): View? {
-		return null
-	}
+	override fun getInfoWindow(marker: Marker): View? { return null }
 
 	/**
 	 * Provides custom contents for the default info window frame of a marker.
@@ -55,11 +54,11 @@ class InfoWindowPopup(private val activity: MapsActivity) :
 	override fun getInfoContents(marker: Marker): View {
 
 		// Create the info section of the info window, and make sure its orientation is set to vertical
-		val info = LinearLayout(this.activity)
+		val info = LinearLayout(activity)
 		info.orientation = LinearLayout.VERTICAL
 
 		// Create the title portion of the info window, and make sure its in a bold font and centered.
-		val title = TextView(this.activity)
+		val title = TextView(activity)
 		title.setTextColor(Color.BLACK)
 		title.gravity = android.view.Gravity.CENTER
 		title.setTypeface(null, android.graphics.Typeface.BOLD)
@@ -79,9 +78,7 @@ class InfoWindowPopup(private val activity: MapsActivity) :
 		info.addView(title)
 
 		// If the snippet is not null or empty, add it to the info window as well.
-		if (snippet.text != "" && snippet.text != null) {
-			info.addView(snippet)
-		}
+		if (snippet.text != "" && snippet.text != null) { info.addView(snippet) }
 
 		// Finally, return the info window.
 		return info

@@ -1,32 +1,24 @@
 package fnsb.macstransit.routematch
 
 import android.graphics.Color
-import android.os.Build
-import android.os.Build.VERSION
-import android.os.Parcel
-import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.UiThread
-import com.android.volley.VolleyError
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Polyline
 import com.google.maps.android.ktx.addPolyline
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
-import java.net.URLEncoder
-import java.util.regex.Pattern
 
 /**
  * Created by Spud on 2019-10-12 for the project: MACS Transit.
  * For the license, view the file titled LICENSE at the root of the project.
  *
- * @version 3.1.
+ * @version 3.2.
  * @since Beta 3.
  */
-class Route: Parcelable {
+class Route {
 
 	/**
 	 * The name of the route.
@@ -57,68 +49,12 @@ class Route: Parcelable {
 	 * Whether or not the route is enabled or disabled (to be shown or hidden).
 	 * Default is false (disabled).
 	 */
-	@Transient
 	var enabled = false
 
 	/**
 	 * The polyline that corresponds to this route.
 	 */
-	@Transient
-	private var polyline: Polyline? = null
-
-	/**
-	 * Creates a new Route object using information from the provided parcel.
-	 * @param parcel The parcel containing all the route information.
-	 */
-	constructor(parcel: Parcel) {
-		Log.v("Route", "Reading from parcel")
-
-		// Load the name, color, and formatted name from the parcel.
-		name = parcel.readString()!!
-		color = parcel.readInt()
-		urlFormattedName = parcel.readString()!!
-
-		// Load the array of stops from the parcel.
-		if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-			val stopArray: Array<Stop>? = parcel.readParcelableArray(Stop::class.java.classLoader, Stop::class.java)
-			if (stopArray != null) {
-				for (stop in stopArray) {
-					stops[stop.name] = stop
-				}
-			}
-		} else {
-			@Suppress("DEPRECATION") // Suppressed because the function is replaced in newer APIs
-			val stopParcelableArray: Array<Parcelable>? = parcel.readParcelableArray(Stop::class.java.classLoader)
-			if (stopParcelableArray != null) {
-				for (stop in stopParcelableArray) {
-					if (stop is Stop) {
-						stops[stop.name] = stop
-					}
-				}
-			}
-		}
-
-		// Load the array of shared stops from the parcel.
-		if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-			val sharedStopParcelableArray: Array<SharedStop>? = parcel.readParcelableArray(SharedStop::class.java.classLoader, SharedStop::class.java)
-			if (sharedStopParcelableArray != null) {
-				for (sharedStop in sharedStopParcelableArray) {
-					sharedStops[sharedStop.name] = sharedStop
-				}
-			}
-		} else {
-			@Suppress("DEPRECATION") // Suppressed because the function is replaced in newer APIs
-			val sharedStopParcelableArray: Array<Parcelable>? = parcel.readParcelableArray(SharedStop::class.java.classLoader)
-			if (sharedStopParcelableArray != null) {
-				for (sharedStop in sharedStopParcelableArray) {
-					if (sharedStop is SharedStop) {
-						sharedStops[sharedStop.name] = sharedStop
-					}
-				}
-			}
-		}
-
-	}
+	private var polyline: com.google.android.gms.maps.model.Polyline? = null
 
 	/**
 	 * Constructor for a new Route object with only a name.
@@ -149,8 +85,8 @@ class Route: Parcelable {
 		this.color = color
 
 		// Set the urlFormattedName from the name.
-		urlFormattedName = Pattern.compile("\\+").matcher(URLEncoder.encode(this.name, "UTF-8"))
-			.replaceAll("%20")
+		urlFormattedName = java.util.regex.Pattern.compile("\\+")
+			.matcher(java.net.URLEncoder.encode(name, "UTF-8")).replaceAll("%20")
 	}
 
 	/**
@@ -254,7 +190,9 @@ class Route: Parcelable {
 			createPolyline(coordinates as Array<LatLng>, map)
 
 			// Log if there was any error getting the polyline coordinates.
-		} , { error: VolleyError -> Log.e("togglePolylineVisible", "Unable to get polyline coordinates", error) }, this)
+		} , { error: com.android.volley.VolleyError -> Log.e("togglePolylineVisible",
+		                                                     "Unable to get polyline coordinates",
+		                                                     error) }, this)
 
 	}
 
@@ -294,7 +232,12 @@ class Route: Parcelable {
 
 				// Now try to parse the route color.
 				val colorName = jsonObject.getString("routeColor")
-				val color = Color.parseColor(colorName)
+				val color = if (name == "Yellow") {
+					Log.i("generateRoute", "Hardcoding yellow route color")
+					0xFFD5B60A.toInt()
+				} else {
+					Color.parseColor(colorName)
+				}
 
 				// Return our newly created route with color!
 				Route(name, color)
@@ -326,23 +269,5 @@ class Route: Parcelable {
 				}
 			}
 		}
-
-		@JvmField
-		val CREATOR = object : Parcelable.Creator<Route> {
-
-			override fun createFromParcel(parcel: Parcel): Route { return Route(parcel) }
-
-			override fun newArray(size: Int): Array<Route?> { return arrayOfNulls(size) }
-		}
-	}
-
-	override fun describeContents(): Int { return this.hashCode() }
-
-	override fun writeToParcel(parcel: Parcel, flags: Int) {
-		parcel.writeString(this.name)
-		parcel.writeInt(this.color)
-		parcel.writeString(this.urlFormattedName)
-		parcel.writeParcelableArray(this.stops.values.toTypedArray(), flags)
-		parcel.writeParcelableArray(this.sharedStops.values.toTypedArray(), flags)
 	}
 }

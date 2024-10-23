@@ -1,14 +1,9 @@
 package fnsb.macstransit.routematch
 
-import android.os.Build
-import android.os.Build.VERSION
-import android.os.Parcel
-import android.os.Parcelable
 import androidx.annotation.UiThread
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.CircleOptions
-import com.google.android.gms.maps.model.LatLng
 
 /**
  * Created by Spud on 2019-11-01 for the project: MACS Transit.
@@ -17,139 +12,89 @@ import com.google.android.gms.maps.model.LatLng
  * @version 4.1.
  * @since Beta 7.
  */
-class SharedStop: MarkedObject, Parcelable {
-
-	/**
-	 * Route names that correspond to this shared stop.
-	 */
-	val routeNames: Array<String>
-
-	/**
-	 * Route colors that correspond to this shared stop.
-	 */
-	private val routeColors: IntArray
+class SharedStop(val name: String, val location: com.google.android.gms.maps.model.LatLng,
+                 val routes: Array<Route>): java.io.Closeable {
 
 	/**
 	 * Array of circle options for each circle that represents a route.
 	 */
-	@Transient
-	private val circleOptions: Array<CircleOptions>
+	private val circleOptions: Array<CircleOptions> = Array(routes.size) {
+		val route = routes[it]
+		val color = route.color
+
+		// Set the circle location.
+		val options: CircleOptions = CircleOptions().center(location)
+
+		// If the route has color then set the circle color.
+		if (color != 0) {
+			options.fillColor(color).strokeColor(color)
+		}
+
+		// Apply the options to the array.
+		options
+	}
 
 	/**
 	 * Array of circles that represent a route that shares this one stop.
 	 */
-	@Transient
-	private val circles: Array<Circle?>
+	private var circles: Array<Circle> = emptyArray()
 
-	/**
-	 * Creates a new Shared Stop from the parcel data.
-	 *
-	 * @param parcel The parcel containing the data to load the Shared Stop.
-	 */
-	constructor(parcel: Parcel): super(parcel.readString()!!,
-	                                   if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-		                                   parcel.readParcelable<LatLng>(
-				                                   LatLng::class.java.classLoader,
-				                                   LatLng::class.java)!!
-	                                   } else {
-		                                   @Suppress(
-				                                   "DEPRECATION") // Suppressed because the function is replaced in newer APIs
-		                                   parcel.readParcelable<LatLng>(
-				                                   LatLng::class.java.classLoader)!!
-	                                   }, parcel.readString()!!, parcel.readInt()) {
+	init { setCircleSizes(INITIAL_CIRCLE_SIZE) }
 
-		// Parse the route names and colors.
-		routeNames = parcel.createStringArray()!!
-		routeColors = parcel.createIntArray()!!
+	@UiThread
+	private fun addCirclesToMap(map: GoogleMap) {
+		circles = Array(routes.size) {
 
-		// Parse the circle options using the route colors.
-		circleOptions = Array(routeColors.size) {
+			// Get the circle that was added to the map with the provided circle options.
+			val circle: Circle = map.addCircle(circleOptions[it])
 
-			// Set the circle location.
-			val options: CircleOptions = CircleOptions().center(location)
+			// Set the circle to be clickable depending on the clickable argument.
+			circle.isClickable = (it == 0)
 
-			// If the route has color then set the circle color.
-			if (routeColors[it] != 0) {
-				options.fillColor(routeColors[it]).strokeColor(routeColors[it])
-			}
+			// At this point set the circle to be visible.
+			circle.isVisible = true
 
-			// Apply the options to the array.
-			options
+			// Set the tag of the circle to the provided shared stop object.
+			circle.tag = this
+
+			// Return our newly created circle.
+			circle
 		}
-
-		// Initialize the stop circles to null.
-		circles = arrayOfNulls(routeNames.size)
-
-		// Set the initial circle size.
-		setCircleSizes(INITIAL_CIRCLE_SIZE)
 	}
 
 	/**
-	 * Creates a new Shared Stop.
-	 *
-	 * @param name     The name of the shared stop.
-	 * @param location The location of the shared stop.
-	 * @param routes   The routes that apply to this shared stop.
+	 * Toggles the visibility of the shared stop based on if it contains at least one enabled route.
+	 * Otherwise it is hidden.
 	 */
-	constructor(name: String, location: LatLng, routes: Array<Route>): super(name, location,
-	                                                                         routes[0].name,
-	                                                                         routes[0].color) {
-
-		// Set the route names and colors.
-		routeNames = Array(routes.size) { routes[it].name }
-		routeColors = IntArray(routes.size) { routes[it].color }
-
-		// Parse the circle options using the route colors.
-		circleOptions = Array(routes.size) {
-			val route = routes[it]
-			val color = route.color
-
-			// Set the circle location.
-			val options: CircleOptions = CircleOptions().center(location)
-
-			// If the route has color then set the circle color.
-			if (color != 0) {
-				options.fillColor(color).strokeColor(color)
+	@UiThread
+	fun toggleSharedStopVisibility(map: GoogleMap) {
+		for (route in routes) {
+			if (route.enabled) {
+				showSharedStop(map)
+				return
 			}
-
-			// Apply the options to the array.
-			options
 		}
 
-		// Initialize the stop circles to null.
-		circles = arrayOfNulls(routes.size)
-
-		// Set the initial circle size.
-		setCircleSizes(INITIAL_CIRCLE_SIZE)
+		hideStop()
 	}
 
 	/**
 	 * Sets the shared stop circles to be visible.
 	 * Circles will be created at this point if they were non-existent before (null).
-	 *
-	 * This must be run on the UI thread.
-	 *
-	 * @param map The map to put create the circles on.
 	 */
 	@UiThread
 	fun showSharedStop(map: GoogleMap) {
 
+		if (circles.isEmpty()) { addCirclesToMap(map) }
+
 		// Iterate though each of the circles.
 		for (i in circles.indices) {
 
-			// If the circle is null, create a new shared stop circle.
-			if (circles[i] == null) {
+			// Only set the circle to be clickable if its the 0th index circle (the biggest one).
+			circles[i].isClickable = i == 0
 
-				// Since the stop circle is null try creating a new one.
-				createSharedStopCircle(map, i)
-			} else {
-
-				// Only set the circle to be clickable if its the 0th index circle (the biggest one).
-				circles[i]!!.isClickable = i == 0
-
-				// Set the circle to be visible.
-				circles[i]!!.isVisible = true
-			}
+			// Set the circle to be visible.
+			circles[i].isVisible = true
 		}
 	}
 
@@ -159,17 +104,14 @@ class SharedStop: MarkedObject, Parcelable {
 	 *
 	 * This must be run on the UI thread.
 	 */
-	@UiThread
 	fun hideStop() {
 
 		// Iterate though each circle in the shared stop.
-		for (circle:Circle? in circles) {
+		for (circle in circles) {
 
 			// If the circle is not null set it to not be clickable, and hide it.
-			if (circle != null) {
-				circle.isClickable = false
-				circle.isVisible = false
-			}
+			circle.isClickable = false
+			circle.isVisible = false
 		}
 	}
 
@@ -181,7 +123,6 @@ class SharedStop: MarkedObject, Parcelable {
 	 *
 	 * @param size The size to set the circles to.
 	 */
-	@UiThread
 	fun setCircleSizes(size: Double) {
 
 		// Iterate though each circle option (and circle if its not null) and reset its radius.
@@ -192,59 +133,8 @@ class SharedStop: MarkedObject, Parcelable {
 
 			// Set the circle size.
 			circleOptions[i].radius(radiusSize)
-			if (circles[i] != null) {
-				circles[i]!!.radius = radiusSize
-			}
+			circles[i].radius = radiusSize
 		}
-	}
-
-	/**
-	 * Removes all the shared stop circles from the map.
-	 * This also set the circles to null (so the circles can be recreated later).
-	 *
-	 * This must run on the UI Thread.
-	 */
-	@UiThread
-	fun removeSharedStopCircles() {
-
-		// Iterate though each circle in the shared stop.
-		for (i in circles.indices) {
-
-			// Get the circle from the shared stop, and remove it.
-			circles[i]?.remove()
-
-			// Set all the circles to null.
-			circles[i] = null
-		}
-	}
-
-	/**
-	 * Creates a new circle with the specified circle options that is immediately visible.
-	 *
-	 * This should be run on the UI thread.
-	 *
-	 * @param map   The map to add the circle to.
-	 * @param index The index of the circle.
-	 *              Used for determining if the circle should be clickable or not,
-	 *              as well as what index to set it to.
-	 */
-	@UiThread
-	fun createSharedStopCircle(map: GoogleMap, index: Int) {
-
-		// Get the circle that was added to the map with the provided circle options.
-		val circle: Circle = map.addCircle(circleOptions[index])
-
-		// Set the circle to be clickable depending on the clickable argument.
-		circle.isClickable = (index == 0)
-
-		// At this point set the circle to be visible.
-		circle.isVisible = true
-
-		// Set the tag of the circle to the provided shared stop object.
-		circle.tag = this
-
-		// Return our newly created circle.
-		circles[index] = circle
 	}
 
 	companion object {
@@ -272,11 +162,7 @@ class SharedStop: MarkedObject, Parcelable {
 		fun getSharedRoutes(route: Route, stop: Stop, allRoutes: HashMap<String, Route>): Array<Route> {
 
 			// Make sure all routes isn't empty.
-			if (allRoutes.isEmpty()) {
-
-				// Since allRoutes is empty just return our the provided route as an array.
-				return arrayOf(route)
-			}
+			if (allRoutes.isEmpty()) { return arrayOf(route) }
 
 			// Create a hashmap that will contain all our shared routes.
 			val hashMap: HashMap<String, Route> = HashMap(1)
@@ -288,49 +174,23 @@ class SharedStop: MarkedObject, Parcelable {
 			for ((hashName, hashRoute) in allRoutes) {
 
 				// If the routes are the same then continue to the next iteration of the loop.
-				if (route == hashRoute) {
-					continue
-				}
+				if (route == hashRoute) { continue }
 
 				// If there are no stops to iterate over just continue like above.
-				if (hashRoute.stops.isEmpty()) {
-					continue
-				}
+				if (hashRoute.stops.isEmpty()) { continue }
 
 				// Try to get our provided stop from the has route.
 				// If the stop isn't null (was found) add the hash route to our hashmap.
-				if (hashRoute.stops[stop.name] != null) {
-					hashMap[hashName] = hashRoute
-				}
+				if (hashRoute.stops[stop.name] != null) { hashMap[hashName] = hashRoute }
 			}
 
 			// Return our hashmap of all the shared routes as an array.
 			return hashMap.values.toTypedArray()
 		}
-
-		@JvmField
-		val CREATOR = object: Parcelable.Creator<SharedStop> {
-
-			override fun createFromParcel(parcel: Parcel): SharedStop {
-				return SharedStop(parcel)
-			}
-
-			override fun newArray(size: Int): Array<SharedStop?> {
-				return arrayOfNulls(size)
-			}
-		}
 	}
 
-	override fun writeToParcel(parcel: Parcel, flags: Int) {
-		parcel.writeString(this.name)
-		parcel.writeParcelable(this.location, flags)
-		parcel.writeString(this.routeNames[0])
-		parcel.writeInt(this.routeColors[0])
-		parcel.writeStringArray(this.routeNames)
-		parcel.writeIntArray(this.routeColors)
-	}
-
-	override fun describeContents(): Int {
-		return this.hashCode()
+	override fun close() {
+		for (circle in circles) { circle.remove() }
+		circles = emptyArray()
 	}
 }

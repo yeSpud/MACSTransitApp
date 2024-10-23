@@ -4,6 +4,7 @@ import android.util.Log
 import com.android.volley.Response
 import com.android.volley.VolleyError
 import com.google.android.gms.maps.GoogleMap
+import fnsb.macstransit.activities.LoadedRoutes
 import fnsb.macstransit.routematch.Bus
 import fnsb.macstransit.routematch.RouteMatch
 import kotlinx.coroutines.delay
@@ -55,7 +56,7 @@ class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewMod
 			// Get all the buses that can be tracked (even the ones that are disabled).
 			mapsViewModel.routeMatch.callVehiclesByRoutes(callback, {
 				error: VolleyError -> Log.w("UpdateCoroutine", "Unable to fetch buses", error)
-			}, this, *mapsViewModel.routes.values.toTypedArray())
+			}, this, *LoadedRoutes.routes.values.toTypedArray())
 
 			// Wait for the specified update frequency.
 			Log.v("UpdateCoroutine", "Waiting for $updateFrequency milliseconds")
@@ -81,7 +82,7 @@ class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewMod
 
 			// Convert the JSON Array of Buses into an Array of Buses.
 			val buses: Array<Bus> = try {
-				Bus.getBuses(vehiclesJson, mapsViewModel.routes)
+				Bus.getBuses(vehiclesJson, LoadedRoutes.routes, map)
 			} catch (exception: JSONException) {
 				Log.e("Callback", "Could not parse bus json", exception)
 				return
@@ -90,7 +91,7 @@ class UpdateCoroutine(private val updateFrequency: Long, private val mapsViewMod
 			// Get the array of new buses.
 			// These buses are buses that were not previously on the map until now.
 			Log.d("Callback", "Adding new buses to map")
-			val newBuses: Array<Bus> = Bus.addNewBuses(mapsViewModel.buses, buses, map)
+			val newBuses: Array<Bus> = Bus.addNewBuses(mapsViewModel.buses, buses)
 
 			// Update the current position of our current buses.
 			// This also removes old buses from the array, but they still have markers on the map.
