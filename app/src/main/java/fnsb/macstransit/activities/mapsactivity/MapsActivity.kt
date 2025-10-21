@@ -6,6 +6,9 @@ import fnsb.macstransit.settings.V2
 import fnsb.macstransit.R
 import android.util.Log
 import android.view.Menu
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -79,6 +82,22 @@ class MapsActivity: FragmentActivity() {
 		// Setup the fares popup window.
 		Log.v("onCreate", "Setting up fare window")
 		farePopupWindow = FarePopupWindow(this)
+
+		ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+			val bars = insets.getInsets(
+				WindowInsetsCompat.Type.systemBars()
+						or WindowInsetsCompat.Type.displayCutout()
+			)
+
+			view.updatePadding(
+				left = bars.left,
+				top = bars.top,
+				right = bars.right,
+				bottom = bars.bottom
+			)
+
+			WindowInsetsCompat.CONSUMED
+		}
 	}
 
 	override fun onDestroy() {
