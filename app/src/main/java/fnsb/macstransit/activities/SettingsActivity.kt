@@ -1,15 +1,16 @@
 package fnsb.macstransit.activities
 
-import android.os.Build
-import android.os.Build.VERSION
 import android.os.Bundle
-import android.os.Parcelable
 import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.widget.CheckBox
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import fnsb.macstransit.R
 import com.google.android.gms.maps.GoogleMap
 import fnsb.macstransit.databinding.SettingsBinding
@@ -40,6 +41,7 @@ class SettingsActivity : AppCompatActivity() {
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+		enableEdgeToEdge()
 
 		// Setup the binder.
 		binding = SettingsBinding.inflate(this.layoutInflater)
@@ -57,6 +59,22 @@ class SettingsActivity : AppCompatActivity() {
 		for (route in LoadedRoutes.routes.values) {
 			addRouteToCheckbox(route)
 		}
+
+		ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+			val bars = insets.getInsets(
+				WindowInsetsCompat.Type.systemBars()
+						or WindowInsetsCompat.Type.displayCutout()
+			)
+
+			view.updatePadding(
+				left = bars.left,
+				top = bars.top,
+				right = bars.right,
+				bottom = bars.bottom
+			)
+
+			WindowInsetsCompat.CONSUMED
+		}
 	}
 
 	private fun addRouteToCheckbox(route: Route) {
@@ -73,13 +91,7 @@ class SettingsActivity : AppCompatActivity() {
 
 		// Set the color and size of the text to constants.
 		checkBox.textSize = CHECKBOX_TEXT_SIZE
-		val color = if (VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			resources.getColor(R.color.white, null)
-		} else {
-
-			@Suppress("DEPRECATION") // Suppressed because the function is replaced in newer APIs
-			resources.getColor(R.color.white)
-		}
+		val color = resources.getColor(R.color.white, null)
 		checkBox.setTextColor(color)
 
 		// Add button tint if the sdk supports it.
