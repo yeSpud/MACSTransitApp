@@ -39,7 +39,7 @@ class MapsActivity: FragmentActivity() {
 	/**
 	 * Create a variable to store our fare popup window instance.
 	 */
-	private lateinit var farePopupWindow: FarePopupWindow
+	lateinit var farePopupWindow: FarePopupWindow
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		Log.v("onCreate", "onCreate has been called!")
@@ -52,6 +52,7 @@ class MapsActivity: FragmentActivity() {
 		val binding: ActivityMapsBinding = ActivityMapsBinding.inflate(layoutInflater)
 		binding.viewmodel = viewModel
 		binding.lifecycleOwner = this
+		binding.activity = this
 
 		// Set the activity view to the map activity layout.
 		setContentView(binding.root)
@@ -217,14 +218,7 @@ class MapsActivity: FragmentActivity() {
 					}
 
 					// Check if the item that was selected was the settings button.
-					R.id.settings -> {
-
-						// Create the intent to launch the settings activity.
-						val settingsIntent = android.content.Intent(this, SettingsActivity::class.java)
-
-						// Start the settings activity.
-						startActivity(settingsIntent)
-					}
+					R.id.settings -> launchSettingsActivity()
 
 					// Check if the item that was selected was the fares button.
 					R.id.fares -> farePopupWindow.showFarePopupWindow()
@@ -303,6 +297,15 @@ class MapsActivity: FragmentActivity() {
 		if (viewModel.updater != null) {
 			viewModel.updater!!.run = false
 		}
+	}
+
+	fun launchSettingsActivity() {
+
+		// Create the intent to launch the settings activity.
+		val settingsIntent = android.content.Intent(this, SettingsActivity::class.java)
+
+		// Start the settings activity.
+		startActivity(settingsIntent)
 	}
 
 	companion object {

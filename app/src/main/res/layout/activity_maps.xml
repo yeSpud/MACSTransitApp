@@ -7,41 +7,15 @@
         <variable
             name="viewmodel"
             type="fnsb.macstransit.activities.mapsactivity.MapsViewModel" />
+
+        <variable
+            name="activity"
+            type="fnsb.macstransit.activities.mapsactivity.MapsActivity" />
     </data>
 
-    <RelativeLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_margin="10dp"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentEnd="true">
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/manage_routes"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:layout_gravity="top|end"
-                app:fabSize="normal" />
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/view_fares"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                app:fabSize="mini"
-                android:layout_alignParentEnd="true" />
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/settings"
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                app:fabSize="mini" />
-
-        </LinearLayout>
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/map"
@@ -50,6 +24,42 @@
             android:layout_height="match_parent"
             tools:context=".activities.mapsactivity.MapsActivity" />
 
-    </RelativeLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_margin="10dp"
+            android:layout_gravity="top|end">
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/manage_routes"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_gravity="top|end"
+                android:backgroundTint="@color/colorPrimary"
+                android:src="@drawable/amu_bubble_mask"
+                app:fabSize="normal" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/view_fares"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                app:fabSize="mini"
+                android:backgroundTint="@color/colorPrimary"
+                android:src="@drawable/ic_launcher_foreground"
+                android:onClick="@{() -> activity.farePopupWindow.showFarePopupWindow()}"/>
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/settings"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                app:fabSize="mini"
+                android:backgroundTint="@color/colorPrimary"
+                android:src="@drawable/settings"
+                android:onClick="@{() -> activity.launchSettingsActivity()}"/>
+
+        </LinearLayout>
+
+    </FrameLayout>
 
 </layout>
