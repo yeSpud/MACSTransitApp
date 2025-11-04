@@ -9,7 +9,6 @@ import android.widget.BaseAdapter
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.lifecycle.lifecycleScope
 import com.android.volley.VolleyError
 import fnsb.macstransit.R
 import fnsb.macstransit.activities.mapsactivity.MapsActivity
@@ -17,9 +16,6 @@ import fnsb.macstransit.activities.mapsactivity.MapsViewModel.Companion.formatTi
 import fnsb.macstransit.activities.mapsactivity.MapsViewModel.Companion.getTime
 import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.routematch.RouteMatch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject

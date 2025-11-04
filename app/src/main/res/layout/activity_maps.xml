@@ -39,7 +39,8 @@
                 android:layout_gravity="top|end"
                 android:backgroundTint="@color/colorPrimary"
                 android:src="@drawable/amu_bubble_mask"
-                app:fabSize="normal" />
+                app:fabSize="normal"
+                android:onClick="@{() -> activity.routeMenu.show()}"/>
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/view_fares"
@@ -58,7 +59,7 @@
                 app:fabSize="mini"
                 android:backgroundTint="@color/colorPrimary"
                 android:src="@drawable/settings"
-                android:onClick="@{() -> activity.launchSettingsActivity()}"/>
+                android:onClick="@{() -> activity.routeMenu.show()}"/>
 
         </LinearLayout>
 

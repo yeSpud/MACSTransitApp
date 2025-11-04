@@ -12,7 +12,7 @@
         android:layout_gravity="center_horizontal|start"/>
 
     <ImageView
-        android:id="@+id/broadcasting"
+        android:id="@+id/broadcasting_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:contentDescription="@string/not_broadcasting"/>

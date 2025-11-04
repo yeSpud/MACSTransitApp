@@ -5,6 +5,7 @@ import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.V2
 import fnsb.macstransit.R
 import android.util.Log
+import android.view.Gravity
 import android.view.Menu
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -15,9 +16,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.gms.maps.SupportMapFragment
+import com.orhanobut.dialogplus.DialogPlus
 import fnsb.macstransit.activities.LoadedRoutes
 import fnsb.macstransit.activities.SettingsActivity
 import fnsb.macstransit.activities.mapsactivity.mappopups.FarePopupWindow
+import fnsb.macstransit.activities.mapsactivity.mappopups.RouteMenu
 import fnsb.macstransit.databinding.ActivityMapsBinding
 import fnsb.macstransit.routematch.Bus
 import fnsb.macstransit.routematch.SharedStop
@@ -40,6 +43,8 @@ class MapsActivity: FragmentActivity() {
 	 * Create a variable to store our fare popup window instance.
 	 */
 	lateinit var farePopupWindow: FarePopupWindow
+
+	lateinit var routeMenu: DialogPlus
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		Log.v("onCreate", "onCreate has been called!")
@@ -99,6 +104,16 @@ class MapsActivity: FragmentActivity() {
 
 			WindowInsetsCompat.CONSUMED
 		}
+
+		routeMenu = DialogPlus.newDialog(this)
+			.setAdapter(RouteMenu(this))
+			.setContentBackgroundResource(R.color.colorPrimaryDark)
+			.setExpanded(true)
+			.setGravity(Gravity.CENTER)
+			.create()
+
+		// val closeButton = routeMenu.findViewById(R.id.close)
+		// closeButton.setOnClickListener { routeMenu.dismiss() }
 	}
 
 	override fun onDestroy() {
