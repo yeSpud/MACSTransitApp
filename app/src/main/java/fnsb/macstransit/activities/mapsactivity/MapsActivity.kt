@@ -7,6 +7,7 @@ import fnsb.macstransit.R
 import android.util.Log
 import android.view.Gravity
 import android.view.Menu
+import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -37,7 +38,7 @@ class MapsActivity: FragmentActivity() {
 	 * The view model for the maps activity.
 	 * This is usually where all the large functions and additional properties are.
 	 */
-	private lateinit var viewModel: MapsViewModel
+	lateinit var viewModel: MapsViewModel
 
 	/**
 	 * Create a variable to store our fare popup window instance.
@@ -108,8 +109,10 @@ class MapsActivity: FragmentActivity() {
 		routeMenu = DialogPlus.newDialog(this)
 			.setAdapter(RouteMenu(this))
 			.setContentBackgroundResource(R.color.colorPrimaryDark)
-			.setExpanded(true)
+			.setExpanded(false)
 			.setGravity(Gravity.CENTER)
+			.setContentWidth(ViewGroup.LayoutParams.MATCH_PARENT)
+			.setContentHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
 			.create()
 
 		// val closeButton = routeMenu.findViewById(R.id.close)
@@ -165,6 +168,7 @@ class MapsActivity: FragmentActivity() {
 		Log.v("onDestroy", "Finished onDestroy")
 	}
 
+	/*
 	override fun onCreateOptionsMenu(menu: Menu): Boolean {
 		Log.v("onCreateOptionsMenu", "onCreateOptionsMenu has been called!")
 
@@ -180,8 +184,9 @@ class MapsActivity: FragmentActivity() {
 
 		// Return what ever the default behaviour would be when calling this method if it were not overridden.
 		return super.onCreateOptionsMenu(menu)
-	}
+	}*/
 
+	/*
 	override fun onPrepareOptionsMenu(menu: Menu): Boolean {
 		Log.v("onPrepareOptionsMenu", "onPrepareOptionsMenu has been called!")
 
@@ -202,6 +207,7 @@ class MapsActivity: FragmentActivity() {
 		// Return what ever the default behaviour would be when calling this method if it were not overridden.
 		return super.onPrepareOptionsMenu(menu)
 	}
+	 */
 
 	override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
 		Log.v("onOptionsItemSelected", "onOptionsItemSelected has been called!")

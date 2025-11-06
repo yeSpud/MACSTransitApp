@@ -37,6 +37,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal|start"
-        android:layout_gravity="center_horizontal|end"/>
+        android:layout_gravity="center_horizontal|end"
+        style="?android:attr/starStyle"/>
 
 </LinearLayout>

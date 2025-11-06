@@ -31,6 +31,7 @@
     <string name="enable_night_mode">Enable dark theme</string>
     <string name="not_broadcasting">This route does not have any routes broadcasting their location</string>
     <string name="broadcasting">This route is broadcasting their location</string>
+    <string name="route_menu_header">Select routes to show</string>
 
     <!-- Bus fares -->
     <string name="view_fares">View bus fares</string>
