@@ -38,6 +38,7 @@
                 android:layout_width="wrap_content"
                 android:layout_gravity="top|end"
                 android:backgroundTint="@color/colorPrimary"
+                android:contentDescription="@string/select_to_open_routes_menu"
                 android:src="@drawable/routes_icon"
                 app:fabSize="normal"
                 android:onClick="@{() -> activity.showRoutesMenu()}"/>
@@ -46,6 +47,7 @@
                 android:id="@+id/view_fares"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
+                android:contentDescription="@string/select_to_view_fares"
                 app:fabSize="mini"
                 android:layout_marginTop="10dp"
                 android:backgroundTint="@color/colorPrimary"
@@ -56,6 +58,7 @@
                 android:id="@+id/settings"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
+                android:contentDescription="@string/select_to_launch_app_settings"
                 app:fabSize="mini"
                 android:backgroundTint="@color/colorPrimary"
                 android:src="@drawable/settings"

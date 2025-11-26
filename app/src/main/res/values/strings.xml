@@ -32,6 +32,9 @@
     <string name="not_broadcasting">This route does not have any routes broadcasting their location</string>
     <string name="broadcasting">This route is broadcasting their location</string>
     <string name="route_menu_header">Select routes to show</string>
+    <string name="select_to_open_routes_menu">Select to open routes menu</string>
+    <string name="select_to_view_fares">Select to view bus fares</string>
+    <string name="select_to_launch_app_settings">Select to launch app settings</string>
 
     <!-- Bus fares -->
     <string name="view_fares">View bus fares</string>
