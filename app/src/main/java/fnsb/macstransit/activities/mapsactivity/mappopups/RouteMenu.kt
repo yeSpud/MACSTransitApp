@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.LinearLayout
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.children
 import com.orhanobut.dialogplus.DialogPlus
 import fnsb.macstransit.R
@@ -18,6 +19,7 @@ import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.CurrentSettings
 import fnsb.macstransit.settings.V2
 import org.json.JSONException
+import kotlin.math.PI
 
 class RouteMenu(private val mapsActivity: MapsActivity): BaseAdapter() {
 
@@ -48,8 +50,24 @@ class RouteMenu(private val mapsActivity: MapsActivity): BaseAdapter() {
 		Log.d("RouteMenu", "Setting up menu for first time")
 
 		val settings = CurrentSettings.settingsImplementation as V2
+
+		val routesWithBuses = mutableListOf<String>()
+		for (bus in mapsActivity.viewModel.buses) {
+			if (!routesWithBuses.contains(bus.route.name)) {
+				routesWithBuses.add(bus.route.name)
+			}
+		}
+
 		for ((name, route) in LoadedRoutes.routes) {
 			val selectableRoute = SelectableRoute(mapsActivity)
+
+			// If the route has buses broadcasting then set the icon appropriately
+			if (routesWithBuses.contains(name)) {
+				selectableRoute.broadcastingIcon.setImageResource(R.drawable.wifi_icon)
+			} else {
+				selectableRoute.broadcastingIcon.setImageResource(R.drawable.not_broadcasting)
+			}
+
 			selectableRoute.routeName.text = name
 			selectableRoute.routeName.backgroundTintList = ColorStateList.valueOf(route.color)
 
