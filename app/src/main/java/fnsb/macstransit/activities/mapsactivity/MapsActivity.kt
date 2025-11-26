@@ -5,7 +5,9 @@ import fnsb.macstransit.routematch.Route
 import fnsb.macstransit.settings.V2
 import fnsb.macstransit.R
 import android.util.Log
+import android.view.Gravity
 import android.view.Menu
+import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -15,9 +17,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.gms.maps.SupportMapFragment
+import com.orhanobut.dialogplus.DialogPlus
 import fnsb.macstransit.activities.LoadedRoutes
 import fnsb.macstransit.activities.SettingsActivity
 import fnsb.macstransit.activities.mapsactivity.mappopups.FarePopupWindow
+import fnsb.macstransit.activities.mapsactivity.mappopups.RouteMenu
 import fnsb.macstransit.databinding.ActivityMapsBinding
 import fnsb.macstransit.routematch.Bus
 import fnsb.macstransit.routematch.SharedStop
@@ -34,12 +38,14 @@ class MapsActivity: FragmentActivity() {
 	 * The view model for the maps activity.
 	 * This is usually where all the large functions and additional properties are.
 	 */
-	private lateinit var viewModel: MapsViewModel
+	lateinit var viewModel: MapsViewModel
 
 	/**
 	 * Create a variable to store our fare popup window instance.
 	 */
-	private lateinit var farePopupWindow: FarePopupWindow
+	lateinit var farePopupWindow: FarePopupWindow
+
+	lateinit var routeMenu: DialogPlus
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		Log.v("onCreate", "onCreate has been called!")
@@ -52,6 +58,7 @@ class MapsActivity: FragmentActivity() {
 		val binding: ActivityMapsBinding = ActivityMapsBinding.inflate(layoutInflater)
 		binding.viewmodel = viewModel
 		binding.lifecycleOwner = this
+		binding.activity = this
 
 		// Set the activity view to the map activity layout.
 		setContentView(binding.root)
@@ -149,139 +156,6 @@ class MapsActivity: FragmentActivity() {
 		Log.v("onDestroy", "Finished onDestroy")
 	}
 
-	override fun onCreateOptionsMenu(menu: Menu): Boolean {
-		Log.v("onCreateOptionsMenu", "onCreateOptionsMenu has been called!")
-
-		// Setup the inflater.
-		menuInflater.inflate(R.menu.menu, menu)
-
-		// Create the menu item that corresponds to the route object.
-		for (name in LoadedRoutes.routes.keys) {
-
-			// Make sure the item is checkable.
-			menu.add(R.id.routes, name.hashCode(), Menu.NONE, name).isCheckable = true
-		}
-
-		// Return what ever the default behaviour would be when calling this method if it were not overridden.
-		return super.onCreateOptionsMenu(menu)
-	}
-
-	override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-		Log.v("onPrepareOptionsMenu", "onPrepareOptionsMenu has been called!")
-
-		// Iterate through all the routes that can be tracked (if allRoutes isn't null).
-		for ((name, route) in LoadedRoutes.routes) {
-
-			// Determine whether or not the menu item should be checked before hand.
-			val checked: Boolean = route.enabled
-
-			// Set the menu item to be checked if the route it corresponds to is enabled.
-			Log.d("onPrepareOptionsMenu", "Setting $name to be enabled: $checked")
-			menu.findItem(name.hashCode()).isChecked = checked
-		}
-
-		// Check if night mode should be enabled by default, and set the checkbox to that value.
-		menu.findItem(R.id.night_mode).isChecked = (CurrentSettings.settingsImplementation as V2).darktheme
-
-		// Return what ever the default behaviour would be when calling this method if it were not overridden.
-		return super.onPrepareOptionsMenu(menu)
-	}
-
-	override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
-		Log.v("onOptionsItemSelected", "onOptionsItemSelected has been called!")
-
-		// Identify which method to call based on the item ID.
-		// Check if the item that was selected belongs to the other group
-		when (item.groupId) {
-			R.id.other -> {
-
-				// Identify what action to execute based on the item ID.
-				when (item.itemId) {
-
-					// Check if the item that was selected was the night mode toggle.
-					R.id.night_mode -> {
-						if (viewModel.map == null) {
-							return false
-						}
-
-						Log.d("onOptionsItemSelected", "Toggling night mode...")
-
-						// Create a boolean to store the resulting value of the menu item.
-						val enabled = !item.isChecked
-
-						// Toggle night mode
-						MapsViewModel.toggleNightMode(viewModel.map!!, this, enabled)
-
-						// Set the menu item's checked value to that of the enabled value.
-						item.isChecked = enabled
-					}
-
-					// Check if the item that was selected was the settings button.
-					R.id.settings -> {
-
-						// Create the intent to launch the settings activity.
-						val settingsIntent = android.content.Intent(this, SettingsActivity::class.java)
-
-						// Start the settings activity.
-						startActivity(settingsIntent)
-					}
-
-					// Check if the item that was selected was the fares button.
-					R.id.fares -> farePopupWindow.showFarePopupWindow()
-
-					// Since the item's ID was not part of anything accounted for (uh oh), log it as a warning!
-					else -> Log.w("onOptionsItemSelected", "Unaccounted menu item in the other group was checked!")
-				}
-			}
-
-			// Check if the item that was selected belongs to the routes group.
-			R.id.routes -> {
-
-				// Create a boolean to store the resulting value of the menu item.
-				val enabled = !item.isChecked
-
-				// Get the route that was selected.
-				val route: Route = LoadedRoutes.routes[item.title] ?: return super.onOptionsItemSelected(item)
-
-				// Set the route to enabled.
-				route.enabled = enabled
-				Log.d("onOptionsItemSelected", "Selected route ${route.name}")
-
-				// If the map is null at this point just return early (skip redrawing).
-				if (viewModel.map == null) {
-					return super.onOptionsItemSelected(item)
-				}
-
-				// Try to (re)draw the buses onto the map.
-				// Because we are iterating a static variable that is modified on a different thread
-				// there is a possibility of a concurrent modification.
-				try {
-					viewModel.drawBuses()
-				} catch (e: ConcurrentModificationException) {
-					Log.e("onOptionsItemSelected",
-					      "Unable to redraw all buses due to concurrent modification", e)
-				}
-
-				// (Re) draw the stops onto the map.
-				viewModel.drawStops()
-
-				// (Re) draw the routes onto the map (if enabled).
-				if ((CurrentSettings.settingsImplementation as V2).polylines) {
-					viewModel.drawRoutes()
-				}
-
-				// Set the menu item's checked value to that of the enabled value
-				item.isChecked = enabled
-			}
-
-			// Since the item's ID and group was not part of anything accounted for (uh oh), log it as a warning!
-			else -> Log.w("onOptionsItemSelected", "Unaccounted menu item was checked!")
-		}
-
-		// Return what ever the default behaviour would be when calling this method if it were not overridden.
-		return super.onOptionsItemSelected(item)
-	}
-
 	override fun onResume() {
 		Log.v("onResume", "onResume has been called!")
 		super.onResume()
@@ -303,6 +177,32 @@ class MapsActivity: FragmentActivity() {
 		if (viewModel.updater != null) {
 			viewModel.updater!!.run = false
 		}
+	}
+
+	fun showRoutesMenu() {
+
+		// Constantly recreating the dialog window is wasteful,
+		// but it fixes a bug where after the menu was dismissed its height would be crushed back down to minimums
+		routeMenu = DialogPlus.newDialog(this)
+			.setAdapter(RouteMenu(this))
+			.setContentBackgroundResource(R.color.colorPrimaryDark)
+			.setExpanded(false)
+			.setGravity(Gravity.CENTER)
+			.setContentWidth(ViewGroup.LayoutParams.MATCH_PARENT)
+			.setContentHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+			.setOnDismissListener { dialog -> RouteMenu.onDismissListener(this, dialog) }
+			.create()
+
+		routeMenu.show()
+	}
+
+	fun launchSettingsActivity() {
+
+		// Create the intent to launch the settings activity.
+		val settingsIntent = android.content.Intent(this, SettingsActivity::class.java)
+
+		// Start the settings activity.
+		startActivity(settingsIntent)
 	}
 
 	companion object {

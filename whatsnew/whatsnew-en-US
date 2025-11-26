@@ -1,3 +1,1 @@
-+ Added support for android API 36
-* Fixed an issue with edge to edge displays putting elements out of reach
-- Dropped support for Android versions < 8.1
++ Created a completely new menu for selecting routes

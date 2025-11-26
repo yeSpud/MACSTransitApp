@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <CheckBox
+        android:id="@+id/selected"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:gravity="center_horizontal|start"
+        android:textColor="@color/white"
+        android:layout_gravity="center_horizontal|start"/>
+
+    <ImageView
+        android:id="@+id/broadcasting_icon"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:contentDescription="@string/not_broadcasting"/>
+
+    <TextView
+        android:id="@+id/route_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textSize="25sp"
+        android:layout_marginStart="10dp"
+        android:background="@drawable/rounded_corner" />
+
+    <!--<TextView
+        android:id="@+id/route_frequency"
+        android:layout_width="wrap_content"
+        android:textSize="25sp"
+        android:layout_height="wrap_content"/>-->
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"/>
+
+    <CheckBox
+        android:id="@+id/favorite_route"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:gravity="center_horizontal|start"
+        android:layout_gravity="center_horizontal|end"
+        style="?android:attr/starStyle"/>
+
+</LinearLayout>
