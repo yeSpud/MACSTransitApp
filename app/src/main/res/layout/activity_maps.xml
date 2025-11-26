@@ -25,6 +25,7 @@
             tools:context=".activities.mapsactivity.MapsActivity" />
 
         <LinearLayout
+            android:id="@+id/buttons"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="end"
@@ -50,6 +51,7 @@
                 android:contentDescription="@string/select_to_view_fares"
                 app:fabSize="mini"
                 android:layout_marginTop="10dp"
+                android:layout_marginBottom="5dp"
                 android:backgroundTint="@color/colorPrimary"
                 android:src="@drawable/fares"
                 android:onClick="@{() -> activity.farePopupWindow.showFarePopupWindow()}"/>

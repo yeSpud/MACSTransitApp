@@ -149,6 +149,11 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 		Log.v("MapCoroutine", "Awaiting map...")
 		val map = supportFragment.awaitMap()
 
+		val insets = activity.bars
+		if (insets != null) {
+			map.setPadding(insets.left,insets.top, insets.right, insets.bottom)
+		}
+
 		// Move the camera to the 'home' position.
 		Log.v("MapCoroutine", "Moving camera to home position")
 		map.moveCamera(com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(

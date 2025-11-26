@@ -38,14 +38,14 @@
             android:label="@string/settings"
             android:launchMode="standard"
             android:screenOrientation="portrait"
-            android:theme="@style/AppThemeNoActionBar"
+            android:theme="@style/AppTheme"
             tools:ignore="LockedOrientationActivity" />
 
         <activity
             android:name=".activities.loadingactivity.LoadingActivity"
             android:launchMode="standard"
             android:screenOrientation="portrait"
-            android:theme="@style/AppThemeNoActionBar"
+            android:theme="@style/AppTheme"
             android:exported="true"
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
