@@ -54,6 +54,7 @@ class RouteMenu(private val mapsActivity: MapsActivity): BaseAdapter() {
 			selectableRoute.routeName.backgroundTintList = ColorStateList.valueOf(route.color)
 
 			selectableRoute.selected.isChecked = route.enabled
+			/*
 			selectableRoute.selected.setOnCheckedChangeListener { _, isChecked ->
 				LoadedRoutes.routes[name]!!.enabled = isChecked
 
@@ -76,7 +77,7 @@ class RouteMenu(private val mapsActivity: MapsActivity): BaseAdapter() {
 				if (settings.polylines) {
 					mapsActivity.viewModel.drawRoutes()
 				}
-			}
+			}*/
 
 			selectableRoute.favoriteRoute.isChecked = settings.favoriteRouteNames.contains(name)
 			/*
@@ -97,23 +98,29 @@ class RouteMenu(private val mapsActivity: MapsActivity): BaseAdapter() {
 	}
 
 	companion object {
-		fun onDismissListener(context: Context, dialog: DialogPlus) {
-			val favoritedRoutes: MutableList<Route> = mutableListOf()
 
+
+
+		fun onDismissListener(mapsActivity: MapsActivity, dialog: DialogPlus) {
 			val routesContainer: LinearLayout = dialog.findViewById(R.id.routes) as LinearLayout
 
+			val settings = CurrentSettings.settingsImplementation as V2
+
+			val favoritedRoutes: MutableList<Route> = mutableListOf()
 			for (selectableRoute in routesContainer.children) {
 				if (selectableRoute !is SelectableRoute) {
 					Log.w("onDismissListener", "Entry in routes container isn't selectable route")
+					return
 				}
 
-				if ((selectableRoute as SelectableRoute).favoriteRoute.isChecked) {
+				LoadedRoutes.routes[selectableRoute.routeName.text]?.enabled = selectableRoute.selected.isChecked
+
+				if (selectableRoute.favoriteRoute.isChecked) {
 					val route = LoadedRoutes.routes[selectableRoute.routeName.text]
 					favoritedRoutes.add(route!!)
 				}
 			}
 
-			val settings = CurrentSettings.settingsImplementation as V2
 			val settingsJson = try {
 				settings.formatSettingsToJsonString(
 					settings.traffic,
@@ -125,10 +132,28 @@ class RouteMenu(private val mapsActivity: MapsActivity): BaseAdapter() {
 				Log.e("RouteMenu", "Json error when writing settings", e)
 				return
 			}
-			settings.writeSettingsToFile(settingsJson.toString(), context)
+			settings.writeSettingsToFile(settingsJson.toString(), mapsActivity)
 
 			// Reload the settings
 			settings.parseSettings(settingsJson)
+
+			// Try to (re)draw the buses onto the map.
+			// Because we are iterating a static variable that is modified on a different thread
+			// there is a possibility of a concurrent modification.
+			try {
+				mapsActivity.viewModel.drawBuses()
+			} catch (e: ConcurrentModificationException) {
+				Log.e("onOptionsItemSelected",
+					"Unable to redraw all buses due to concurrent modification", e)
+			}
+
+			// (Re) draw the stops onto the map.
+			mapsActivity.viewModel.drawStops()
+
+			// (Re) draw the routes onto the map (if enabled).
+			if (settings.polylines) {
+				mapsActivity.viewModel.drawRoutes()
+			}
 		}
 	}
 }

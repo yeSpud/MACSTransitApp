@@ -9,6 +9,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal|start"
+        android:textColor="@color/white"
         android:layout_gravity="center_horizontal|start"/>
 
     <ImageView
@@ -31,6 +32,11 @@
         android:layout_width="wrap_content"
         android:textSize="25sp"
         android:layout_height="wrap_content"/>-->
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"/>
 
     <CheckBox
         android:id="@+id/favorite_route"
