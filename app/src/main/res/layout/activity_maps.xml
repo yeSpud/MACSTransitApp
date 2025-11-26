@@ -40,7 +40,7 @@
                 android:backgroundTint="@color/colorPrimary"
                 android:src="@drawable/amu_bubble_mask"
                 app:fabSize="normal"
-                android:onClick="@{() -> activity.routeMenu.show()}"/>
+                android:onClick="@{() -> activity.showRoutesMenu()}"/>
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/view_fares"

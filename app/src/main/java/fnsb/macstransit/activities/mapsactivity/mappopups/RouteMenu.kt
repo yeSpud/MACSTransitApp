@@ -54,36 +54,13 @@ class RouteMenu(private val mapsActivity: MapsActivity): BaseAdapter() {
 			selectableRoute.routeName.backgroundTintList = ColorStateList.valueOf(route.color)
 
 			selectableRoute.selected.isChecked = route.enabled
-			/*
-			selectableRoute.selected.setOnCheckedChangeListener { _, isChecked ->
-				LoadedRoutes.routes[name]!!.enabled = isChecked
 
-				// todo: Only redraw on menu close
-
-				// Try to (re)draw the buses onto the map.
-				// Because we are iterating a static variable that is modified on a different thread
-				// there is a possibility of a concurrent modification.
-				try {
-					mapsActivity.viewModel.drawBuses()
-				} catch (e: ConcurrentModificationException) {
-					Log.e("onOptionsItemSelected",
-						"Unable to redraw all buses due to concurrent modification", e)
-				}
-
-				// (Re) draw the stops onto the map.
-				mapsActivity.viewModel.drawStops()
-
-				// (Re) draw the routes onto the map (if enabled).
-				if (settings.polylines) {
-					mapsActivity.viewModel.drawRoutes()
-				}
-			}*/
+			// Clicking the route name also checks the box
+			selectableRoute.routeName.setOnClickListener {
+				selectableRoute.selected.isChecked = !selectableRoute.selected.isChecked
+			}
 
 			selectableRoute.favoriteRoute.isChecked = settings.favoriteRouteNames.contains(name)
-			/*
-			selectableRoute.favoriteRoute.setOnCheckedChangeListener { _, isChecked ->
-				// TODO
-			}*/
 
 			routesContainer.addView(selectableRoute)
 		}
@@ -98,8 +75,6 @@ class RouteMenu(private val mapsActivity: MapsActivity): BaseAdapter() {
 	}
 
 	companion object {
-
-
 
 		fun onDismissListener(mapsActivity: MapsActivity, dialog: DialogPlus) {
 			val routesContainer: LinearLayout = dialog.findViewById(R.id.routes) as LinearLayout
