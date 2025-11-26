@@ -113,10 +113,8 @@ class MapsActivity: FragmentActivity() {
 			.setGravity(Gravity.CENTER)
 			.setContentWidth(ViewGroup.LayoutParams.MATCH_PARENT)
 			.setContentHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+			.setOnDismissListener { dialog -> RouteMenu.onDismissListener(this, dialog) }
 			.create()
-
-		// val closeButton = routeMenu.findViewById(R.id.close)
-		// closeButton.setOnClickListener { routeMenu.dismiss() }
 	}
 
 	override fun onDestroy() {
@@ -209,6 +207,7 @@ class MapsActivity: FragmentActivity() {
 	}
 	 */
 
+	/*
 	override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
 		Log.v("onOptionsItemSelected", "onOptionsItemSelected has been called!")
 
@@ -295,7 +294,7 @@ class MapsActivity: FragmentActivity() {
 
 		// Return what ever the default behaviour would be when calling this method if it were not overridden.
 		return super.onOptionsItemSelected(item)
-	}
+	}*/
 
 	override fun onResume() {
 		Log.v("onResume", "onResume has been called!")

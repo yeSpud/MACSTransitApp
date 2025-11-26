@@ -59,7 +59,7 @@
                 app:fabSize="mini"
                 android:backgroundTint="@color/colorPrimary"
                 android:src="@drawable/settings"
-                android:onClick="@{() -> activity.routeMenu.show()}"/>
+                android:onClick="@{() -> activity.launchSettingsActivity()}"/>
 
         </LinearLayout>
 
