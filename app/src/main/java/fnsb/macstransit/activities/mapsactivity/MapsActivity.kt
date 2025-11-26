@@ -101,8 +101,6 @@ class MapsActivity: FragmentActivity() {
 		Log.v("onCreate", "Setting up fare window")
 		farePopupWindow = FarePopupWindow(this)
 
-
-
 		ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
 			val bars = insets.getInsets(
 				WindowInsetsCompat.Type.systemBars()
@@ -111,10 +109,6 @@ class MapsActivity: FragmentActivity() {
 
 			binding.buttons.setPadding(bars.left,bars.top, bars.right, bars.bottom)
 			this.bars = bars
-			/*
-			view.updatePadding(
-
-			)*/
 
 			WindowInsetsCompat.CONSUMED
 		}
@@ -225,6 +219,5 @@ class MapsActivity: FragmentActivity() {
 		 * This will be set to true coming out of SplashActivity
 		 */
 		var firstRun: Boolean = true
-
 	}
 }

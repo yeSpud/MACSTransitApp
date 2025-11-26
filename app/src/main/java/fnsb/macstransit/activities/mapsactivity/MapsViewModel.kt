@@ -2,8 +2,6 @@ package fnsb.macstransit.activities.mapsactivity
 
 import android.app.Application
 import android.util.Log
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.BitmapDescriptor
@@ -155,18 +153,6 @@ class MapsViewModel(application: Application): androidx.lifecycle.AndroidViewMod
 		if (insets != null) {
 			map.setPadding(insets.left,insets.top, insets.right, insets.bottom)
 		}
-
-		/*
-		ViewCompat.setOnApplyWindowInsetsListener(activity.binding.root) { _, insets ->
-			val bars = insets.getInsets(
-				WindowInsetsCompat.Type.systemBars()
-						or WindowInsetsCompat.Type.displayCutout()
-			)
-
-			activity.binding.buttons.setPadding(bars.left,bars.top, bars.right, bars.bottom)
-
-			WindowInsetsCompat.CONSUMED
-		}*/
 
 		// Move the camera to the 'home' position.
 		Log.v("MapCoroutine", "Moving camera to home position")
