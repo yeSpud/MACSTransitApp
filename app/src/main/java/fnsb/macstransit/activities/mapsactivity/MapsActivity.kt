@@ -1,16 +1,17 @@
 package fnsb.macstransit.activities.mapsactivity
 
+import android.graphics.Color
+import androidx.core.graphics.Insets
 import android.os.Bundle
 import fnsb.macstransit.routematch.Route
-import fnsb.macstransit.settings.V2
 import fnsb.macstransit.R
 import android.util.Log
 import android.view.Gravity
-import android.view.Menu
 import android.view.ViewGroup
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -47,15 +48,25 @@ class MapsActivity: FragmentActivity() {
 
 	lateinit var routeMenu: DialogPlus
 
+	lateinit var binding: ActivityMapsBinding
+
+	var bars: Insets? = null
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		Log.v("onCreate", "onCreate has been called!")
+
+		// https://stackoverflow.com/questions/76960994/enableedgetoedge-navigation-system-bar-is-not-fully-transparent
+		enableEdgeToEdge(
+			statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
+			navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT) // light causes internally enforce the navigation bar to be fully transparent
+		)
 		super.onCreate(savedInstanceState)
 
 		// Setup view model.
 		viewModel = ViewModelProvider(this)[MapsViewModel::class.java]
 
 		// Setup binding.
-		val binding: ActivityMapsBinding = ActivityMapsBinding.inflate(layoutInflater)
+		binding = ActivityMapsBinding.inflate(layoutInflater)
 		binding.viewmodel = viewModel
 		binding.lifecycleOwner = this
 		binding.activity = this
@@ -90,18 +101,20 @@ class MapsActivity: FragmentActivity() {
 		Log.v("onCreate", "Setting up fare window")
 		farePopupWindow = FarePopupWindow(this)
 
-		ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+
+
+		ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
 			val bars = insets.getInsets(
 				WindowInsetsCompat.Type.systemBars()
 						or WindowInsetsCompat.Type.displayCutout()
 			)
 
+			binding.buttons.setPadding(bars.left,bars.top, bars.right, bars.bottom)
+			this.bars = bars
+			/*
 			view.updatePadding(
-				left = bars.left,
-				top = bars.top,
-				right = bars.right,
-				bottom = bars.bottom
-			)
+
+			)*/
 
 			WindowInsetsCompat.CONSUMED
 		}
